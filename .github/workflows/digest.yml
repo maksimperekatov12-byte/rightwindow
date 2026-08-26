@@ -1,0 +1,21 @@
+name: daily-digest
+on:
+  schedule:
+    - cron: '7 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+        run: |
+          npm i --no-save @vercel/blob > /dev/null 2>&1
+          node scripts/send-digest.mjs

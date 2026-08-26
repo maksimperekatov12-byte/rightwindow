@@ -410,3 +410,35 @@ footer a { color: var(--brand); }
 .fb.dismiss { margin-left: auto; }
 .fb.dismiss.on { background: var(--warm-wash); border-color: var(--warm); color: var(--warm); }
 .fb:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.eyebrow { font: 700 10.5px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand); margin-bottom: 10px; }
+.pipe {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 14px;
+  border-radius: 12px; padding: 11px 15px;
+  background: var(--warm-wash); border: 1px solid rgba(138, 100, 16, 0.3);
+  box-shadow: var(--glass-edge); font-size: 14px; color: var(--warm);
+}
+.pipe b { font-family: var(--mono); font-size: 19px; letter-spacing: -0.02em; }
+.pipe span { font-size: 12px; color: var(--ink-3); }
+.fit-note { margin-top: 12px !important; font-size: 13px !important; color: var(--ink-3) !important; max-width: 52ch; }
+.bullet {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; border-radius: 50%; margin-right: 6px;
+  font: 700 10px/1 var(--display); color: #fff; vertical-align: -3px;
+}
+.bullet.mn { background: #00933C; }
+.bullet.bk { background: #FF6319; }
+.bullet.qn { background: #FCCC0A; color: #1c1c1c; }
+.bullet.bx { background: #EE352E; }
+.chip-btn.on .bullet { outline: 1.5px solid rgba(255, 255, 255, 0.7); }
+.skyline { margin: 40px -20px 0; color: var(--ink); opacity: 0.13; line-height: 0; }
+.digest-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1 1 320px; }
+.digest-form input {
+  flex: 1 1 180px; min-width: 160px; min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 999px; padding: 10px 16px;
+  font: inherit; font-size: 14px; color: #fff; background: rgba(255, 255, 255, 0.14);
+}
+.digest-form input::placeholder { color: rgba(255, 255, 255, 0.55); }
+.digest-form input:focus { outline: 2px solid #fff; outline-offset: -1px; }
+.digest-form .btn.solid { background: #fff; color: var(--brand-2); border-color: #fff; }
+.digest-note { font-size: 12px; color: rgba(255, 255, 255, 0.75); }

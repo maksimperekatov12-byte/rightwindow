@@ -252,6 +252,29 @@ const PROFILES = {
   },
 };
 
+const fmtUsd = (n) =>
+  n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : `$${Math.round(n / 1000)}K`;
+
+const PIPE = {
+  qewi: (t) => ({ v: t.nonFilers10A * 5000, n: `${t.nonFilers10A.toLocaleString('en-US')} unfiled buildings × ~$5K per FISP inspection` }),
+  restoration: (t) => ({ v: t.swarmpCarryover * 100000, n: `${t.swarmpCarryover.toLocaleString('en-US')} open SWARMP scopes × ~$100K per mandated repair` }),
+  elevator: (t, f) => {
+    const d = f.reduce((s, c) => s + (c.elevator ? c.elevator.cat1Missing + c.elevator.cat5Due : 0), 0);
+    return { v: d * 650, n: `${d} overdue devices on this feed × ~$650 per test` };
+  },
+  insurance: (t, f) => ({ v: f.length * 12000, n: `${f.length} buildings × ~$12K annual premium` }),
+  lender: (t, f) => ({ v: f.length * 200000, n: `${f.length} buildings × ~$200K financeable scope` }),
+  equipment: (t, f) => ({ v: f.length * 45000, n: `${f.length} mandated scopes × ~$45K shed and scaffold` }),
+  propmgmt: (t, f) => ({ v: f.length * 50000, n: `${f.length} buildings changing hands × ~$50K/yr management fee` }),
+  legal: (t, f) => ({ v: f.length * 7500, n: `${f.length} buildings with hearings or penalties × ~$7.5K per matter` }),
+  cre: (t, f) => ({ v: f.length * 160000, n: `${f.length} pressured owners × ~2% fee on a typical $8M sale` }),
+  staffing: (t, f, c) => ({ v: c.length * 25000, n: `${c.length} fresh awards × ~$25K staffing package` }),
+  pos: (t, f, c, o) => ({ v: o.length * 4000, n: `${o.length} openings × ~$4K/yr per venue` }),
+  fnb: (t, f, c, o) => ({ v: o.length * 60000, n: `${o.length} openings × ~$60K/yr supply` }),
+  marketing: (t, f, c, o) => ({ v: o.length * 15000, n: `${o.length} openings × ~$15K launch budget` }),
+  signage: (t, f, c, o) => ({ v: o.length * 20000, n: `${o.length} openings × ~$20K storefront` }),
+};
+
 const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'marketing', 'signage', 'explore'];
 
 const BADGE = {
@@ -341,11 +364,14 @@ export default function App() {
   const [copiedId, setCopiedId] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
   const [query, setQuery] = useState('');
-  const [boro, setBoro] = useState('all');
+  const [boro, setBoroRaw] = useState(() => loadLS('rw.boro', 'all'));
+  const setBoro = (b) => { setBoroRaw(b); saveLS('rw.boro', b); };
   const [onlyNew, setOnlyNew] = useState(false);
   const [onlyWatch, setOnlyWatch] = useState(false);
   const [watch, setWatch] = useState(() => loadLS('rw.watch', {}));
   const [walletReady, setWalletReady] = useState(false);
+  const [email, setEmail] = useState(() => loadLS('rw.email', ''));
+  const [emailSaved, setEmailSaved] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
   const reduce = useReducedMotion();
@@ -380,16 +406,17 @@ export default function App() {
           uid: uid.current,
           data: {
             profile: profileKey,
+            boro,
             watch: Object.keys(watch),
             feedback: fb,
             lastFeedSeen: data.generatedAt,
-            channels: { email: null, walletSerial: null },
+            channels: { email: email || null, walletSerial: null },
           },
         }),
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(t);
-  }, [profileKey, watch, fb]);
+  }, [profileKey, watch, fb, boro, email]);
 
   useEffect(() => {
     fetch('/api/pass/status')
@@ -610,6 +637,13 @@ export default function App() {
     }
   };
 
+  const pipe = useMemo(() => {
+    const fn = PIPE[profileKey];
+    if (!fn) return null;
+    const r = fn(data.facades.totals, facadeFeed, contractsBase, data.openings);
+    return r && r.v > 0 ? r : null;
+  }, [profileKey, facadeFeed, contractsBase]);
+
   const heroText =
     vertical === 'facades'
       ? fv.hero
@@ -742,6 +776,7 @@ export default function App() {
 
       <div className="lede">
         <section className="hero">
+          <div className="eyebrow">New York City · public records, read hourly</div>
           <AnimatePresence mode="popLayout">
             <motion.h1
               key={vertical + profileKey}
@@ -754,6 +789,16 @@ export default function App() {
             </motion.h1>
           </AnimatePresence>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
+          {pipe && (
+            <motion.div className="pipe" {...fade(0.1)}>
+              <b>≈ {fmtUsd(pipe.v)}</b> of potential work on this feed
+              <span>back-of-napkin: {pipe.n}</span>
+            </motion.div>
+          )}
+          <motion.p className="fit-note" {...fade(0.14)}>
+            Nothing here is broadcast — every signal is matched to what you sell and where you work. Your trade and
+            your borough shape the feed and the digest.
+          </motion.p>
         </section>
         {vertical === 'facades' && (
           <div className="stats">
@@ -812,9 +857,16 @@ export default function App() {
               <option value="money">Sort: penalties owed</option>
             </select>
             <div className="chips" role="group" aria-label="Borough">
-              {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx'].map((b) => (
+              {[
+                ['all', 'All', '', ''],
+                ['Manhattan', 'Manhattan', 'mn', '4'],
+                ['Brooklyn', 'Brooklyn', 'bk', 'B'],
+                ['Queens', 'Queens', 'qn', 'N'],
+                ['Bronx', 'Bronx', 'bx', '2'],
+              ].map(([b, label, line, glyph]) => (
                 <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} onClick={() => setBoro(b)}>
-                  {b === 'all' ? 'All' : b}
+                  {line && <span className={'bullet ' + line} aria-hidden="true">{glyph}</span>}
+                  {label}
                   <small>{b === 'all' ? facadeFeed.length : boroCounts[b] || 0}</small>
                 </button>
               ))}
@@ -1011,7 +1063,9 @@ export default function App() {
                             )}
                             <div className="fact">
                               <div className="k">Source</div>
-                              <div className="v">DOB NOW · HPD · ECB — official city records, updated daily</div>
+                              <div className="v">
+                                DOB NOW {data.sources?.facades || ''} · ECB {data.sources?.ecb || ''} · HPD {data.sources?.hpd || ''} — official city records
+                              </div>
                             </div>
                             <div className="fact">
                               <div className="k">Penalty meter</div>
@@ -1150,7 +1204,7 @@ export default function App() {
                   )}
                   <div className="fact">
                     <div className="k">Source</div>
-                    <div className="v">City Record — Recent Contract Awards, updated daily</div>
+                    <div className="v">City Record — Recent Contract Awards, as of {data.sources?.awards || 'today'}</div>
                   </div>
                 </div>
                 <div className="na-cap">Next action</div>
@@ -1253,7 +1307,7 @@ export default function App() {
                   )}
                   <div className="fact">
                     <div className="k">Source</div>
-                    <div className="v">NY State Liquor Authority — pending licenses, updated daily</div>
+                    <div className="v">NY State Liquor Authority — pending licenses, as of {data.sources?.sla || 'today'}</div>
                   </div>
                 </div>
                 <div className="na-cap">Next action</div>
@@ -1301,11 +1355,36 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <div className="skyline" aria-hidden="true">
+        <svg viewBox="0 0 1200 90" preserveAspectRatio="none" width="100%" height="90">
+          <path
+            fill="currentColor"
+            d="M0 90V64h28V44h14v20h22V30h10v-8h6v8h10v34h26V50h30v40h24V38h12V26h8v12h12v52h34V56h26v34h20V20h8l4-16 4 16h8v70h30V60h34v30h26V34h10V22h8v12h10v56h38V48h24v42h28V40h14v-8h6v8h14v50h32V26h6l3-22 3 22h6v64h36V58h30v32h24V44h26v46h30V16h6l3-14 3 14h6v74h38V54h28v36h26V36h12v-8h6v8h12v54h34V62h30v28h22V42h24v48h30V56h28v34H0z"
+          />
+        </svg>
+      </div>
+
       <div className="pilot">
         <div>
           <b>Want this watching your territory?</b>
           <span>Pilots are open and free while we learn — your vertical, your borough, refreshed hourly.</span>
         </div>
+        <form
+          className="digest-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const v = e.target.elements.em.value.trim();
+            if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return;
+            setEmail(v);
+            saveLS('rw.email', v);
+            setEmailSaved(true);
+            setTimeout(() => setEmailSaved(false), 2600);
+          }}
+        >
+          <input name="em" type="email" required placeholder="you@company.com" defaultValue={email} aria-label="Email for the daily digest" />
+          <button className="btn solid" type="submit">{emailSaved ? 'Saved' : email ? 'Update digest email' : 'Get the daily digest'}</button>
+          {email && !emailSaved && <span className="digest-note">Daily, only when something new matches you</span>}
+        </form>
         <div className="pilot-actions">
           {walletReady && (
             <a className="wallet-btn" href="/api/pass">
@@ -1323,10 +1402,11 @@ export default function App() {
       <footer>
         Right Window reads New York's public registers hourly: the register publishes the event, the event opens a
         window, you get the window — with a contact and a reason to call. Every card links to the city's own record,
-        and every source passes a written license gate before collection (the ACRIS web portal prohibits robots, so
-        deeds come from the monthly open-data batch while HPD registrations are watched daily). The same engine runs
-        in production for government procurement and film/TV music licensing. Built by{' '}
-        <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
+        and every source passes a written license gate before collection. Freshness is the city's, not ours — we show
+        it per source: DOB {data.sources?.facades}, ECB {data.sources?.ecb}, elevators {data.sources?.elevators},
+        awards {data.sources?.awards}, SLA {data.sources?.sla}, HPD registrations {data.sources?.hpd}, ACRIS deeds
+        through {data.sources?.acrisThrough}. The same engine runs in production for government procurement and
+        film/TV music licensing. Built by <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
       </footer>
     </div>
   );

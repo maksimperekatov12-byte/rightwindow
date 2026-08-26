@@ -487,8 +487,30 @@ const whatsNew = {
 };
 console.log("What's new (48h):", whatsNew);
 
+// Real per-source freshness, shown in the UI instead of promises.
+async function sourceMeta(id, host = 'data.cityofnewyork.us') {
+  try {
+    const r = await getJson(`https://${host}/api/views/${id}.json`);
+    return new Date(r.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
+  } catch {
+    return null;
+  }
+}
+const acrisThrough = [...recentDeeds.values()].reduce((m, r) => (r.recorded_datetime > m ? r.recorded_datetime : m), '').slice(0, 10) || null;
+const sources = {
+  facades: await sourceMeta('xubg-57si'),
+  hpd: await sourceMeta('tesw-yqqr'),
+  ecb: await sourceMeta('6bgk-3dad'),
+  elevators: await sourceMeta('e5aq-a4j2'),
+  awards: await sourceMeta('qyyg-4tf5'),
+  sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
+  acrisThrough,
+};
+console.log('Source freshness:', sources);
+
 const out = {
   generatedAt: TODAY.toISOString(),
+  sources,
   whatsNew,
   facades: {
     totals: {
