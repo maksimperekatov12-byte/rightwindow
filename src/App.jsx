@@ -704,6 +704,12 @@ export default function App() {
         )}
       </div>
 
+      <motion.div
+        key={vertical}
+        initial={reduce ? false : { opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      >
       {vertical === 'facades' && (
         <>
           {hasNew && (
@@ -760,19 +766,26 @@ export default function App() {
             </div>
           )}
           <div className="feed">
+            <AnimatePresence mode="popLayout" initial={false}>
             {filteredFeed.slice(0, shown).map((c, i) => {
               const open = openId === c.bin;
               const wkey = 'b:' + c.bin;
               const topSignal = [...c.signals].sort((a, b) => b.urgency - a.urgency)[0];
               return (
                 <motion.article
-                  layout={reduce ? false : 'position'}
+                  layout={reduce ? false : true}
                   key={c.bin}
                   id={'rw-' + c.bin}
                   className={'card' + (open ? ' open' : '')}
                   initial={reduce ? false : { opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.04, 0.3) }}
+                  exit={reduce ? undefined : { opacity: 0, scale: 0.96 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: Math.min(i * 0.04, 0.3),
+                    layout: { type: 'spring', stiffness: 350, damping: 34 },
+                  }}
                 >
                   <div className="card-row">
                     <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
@@ -802,14 +815,23 @@ export default function App() {
                         </motion.span>
                       </span>
                     </button>
-                    <button
+                    <motion.button
                       className={'star' + (isWatched(wkey) ? ' on' : '')}
                       onClick={() => toggleWatch(wkey)}
+                      whileTap={reduce ? undefined : { scale: 0.78 }}
                       aria-label={isWatched(wkey) ? 'Remove from watchlist' : 'Add to watchlist'}
                       aria-pressed={isWatched(wkey)}
                     >
-                      <Star on={isWatched(wkey)} />
-                    </button>
+                      <motion.span
+                        key={String(isWatched(wkey))}
+                        initial={reduce ? false : { scale: 0.5 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 520, damping: 17 }}
+                        style={{ display: 'flex' }}
+                      >
+                        <Star on={isWatched(wkey)} />
+                      </motion.span>
+                    </motion.button>
                   </div>
 
                   <AnimatePresence initial={false}>
@@ -952,6 +974,7 @@ export default function App() {
                 </motion.article>
               );
             })}
+            </AnimatePresence>
           </div>
 
           {shown < filteredFeed.length && (
@@ -1135,6 +1158,8 @@ export default function App() {
         </>
       )}
 
+      </motion.div>
+
       <AnimatePresence>
         {showTop && (
           <motion.button
@@ -1174,18 +1199,25 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
   return (
     <>
       <div className="feed">
+        <AnimatePresence mode="popLayout" initial={false}>
         {items.map((c, i) => {
           const id = idOf(c);
           const open = openId === id;
           return (
             <motion.article
-              layout={reduce ? false : 'position'}
+              layout={reduce ? false : true}
               key={id}
               id={'rw-' + id}
               className={'card' + (open ? ' open' : '')}
               initial={reduce ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.04, 0.3) }}
+              exit={reduce ? undefined : { opacity: 0, scale: 0.96 }}
+              transition={{
+                duration: 0.4,
+                ease: [0.22, 1, 0.36, 1],
+                delay: Math.min(i * 0.04, 0.3),
+                layout: { type: 'spring', stiffness: 350, damping: 34 },
+              }}
             >
               <div className="card-row">
                 <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
@@ -1204,14 +1236,23 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
                     <Chevron />
                   </motion.span>
                 </button>
-                <button
+                <motion.button
                   className={'star' + (isWatched(c) ? ' on' : '')}
                   onClick={() => onWatch(c)}
+                  whileTap={reduce ? undefined : { scale: 0.78 }}
                   aria-label={isWatched(c) ? 'Remove from watchlist' : 'Add to watchlist'}
                   aria-pressed={isWatched(c)}
                 >
-                  <Star on={isWatched(c)} />
-                </button>
+                  <motion.span
+                    key={String(isWatched(c))}
+                    initial={reduce ? false : { scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 17 }}
+                    style={{ display: 'flex' }}
+                  >
+                    <Star on={isWatched(c)} />
+                  </motion.span>
+                </motion.button>
               </div>
               <AnimatePresence initial={false}>
                 {open && (
@@ -1230,6 +1271,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
             </motion.article>
           );
         })}
+        </AnimatePresence>
       </div>
       {shown < total && (
         <div className="more-row">

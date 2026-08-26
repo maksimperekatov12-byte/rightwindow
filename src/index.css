@@ -369,3 +369,8 @@ footer a { color: var(--brand); }
 .totop:hover { color: var(--brand-2); border-color: var(--brand); }
 .totop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .tiles { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
+
+.hero h1 { min-height: 2.15em; }
+@media (min-width: 1020px) {
+  .feed { align-items: start; }
+}
