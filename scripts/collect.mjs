@@ -27,19 +27,40 @@ console.log('Source gate: data.cityofnewyork.us ALLOWED, data.ny.gov ALLOWED, a8
 const BASE = 'https://data.cityofnewyork.us/resource';
 const TODAY = new Date();
 
+async function getJson(url, tries = 4) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(45000) });
+      if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return await res.json();
+    } catch (e) {
+      lastErr = e;
+      if (i < tries - 1) await new Promise((r) => setTimeout(r, 1500 * 2 ** i));
+    }
+  }
+  throw lastErr;
+}
+
 async function fetchAll(dataset, params, pageSize = 50000) {
   const rows = [];
   for (let offset = 0; ; offset += pageSize) {
     const qs = new URLSearchParams({ ...params, $limit: String(pageSize), $offset: String(offset) });
-    const res = await fetch(`${BASE}/${dataset}.json?${qs}`);
-    if (!res.ok) throw new Error(`${dataset} ${res.status}: ${await res.text()}`);
-    const page = await res.json();
+    const page = await getJson(`${BASE}/${dataset}.json?${qs}`);
     rows.push(...page);
     process.stdout.write(`  ${dataset}: ${rows.length}\r`);
     if (page.length < pageSize) break;
   }
   console.log(`  ${dataset}: ${rows.length} rows`);
   return rows;
+}
+
+function prevFeed() {
+  try {
+    return JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 function subCycle(block) {
@@ -375,12 +396,14 @@ console.log('Chains in cards:', {
 // ---- Vertical 2: fresh city contract awards (companies that just won money) ----
 console.log('Fetching recent contract awards...');
 const since = new Date(TODAY - 14 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+let contracts = [];
+try {
 const awardsRaw = await fetchAll('qyyg-4tf5', {
   $where: `type_of_notice_description='Award' and start_date>='${since}'`,
   $order: 'start_date DESC',
   $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
 }, 2000);
-const contracts = awardsRaw
+contracts = awardsRaw
   .filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name)
   .slice(0, 20)
   .map((a) => ({
@@ -396,21 +419,23 @@ const contracts = awardsRaw
     daysAgo: a.start_date ? Math.max(0, Math.round((TODAY - new Date(a.start_date)) / 86400000)) : null,
   }))
   .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.amount - a.amount);
+} catch (e) {
+  console.log(`Contract awards unavailable (${e.message}) — keeping previous data`);
+  contracts = prevFeed()?.contracts || [];
+}
 
 // ---- Vertical 3: pending liquor licenses (venues opening in 2-4 months) ----
 console.log('Fetching SLA pending licenses (NYC counties)...');
-const slaRaw = await (async () => {
-  const qs = new URLSearchParams({
-    $where: "premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review'",
-    $order: 'received_date DESC',
-    $limit: '40',
-    $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
-  });
-  const res = await fetch(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs}`);
-  if (!res.ok) throw new Error(`SLA ${res.status}`);
-  return res.json();
-})();
-const openings = slaRaw.slice(0, 20).map((o) => ({
+let openings = [];
+try {
+const qs = new URLSearchParams({
+  $where: "premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review'",
+  $order: 'received_date DESC',
+  $limit: '40',
+  $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
+});
+const slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs}`);
+openings = slaRaw.slice(0, 20).map((o) => ({
   id: o.application_id,
   name: o.dba || o.legalname,
   legal: o.legalname,
@@ -420,6 +445,10 @@ const openings = slaRaw.slice(0, 20).map((o) => ({
   received: o.received_date?.slice(0, 10),
   daysAgo: o.received_date ? Math.max(0, Math.round((TODAY - new Date(o.received_date)) / 86400000)) : null,
 }));
+} catch (e) {
+  console.log(`SLA unavailable (${e.message}) — keeping previous data`);
+  openings = prevFeed()?.openings || [];
+}
 
 const out = {
   generatedAt: TODAY.toISOString(),
