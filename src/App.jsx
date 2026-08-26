@@ -373,6 +373,7 @@ export default function App() {
   const [email, setEmail] = useState(() => loadLS('rw.email', ''));
   const [theme, setTheme] = useState(() => loadLS('rw.theme', null));
   const [now, setNow] = useState(Date.now());
+  const [checkedAt, setCheckedAt] = useState(null);
   const [emailSaved, setEmailSaved] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
@@ -407,7 +408,17 @@ export default function App() {
 
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 30000);
-    return () => clearInterval(i);
+    const pull = () =>
+      fetch('/api/heartbeat')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => j?.checkedAt && setCheckedAt(j.checkedAt))
+        .catch(() => {});
+    pull();
+    const h = setInterval(pull, 60000);
+    return () => {
+      clearInterval(i);
+      clearInterval(h);
+    };
   }, []);
 
   useEffect(() => {
@@ -526,8 +537,11 @@ export default function App() {
   const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
   const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
-  const agoMin = Math.max(0, Math.round((now - pulled.getTime()) / 60000));
-  const agoLabel = agoMin < 1 ? 'just now' : agoMin < 60 ? `${agoMin}m ago` : `${Math.floor(agoMin / 60)}h ${agoMin % 60}m ago`;
+  const ago = (t) => {
+    const m = Math.max(0, Math.round((now - t) / 60000));
+    return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : `${Math.floor(m / 60)}h ${m % 60}m ago`;
+  };
+  const agoLabel = ago(pulled.getTime());
   const toggleTheme = () => {
     const effDark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     const next = effDark ? 'light' : 'dark';
@@ -772,7 +786,9 @@ export default function App() {
               animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
-              <span title={pulled.toLocaleString('en-US')}>updated {agoLabel} · checks every 10 min</span>
+              <span title={`Heavy refresh hourly; intraday sources re-checked every 10 minutes. Data build: ${pulled.toLocaleString('en-US')}`}>
+              {checkedAt ? `checked ${ago(checkedAt)} · new data ${agoLabel}` : `new data ${agoLabel}`}
+            </span>
           </div>
         </div>
       </header>
