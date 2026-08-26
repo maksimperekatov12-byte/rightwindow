@@ -127,10 +127,73 @@ export default function App() {
   const [shown, setShown] = useState(7);
   const [openId, setOpenId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(null);
+  const [query, setQuery] = useState('');
+  const [boro, setBoro] = useState('all');
+  const [onlyNew, setOnlyNew] = useState(false);
   const reduce = useReducedMotion();
   const p = PERSONAS[persona];
   const facadeFeed = useMemo(() => [...data.facades.feed].sort(p.sort), [persona]);
+  const filteredFeed = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return facadeFeed.filter((c) => {
+      if (boro !== 'all' && c.borough !== boro) return false;
+      if (onlyNew && !(c.isNew || c.fresh?.length)) return false;
+      if (!q) return true;
+      return [c.address, c.owner, c.priorQewi, c.agent?.company, c.agent?.name]
+        .filter(Boolean)
+        .some((f) => f.toLowerCase().includes(q));
+    });
+  }, [facadeFeed, query, boro, onlyNew]);
+  useEffect(() => setShown(7), [query, boro, onlyNew]);
+
+  const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
+  const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
+
+  useEffect(() => {
+    const m = location.hash.match(/^#(b|c|o)\/(.+)$/);
+    if (!m) return;
+    const [, t, id] = m;
+    if (t === 'b') {
+      const base = [...data.facades.feed].sort(PERSONAS.qewi.sort);
+      const idx = base.findIndex((c) => c.bin === id);
+      if (idx >= 0) {
+        setVertical('facades');
+        setOpenId(id);
+        setShown(Math.max(7, idx + 1));
+      }
+    } else if (t === 'c') {
+      const idx = data.contracts.findIndex((c) => c.id === id);
+      if (idx >= 0) {
+        setVertical('contracts');
+        setOpenId(id);
+        setShown(Math.max(7, idx + 1));
+      }
+    } else {
+      const idx = data.openings.findIndex((o) => o.id === id);
+      if (idx >= 0) {
+        setVertical('openings');
+        setOpenId(id);
+        setShown(Math.max(7, idx + 1));
+      }
+    }
+    setTimeout(() => document.getElementById(`rw-${m[2]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 500);
+  }, []);
+
+  const toggleCard = (type, id, wasOpen) => {
+    setOpenId(wasOpen ? null : id);
+    try {
+      history.replaceState(null, '', wasOpen ? location.pathname : `#${type}/${id}`);
+    } catch {}
+  };
+
+  const copyLink = (type, id) => {
+    navigator.clipboard?.writeText(`${location.origin}/#${type}/${id}`).then(() => {
+      setCopiedLink(id);
+      setTimeout(() => setCopiedLink(null), 1600);
+    });
+  };
 
   const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 };
   const fade = (delay = 0) =>
@@ -276,20 +339,52 @@ export default function App() {
             </motion.p>
           </AnimatePresence>
 
+          {hasNew && (
+            <motion.button className={'news' + (onlyNew ? ' on' : '')} onClick={() => setOnlyNew((v) => !v)} {...fade(0.1)}>
+              <span className="news-dot" aria-hidden="true" />
+              <span>
+                <b>New in the last 48 hours:</b> {wn.buildings} buildings · {wn.signals} fresh signals
+                {wn.contracts ? ` · ${wn.contracts} contracts` : ''}
+                {wn.openings ? ` · ${wn.openings} venue filings` : ''}
+              </span>
+              <span className="news-cta">{onlyNew ? 'show all' : 'show only new'}</span>
+            </motion.button>
+          )}
+
+          <div className="toolbar">
+            <input
+              type="search"
+              className="search"
+              placeholder="Search address, owner, agent…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search buildings"
+            />
+            <div className="chips" role="group" aria-label="Borough">
+              {['all', 'Manhattan', 'Brooklyn'].map((b) => (
+                <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} onClick={() => setBoro(b)}>
+                  {b === 'all' ? 'All boroughs' : b}
+                </button>
+              ))}
+            </div>
+            <span className="count">{filteredFeed.length} buildings</span>
+          </div>
+
           <div>
-            {facadeFeed.slice(0, shown).map((c, i) => {
+            {filteredFeed.slice(0, shown).map((c, i) => {
               const open = openId === c.bin;
               const topSignal = [...c.signals].sort((a, b) => b.urgency - a.urgency)[0];
               return (
                 <motion.article
                   layout={reduce ? false : 'position'}
                   key={c.bin}
+                  id={'rw-' + c.bin}
                   className={'card' + (open ? ' open' : '')}
                   initial={reduce ? false : { opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.04, 0.3) }}
                 >
-                  <button className="card-head" aria-expanded={open} onClick={() => setOpenId(open ? null : c.bin)}>
+                  <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
                     <span className="found" aria-hidden="true">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M20 6 9 17l-5-5" />
@@ -298,6 +393,8 @@ export default function App() {
                     <span className="head-main">
                       <span className="addr">{title(c.address)}</span>
                       <span className="boro">{c.borough}</span>
+                      {c.isNew && <span className="badge new">New</span>}
+                      {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
                       <span className="badge">{BADGE[topSignal.kind]}</span>
                       {c.freshHaz && <span className="badge urgent">Violation {c.freshHaz.daysAgo}d ago</span>}
                       {c.signals.length > 1 && <span className="badge more">+{c.signals.length - 1}</span>}
@@ -424,6 +521,9 @@ export default function App() {
                               <button className="btn solid" onClick={() => copy(c.bin, p.opener(c))}>
                                 {copiedId === c.bin ? 'Copied' : 'Copy opener'}
                               </button>
+                              <button className="btn ghost" onClick={() => copyLink('b', c.bin)}>
+                                {copiedLink === c.bin ? 'Copied' : 'Copy link'}
+                              </button>
                               {c.agent && (
                                 <a className="btn ghost" href={findUrl(`${c.agent.company || ''} ${c.agent.name || ''} phone New York`)} target="_blank" rel="noreferrer">
                                   Find phone ↗
@@ -453,9 +553,9 @@ export default function App() {
             })}
           </div>
 
-          {shown < facadeFeed.length && (
+          {shown < filteredFeed.length && (
             <div className="more-row">
-              <button onClick={() => setShown((n) => n + 7)}>Show more buildings ({facadeFeed.length - shown} left)</button>
+              <button onClick={() => setShown((n) => n + 14)}>Show more buildings ({filteredFeed.length - shown} left)</button>
             </div>
           )}
         </>
@@ -468,12 +568,14 @@ export default function App() {
           shown={shown}
           onMore={() => setShown((n) => n + 7)}
           openId={openId}
-          setOpenId={setOpenId}
+          toggle={toggleCard}
+          hashType="c"
           reduce={reduce}
           renderHead={(c) => (
             <>
               <span className="head-main">
                 <span className="addr">{c.vendor}</span>
+                {c.isNew && <span className="badge new">New</span>}
                 <span className="badge">Won {money(c.amount)}</span>
               </span>
               <span className="head-side">
@@ -527,6 +629,9 @@ export default function App() {
                   >
                     {copiedId === c.id ? 'Copied' : 'Copy opener'}
                   </button>
+                  <button className="btn ghost" onClick={() => copyLink('c', c.id)}>
+                    {copiedLink === c.id ? 'Copied' : 'Copy link'}
+                  </button>
                   <a className="btn ghost" href={findUrl(`${c.vendor} phone contact`)} target="_blank" rel="noreferrer">
                     Find contact ↗
                   </a>
@@ -556,12 +661,14 @@ export default function App() {
           shown={shown}
           onMore={() => setShown((n) => n + 7)}
           openId={openId}
-          setOpenId={setOpenId}
+          toggle={toggleCard}
+          hashType="o"
           reduce={reduce}
           renderHead={(c) => (
             <>
               <span className="head-main">
                 <span className="addr">{c.name}</span>
+                {c.isNew && <span className="badge new">New</span>}
                 <span className="boro">{c.county}</span>
                 <span className="badge">{c.kind} · opening soon</span>
               </span>
@@ -610,6 +717,9 @@ export default function App() {
                   >
                     {copiedId === c.id ? 'Copied' : 'Copy opener'}
                   </button>
+                  <button className="btn ghost" onClick={() => copyLink('o', c.id)}>
+                    {copiedLink === c.id ? 'Copied' : 'Copy link'}
+                  </button>
                   <a className="btn ghost" href={findUrl(`"${c.legal}" ${c.address} phone`)} target="_blank" rel="noreferrer">
                     Find contact ↗
                   </a>
@@ -638,7 +748,7 @@ export default function App() {
   );
 }
 
-function SimpleFeed({ items, total, shown, onMore, openId, setOpenId, reduce, renderHead, renderBody, idOf }) {
+function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType }) {
   return (
     <>
       <div>
@@ -649,12 +759,13 @@ function SimpleFeed({ items, total, shown, onMore, openId, setOpenId, reduce, re
             <motion.article
               layout={reduce ? false : 'position'}
               key={id}
+              id={'rw-' + id}
               className={'card' + (open ? ' open' : '')}
               initial={reduce ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.04, 0.3) }}
             >
-              <button className="card-head" aria-expanded={open} onClick={() => setOpenId(open ? null : id)}>
+              <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
                 <span className="found" aria-hidden="true">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6 9 17l-5-5" />

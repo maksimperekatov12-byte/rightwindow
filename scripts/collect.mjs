@@ -158,7 +158,7 @@ console.log(`Candidates (Manhattan+Brooklyn): ${candidates.length}`);
 candidates.sort((a, b) => b.score - a.score || a.monthsLeft - b.monthsLeft);
 
 // HPD join: registrations by BIN for the top slice, then agents by registrationid
-const top = candidates.slice(0, 400);
+const top = candidates.slice(0, 600);
 console.log('Fetching HPD registrations for top candidates...');
 const regByBin = new Map();
 for (let i = 0; i < top.length; i += 50) {
@@ -386,7 +386,7 @@ for (const c of top) {
 
 // Demo feed: most urgent first (post-enrichment), multifamily with a resolved contact
 cards.sort((a, b) => b.urgencyScore - a.urgencyScore);
-const feed = cards.filter((c) => c.multifamily && c.agent).slice(0, 60);
+const feed = cards.filter((c) => c.multifamily && c.agent).slice(0, 400);
 console.log('Chains in cards:', {
   ownerChange: cards.filter((c) => c.ownerChange).length,
   elevator: cards.filter((c) => c.elevator).length,
@@ -450,8 +450,46 @@ openings = slaRaw.slice(0, 20).map((o) => ({
   openings = prevFeed()?.openings || [];
 }
 
+// "What's new": monotonic memory of everything the engine has ever surfaced.
+// First run writes a baseline (nothing is marked new); later runs stamp first-seen
+// timestamps, so the feed can honestly say what appeared in the last 48 hours.
+const NEW_WINDOW_MS = 48 * 3600 * 1000;
+const seenPath = new URL('../data/seen.json', import.meta.url);
+let seen = null;
+try { if (existsSync(seenPath)) seen = JSON.parse(readFileSync(seenPath, 'utf8')); } catch {}
+const baselineDone = Boolean(seen);
+if (!seen) seen = { bins: {}, contracts: {}, openings: {} };
+const nowIso = TODAY.toISOString();
+const stamp = () => (baselineDone ? nowIso : 'baseline');
+const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
+
+for (const c of cards) {
+  const rec = (seen.bins[c.bin] ||= { first: stamp(), kinds: {} });
+  for (const sg of c.signals) rec.kinds[sg.kind] ||= stamp();
+  c.isNew = isFreshTs(rec.first);
+  c.fresh = c.isNew ? [] : c.signals.map((sg) => sg.kind).filter((k) => isFreshTs(rec.kinds[k]));
+}
+for (const c of contracts) {
+  seen.contracts[c.id] ||= stamp();
+  c.isNew = isFreshTs(seen.contracts[c.id]);
+}
+for (const o of openings) {
+  seen.openings[o.id] ||= stamp();
+  o.isNew = isFreshTs(seen.openings[o.id]);
+}
+writeFileSync(seenPath, JSON.stringify(seen, null, 1));
+const whatsNew = {
+  windowHours: 48,
+  buildings: feed.filter((c) => c.isNew).length,
+  signals: feed.reduce((n, c) => n + (c.fresh?.length || 0), 0),
+  contracts: contracts.filter((c) => c.isNew).length,
+  openings: openings.filter((o) => o.isNew).length,
+};
+console.log("What's new (48h):", whatsNew);
+
 const out = {
   generatedAt: TODAY.toISOString(),
+  whatsNew,
   facades: {
     totals: {
       candidates: candidates.length,
