@@ -371,6 +371,8 @@ export default function App() {
   const [watch, setWatch] = useState(() => loadLS('rw.watch', {}));
   const [walletReady, setWalletReady] = useState(false);
   const [email, setEmail] = useState(() => loadLS('rw.email', ''));
+  const [theme, setTheme] = useState(() => loadLS('rw.theme', null));
+  const [now, setNow] = useState(Date.now());
   const [emailSaved, setEmailSaved] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
@@ -396,6 +398,17 @@ export default function App() {
   };
   const fbOf = (k) => fb[k]?.s || null;
   const isDismissed = (k) => fbOf(k) === 'dismissed';
+
+  useEffect(() => {
+    const r = document.documentElement;
+    if (theme) r.dataset.theme = theme;
+    else delete r.dataset.theme;
+  }, [theme]);
+
+  useEffect(() => {
+    const i = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(i);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -513,6 +526,14 @@ export default function App() {
   const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
   const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
+  const agoMin = Math.max(0, Math.round((now - pulled.getTime()) / 60000));
+  const agoLabel = agoMin < 1 ? 'just now' : agoMin < 60 ? `${agoMin}m ago` : `${Math.floor(agoMin / 60)}h ${agoMin % 60}m ago`;
+  const toggleTheme = () => {
+    const effDark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const next = effDark ? 'light' : 'dark';
+    setTheme(next);
+    saveLS('rw.theme', next);
+  };
 
   useEffect(() => {
     const m = location.hash.match(/^#(b|c|o)\/(.+)$/);
@@ -737,6 +758,11 @@ export default function App() {
           <span>NYC public records</span>
         </div>
         <div className="top-right">
+          <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle dark mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+            </svg>
+          </button>
           <button className="profile-chip" onClick={() => setShowOnboard(true)}>
             {profileKey ? profile.label : 'Who are you?'} <span aria-hidden="true">›</span>
           </button>
@@ -746,7 +772,7 @@ export default function App() {
               animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
-            data pulled {pulled.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              <span title={pulled.toLocaleString('en-US')}>updated {agoLabel} · checks every 10 min</span>
           </div>
         </div>
       </header>
