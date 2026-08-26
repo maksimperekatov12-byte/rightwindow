@@ -2,69 +2,173 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 
-const PERSONAS = {
+const YEAR = new Date().getFullYear();
+const byUrgency = (a, b) => b.urgencyScore - a.urgencyScore || a.monthsLeft - b.monthsLeft;
+const has = (c, kind) => c.signals.some((s) => s.kind === kind);
+const rank = (c, kind) => c.signals.find((x) => x.kind === kind)?.urgency ?? 0;
+const money = (n) => '$' + n.toLocaleString('en-US');
+
+function signalStory(c) {
+  if (c.mgmtChange) return `HPD registration changed within days — new management or a quiet sale, and every vendor relationship resets.`;
+  if (c.ownerChange)
+    return `Sold ${c.ownerChange.recorded}${c.ownerChange.amount ? ` for ${money(Math.round(c.ownerChange.amount))}` : ''} — the new owner is rebuilding the vendor list right now.`;
+  if (c.freshHaz)
+    return `A ${c.freshHaz.hazardous ? 'hazardous ' : ''}DOB violation landed ${c.freshHaz.daysAgo} days ago${c.nextHearing ? `, hearing set for ${c.nextHearing}` : ''} — mandatory correction with certification.`;
+  if (has(c, 'NON_FILER') && c.monthsLeft <= 7)
+    return `No Cycle 10 facade report filed and the ${c.subCycle} deadline is ${c.monthsLeft} months out — the penalty meter starts at $1,000/month after that.`;
+  if (has(c, 'SWARMP_CARRYOVER'))
+    return `SWARMP conditions from Cycle 9 are still open — unrepaired, they are presumed UNSAFE at the next filing.`;
+  if (has(c, 'UNSAFE_PRIOR')) return `UNSAFE status on file — sidewalk shed and repairs are mandatory, not optional.`;
+  return `Off the compliance calendar for sub-cycle ${c.subCycle} — a forced-spend window with a legal deadline.`;
+}
+
+const GENERIC_FACADE = {
+  hero: 'Buildings in a forced-spend window',
+  hint: 'Ranked by urgency — deadlines, fresh violations, ownership changes, penalty balances.',
+  sort: byUrgency,
+  why: (c) => signalStory(c),
+  opener: (c) =>
+    `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. Worth a quick conversation before the penalty meter starts.`,
+};
+
+const PROFILES = {
   qewi: {
-    tab: 'Facade engineer',
-    hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
-    hero: 'Buildings that need a facade engineer — before they know it',
-    sort: (a, b) => b.urgencyScore - a.urgencyScore || a.monthsLeft - b.monthsLeft,
-    why: (c) => {
-      if (c.mgmtChange)
-        return `The HPD registration changed within days — new management or a quiet sale. Vendor relationships reset at exactly this moment, and the Cycle 10 obligation transfers with the keys.`;
-      if (c.ownerChange)
-        return `Sold ${Math.round(c.ownerChange.daysAgo / 30)} months ago${c.ownerChange.amount ? ` for $${Math.round(c.ownerChange.amount).toLocaleString()}` : ''} — the previous engineer's relationship just reset to zero, and the Cycle 10 filing is still open. New owners pick their vendors in the first months. Be the first call.`;
-      if (c.freshHaz)
-        return `A ${c.freshHaz.hazardous ? 'hazardous ' : ''}DOB violation landed ${c.freshHaz.daysAgo} days ago${c.nextHearing ? ` and a hearing is set for ${c.nextHearing}` : ''} — and the building still has no Cycle 10 engineer on record. Call this week, not this quarter.`;
-      if (has(c, 'NON_FILER') && c.monthsLeft <= 7)
-        return `No Cycle 10 report filed and the ${c.subCycle} deadline is ${c.monthsLeft} months out. Inspections take months to schedule — this building needs a QEWI now, and DOB data shows nobody is engaged.`;
-      if (has(c, 'SWARMP_CARRYOVER'))
-        return `Filed SWARMP in Cycle 9 and never closed it — unrepaired conditions are presumed UNSAFE at the next filing. Whoever inspects next inherits a mandatory repair scope.`;
-      return `Off the compliance calendar for sub-cycle ${c.subCycle}. The first engineer to call gets the walk-through.`;
+    label: 'Facade engineer',
+    tile: 'Facade engineering / inspections (QEWI)',
+    facade: {
+      hero: 'Buildings that need a facade engineer — before they know it',
+      hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
+      sort: byUrgency,
+      why: (c) => `${signalStory(c)} No Cycle 10 engineer is on record — the first one to call gets the walk-through.`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
-    opener: (c) =>
-      `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
+    cNeed: (c) => (/construction/i.test(c.category || '') ? `A ${money(c.amount)} construction award usually means inspections and special-inspection sign-offs down the line.` : null),
+    oNeed: null,
   },
   restoration: {
-    tab: 'Restoration contractor',
-    hint: 'Open SWARMP and UNSAFE conditions — mandatory repair scopes, before they go out to bid.',
-    hero: 'Repair work the law has already sold for you',
-    sort: (a, b) =>
-      rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') ||
-      b.urgencyScore - a.urgencyScore,
-    why: (c) => {
-      if (c.ownerChange)
-        return `New owner as of ${c.ownerChange.recorded} — every service contract is up for review, and the open facade scope comes with the keys. Incumbents lost their edge; the bid list is being rewritten right now.`;
-      if (c.freshHaz)
-        return `A fresh violation (${c.freshHaz.daysAgo} days ago) means mandatory correction with certification — new, unassigned work on top of the facade scope. Nobody has been hired yet.`;
-      if (has(c, 'UNSAFE_PRIOR'))
-        return `UNSAFE status on file — sidewalk shed and repairs are mandatory, not optional. This scope exists whether or not anyone has bid it yet.`;
-      if (has(c, 'SWARMP_CARRYOVER'))
-        return `SWARMP conditions from Cycle 9 still open. They must be repaired before the next report or the building is presumed UNSAFE — a guaranteed scope with a legal deadline.`;
-      return `Non-filer close to the deadline: when the inspection lands, repairs usually follow. Early contact beats the bid list.`;
+    label: 'Restoration contractor',
+    tile: 'Facade restoration / exterior repair',
+    facade: {
+      hero: 'Repair work the law has already sold for you',
+      hint: 'Open SWARMP and UNSAFE conditions — mandatory scopes, before they go out to bid.',
+      sort: (a, b) =>
+        rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') || byUrgency(a, b),
+      why: (c) => `${signalStory(c)} This scope exists whether or not anyone has bid it yet — early contact beats the bid list.`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`,
     },
-    opener: (c) =>
-      `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`,
+    cNeed: (c) => (/construction/i.test(c.category || '') ? `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.` : null),
+    oNeed: null,
   },
   lender: {
-    tab: 'C-PACE lender',
-    hint: 'Mandatory capex with a fine meter — financeable projects that cannot be postponed.',
-    hero: 'Forced capital projects, found before the loan request',
-    sort: (a, b) => b.urgencyScore - a.urgencyScore || (b.finesOwed || 0) + (b.ecbBalance || 0) - (a.finesOwed || 0) - (a.ecbBalance || 0),
-    why: (c) => {
-      const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
-      const fine = owed ? ` It already owes $${owed.toLocaleString()} across DOB and ECB penalties.` : '';
-      if (c.ownerChange)
-        return `Acquired ${Math.round(c.ownerChange.daysAgo / 30)} months ago${c.ownerChange.amount ? ` for $${Math.round(c.ownerChange.amount).toLocaleString()}` : ''} with mandated facade work attached${owed ? ` and $${owed.toLocaleString()} in open penalties` : ''}. New owners budget capex in year one — that budget is being written now.`;
-      if (c.freshHaz && owed)
-        return `A new violation ${c.freshHaz.daysAgo} days ago on top of ${fine.trim().replace('It already owes ', '')} — forced spend is stacking up${c.nextHearing ? `, with a hearing on ${c.nextHearing}` : ''}. This owner needs capital with a legal reason to use it.`;
-      if (has(c, 'SWARMP_CARRYOVER'))
-        return `Mandatory repair scope (open SWARMP) plus a filing deadline with a $1,000/month meter.${fine} That is financeable, non-deferrable capex.`;
-      return `Compliance deadline ${c.deadline} with penalties accruing after.${fine} Owners in this position need capital fast, with a legal reason to spend it.`;
+    label: 'C-PACE / lender',
+    tile: 'Financing (C-PACE, bridge, equipment)',
+    facade: {
+      hero: 'Forced capital projects, found before the loan request',
+      hint: 'Mandatory capex with a fine meter — financeable projects that cannot be postponed.',
+      sort: (a, b) => byUrgency(a, b) || (b.finesOwed || 0) + (b.ecbBalance || 0) - (a.finesOwed || 0) - (a.ecbBalance || 0),
+      why: (c) => {
+        const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
+        return `${signalStory(c)}${owed ? ` It already owes ${money(owed)} across DOB and ECB penalties.` : ''} That is financeable, non-deferrable capex — owners in this position need capital with a legal reason to use it.`;
+      },
+      opener: (c) =>
+        `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
     },
-    opener: (c) =>
-      `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
+    cNeed: (c) => `Mobilizing a ${money(c.amount)} contract takes working capital — payroll and equipment come before the city's first payment.`,
+    oNeed: () => `Build-outs run on borrowed money — kitchen equipment and fit-out financing get arranged in exactly this window.`,
+  },
+  elevator: {
+    label: 'Elevator services',
+    tile: 'Elevator service / modernization',
+    facade: {
+      hero: 'Elevators with a legal test due — and no one booked',
+      hint: `Buildings whose devices have no ${YEAR} CAT1 test or an overdue 5-year CAT5 — the deadline is Dec 31.`,
+      sort: (a, b) =>
+        (b.elevator?.cat1Missing || 0) + (b.elevator?.cat5Due || 0) - (a.elevator?.cat1Missing || 0) - (a.elevator?.cat5Due || 0) ||
+        byUrgency(a, b),
+      why: (c) =>
+        c.elevator
+          ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing} of ${c.elevator.devices} devices have no ${YEAR} CAT1 test on file` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ' and ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} are due for the 5-year CAT5` : ''} — tests must be filed by December 31, and late devices accrue penalties. ${signalStory(c)}`
+          : `${signalStory(c)} Buildings in a forced-work window often bundle elevator work into the same capex.`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat1Missing || 'several'} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`,
+    },
+    cNeed: null,
+    oNeed: null,
+  },
+  insurance: {
+    label: 'Insurance / bonding',
+    tile: 'Insurance / surety bonds',
+    facade: {
+      hero: 'Buildings whose risk profile just changed',
+      hint: 'New owners re-shop coverage; active violations raise liability; mandated work needs builder’s risk.',
+      sort: (a, b) =>
+        (b.ownerChange ? 3 : 0) + (b.freshHaz ? 2 : 0) - (a.ownerChange ? 3 : 0) - (a.freshHaz ? 2 : 0) || byUrgency(a, b),
+      why: (c) =>
+        `${signalStory(c)} ${c.ownerChange || c.mgmtChange ? 'New ownership re-shops every policy in year one.' : 'Open violations and mandated work change the liability picture — renewal conversations start now, not at expiry.'}`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — city records show mandated facade work and open violations. Worth reviewing coverage before the repair scope starts?`,
+    },
+    cNeed: (c) => `${c.vendor} must post performance bonds and certificates of insurance before mobilizing ${money(c.amount)} of city work — usually within two weeks of the award.`,
+    cOpener: (c) =>
+      `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or COIs lined up before mobilization, we can quote it this week.`,
+    oNeed: () => `A new venue needs general liability and liquor liability before the doors open — and underwriting takes weeks.`,
+    oOpener: (c) =>
+      `Re: ${c.name} — saw the license application for ${c.address}. GL and liquor liability take a few weeks to bind; we can have you covered before opening day.`,
+  },
+  pos: {
+    label: 'POS / payments',
+    tile: 'POS, payments, restaurant tech',
+    facade: null,
+    cNeed: null,
+    oNeed: () => `POS and payments get chosen during build-out — before opening day, not after. This venue is deciding right now.`,
+    oOpener: (c) =>
+      `Re: ${c.name} — saw the license application for ${c.address}. If you're still picking a POS, we can have you set up and trained before the doors open.`,
+  },
+  fnb: {
+    label: 'F&B supplier',
+    tile: 'Food and beverage supply',
+    facade: null,
+    cNeed: null,
+    oNeed: () => `Opening menus are being costed right now — supplier lists lock in before the first delivery, not after.`,
+    oOpener: (c) => `Re: ${c.name} — saw the license application for ${c.address}. We supply venues like yours; happy to quote your opening order before the rush.`,
+  },
+  staffing: {
+    label: 'Staffing',
+    tile: 'Staffing / recruiting',
+    facade: null,
+    cNeed: (c) => `${c.vendor} needs crews to deliver ${money(c.amount)} of new work — hiring happens in the first weeks after an award.`,
+    cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted crews ready this month.`,
+    oNeed: () => `A venue opening in 2–4 months hires its whole team in the last six weeks — the search starts now.`,
+    oOpener: (c) => `Re: ${c.name} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
+  },
+  equipment: {
+    label: 'Equipment / access',
+    tile: 'Equipment rental / scaffolding',
+    facade: {
+      hero: 'Mandated repairs that need access equipment',
+      hint: 'SWARMP and UNSAFE scopes mean sheds, scaffolding and hoists — booked by whoever calls first.',
+      sort: (a, b) =>
+        rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') + (b.shed ? 2 : 0) - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') - (a.shed ? 2 : 0) ||
+        byUrgency(a, b),
+      why: (c) => `${signalStory(c)} Mandated exterior work means sidewalk sheds, scaffolding and hoists — access gets booked before the first brick moves.`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — city records show mandated facade work ahead. We can quote shed and scaffold access before the scope goes out to bid.`,
+    },
+    cNeed: (c) => `Delivering ${money(c.amount)} of new work usually means renting equipment in the first weeks — before the city's first payment lands.`,
+    oNeed: null,
+  },
+  explore: {
+    label: 'Just exploring',
+    tile: 'Just exploring',
+    facade: null,
+    cNeed: null,
+    oNeed: null,
   },
 };
+
+const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'staffing', 'pos', 'fnb', 'explore'];
 
 const BADGE = {
   NON_FILER: 'No Cycle 10 filing',
@@ -79,14 +183,10 @@ const BADGE = {
 };
 
 const VERTICALS = [
-  { key: 'facades', label: 'Building facades', sub: 'deep' },
-  { key: 'contracts', label: 'City contracts', sub: 'light' },
-  { key: 'openings', label: 'New openings', sub: 'light' },
+  { key: 'facades', label: 'Building facades' },
+  { key: 'contracts', label: 'City contracts' },
+  { key: 'openings', label: 'New openings' },
 ];
-
-const has = (c, kind) => c.signals.some((s) => s.kind === kind);
-const rank = (c, kind) => c.signals.find((x) => x.kind === kind)?.urgency ?? 0;
-const money = (n) => '$' + n.toLocaleString('en-US');
 
 function CountUp({ value, prefix = '' }) {
   const ref = useRef(null);
@@ -121,9 +221,37 @@ function WindowBar({ opens, deadline }) {
   );
 }
 
+const Star = ({ on }) => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" />
+  </svg>
+);
+
+const Chevron = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+function loadLS(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v == null ? fallback : JSON.parse(v);
+  } catch {
+    return fallback;
+  }
+}
+function saveLS(key, v) {
+  try {
+    localStorage.setItem(key, JSON.stringify(v));
+  } catch {}
+}
+
 export default function App() {
+  const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|o)\//)));
+  const [profileKey, setProfileKey] = useState(() => loadLS('rw.profile', null));
+  const [showOnboard, setShowOnboard] = useState(() => !loadLS('rw.profile', null) && !deepLinked.current);
   const [vertical, setVertical] = useState('facades');
-  const [persona, setPersona] = useState('qewi');
   const [shown, setShown] = useState(7);
   const [openId, setOpenId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -131,12 +259,40 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [boro, setBoro] = useState('all');
   const [onlyNew, setOnlyNew] = useState(false);
+  const [onlyWatch, setOnlyWatch] = useState(false);
+  const [watch, setWatch] = useState(() => loadLS('rw.watch', {}));
   const reduce = useReducedMotion();
-  const p = PERSONAS[persona];
-  const facadeFeed = useMemo(() => [...data.facades.feed].sort(p.sort), [persona]);
+
+  const profile = PROFILES[profileKey] || PROFILES.explore;
+  const fv = profile.facade || GENERIC_FACADE;
+
+  const watchCount = Object.keys(watch).length;
+  const isWatched = (k) => Boolean(watch[k]);
+  const toggleWatch = (k) => {
+    setWatch((w) => {
+      const n = { ...w };
+      if (n[k]) delete n[k];
+      else n[k] = 1;
+      saveLS('rw.watch', n);
+      return n;
+    });
+  };
+
+  const pickProfile = (k) => {
+    setProfileKey(k);
+    saveLS('rw.profile', k);
+    setShowOnboard(false);
+    setShown(7);
+    if (PROFILES[k]?.facade) setVertical('facades');
+    else if (PROFILES[k]?.oNeed && !PROFILES[k]?.cNeed) setVertical('openings');
+    else if (PROFILES[k]?.cNeed && !PROFILES[k]?.facade) setVertical('contracts');
+  };
+
+  const facadeFeed = useMemo(() => [...data.facades.feed].sort(fv.sort), [profileKey]);
   const filteredFeed = useMemo(() => {
     const q = query.trim().toLowerCase();
     return facadeFeed.filter((c) => {
+      if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
       if (onlyNew && !(c.isNew || c.fresh?.length)) return false;
       if (!q) return true;
@@ -144,8 +300,10 @@ export default function App() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(q));
     });
-  }, [facadeFeed, query, boro, onlyNew]);
-  useEffect(() => setShown(7), [query, boro, onlyNew]);
+  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch]);
+  const contractsList = useMemo(() => (onlyWatch ? data.contracts.filter((c) => isWatched('c:' + c.id)) : data.contracts), [onlyWatch, watch]);
+  const openingsList = useMemo(() => (onlyWatch ? data.openings.filter((o) => isWatched('o:' + o.id)) : data.openings), [onlyWatch, watch]);
+  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical]);
 
   const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
   const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
@@ -156,7 +314,7 @@ export default function App() {
     if (!m) return;
     const [, t, id] = m;
     if (t === 'b') {
-      const base = [...data.facades.feed].sort(PERSONAS.qewi.sort);
+      const base = [...data.facades.feed].sort(byUrgency);
       const idx = base.findIndex((c) => c.bin === id);
       if (idx >= 0) {
         setVertical('facades');
@@ -181,6 +339,14 @@ export default function App() {
     setTimeout(() => document.getElementById(`rw-${m[2]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 500);
   }, []);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape' && showOnboard && profileKey) setShowOnboard(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showOnboard, profileKey]);
+
   const toggleCard = (type, id, wasOpen) => {
     setOpenId(wasOpen ? null : id);
     try {
@@ -188,6 +354,12 @@ export default function App() {
     } catch {}
   };
 
+  const copy = (id, text) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 1600);
+    });
+  };
   const copyLink = (type, id) => {
     navigator.clipboard?.writeText(`${location.origin}/#${type}/${id}`).then(() => {
       setCopiedLink(id);
@@ -195,26 +367,65 @@ export default function App() {
     });
   };
 
-  const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 };
-  const fade = (delay = 0) =>
-    reduce
-      ? {}
-      : {
-          initial: { opacity: 0, y: 14 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1], delay },
-        };
+  const downloadCsv = (name, header, rows) => {
+    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const body = [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n');
+    const blob = new Blob(['﻿' + body], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
-  const copy = (id, text) => {
-    navigator.clipboard?.writeText(text).then(() => {
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 1600);
-    });
+  const exportCurrent = () => {
+    if (vertical === 'facades') {
+      downloadCsv(
+        'right-window-buildings.csv',
+        ['Address', 'Borough', 'BIN', 'Signals', 'Sub-cycle', 'Deadline', 'Months left', 'Why now', 'Penalties owed', 'ECB balance', 'Next hearing', 'Sold', 'Elevators due', 'Managing agent', 'Agent contact', 'Agent address', 'Suggested opener', 'DOB record', 'Link'],
+        filteredFeed.map((c) => [
+          title(c.address), c.borough, c.bin,
+          c.signals.map((s) => BADGE[s.kind]).join('; '),
+          c.subCycle, c.deadline, c.monthsLeft,
+          fv.why(c),
+          c.finesOwed || 0, c.ecbBalance || 0, c.nextHearing || '',
+          c.ownerChange ? `${c.ownerChange.recorded}${c.ownerChange.amount ? ' ' + money(Math.round(c.ownerChange.amount)) : ''}` : '',
+          c.elevator ? `${c.elevator.cat1Missing} no CAT1 / ${c.elevator.cat5Due} CAT5 due` : '',
+          title(c.agent?.company || ''), title(c.agent?.name || ''), title(c.agent?.address || ''),
+          fv.opener(c),
+          `https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=${c.bin}`,
+          `${location.origin}/#b/${c.bin}`,
+        ]),
+      );
+    } else if (vertical === 'contracts') {
+      downloadCsv(
+        'right-window-contracts.csv',
+        ['Vendor', 'Amount', 'Agency', 'Contract', 'Awarded', 'Days ago', 'Why you', 'Vendor address', 'Suggested opener', 'Link'],
+        contractsList.map((c) => [
+          c.vendor, c.amount, c.agency, c.title, c.date, c.daysAgo,
+          profile.cNeed?.(c) || 'Winner is mobilizing: subs, bonding, insurance, staffing, equipment.',
+          c.vendorAddress || '',
+          (profile.cOpener || defaultCOpener)(c),
+          `${location.origin}/#c/${c.id}`,
+        ]),
+      );
+    } else {
+      downloadCsv(
+        'right-window-openings.csv',
+        ['Venue', 'Type', 'County', 'Premises', 'Legal name', 'Filed', 'Why you', 'Suggested opener', 'Link'],
+        openingsList.map((o) => [
+          o.name, o.kind, o.county, o.address, o.legal, o.received || '',
+          profile.oNeed?.(o) || 'Opening in 2–4 months: POS, insurance, suppliers, furniture, marketing get chosen now.',
+          (profile.oOpener || defaultOOpener)(o),
+          `${location.origin}/#o/${o.id}`,
+        ]),
+      );
+    }
   };
 
   const heroText =
     vertical === 'facades'
-      ? p.hero
+      ? fv.hero
       : vertical === 'contracts'
         ? 'Companies that won city money yesterday'
         : 'Venues that will open their doors in a few months';
@@ -226,8 +437,69 @@ export default function App() {
         ? 'A contract award is public the day it happens. The winner now has guaranteed revenue — and two weeks to line up subcontractors, bonding, insurance and staff. That is your window.'
         : 'A liquor-license application means a venue opens in two to four months — and it is choosing its POS, insurance, suppliers and furniture right now. Same engine, different register.';
 
+  const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 };
+  const fade = (delay = 0) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 14 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1], delay },
+        };
+
+  const miniToolbar = (list, total) => (
+    <div className="toolbar">
+      <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
+        ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
+      </button>
+      <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
+      <span className="count">
+        {list.length}
+        {list.length !== total ? ` of ${total}` : ''} shown
+      </span>
+    </div>
+  );
+
   return (
     <div className="wrap">
+      <AnimatePresence>
+        {showOnboard && (
+          <motion.div
+            className="modal-back"
+            role="dialog"
+            aria-modal="true"
+            aria-label="What do you do"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduce ? {} : { opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              className="modal"
+              initial={reduce ? false : { opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? {} : { opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h2>What do you do?</h2>
+              <p>Right Window reads New York's public records and shows who may need your services — this week, with a reason to call. Pick your line of work:</p>
+              <div className="tiles">
+                {PROFILE_ORDER.map((k) => (
+                  <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
+                    {PROFILES[k].tile}
+                  </button>
+                ))}
+              </div>
+              {profileKey && (
+                <button className="modal-close" onClick={() => setShowOnboard(false)}>
+                  Keep “{profile.label}”
+                </button>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <header className="top">
         <div className="logo">
           <svg className="mark" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -238,13 +510,18 @@ export default function App() {
           <b>Right Window</b>
           <span>NYC public records</span>
         </div>
-        <div className="pulled">
-          <motion.span
-            className="dot"
-            animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          data pulled {pulled.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        <div className="top-right">
+          <button className="profile-chip" onClick={() => setShowOnboard(true)}>
+            {profileKey ? profile.label : 'Who are you?'} <span aria-hidden="true">›</span>
+          </button>
+          <div className="pulled">
+            <motion.span
+              className="dot"
+              animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            data pulled {pulled.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
         </div>
       </header>
 
@@ -274,7 +551,7 @@ export default function App() {
       <section className="hero">
         <AnimatePresence mode="popLayout">
           <motion.h1
-            key={vertical + (vertical === 'facades' ? persona : '')}
+            key={vertical + profileKey}
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? {} : { opacity: 0, y: -8 }}
@@ -304,41 +581,6 @@ export default function App() {
             ))}
           </div>
 
-          <LayoutGroup>
-            <div className="personas" role="tablist" aria-label="Who are you">
-              {Object.entries(PERSONAS).map(([key, pp]) => (
-                <button
-                  key={key}
-                  role="tab"
-                  aria-selected={key === persona}
-                  className={key === persona ? 'on' : ''}
-                  onClick={() => {
-                    setPersona(key);
-                    setShown(7);
-                    setOpenId(null);
-                  }}
-                >
-                  {key === persona && (
-                    <motion.span className="pill" layoutId="persona-pill" transition={spring} aria-hidden="true" />
-                  )}
-                  <span className="tlabel">{pp.tab}</span>
-                </button>
-              ))}
-            </div>
-          </LayoutGroup>
-          <AnimatePresence mode="popLayout">
-            <motion.p
-              className="personas-hint"
-              key={persona}
-              initial={reduce ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={reduce ? {} : { opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {p.hint}
-            </motion.p>
-          </AnimatePresence>
-
           {hasNew && (
             <motion.button className={'news' + (onlyNew ? ' on' : '')} onClick={() => setOnlyNew((v) => !v)} {...fade(0.1)}>
               <span className="news-dot" aria-hidden="true" />
@@ -350,6 +592,8 @@ export default function App() {
               <span className="news-cta">{onlyNew ? 'show all' : 'show only new'}</span>
             </motion.button>
           )}
+
+          <p className="personas-hint">{fv.hint}</p>
 
           <div className="toolbar">
             <input
@@ -367,12 +611,17 @@ export default function App() {
                 </button>
               ))}
             </div>
+            <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
+              ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
+            </button>
+            <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
             <span className="count">{filteredFeed.length} buildings</span>
           </div>
 
           <div>
             {filteredFeed.slice(0, shown).map((c, i) => {
               const open = openId === c.bin;
+              const wkey = 'b:' + c.bin;
               const topSignal = [...c.signals].sort((a, b) => b.urgency - a.urgency)[0];
               return (
                 <motion.article
@@ -384,33 +633,43 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.04, 0.3) }}
                 >
-                  <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
-                    <span className="found" aria-hidden="true">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                    </span>
-                    <span className="head-main">
-                      <span className="addr">{title(c.address)}</span>
-                      <span className="boro">{c.borough}</span>
-                      {c.isNew && <span className="badge new">New</span>}
-                      {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
-                      <span className="badge">{BADGE[topSignal.kind]}</span>
-                      {c.freshHaz && <span className="badge urgent">Violation {c.freshHaz.daysAgo}d ago</span>}
-                      {c.signals.length > 1 && <span className="badge more">+{c.signals.length - 1}</span>}
-                    </span>
-                    <span className="head-side">
-                      <span className={'clock' + (c.monthsLeft <= 7 ? ' tight' : '')}>{c.monthsLeft} mo left</span>
-                      <motion.span
-                        className="chev"
-                        animate={{ rotate: open ? 180 : 0 }}
-                        transition={reduce ? { duration: 0 } : { duration: 0.25 }}
-                        aria-hidden="true"
-                      >
-                        <Chevron />
-                      </motion.span>
-                    </span>
-                  </button>
+                  <div className="card-row">
+                    <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
+                      <span className="found" aria-hidden="true">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </span>
+                      <span className="head-main">
+                        <span className="addr">{title(c.address)}</span>
+                        <span className="boro">{c.borough}</span>
+                        {c.isNew && <span className="badge new">New</span>}
+                        {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
+                        <span className="badge">{BADGE[topSignal.kind]}</span>
+                        {c.freshHaz && <span className="badge urgent">Violation {c.freshHaz.daysAgo}d ago</span>}
+                        {c.signals.length > 1 && <span className="badge more">+{c.signals.length - 1}</span>}
+                      </span>
+                      <span className="head-side">
+                        <span className={'clock' + (c.monthsLeft <= 7 ? ' tight' : '')}>{c.monthsLeft} mo left</span>
+                        <motion.span
+                          className="chev"
+                          animate={{ rotate: open ? 180 : 0 }}
+                          transition={reduce ? { duration: 0 } : { duration: 0.25 }}
+                          aria-hidden="true"
+                        >
+                          <Chevron />
+                        </motion.span>
+                      </span>
+                    </button>
+                    <button
+                      className={'star' + (isWatched(wkey) ? ' on' : '')}
+                      onClick={() => toggleWatch(wkey)}
+                      aria-label={isWatched(wkey) ? 'Remove from watchlist' : 'Add to watchlist'}
+                      aria-pressed={isWatched(wkey)}
+                    >
+                      <Star on={isWatched(wkey)} />
+                    </button>
+                  </div>
 
                   <AnimatePresence initial={false}>
                     {open && (
@@ -429,7 +688,7 @@ export default function App() {
                             <span>deadline {c.deadline}</span>
                           </div>
 
-                          <p className="why">{p.why(c)}</p>
+                          <p className="why">{fv.why(c)}</p>
 
                           <div className="facts">
                             <div className="fact">
@@ -454,7 +713,10 @@ export default function App() {
                             {c.mgmtChange && (
                               <div className="fact">
                                 <div className="k">Registration changed</div>
-                                <div className="v">detected {c.mgmtChange.detected}{c.mgmtChange.prevCompany ? ` · was ${title(c.mgmtChange.prevCompany)}` : ''} · HPD daily</div>
+                                <div className="v">
+                                  detected {c.mgmtChange.detected}
+                                  {c.mgmtChange.prevCompany ? ` · was ${title(c.mgmtChange.prevCompany)}` : ''} · HPD daily
+                                </div>
                               </div>
                             )}
                             {c.ownerChange && (
@@ -470,7 +732,7 @@ export default function App() {
                               <div className="fact">
                                 <div className="k">Elevators</div>
                                 <div className="v">
-                                  {c.elevator.cat1Missing > 0 ? `${c.elevator.cat1Missing} of ${c.elevator.devices} without a ${new Date().getFullYear()} CAT1 test` : ''}
+                                  {c.elevator.cat1Missing > 0 ? `${c.elevator.cat1Missing} of ${c.elevator.devices} without a ${YEAR} CAT1 test` : ''}
                                   {c.elevator.cat1Missing > 0 && c.elevator.cat5Due > 0 ? ' · ' : ''}
                                   {c.elevator.cat5Due > 0 ? `${c.elevator.cat5Due} due for 5-year CAT5` : ''}
                                 </div>
@@ -479,9 +741,7 @@ export default function App() {
                             {c.shed && (
                               <div className="fact">
                                 <div className="k">Sidewalk shed</div>
-                                <div className="v">
-                                  {c.shed.state === 'expired' ? `permit expired ${c.shed.exp}` : `renewal due by ${c.shed.exp}`}
-                                </div>
+                                <div className="v">{c.shed.state === 'expired' ? `permit expired ${c.shed.exp}` : `renewal due by ${c.shed.exp}`}</div>
                               </div>
                             )}
                             {c.ecbBalance > 0 && (
@@ -518,7 +778,7 @@ export default function App() {
                               )}
                             </div>
                             <div className="call-actions">
-                              <button className="btn solid" onClick={() => copy(c.bin, p.opener(c))}>
+                              <button className="btn solid" onClick={() => copy(c.bin, fv.opener(c))}>
                                 {copiedId === c.bin ? 'Copied' : 'Copy opener'}
                               </button>
                               <button className="btn ghost" onClick={() => copyLink('b', c.bin)}>
@@ -562,176 +822,176 @@ export default function App() {
       )}
 
       {vertical === 'contracts' && (
-        <SimpleFeed
-          items={data.contracts.slice(0, shown)}
-          total={data.contracts.length}
-          shown={shown}
-          onMore={() => setShown((n) => n + 7)}
-          openId={openId}
-          toggle={toggleCard}
-          hashType="c"
-          reduce={reduce}
-          renderHead={(c) => (
-            <>
-              <span className="head-main">
-                <span className="addr">{c.vendor}</span>
-                {c.isNew && <span className="badge new">New</span>}
-                <span className="badge">Won {money(c.amount)}</span>
-              </span>
-              <span className="head-side">
-                <span className={'clock' + (c.daysAgo != null && c.daysAgo <= 3 ? ' tight' : '')}>
-                  {c.daysAgo != null ? `${c.daysAgo}d ago` : c.date}
+        <>
+          {miniToolbar(contractsList, data.contracts.length)}
+          <SimpleFeed
+            items={contractsList.slice(0, shown)}
+            total={contractsList.length}
+            shown={shown}
+            onMore={() => setShown((n) => n + 7)}
+            openId={openId}
+            toggle={toggleCard}
+            hashType="c"
+            reduce={reduce}
+            isWatched={(c) => isWatched('c:' + c.id)}
+            onWatch={(c) => toggleWatch('c:' + c.id)}
+            renderHead={(c) => (
+              <>
+                <span className="head-main">
+                  <span className="addr">{c.vendor}</span>
+                  {c.isNew && <span className="badge new">New</span>}
+                  <span className="badge">Won {money(c.amount)}</span>
                 </span>
-              </span>
-            </>
-          )}
-          renderBody={(c) => (
-            <>
-              <p className="why">
-                {c.vendor} just won {money(c.amount)} from {c.agency} ({c.category?.toLowerCase()}). Delivery starts
-                now — which means subcontractors, bonding, insurance, equipment and staffing get bought in the next
-                few weeks. Congratulate first, sell second.
-              </p>
-              <div className="facts">
-                <div className="fact">
-                  <div className="k">Contract</div>
-                  <div className="v">{c.title}</div>
-                </div>
-                <div className="fact">
-                  <div className="k">Awarded by</div>
-                  <div className="v">{c.agency}</div>
-                </div>
-                <div className="fact">
-                  <div className="k">Method</div>
-                  <div className="v">{c.method}</div>
-                </div>
-                {c.vendorAddress && (
+                <span className="head-side">
+                  <span className={'clock' + (c.daysAgo != null && c.daysAgo <= 3 ? ' tight' : '')}>
+                    {c.daysAgo != null ? `${c.daysAgo}d ago` : c.date}
+                  </span>
+                </span>
+              </>
+            )}
+            renderBody={(c) => (
+              <>
+                <p className="why">
+                  {profile.cNeed?.(c) ||
+                    `${c.vendor} just won ${money(c.amount)} from ${c.agency} (${c.category?.toLowerCase()}). Delivery starts now — subcontractors, bonding, insurance, equipment and staffing get bought in the next few weeks. Congratulate first, sell second.`}
+                </p>
+                <div className="facts">
                   <div className="fact">
-                    <div className="k">Vendor address</div>
-                    <div className="v">{c.vendorAddress}</div>
+                    <div className="k">Contract</div>
+                    <div className="v">{c.title}</div>
                   </div>
-                )}
-              </div>
-              <div className="call-block">
-                <div className="call-who">
-                  <b>Who wins this window</b>
-                  <span>sureties and bonding · commercial insurance · subcontractors · staffing · equipment rental</span>
+                  <div className="fact">
+                    <div className="k">Awarded by</div>
+                    <div className="v">{c.agency}</div>
+                  </div>
+                  <div className="fact">
+                    <div className="k">Method</div>
+                    <div className="v">{c.method}</div>
+                  </div>
+                  {c.vendorAddress && (
+                    <div className="fact">
+                      <div className="k">Vendor address</div>
+                      <div className="v">{c.vendorAddress}</div>
+                    </div>
+                  )}
                 </div>
-                <div className="call-actions">
-                  <button
-                    className="btn solid"
-                    onClick={() =>
-                      copy(
-                        c.id,
-                        `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`,
-                      )
-                    }
-                  >
-                    {copiedId === c.id ? 'Copied' : 'Copy opener'}
-                  </button>
-                  <button className="btn ghost" onClick={() => copyLink('c', c.id)}>
-                    {copiedLink === c.id ? 'Copied' : 'Copy link'}
-                  </button>
-                  <a className="btn ghost" href={findUrl(`${c.vendor} phone contact`)} target="_blank" rel="noreferrer">
-                    Find contact ↗
-                  </a>
-                  <a className="btn ghost" href={liUrl(c.vendor)} target="_blank" rel="noreferrer">
-                    LinkedIn ↗
-                  </a>
-                  <a
-                    className="btn ghost"
-                    href="https://data.cityofnewyork.us/City-Government/Recent-Contract-Awards/qyyg-4tf5"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Source data ↗
-                  </a>
+                <div className="call-block">
+                  <div className="call-who">
+                    <b>{profile.cNeed ? 'Why this lands on your desk' : 'Who wins this window'}</b>
+                    <span>
+                      {profile.cNeed
+                        ? `You: ${profile.label}`
+                        : 'sureties and bonding · commercial insurance · subcontractors · staffing · equipment rental'}
+                    </span>
+                  </div>
+                  <div className="call-actions">
+                    <button className="btn solid" onClick={() => copy(c.id, (profile.cOpener || defaultCOpener)(c))}>
+                      {copiedId === c.id ? 'Copied' : 'Copy opener'}
+                    </button>
+                    <button className="btn ghost" onClick={() => copyLink('c', c.id)}>
+                      {copiedLink === c.id ? 'Copied' : 'Copy link'}
+                    </button>
+                    <a className="btn ghost" href={findUrl(`${c.vendor} phone contact`)} target="_blank" rel="noreferrer">
+                      Find contact ↗
+                    </a>
+                    <a className="btn ghost" href={liUrl(c.vendor)} target="_blank" rel="noreferrer">
+                      LinkedIn ↗
+                    </a>
+                    <a
+                      className="btn ghost"
+                      href="https://data.cityofnewyork.us/City-Government/Recent-Contract-Awards/qyyg-4tf5"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Source data ↗
+                    </a>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-          idOf={(c) => c.id}
-        />
+              </>
+            )}
+            idOf={(c) => c.id}
+          />
+        </>
       )}
 
       {vertical === 'openings' && (
-        <SimpleFeed
-          items={data.openings.slice(0, shown)}
-          total={data.openings.length}
-          shown={shown}
-          onMore={() => setShown((n) => n + 7)}
-          openId={openId}
-          toggle={toggleCard}
-          hashType="o"
-          reduce={reduce}
-          renderHead={(c) => (
-            <>
-              <span className="head-main">
-                <span className="addr">{c.name}</span>
-                {c.isNew && <span className="badge new">New</span>}
-                <span className="boro">{c.county}</span>
-                <span className="badge">{c.kind} · opening soon</span>
-              </span>
-              <span className="head-side">
-                <span className="clock">{c.daysAgo != null ? `filed ${c.daysAgo}d ago` : '~2–4 mo'}</span>
-              </span>
-            </>
-          )}
-          renderBody={(c) => (
-            <>
-              <p className="why">
-                {c.name} filed for a liquor license ({c.kind.toLowerCase()}) — which means a venue at {c.address} opens
-                in roughly two to four months. POS systems, insurance, furniture, suppliers and marketing are being
-                chosen right now, before any storefront exists to walk into.
-              </p>
-              <div className="facts">
-                <div className="fact">
-                  <div className="k">Premises</div>
-                  <div className="v">{c.address}</div>
-                </div>
-                <div className="fact">
-                  <div className="k">Legal name</div>
-                  <div className="v">{c.legal}</div>
-                </div>
-                {c.received && (
+        <>
+          {miniToolbar(openingsList, data.openings.length)}
+          <SimpleFeed
+            items={openingsList.slice(0, shown)}
+            total={openingsList.length}
+            shown={shown}
+            onMore={() => setShown((n) => n + 7)}
+            openId={openId}
+            toggle={toggleCard}
+            hashType="o"
+            reduce={reduce}
+            isWatched={(o) => isWatched('o:' + o.id)}
+            onWatch={(o) => toggleWatch('o:' + o.id)}
+            renderHead={(c) => (
+              <>
+                <span className="head-main">
+                  <span className="addr">{c.name}</span>
+                  {c.isNew && <span className="badge new">New</span>}
+                  <span className="boro">{c.county}</span>
+                  <span className="badge">{c.kind} · opening soon</span>
+                </span>
+                <span className="head-side">
+                  <span className="clock">{c.daysAgo != null ? `filed ${c.daysAgo}d ago` : '~2–4 mo'}</span>
+                </span>
+              </>
+            )}
+            renderBody={(c) => (
+              <>
+                <p className="why">
+                  {profile.oNeed?.(c) ||
+                    `${c.name} filed for a liquor license (${c.kind.toLowerCase()}) — a venue at ${c.address} opens in roughly two to four months. POS, insurance, furniture, suppliers and marketing are being chosen right now, before any storefront exists to walk into.`}
+                </p>
+                <div className="facts">
                   <div className="fact">
-                    <div className="k">Application received</div>
-                    <div className="v">{c.received} · under review</div>
+                    <div className="k">Premises</div>
+                    <div className="v">{c.address}</div>
                   </div>
-                )}
-              </div>
-              <div className="call-block">
-                <div className="call-who">
-                  <b>Who wins this window</b>
-                  <span>POS and payments · restaurant insurance · food and beverage suppliers · furniture · local marketing</span>
+                  <div className="fact">
+                    <div className="k">Legal name</div>
+                    <div className="v">{c.legal}</div>
+                  </div>
+                  {c.received && (
+                    <div className="fact">
+                      <div className="k">Application received</div>
+                      <div className="v">{c.received} · under review</div>
+                    </div>
+                  )}
                 </div>
-                <div className="call-actions">
-                  <button
-                    className="btn solid"
-                    onClick={() =>
-                      copy(
-                        c.id,
-                        `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`,
-                      )
-                    }
-                  >
-                    {copiedId === c.id ? 'Copied' : 'Copy opener'}
-                  </button>
-                  <button className="btn ghost" onClick={() => copyLink('o', c.id)}>
-                    {copiedLink === c.id ? 'Copied' : 'Copy link'}
-                  </button>
-                  <a className="btn ghost" href={findUrl(`"${c.legal}" ${c.address} phone`)} target="_blank" rel="noreferrer">
-                    Find contact ↗
-                  </a>
-                  <a className="btn ghost" href="https://data.ny.gov/d/f8i8-k2gm" target="_blank" rel="noreferrer">
-                    Source data ↗
-                  </a>
+                <div className="call-block">
+                  <div className="call-who">
+                    <b>{profile.oNeed ? 'Why this lands on your desk' : 'Who wins this window'}</b>
+                    <span>
+                      {profile.oNeed
+                        ? `You: ${profile.label}`
+                        : 'POS and payments · restaurant insurance · food and beverage suppliers · furniture · local marketing'}
+                    </span>
+                  </div>
+                  <div className="call-actions">
+                    <button className="btn solid" onClick={() => copy(c.id, (profile.oOpener || defaultOOpener)(c))}>
+                      {copiedId === c.id ? 'Copied' : 'Copy opener'}
+                    </button>
+                    <button className="btn ghost" onClick={() => copyLink('o', c.id)}>
+                      {copiedLink === c.id ? 'Copied' : 'Copy link'}
+                    </button>
+                    <a className="btn ghost" href={findUrl(`"${c.legal}" ${c.address} phone`)} target="_blank" rel="noreferrer">
+                      Find contact ↗
+                    </a>
+                    <a className="btn ghost" href="https://data.ny.gov/d/f8i8-k2gm" target="_blank" rel="noreferrer">
+                      Source data ↗
+                    </a>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-          idOf={(c) => c.id}
-        />
+              </>
+            )}
+            idOf={(c) => c.id}
+          />
+        </>
       )}
 
       <footer>
@@ -740,15 +1000,14 @@ export default function App() {
         data.ny.gov, no restrictions on use; every card links to the primary record. Every source passes a written
         license gate before collection — the ACRIS web portal prohibits robots, so deed data comes from the city's
         open-data batch and management changes are watched daily through HPD; real-time deeds are available through
-        the City Register's official subscription feed. The same engine runs in
-        production for government procurement (Kyrgyzstan) and film/TV music licensing. Built by{' '}
-        <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
+        the City Register's official subscription feed. The same engine runs in production for government procurement
+        (Kyrgyzstan) and film/TV music licensing. Built by <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
       </footer>
     </div>
   );
 }
 
-function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType }) {
+function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType, isWatched, onWatch }) {
   return (
     <>
       <div>
@@ -765,22 +1024,32 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.04, 0.3) }}
             >
-              <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
-                <span className="found" aria-hidden="true">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                </span>
-                {renderHead(c)}
-                <motion.span
-                  className="chev"
-                  animate={{ rotate: open ? 180 : 0 }}
-                  transition={reduce ? { duration: 0 } : { duration: 0.25 }}
-                  aria-hidden="true"
+              <div className="card-row">
+                <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
+                  <span className="found" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  </span>
+                  {renderHead(c)}
+                  <motion.span
+                    className="chev"
+                    animate={{ rotate: open ? 180 : 0 }}
+                    transition={reduce ? { duration: 0 } : { duration: 0.25 }}
+                    aria-hidden="true"
+                  >
+                    <Chevron />
+                  </motion.span>
+                </button>
+                <button
+                  className={'star' + (isWatched(c) ? ' on' : '')}
+                  onClick={() => onWatch(c)}
+                  aria-label={isWatched(c) ? 'Remove from watchlist' : 'Add to watchlist'}
+                  aria-pressed={isWatched(c)}
                 >
-                  <Chevron />
-                </motion.span>
-              </button>
+                  <Star on={isWatched(c)} />
+                </button>
+              </div>
               <AnimatePresence initial={false}>
                 {open && (
                   <motion.div
@@ -808,14 +1077,13 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
   );
 }
 
+const defaultCOpener = (c) =>
+  `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`;
+const defaultOOpener = (c) =>
+  `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
+
 const findUrl = (q) => `https://www.google.com/search?q=${encodeURIComponent(q.trim())}`;
 const liUrl = (q) => `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(q.trim())}`;
-
-const Chevron = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m6 9 6 6 6-6" />
-  </svg>
-);
 
 function subOpens(sub) {
   return sub === '10A' ? '2025-02-21' : sub === '10B' ? '2026-02-21' : '2027-02-21';
