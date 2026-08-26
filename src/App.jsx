@@ -22,6 +22,8 @@ function signalStory(c) {
   return `Off the compliance calendar for sub-cycle ${c.subCycle} — a forced-spend window with a legal deadline.`;
 }
 
+const CONSTR = /construction|architect|engineer/i;
+
 const GENERIC_FACADE = {
   hero: 'Buildings in a forced-spend window',
   hint: 'Ranked by urgency — deadlines, fresh violations, ownership changes, penalty balances.',
@@ -43,7 +45,8 @@ const PROFILES = {
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
-    cNeed: (c) => (/construction/i.test(c.category || '') ? `A ${money(c.amount)} construction award usually means inspections and special-inspection sign-offs down the line.` : null),
+    cNeed: (c) => `A ${money(c.amount)} construction award usually means inspections and special-inspection sign-offs down the line.`,
+    cFilter: (c) => CONSTR.test(c.category || ''),
     oNeed: null,
   },
   restoration: {
@@ -58,7 +61,8 @@ const PROFILES = {
       opener: (c) =>
         `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`,
     },
-    cNeed: (c) => (/construction/i.test(c.category || '') ? `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.` : null),
+    cNeed: (c) => `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.`,
+    cFilter: (c) => CONSTR.test(c.category || ''),
     oNeed: null,
   },
   lender: {
@@ -93,6 +97,7 @@ const PROFILES = {
           : `${signalStory(c)} Buildings in a forced-work window often bundle elevator work into the same capex.`,
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat1Missing || 'several'} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`,
+      fFilter: (c) => Boolean(c.elevator),
     },
     cNeed: null,
     oNeed: null,
@@ -155,8 +160,63 @@ const PROFILES = {
       why: (c) => `${signalStory(c)} Mandated exterior work means sidewalk sheds, scaffolding and hoists — access gets booked before the first brick moves.`,
       opener: (c) =>
         `Re: ${title(c.address)} — city records show mandated facade work ahead. We can quote shed and scaffold access before the scope goes out to bid.`,
+      fFilter: (c) => has(c, 'SWARMP_CARRYOVER') || has(c, 'UNSAFE_PRIOR') || Boolean(c.shed),
     },
     cNeed: (c) => `Delivering ${money(c.amount)} of new work usually means renting equipment in the first weeks — before the city's first payment lands.`,
+    cFilter: (c) => CONSTR.test(c.category || ''),
+    oNeed: null,
+  },
+  propmgmt: {
+    label: 'Property management',
+    tile: 'Property management',
+    facade: {
+      hero: 'Buildings that just changed hands — before the management RFP',
+      hint: 'Sales and registration changes only: the window when owners re-bid the management contract.',
+      sort: (a, b) => (b.mgmtChange ? 4 : 0) + (b.ownerChange ? 3 : 0) - (a.mgmtChange ? 4 : 0) - (a.ownerChange ? 3 : 0) || byUrgency(a, b),
+      why: (c) =>
+        `${signalStory(c)} New ownership reviews the management contract in year one — and this building carries open compliance work a stronger manager would fix. That is your pitch.`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — congratulations on the acquisition. The building carries open facade obligations; we manage compliance-heavy properties and can take this off your plate from day one.`,
+      fFilter: (c) => Boolean(c.ownerChange || c.mgmtChange),
+    },
+    cNeed: null,
+    oNeed: null,
+  },
+  legal: {
+    label: 'Code attorney / expeditor',
+    tile: 'Code attorneys / expeditors',
+    facade: {
+      hero: 'Hearings on the calendar, violations on the clock',
+      hint: 'Buildings with OATH hearings ahead, fresh violations or unpaid ECB balances — clients with a date.',
+      sort: (a, b) =>
+        (b.nextHearing ? 4 : 0) + (b.freshHaz ? 2 : 0) - (a.nextHearing ? 4 : 0) - (a.freshHaz ? 2 : 0) ||
+        (b.ecbBalance || 0) - (a.ecbBalance || 0),
+      why: (c) =>
+        `${signalStory(c)}${c.nextHearing ? ` An OATH hearing is scheduled for ${c.nextHearing} — representation and cure certification decide what it costs.` : c.ecbBalance ? ` ${money(c.ecbBalance)} in ECB penalties sits unpaid — dismissals and settlements are on the table.` : ''}`,
+      opener: (c) =>
+        `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${c.nextHearing}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
+      fFilter: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0 || has(c, 'UNSAFE_PRIOR')),
+    },
+    cNeed: null,
+    oNeed: null,
+  },
+  cre: {
+    label: 'CRE broker / investor',
+    tile: 'CRE brokerage / investment',
+    facade: {
+      hero: 'Owners under compliance pressure — before they list',
+      hint: 'Penalty balances, mandated capex and hearings — the polite word is “motivated”.',
+      sort: (a, b) =>
+        (b.ecbBalance || 0) + (b.finesOwed || 0) + (b.freshHaz ? 50000 : 0) - (a.ecbBalance || 0) - (a.finesOwed || 0) - (a.freshHaz ? 50000 : 0) ||
+        byUrgency(a, b),
+      why: (c) => {
+        const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
+        return `${signalStory(c)}${owed ? ` With ${money(owed)} in open penalties and mandated work ahead, ` : ' With mandated capex ahead, '}the owner is doing disposition math right now — a quiet valuation conversation lands differently this month.`;
+      },
+      opener: (c) =>
+        `Re: ${title(c.address)} — no ask, just context: buildings carrying open facade obligations are trading at interesting numbers right now. If a quiet valuation is ever useful, happy to run one.`,
+    },
+    cNeed: null,
     oNeed: null,
   },
   explore: {
@@ -168,7 +228,7 @@ const PROFILES = {
   },
 };
 
-const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'staffing', 'pos', 'fnb', 'explore'];
+const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'explore'];
 
 const BADGE = {
   NON_FILER: 'No Cycle 10 filing',
@@ -265,6 +325,27 @@ export default function App() {
 
   const profile = PROFILES[profileKey] || PROFILES.explore;
   const fv = profile.facade || GENERIC_FACADE;
+  const [sortMode, setSortMode] = useState('profile');
+  const [showTop, setShowTop] = useState(false);
+  const searchRef = useRef(null);
+
+  const forcedVert = useRef(null);
+  if (forcedVert.current === null) {
+    const m = location.hash.match(/^#(b|c|o)\//);
+    forcedVert.current = m ? { b: 'facades', c: 'contracts', o: 'openings' }[m[1]] : '';
+  }
+  const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
+  const visibleVerts = VERTICALS.filter(
+    (v) =>
+      isExplore ||
+      v.key === forcedVert.current ||
+      (v.key === 'facades' && profile.facade) ||
+      (v.key === 'contracts' && profile.cNeed) ||
+      (v.key === 'openings' && profile.oNeed),
+  );
+  useEffect(() => {
+    if (!visibleVerts.some((v) => v.key === vertical)) setVertical(visibleVerts[0].key);
+  }, [profileKey]);
 
   const watchCount = Object.keys(watch).length;
   const isWatched = (k) => Boolean(watch[k]);
@@ -283,12 +364,20 @@ export default function App() {
     saveLS('rw.profile', k);
     setShowOnboard(false);
     setShown(7);
-    if (PROFILES[k]?.facade) setVertical('facades');
-    else if (PROFILES[k]?.oNeed && !PROFILES[k]?.cNeed) setVertical('openings');
-    else if (PROFILES[k]?.cNeed && !PROFILES[k]?.facade) setVertical('contracts');
+    const p = PROFILES[k];
+    setVertical(p?.facade ? 'facades' : p?.cNeed ? 'contracts' : p?.oNeed ? 'openings' : 'facades');
+    setSortMode('profile');
   };
 
-  const facadeFeed = useMemo(() => [...data.facades.feed].sort(fv.sort), [profileKey]);
+  const SORTS = {
+    profile: fv.sort,
+    deadline: (a, b) => a.monthsLeft - b.monthsLeft || byUrgency(a, b),
+    money: (a, b) => (b.ecbBalance || 0) + (b.finesOwed || 0) - (a.ecbBalance || 0) - (a.finesOwed || 0),
+  };
+  const facadeFeed = useMemo(
+    () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || fv.sort),
+    [profileKey, sortMode],
+  );
   const filteredFeed = useMemo(() => {
     const q = query.trim().toLowerCase();
     return facadeFeed.filter((c) => {
@@ -306,7 +395,8 @@ export default function App() {
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
   }, [facadeFeed]);
-  const contractsList = useMemo(() => (onlyWatch ? data.contracts.filter((c) => isWatched('c:' + c.id)) : data.contracts), [onlyWatch, watch]);
+  const contractsBase = useMemo(() => data.contracts.filter(profile.cFilter || (() => true)), [profileKey]);
+  const contractsList = useMemo(() => (onlyWatch ? contractsBase.filter((c) => isWatched('c:' + c.id)) : contractsBase), [contractsBase, onlyWatch, watch]);
   const openingsList = useMemo(() => (onlyWatch ? data.openings.filter((o) => isWatched('o:' + o.id)) : data.openings), [onlyWatch, watch]);
   useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical]);
 
@@ -347,9 +437,18 @@ export default function App() {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Escape' && showOnboard && profileKey) setShowOnboard(false);
+      if (e.key === '/' && !showOnboard && !/input|textarea|select/i.test(e.target.tagName)) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
     };
+    const onScroll = () => setShowTop(window.scrollY > 700);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [showOnboard, profileKey]);
 
   const toggleCard = (type, id, wasOpen) => {
@@ -532,7 +631,7 @@ export default function App() {
 
       <LayoutGroup>
         <div className="verticals" role="tablist" aria-label="Pick a register">
-          {VERTICALS.map((v) => (
+          {visibleVerts.map((v) => (
             <button
               key={v.key}
               role="tab"
@@ -605,13 +704,19 @@ export default function App() {
 
           <div className="toolbar">
             <input
+              ref={searchRef}
               type="search"
               className="search"
-              placeholder="Search address, owner, agent…"
+              placeholder="Search address, owner, agent…  ( / )"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search buildings"
             />
+            <select className="sel" value={sortMode} onChange={(e) => setSortMode(e.target.value)} aria-label="Sort">
+              <option value="profile">Sort: for you</option>
+              <option value="deadline">Sort: deadline</option>
+              <option value="money">Sort: penalties owed</option>
+            </select>
             <div className="chips" role="group" aria-label="Borough">
               {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx'].map((b) => (
                 <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} onClick={() => setBoro(b)}>
@@ -1011,6 +1116,21 @@ export default function App() {
           />
         </>
       )}
+
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            className="totop"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduce ? {} : { opacity: 0, y: 10 }}
+            aria-label="Back to top"
+          >
+            ↑ Top
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <div className="pilot">
         <div>

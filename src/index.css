@@ -350,3 +350,22 @@ footer a { color: var(--brand); }
   html { scroll-behavior: auto; }
   * { transition: none !important; }
 }
+
+.sel {
+  min-height: 40px; border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 13px;
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.55); cursor: pointer;
+}
+.sel:focus-visible { outline: 2px solid var(--brand); outline-offset: -1px; }
+.totop {
+  position: fixed; right: 22px; bottom: 22px; z-index: 40;
+  font-family: var(--display); font-size: 13px; font-weight: 700; padding: 12px 18px; min-height: 44px;
+  border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); cursor: pointer;
+  background: var(--glass-strong);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  box-shadow: var(--glass-edge), var(--shadow-lift);
+}
+.totop:hover { color: var(--brand-2); border-color: var(--brand); }
+.totop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
