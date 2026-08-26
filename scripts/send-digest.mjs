@@ -65,6 +65,21 @@ function html(items, profile) {
   </div>`;
 }
 
+// Test mode: DIGEST_TEST=email — send the current top items to one address, ignoring newness.
+if (process.env.DIGEST_TEST) {
+  const items = [];
+  for (const c of feed.facades.feed.slice(0, 3)) items.push({ t: titleCase(c.address) + ', ' + c.borough, d: `${c.subCycle} deadline ${c.deadline} · ${c.monthsLeft} mo left`, u: `${SITE}/#b/${c.bin}` });
+  for (const c of feed.contracts.slice(0, 2)) items.push({ t: c.vendor, d: `won $${c.amount.toLocaleString('en-US')} from ${c.agency}`, u: `${SITE}/#c/${c.id}` });
+  for (const o of feed.openings.slice(0, 1)) items.push({ t: o.name, d: `${o.kind} opening soon · ${o.address}`, u: `${SITE}/#o/${o.id}` });
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ from: FROM, to: [process.env.DIGEST_TEST], subject: 'Right Window — test digest', html: html(items, 'test') }),
+  });
+  console.log('test send:', res.status, res.ok ? 'ok' : (await res.text()).slice(0, 200));
+  process.exit(res.ok ? 0 : 1);
+}
+
 const paths = await listJson('prefs/');
 let sent = 0, skipped = 0;
 for (const p of paths) {

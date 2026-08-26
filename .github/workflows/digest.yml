@@ -3,6 +3,10 @@ on:
   schedule:
     - cron: '7 12 * * *'
   workflow_dispatch:
+    inputs:
+      test_email:
+        description: Send a test digest to this address
+        required: false
 
 jobs:
   digest:
@@ -17,6 +21,7 @@ jobs:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+          DIGEST_TEST: ${{ inputs.test_email }}
         run: |
           npm i --no-save @vercel/blob > /dev/null 2>&1
           node scripts/send-digest.mjs
