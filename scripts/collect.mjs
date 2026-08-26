@@ -1,0 +1,439 @@
+// Collect: NYC FISP facade filings + HPD contacts -> src/data/feed.json
+// Sources (all NYC Open Data, no restrictions on use):
+//   xubg-57si  DOB NOW Facades Compliance Filings (updated every business day)
+//   tesw-yqqr  HPD Multiple Dwelling Registrations
+//   feu5-w2e2  HPD Registration Contacts
+// Signal logic (FISP Cycle 10, sub-cycle by last digit of tax block):
+//   A: 4,5,6,9 -> file by 2027-02-21   B: 0,7,8 -> 2028-02-21   C: 1,2,3 -> 2029-02-21
+// Deviations we sell: non-filer inside an open window, SWARMP carried from Cycle 9,
+// UNSAFE and chronic no-report. Calendar itself is not a signal - everyone knows it.
+
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+
+// Source gate (same rule as Signal): a source without an ALLOWED verdict in
+// data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
+// own Bandwidth Policy — real-time deeds are the City Register's paid feed, not a scrape.
+const POLICY = JSON.parse(readFileSync(new URL('../data/source-policy.json', import.meta.url), 'utf8'));
+function assertCollectable(host) {
+  const p = POLICY.find((x) => x.host === host);
+  if (!p) throw new Error(`Source ${host} is not in data/source-policy.json — collection refused.`);
+  if (p.verdict !== 'ALLOWED') throw new Error(`Source ${host} verdict is ${p.verdict} — collection refused. ${p.license}`);
+  return p;
+}
+assertCollectable('data.cityofnewyork.us');
+assertCollectable('data.ny.gov');
+console.log('Source gate: data.cityofnewyork.us ALLOWED, data.ny.gov ALLOWED, a836-acris.nyc.gov DENIED (robots prohibited by city policy)');
+
+const BASE = 'https://data.cityofnewyork.us/resource';
+const TODAY = new Date();
+
+async function fetchAll(dataset, params, pageSize = 50000) {
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const qs = new URLSearchParams({ ...params, $limit: String(pageSize), $offset: String(offset) });
+    const res = await fetch(`${BASE}/${dataset}.json?${qs}`);
+    if (!res.ok) throw new Error(`${dataset} ${res.status}: ${await res.text()}`);
+    const page = await res.json();
+    rows.push(...page);
+    process.stdout.write(`  ${dataset}: ${rows.length}\r`);
+    if (page.length < pageSize) break;
+  }
+  console.log(`  ${dataset}: ${rows.length} rows`);
+  return rows;
+}
+
+function subCycle(block) {
+  const d = String(block || '').trim().slice(-1);
+  if ('4569'.includes(d)) return { sub: '10A', deadline: '2027-02-21', opens: '2025-02-21' };
+  if ('078'.includes(d)) return { sub: '10B', deadline: '2028-02-21', opens: '2026-02-21' };
+  if ('123'.includes(d)) return { sub: '10C', deadline: '2029-02-21', opens: '2027-02-21' };
+  return null;
+}
+
+function parseYmd(v) {
+  if (!v) return null;
+  const m = String(v).trim();
+  if (/^\d{8}$/.test(m)) return new Date(`${m.slice(0, 4)}-${m.slice(4, 6)}-${m.slice(6, 8)}`);
+  const d = new Date(m);
+  return isNaN(d) ? null : d;
+}
+
+function monthsUntil(dateStr) {
+  return Math.round((new Date(dateStr) - TODAY) / (30.44 * 24 * 3600 * 1000));
+}
+
+console.log('Fetching facade filings (cycles 9 and 10)...');
+const filings = await fetchAll('xubg-57si', {
+  $where: "cycle in('9','10')",
+  $select: 'tr6_no,cycle,bin,house_no,street_name,borough,block,lot,current_status,filing_status,submitted_on,filing_date,qewi_name,qewi_bus_name,owner_name,owner_bus_name,late_filing_amt,failure_to_file_amt,failure_to_correct_amt',
+});
+
+// Latest filing per bin per cycle
+const byBin = new Map();
+for (const f of filings) {
+  if (!f.bin) continue;
+  const rec = byBin.get(f.bin) || { c9: null, c10: null };
+  const slot = f.cycle === '9' ? 'c9' : 'c10';
+  const cur = rec[slot];
+  if (!cur || (f.submitted_on || '') > (cur.submitted_on || '')) rec[slot] = f;
+  byBin.set(f.bin, rec);
+}
+console.log(`Buildings with cycle 9/10 history: ${byBin.size}`);
+
+// Build candidate signals
+const candidates = [];
+for (const [bin, { c9, c10 }] of byBin) {
+  const src = c10 || c9;
+  if (!src) continue;
+  const boro = (src.borough || '').trim();
+  if (boro !== 'Manhattan' && boro !== 'Brooklyn') continue;
+  const sc = subCycle(src.block);
+  if (!sc) continue;
+  const windowOpen = sc.opens <= TODAY.toISOString().slice(0, 10);
+  const mLeft = monthsUntil(sc.deadline);
+  const signals = [];
+
+  if (!c10 && windowOpen) {
+    signals.push({
+      kind: 'NON_FILER',
+      urgency: mLeft <= 7 ? 3 : mLeft <= 18 ? 2 : 1,
+      monthsLeft: mLeft,
+    });
+  }
+  if (c9 && (c9.current_status || '') === 'SWARMP' && (!c10 || (c10.current_status || '') !== 'SAFE')) {
+    signals.push({ kind: 'SWARMP_CARRYOVER', urgency: mLeft <= 7 ? 3 : 2, monthsLeft: mLeft });
+  }
+  if (c9 && (c9.current_status || '') === 'UNSAFE' && !c10) {
+    signals.push({ kind: 'UNSAFE_PRIOR', urgency: 3, monthsLeft: mLeft });
+  }
+  if (c9 && (c9.current_status || '') === 'No Report Filed' && !c10) {
+    signals.push({ kind: 'CHRONIC_NON_FILER', urgency: 2, monthsLeft: mLeft });
+  }
+  if (!signals.length) continue;
+
+  const finesOwed =
+    Number(c9?.late_filing_amt || 0) + Number(c9?.failure_to_file_amt || 0) + Number(c9?.failure_to_correct_amt || 0);
+
+  candidates.push({
+    bin,
+    address: `${(src.house_no || '').trim()} ${(src.street_name || '').trim()}`.trim(),
+    borough: boro,
+    block: src.block,
+    lot: src.lot,
+    subCycle: sc.sub,
+    deadline: sc.deadline,
+    monthsLeft: mLeft,
+    signals,
+    score: signals.reduce((s, x) => s + x.urgency, 0) + (finesOwed > 0 ? 1 : 0),
+    lastStatus: (c10 || c9).current_status || '',
+    lastCycle: c10 ? '10' : '9',
+    lastFiling: (c10 || c9).submitted_on?.slice(0, 10) || null,
+    priorQewi: c9?.qewi_bus_name || c9?.qewi_name || null,
+    owner: c9?.owner_bus_name || c9?.owner_name || c10?.owner_bus_name || null,
+    finesOwed,
+  });
+}
+console.log(`Candidates (Manhattan+Brooklyn): ${candidates.length}`);
+candidates.sort((a, b) => b.score - a.score || a.monthsLeft - b.monthsLeft);
+
+// HPD join: registrations by BIN for the top slice, then agents by registrationid
+const top = candidates.slice(0, 400);
+console.log('Fetching HPD registrations for top candidates...');
+const regByBin = new Map();
+for (let i = 0; i < top.length; i += 50) {
+  const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
+  const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate' }, 1000);
+  for (const r of rows) {
+    const cur = regByBin.get(r.bin);
+    if (!cur || (r.lastregistrationdate || '') > (cur.lastregistrationdate || '')) regByBin.set(r.bin, r);
+  }
+}
+console.log(`HPD-registered (multifamily): ${regByBin.size}`);
+
+const regIds = [...new Set([...regByBin.values()].map((r) => r.registrationid))];
+const agentByReg = new Map();
+for (let i = 0; i < regIds.length; i += 50) {
+  const ids = regIds.slice(i, i + 50).map((x) => `'${x}'`).join(',');
+  const rows = await fetchAll(
+    'feu5-w2e2',
+    { $where: `registrationid in(${ids}) and type in('Agent','SiteManager')`, $select: 'registrationid,type,corporationname,firstname,lastname,businesshousenumber,businessstreetname,businessapartment,businesscity,businessstate,businesszip' },
+    2000,
+  );
+  for (const r of rows) {
+    const cur = agentByReg.get(r.registrationid);
+    if (!cur || (r.type === 'Agent' && cur.type !== 'Agent')) agentByReg.set(r.registrationid, r);
+  }
+}
+console.log(`Agents resolved: ${agentByReg.size}`);
+
+// ECB violations for candidate bins: fresh hazardous events + open penalty balances + next hearings
+console.log('Fetching ECB violations for top candidates...');
+const ecbByBin = new Map();
+for (let i = 0; i < top.length; i += 50) {
+  const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
+  const rows = await fetchAll(
+    '6bgk-3dad',
+    { $where: `bin in(${bins}) and ecb_violation_status='ACTIVE'`, $select: 'bin,issue_date,severity,violation_description,balance_due,hearing_date' },
+    5000,
+  );
+  for (const r of rows) {
+    const agg = ecbByBin.get(r.bin) || { balance: 0, fresh: null, nextHearing: null };
+    agg.balance += Number(r.balance_due || 0);
+    const d = parseYmd(r.issue_date);
+    if (d) {
+      const daysAgo = Math.round((TODAY - d) / 86400000);
+      const hazardous = /HAZARD/i.test(r.severity || '');
+      if (daysAgo >= 0 && daysAgo <= 120 && (!agg.fresh || (hazardous && !agg.fresh.hazardous) || daysAgo < agg.fresh.daysAgo)) {
+        agg.fresh = { daysAgo, hazardous, severity: (r.severity || '').trim(), desc: (r.violation_description || '').replace(/\s+/g, ' ').slice(0, 150).trim() };
+      }
+    }
+    const h = parseYmd(r.hearing_date);
+    if (h && h > TODAY && (!agg.nextHearing || h < agg.nextHearing)) agg.nextHearing = h;
+    ecbByBin.set(r.bin, agg);
+  }
+}
+console.log(`ECB data for ${ecbByBin.size} buildings`);
+
+// Chain: ownership change (ACRIS). Monthly open-data batch lags ~2-4 weeks; a 90-day
+// contract-review window survives that. Flip the join: recent DEEDs first, then legals by block.
+console.log('Fetching recent ACRIS deeds...');
+const deedSince = new Date(TODAY - 180 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+const recentDeeds = new Map();
+{
+  const rows = await fetchAll('bnx9-e6tj', {
+    $where: `doc_type='DEED' and recorded_datetime>='${deedSince}T00:00:00'`,
+    $select: 'document_id,recorded_datetime,document_amt',
+  });
+  for (const r of rows) recentDeeds.set(r.document_id, r);
+}
+const BOro = { Manhattan: 1, Brooklyn: 3 };
+const ownerByKey = new Map();
+for (const [boroName, boroNum] of Object.entries(BOro)) {
+  const blocks = [...new Set(top.filter((c) => c.borough === boroName).map((c) => parseInt(c.block, 10)).filter(Boolean))];
+  for (let i = 0; i < blocks.length; i += 60) {
+    const chunk = blocks.slice(i, i + 60).join(',');
+    const rows = await fetchAll('8h5j-fqxa', { $where: `borough=${boroNum} and block in(${chunk})`, $select: 'document_id,block,lot' }, 50000);
+    for (const r of rows) {
+      const deed = recentDeeds.get(r.document_id);
+      if (!deed) continue;
+      const key = `${boroNum}-${parseInt(r.block, 10)}-${parseInt(r.lot, 10)}`;
+      const cur = ownerByKey.get(key);
+      if (!cur || deed.recorded_datetime > cur.recorded) {
+        ownerByKey.set(key, { recorded: deed.recorded_datetime, amount: Number(deed.document_amt || 0) });
+      }
+    }
+  }
+}
+console.log(`Ownership changes matched: ${ownerByKey.size} block-lots`);
+
+// Chain: elevator compliance (CAT1 annual, CAT5 five-year) for candidate bins
+console.log('Fetching elevator compliance...');
+const elevByBin = new Map();
+for (let i = 0; i < top.length; i += 50) {
+  const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
+  const rows = await fetchAll(
+    'e5aq-a4j2',
+    { $where: `bin in(${bins}) and device_status='Active'`, $select: 'bin,cat1_report_year,cat5_latest_report_filed' },
+    5000,
+  );
+  for (const r of rows) {
+    const agg = elevByBin.get(r.bin) || { devices: 0, cat1Missing: 0, cat1Overdue: 0, cat5Due: 0 };
+    agg.devices += 1;
+    const y = parseInt(r.cat1_report_year || '0', 10);
+    if (y && y < TODAY.getFullYear()) agg.cat1Missing += 1;
+    if (y && y < TODAY.getFullYear() - 1) agg.cat1Overdue += 1;
+    const c5 = parseYmd(r.cat5_latest_report_filed);
+    if (c5 && TODAY - c5 > 4.5 * 365.25 * 24 * 3600 * 1000) agg.cat5Due += 1;
+    elevByBin.set(r.bin, agg);
+  }
+}
+console.log(`Elevator data for ${elevByBin.size} buildings`);
+
+// Chain: sidewalk shed permits expiring or expired for candidate bins
+console.log('Fetching shed permits...');
+const shedByBin = new Map();
+for (let i = 0; i < top.length; i += 50) {
+  const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
+  const rows = await fetchAll(
+    'ipu4-2q9a',
+    { $where: `bin__ in(${bins}) and permit_subtype='SH' and expiration_date IS NOT NULL`, $select: 'bin__,issuance_date,expiration_date' },
+    5000,
+  );
+  for (const r of rows) {
+    const exp = parseYmd(r.expiration_date);
+    if (!exp) continue;
+    const cur = shedByBin.get(r.bin__);
+    if (!cur || exp > cur.exp) shedByBin.set(r.bin__, { exp, issued: parseYmd(r.issuance_date) });
+  }
+}
+console.log(`Shed permits for ${shedByBin.size} buildings`);
+
+// HPD registration change watcher: the registration dataset updates daily, so a change
+// in registrationid or managing-agent company is a days-fresh, fully-open proxy for a
+// sale or management change — the legal alternative to scraping web-ACRIS.
+const baselinePath = new URL('../data/hpd-baseline.json', import.meta.url);
+let baseline = {};
+try { if (existsSync(baselinePath)) baseline = JSON.parse(readFileSync(baselinePath, 'utf8')); } catch {}
+const mgmtChangeByBin = new Map();
+const newBaseline = { ...baseline };
+for (const c of top) {
+  const reg = regByBin.get(c.bin);
+  if (!reg) continue;
+  const agent = agentByReg.get(reg.registrationid);
+  const nowState = { registrationid: reg.registrationid, agentCompany: agent?.corporationname || null };
+  const prev = baseline[c.bin];
+  if (prev && (prev.registrationid !== nowState.registrationid || (prev.agentCompany || '') !== (nowState.agentCompany || ''))) {
+    mgmtChangeByBin.set(c.bin, { prevCompany: prev.agentCompany || null, detected: TODAY.toISOString().slice(0, 10) });
+  }
+  newBaseline[c.bin] = nowState;
+}
+writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 1));
+console.log(`HPD watcher: baseline ${Object.keys(baseline).length} bins, changes detected: ${mgmtChangeByBin.size}`);
+
+const cards = [];
+for (const c of top) {
+  const reg = regByBin.get(c.bin);
+  const agent = reg ? agentByReg.get(reg.registrationid) : null;
+  const ecb = ecbByBin.get(c.bin);
+  const ecbBalance = ecb ? Math.round(ecb.balance) : 0;
+  const freshHaz = ecb?.fresh || null;
+
+  const boroNum = c.borough === 'Manhattan' ? 1 : 3;
+  const own = ownerByKey.get(`${boroNum}-${parseInt(c.block, 10)}-${parseInt(c.lot, 10)}`);
+  const ownerChange = own
+    ? { daysAgo: Math.round((TODAY - new Date(own.recorded)) / 86400000), amount: own.amount, recorded: own.recorded.slice(0, 10) }
+    : null;
+
+  const elev = elevByBin.get(c.bin);
+  const elevator =
+    elev && (elev.cat1Missing > 0 || elev.cat5Due > 0)
+      ? { devices: elev.devices, cat1Missing: elev.cat1Missing, cat1Overdue: elev.cat1Overdue, cat5Due: elev.cat5Due }
+      : null;
+
+  const sh = shedByBin.get(c.bin);
+  let shed = null;
+  if (sh) {
+    const days = Math.round((sh.exp - TODAY) / 86400000);
+    if (days < 0 && days > -548) shed = { state: 'expired', days: -days, exp: sh.exp.toISOString().slice(0, 10) };
+    else if (days >= 0 && days <= 90) shed = { state: 'renewal', days, exp: sh.exp.toISOString().slice(0, 10) };
+  }
+
+  const mgmtChange = mgmtChangeByBin.get(c.bin) || null;
+  const signals = [...c.signals];
+  if (mgmtChange) signals.push({ kind: 'NEW_MGMT', urgency: 3, monthsLeft: c.monthsLeft });
+  if (ownerChange && ownerChange.daysAgo <= 180) signals.push({ kind: 'OWNER_CHANGE', urgency: 3, monthsLeft: c.monthsLeft });
+  if (elevator) signals.push({ kind: 'ELEV_DUE', urgency: elevator.cat1Overdue > 0 ? 3 : 2, monthsLeft: c.monthsLeft });
+  if (shed) signals.push({ kind: shed.state === 'expired' ? 'SHED_EXPIRED' : 'SHED_RENEWAL', urgency: 2, monthsLeft: c.monthsLeft });
+
+  const urgencyScore =
+    c.score +
+    (freshHaz ? (freshHaz.hazardous ? 5 : 3) - Math.min(3, Math.floor(freshHaz.daysAgo / 40)) : 0) +
+    (mgmtChange ? 4 : 0) +
+    (ownerChange && ownerChange.daysAgo <= 180 ? 4 - Math.min(2, Math.floor(ownerChange.daysAgo / 60)) : 0) +
+    (elevator ? (elevator.cat1Overdue > 0 ? 3 : 2) : 0) +
+    (shed ? 2 : 0) +
+    Math.min(3, Math.round(ecbBalance / 100000)) +
+    (c.monthsLeft <= 7 ? 1 : 0);
+  cards.push({
+    ...c,
+    signals,
+    mgmtChange,
+    ownerChange,
+    elevator,
+    shed,
+    ecbBalance,
+    freshHaz,
+    nextHearing: ecb?.nextHearing ? ecb.nextHearing.toISOString().slice(0, 10) : null,
+    urgencyScore,
+    multifamily: Boolean(reg),
+    agent: agent
+      ? {
+          company: agent.corporationname || null,
+          name: [agent.firstname, agent.lastname].filter(Boolean).join(' ') || null,
+          role: agent.type === 'Agent' ? 'Managing agent (HPD registration)' : 'Site manager (HPD registration)',
+          address: [
+            [agent.businesshousenumber, agent.businessstreetname].filter(Boolean).join(' '),
+            agent.businessapartment,
+            [agent.businesscity, agent.businessstate, agent.businesszip].filter(Boolean).join(' '),
+          ]
+            .filter(Boolean)
+            .join(', ') || null,
+        }
+      : null,
+  });
+}
+
+// Demo feed: most urgent first (post-enrichment), multifamily with a resolved contact
+cards.sort((a, b) => b.urgencyScore - a.urgencyScore);
+const feed = cards.filter((c) => c.multifamily && c.agent).slice(0, 60);
+console.log('Chains in cards:', {
+  ownerChange: cards.filter((c) => c.ownerChange).length,
+  elevator: cards.filter((c) => c.elevator).length,
+  shed: cards.filter((c) => c.shed).length,
+});
+
+// ---- Vertical 2: fresh city contract awards (companies that just won money) ----
+console.log('Fetching recent contract awards...');
+const since = new Date(TODAY - 14 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+const awardsRaw = await fetchAll('qyyg-4tf5', {
+  $where: `type_of_notice_description='Award' and start_date>='${since}'`,
+  $order: 'start_date DESC',
+  $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
+}, 2000);
+const contracts = awardsRaw
+  .filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name)
+  .slice(0, 20)
+  .map((a) => ({
+    id: a.request_id,
+    vendor: a.vendor_name,
+    vendorAddress: a.vendor_address || null,
+    agency: a.agency_name,
+    amount: Number(a.contract_amount),
+    title: a.short_title,
+    category: a.category_description,
+    method: a.selection_method_description,
+    date: a.start_date?.slice(0, 10),
+    daysAgo: a.start_date ? Math.max(0, Math.round((TODAY - new Date(a.start_date)) / 86400000)) : null,
+  }))
+  .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.amount - a.amount);
+
+// ---- Vertical 3: pending liquor licenses (venues opening in 2-4 months) ----
+console.log('Fetching SLA pending licenses (NYC counties)...');
+const slaRaw = await (async () => {
+  const qs = new URLSearchParams({
+    $where: "premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review'",
+    $order: 'received_date DESC',
+    $limit: '40',
+    $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
+  });
+  const res = await fetch(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs}`);
+  if (!res.ok) throw new Error(`SLA ${res.status}`);
+  return res.json();
+})();
+const openings = slaRaw.slice(0, 20).map((o) => ({
+  id: o.application_id,
+  name: o.dba || o.legalname,
+  legal: o.legalname,
+  kind: o.description,
+  address: `${o.actual_address_of_premises || ''}, ${o.city || ''}`.trim(),
+  county: o.premises_county,
+  received: o.received_date?.slice(0, 10),
+  daysAgo: o.received_date ? Math.max(0, Math.round((TODAY - new Date(o.received_date)) / 86400000)) : null,
+}));
+
+const out = {
+  generatedAt: TODAY.toISOString(),
+  facades: {
+    totals: {
+      candidates: candidates.length,
+      nonFilers10A: candidates.filter((c) => c.subCycle === '10A' && c.signals.some((s) => s.kind === 'NON_FILER')).length,
+      swarmpCarryover: candidates.filter((c) => c.signals.some((s) => s.kind === 'SWARMP_CARRYOVER')).length,
+      unsafePrior: candidates.filter((c) => c.signals.some((s) => s.kind === 'UNSAFE_PRIOR')).length,
+    },
+    feed,
+  },
+  contracts,
+  openings,
+};
+writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(out, null, 1));
+console.log(`Written: facades ${feed.length}, contracts ${contracts.length}, openings ${openings.length}. Totals:`, out.facades.totals);
