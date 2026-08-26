@@ -1,7 +1,7 @@
 // Notify all registered Wallet passes via APNs (empty push -> device refetches the pass;
 // the changed "fresh" field's changeMessage becomes the lock-screen notification).
 // Env: APNS_KEY_P8_B64, APNS_KEY_ID, APPLE_TEAM_ID, PASS_TYPE_ID, BLOB_READ_WRITE_TOKEN
-import { list } from '@vercel/blob';
+import { readJson, listJson } from '../lib/store.mjs';
 import { createSign, createPrivateKey } from 'node:crypto';
 import { connect } from 'node:http2';
 
@@ -19,15 +19,15 @@ const signer = createSign('SHA256');
 signer.update(unsigned);
 const jwt = `${unsigned}.${signer.sign({ key, dsaEncoding: 'ieee-p1363' }).toString('base64url')}`;
 
-const { blobs } = await list({ prefix: 'reg/', limit: 1000 });
-if (!blobs.length) {
+const paths = await listJson('reg/');
+if (!paths.length) {
   console.log('push-passes: no registered devices');
   process.exit(0);
 }
 const client = connect('https://api.push.apple.com');
 let ok = 0, fail = 0;
-for (const b of blobs) {
-  const reg = await fetch(b.url).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+for (const p of paths) {
+  const reg = await readJson(p);
   if (!reg?.pushToken) continue;
   await new Promise((resolve) => {
     const req = client.request({
@@ -51,4 +51,4 @@ for (const b of blobs) {
   });
 }
 client.close();
-console.log(`push-passes: ok=${ok} fail=${fail} of ${blobs.length}`);
+console.log(`push-passes: ok=${ok} fail=${fail} of ${paths.length}`);

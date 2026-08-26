@@ -41,7 +41,7 @@ const PROFILES = {
       hero: 'Buildings that need a facade engineer — before they know it',
       hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
       sort: byUrgency,
-      why: (c) => `${signalStory(c)} No Cycle 10 engineer is on record — the first one to call gets the walk-through.`,
+      why: () => `No Cycle 10 engineer is on record — the first one to call gets the walk-through.`,
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
@@ -57,7 +57,7 @@ const PROFILES = {
       hint: 'Open SWARMP and UNSAFE conditions — mandatory scopes, before they go out to bid.',
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') || byUrgency(a, b),
-      why: (c) => `${signalStory(c)} This scope exists whether or not anyone has bid it yet — early contact beats the bid list.`,
+      why: () => `A mandatory scope with no contractor attached yet — early contact beats the bid list.`,
       opener: (c) =>
         `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`,
     },
@@ -74,7 +74,7 @@ const PROFILES = {
       sort: (a, b) => byUrgency(a, b) || (b.finesOwed || 0) + (b.ecbBalance || 0) - (a.finesOwed || 0) - (a.ecbBalance || 0),
       why: (c) => {
         const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
-        return `${signalStory(c)}${owed ? ` It already owes ${money(owed)} across DOB and ECB penalties.` : ''} That is financeable, non-deferrable capex — owners in this position need capital with a legal reason to use it.`;
+        return `${owed ? `Already ${money(owed)} in open penalties. ` : ''}Non-deferrable capex is financeable capex — this owner needs capital with a legal reason to use it.`;
       },
       opener: (c) =>
         `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
@@ -93,8 +93,8 @@ const PROFILES = {
         byUrgency(a, b),
       why: (c) =>
         c.elevator
-          ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing} of ${c.elevator.devices} devices have no ${YEAR} CAT1 test on file` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ' and ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} are due for the 5-year CAT5` : ''} — tests must be filed by December 31, and late devices accrue penalties. ${signalStory(c)}`
-          : `${signalStory(c)} Buildings in a forced-work window often bundle elevator work into the same capex.`,
+          ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing} of ${c.elevator.devices} devices have no ${YEAR} CAT1 test on file` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ' and ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} are due for the 5-year CAT5` : ''} — tests must be filed by December 31, and late devices accrue penalties.`
+          : `Forced-work windows often bundle elevator modernization into the same capex.`,
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat1Missing || 'several'} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`,
       fFilter: (c) => Boolean(c.elevator),
@@ -111,7 +111,9 @@ const PROFILES = {
       sort: (a, b) =>
         (b.ownerChange ? 3 : 0) + (b.freshHaz ? 2 : 0) - (a.ownerChange ? 3 : 0) - (a.freshHaz ? 2 : 0) || byUrgency(a, b),
       why: (c) =>
-        `${signalStory(c)} ${c.ownerChange || c.mgmtChange ? 'New ownership re-shops every policy in year one.' : 'Open violations and mandated work change the liability picture — renewal conversations start now, not at expiry.'}`,
+        c.ownerChange || c.mgmtChange
+          ? 'New ownership re-shops every policy in year one.'
+          : 'Open violations and mandated work change the liability picture — renewal conversations start now, not at expiry.',
       opener: (c) =>
         `Re: ${title(c.address)} — city records show mandated facade work and open violations. Worth reviewing coverage before the repair scope starts?`,
     },
@@ -157,7 +159,7 @@ const PROFILES = {
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') + (b.shed ? 2 : 0) - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') - (a.shed ? 2 : 0) ||
         byUrgency(a, b),
-      why: (c) => `${signalStory(c)} Mandated exterior work means sidewalk sheds, scaffolding and hoists — access gets booked before the first brick moves.`,
+      why: () => `Mandated exterior work means sidewalk sheds, scaffolding and hoists — access gets booked before the first brick moves.`,
       opener: (c) =>
         `Re: ${title(c.address)} — city records show mandated facade work ahead. We can quote shed and scaffold access before the scope goes out to bid.`,
       fFilter: (c) => has(c, 'SWARMP_CARRYOVER') || has(c, 'UNSAFE_PRIOR') || Boolean(c.shed),
@@ -173,8 +175,8 @@ const PROFILES = {
       hero: 'Buildings that just changed hands — before the management RFP',
       hint: 'Sales and registration changes only: the window when owners re-bid the management contract.',
       sort: (a, b) => (b.mgmtChange ? 4 : 0) + (b.ownerChange ? 3 : 0) - (a.mgmtChange ? 4 : 0) - (a.ownerChange ? 3 : 0) || byUrgency(a, b),
-      why: (c) =>
-        `${signalStory(c)} New ownership reviews the management contract in year one — and this building carries open compliance work a stronger manager would fix. That is your pitch.`,
+      why: () =>
+        `New ownership reviews the management contract in year one — and this building carries open compliance work a stronger manager would fix. That is your pitch.`,
       opener: (c) =>
         `Re: ${title(c.address)} — congratulations on the acquisition. The building carries open facade obligations; we manage compliance-heavy properties and can take this off your plate from day one.`,
       fFilter: (c) => Boolean(c.ownerChange || c.mgmtChange),
@@ -192,7 +194,11 @@ const PROFILES = {
         (b.nextHearing ? 4 : 0) + (b.freshHaz ? 2 : 0) - (a.nextHearing ? 4 : 0) - (a.freshHaz ? 2 : 0) ||
         (b.ecbBalance || 0) - (a.ecbBalance || 0),
       why: (c) =>
-        `${signalStory(c)}${c.nextHearing ? ` An OATH hearing is scheduled for ${c.nextHearing} — representation and cure certification decide what it costs.` : c.ecbBalance ? ` ${money(c.ecbBalance)} in ECB penalties sits unpaid — dismissals and settlements are on the table.` : ''}`,
+        c.nextHearing
+          ? `An OATH hearing is set for ${c.nextHearing} — representation and cure certification decide what it costs.`
+          : c.ecbBalance
+            ? `${money(c.ecbBalance)} in ECB penalties sits unpaid — dismissals and settlements are on the table.`
+            : `Active violations need certified correction — that work starts with counsel.`,
       opener: (c) =>
         `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${c.nextHearing}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
       fFilter: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0 || has(c, 'UNSAFE_PRIOR')),
@@ -211,7 +217,7 @@ const PROFILES = {
         byUrgency(a, b),
       why: (c) => {
         const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
-        return `${signalStory(c)}${owed ? ` With ${money(owed)} in open penalties and mandated work ahead, ` : ' With mandated capex ahead, '}the owner is doing disposition math right now — a quiet valuation conversation lands differently this month.`;
+        return `${owed ? `With ${money(owed)} in open penalties and mandated work ahead, ` : 'With mandated capex ahead, '}the owner is doing disposition math right now — a quiet valuation lands differently this month.`;
       },
       opener: (c) =>
         `Re: ${title(c.address)} — no ask, just context: buildings carrying open facade obligations are trading at interesting numbers right now. If a quiet valuation is ever useful, happy to run one.`,
@@ -340,7 +346,50 @@ export default function App() {
   const [onlyWatch, setOnlyWatch] = useState(false);
   const [watch, setWatch] = useState(() => loadLS('rw.watch', {}));
   const [walletReady, setWalletReady] = useState(false);
+  const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
+  const [showHidden, setShowHidden] = useState(false);
   const reduce = useReducedMotion();
+  const uid = useRef(null);
+  if (uid.current === null) {
+    let u = loadLS('rw.uid', null);
+    if (!u) {
+      u = crypto.randomUUID();
+      saveLS('rw.uid', u);
+    }
+    uid.current = u;
+  }
+
+  const mark = (k, st) => {
+    setFb((f) => {
+      const n = { ...f };
+      if (n[k]?.s === st) delete n[k];
+      else n[k] = { s: st, t: Date.now() };
+      saveLS('rw.fb', n);
+      return n;
+    });
+  };
+  const fbOf = (k) => fb[k]?.s || null;
+  const isDismissed = (k) => fbOf(k) === 'dismissed';
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetch('/api/prefs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          uid: uid.current,
+          data: {
+            profile: profileKey,
+            watch: Object.keys(watch),
+            feedback: fb,
+            lastFeedSeen: data.generatedAt,
+            channels: { email: null, walletSerial: null },
+          },
+        }),
+      }).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [profileKey, watch, fb]);
 
   useEffect(() => {
     fetch('/api/pass/status')
@@ -407,6 +456,7 @@ export default function App() {
   const filteredFeed = useMemo(() => {
     const q = query.trim().toLowerCase();
     return facadeFeed.filter((c) => {
+      if (showHidden !== isDismissed('b:' + c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
       if (onlyNew && !(c.isNew || c.fresh?.length)) return false;
@@ -415,17 +465,24 @@ export default function App() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(q));
     });
-  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch]);
+  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
   }, [facadeFeed]);
   const contractsBase = useMemo(() => data.contracts.filter(profile.cFilter || (() => true)), [profileKey]);
-  const contractsList = useMemo(() => (onlyWatch ? contractsBase.filter((c) => isWatched('c:' + c.id)) : contractsBase), [contractsBase, onlyWatch, watch]);
-  const openingsList = useMemo(() => (onlyWatch ? data.openings.filter((o) => isWatched('o:' + o.id)) : data.openings), [onlyWatch, watch]);
-  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical]);
+  const contractsList = useMemo(
+    () => contractsBase.filter((c) => showHidden === isDismissed('c:' + c.id) && (!onlyWatch || isWatched('c:' + c.id))),
+    [contractsBase, onlyWatch, watch, fb, showHidden],
+  );
+  const openingsList = useMemo(
+    () => data.openings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
+    [onlyWatch, watch, fb, showHidden],
+  );
+  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden]);
 
+  const hiddenCount = Object.keys(fb).filter((k) => fb[k]?.s === 'dismissed').length;
   const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
   const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
@@ -582,6 +639,11 @@ export default function App() {
       <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
         ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
       </button>
+      {hiddenCount > 0 && (
+        <button className={'chip-btn' + (showHidden ? ' on' : '')} onClick={() => setShowHidden((v) => !v)}>
+          Hidden ({hiddenCount})
+        </button>
+      )}
       <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
       <span className="count">
         {list.length}
@@ -612,7 +674,7 @@ export default function App() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               <h2>What do you do?</h2>
-              <p>Right Window reads New York's public records and shows who may need your services — this week, with a reason to call. Pick your line of work:</p>
+              <p>Pick what you sell. We'll show you who needs it this week — with the reason, the timing and the person to call.</p>
               <div className="tiles">
                 {PROFILE_ORDER.map((k) => (
                   <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
@@ -760,6 +822,11 @@ export default function App() {
             <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
               ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
             </button>
+            {hiddenCount > 0 && (
+              <button className={'chip-btn' + (showHidden ? ' on' : '')} onClick={() => setShowHidden((v) => !v)}>
+                Hidden ({hiddenCount})
+              </button>
+            )}
             <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
             <span className="count">{filteredFeed.length} buildings</span>
           </div>
@@ -807,6 +874,9 @@ export default function App() {
                         <span className="boro">{c.borough}</span>
                         {c.isNew && <span className="badge new">New</span>}
                         {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
+                        {fbOf('b:' + c.bin) && fbOf('b:' + c.bin) !== 'dismissed' && (
+                          <span className={'badge st ' + fbOf('b:' + c.bin)}>{fbOf('b:' + c.bin)}</span>
+                        )}
                         <span className="badge">{BADGE[topSignal.kind]}</span>
                         {c.freshHaz && <span className="badge urgent">Violation {c.freshHaz.daysAgo}d ago</span>}
                         {c.signals.length > 1 && <span className="badge more">+{c.signals.length - 1}</span>}
@@ -859,7 +929,19 @@ export default function App() {
                             <span>deadline {c.deadline}</span>
                           </div>
 
-                          <p className="why">{fv.why(c)}</p>
+                          <div className="sig">
+                            <div className="sig-k">
+                              Why now
+                              <span className="score" title="Urgency score">{c.urgencyScore}</span>
+                            </div>
+                            <div className="sig-v">{signalStory(c)}</div>
+                          </div>
+                          {profile.facade && (
+                            <div className="sig match">
+                              <div className="sig-k">Why it matches you</div>
+                              <div className="sig-v">{fv.why(c)}</div>
+                            </div>
+                          )}
 
                           <div className="facts">
                             <div className="fact">
@@ -928,6 +1010,10 @@ export default function App() {
                               </div>
                             )}
                             <div className="fact">
+                              <div className="k">Source</div>
+                              <div className="v">DOB NOW · HPD · ECB — official city records, updated daily</div>
+                            </div>
+                            <div className="fact">
                               <div className="k">Penalty meter</div>
                               <div className={'v' + (c.finesOwed > 0 ? ' fine' : '')}>
                                 {c.finesOwed > 0 ? `${money(c.finesOwed)} already owed` : '$1,000/mo after a missed deadline'}
@@ -935,6 +1021,7 @@ export default function App() {
                             </div>
                           </div>
 
+                          <div className="na-cap">Next action</div>
                           <div className="call-block">
                             <div className="call-who">
                               {c.agent ? (
@@ -975,6 +1062,7 @@ export default function App() {
                               </a>
                             </div>
                           </div>
+                          <FeedbackRow k={'b:' + c.bin} fbOf={fbOf} mark={mark} />
                         </div>
                       </motion.div>
                     )}
@@ -1012,6 +1100,9 @@ export default function App() {
                 <span className="head-main">
                   <span className="addr">{c.vendor}</span>
                   {c.isNew && <span className="badge new">New</span>}
+                  {fbOf('c:' + c.id) && fbOf('c:' + c.id) !== 'dismissed' && (
+                    <span className={'badge st ' + fbOf('c:' + c.id)}>{fbOf('c:' + c.id)}</span>
+                  )}
                   <span className="badge">Won {money(c.amount)}</span>
                 </span>
                 <span className="head-side">
@@ -1023,10 +1114,21 @@ export default function App() {
             )}
             renderBody={(c) => (
               <>
-                <p className="why">
-                  {profile.cNeed?.(c) ||
-                    `${c.vendor} just won ${money(c.amount)} from ${c.agency} (${c.category?.toLowerCase()}). Delivery starts now — subcontractors, bonding, insurance, equipment and staffing get bought in the next few weeks. Congratulate first, sell second.`}
-                </p>
+                <div className="sig">
+                  <div className="sig-k">Why now</div>
+                  <div className="sig-v">
+                    {c.vendor} won {money(c.amount)} from {c.agency}
+                    {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo} day${c.daysAgo === 1 ? '' : 's'} ago`}` : ''} — delivery
+                    and purchasing start immediately. Congratulate first, sell second.
+                  </div>
+                </div>
+                <div className="sig match">
+                  <div className="sig-k">{profile.cNeed ? 'Why it matches you' : 'Who wins this window'}</div>
+                  <div className="sig-v">
+                    {profile.cNeed?.(c) ||
+                      'Sureties and bonding · commercial insurance · subcontractors · staffing · equipment rental.'}
+                  </div>
+                </div>
                 <div className="facts">
                   <div className="fact">
                     <div className="k">Contract</div>
@@ -1046,15 +1148,16 @@ export default function App() {
                       <div className="v">{c.vendorAddress}</div>
                     </div>
                   )}
+                  <div className="fact">
+                    <div className="k">Source</div>
+                    <div className="v">City Record — Recent Contract Awards, updated daily</div>
+                  </div>
                 </div>
+                <div className="na-cap">Next action</div>
                 <div className="call-block">
                   <div className="call-who">
-                    <b>{profile.cNeed ? 'Why this lands on your desk' : 'Who wins this window'}</b>
-                    <span>
-                      {profile.cNeed
-                        ? `You: ${profile.label}`
-                        : 'sureties and bonding · commercial insurance · subcontractors · staffing · equipment rental'}
-                    </span>
+                    <b>{c.vendor}</b>
+                    <span>Reach the winner while they staff up — opener below is written for {profile.cNeed ? profile.label : 'this window'}</span>
                   </div>
                   <div className="call-actions">
                     <button className="btn solid" onClick={() => copy(c.id, (profile.cOpener || defaultCOpener)(c))}>
@@ -1079,6 +1182,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
+                <FeedbackRow k={'c:' + c.id} fbOf={fbOf} mark={mark} />
               </>
             )}
             idOf={(c) => c.id}
@@ -1105,6 +1209,9 @@ export default function App() {
                 <span className="head-main">
                   <span className="addr">{c.name}</span>
                   {c.isNew && <span className="badge new">New</span>}
+                  {fbOf('o:' + c.id) && fbOf('o:' + c.id) !== 'dismissed' && (
+                    <span className={'badge st ' + fbOf('o:' + c.id)}>{fbOf('o:' + c.id)}</span>
+                  )}
                   <span className="boro">{c.county}</span>
                   <span className="badge">{c.kind} · opening soon</span>
                 </span>
@@ -1115,10 +1222,20 @@ export default function App() {
             )}
             renderBody={(c) => (
               <>
-                <p className="why">
-                  {profile.oNeed?.(c) ||
-                    `${c.name} filed for a liquor license (${c.kind.toLowerCase()}) — a venue at ${c.address} opens in roughly two to four months. POS, insurance, furniture, suppliers and marketing are being chosen right now, before any storefront exists to walk into.`}
-                </p>
+                <div className="sig">
+                  <div className="sig-k">Why now</div>
+                  <div className="sig-v">
+                    {c.name} filed for a {c.kind.toLowerCase()} license
+                    {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo}d ago`}` : ''} — the venue at {c.address} opens in
+                    roughly two to four months, and every build-out decision is being made now.
+                  </div>
+                </div>
+                <div className="sig match">
+                  <div className="sig-k">{profile.oNeed ? 'Why it matches you' : 'Who wins this window'}</div>
+                  <div className="sig-v">
+                    {profile.oNeed?.(c) || 'POS and payments · restaurant insurance · food and beverage suppliers · furniture · signage · local marketing.'}
+                  </div>
+                </div>
                 <div className="facts">
                   <div className="fact">
                     <div className="k">Premises</div>
@@ -1134,15 +1251,16 @@ export default function App() {
                       <div className="v">{c.received} · under review</div>
                     </div>
                   )}
+                  <div className="fact">
+                    <div className="k">Source</div>
+                    <div className="v">NY State Liquor Authority — pending licenses, updated daily</div>
+                  </div>
                 </div>
+                <div className="na-cap">Next action</div>
                 <div className="call-block">
                   <div className="call-who">
-                    <b>{profile.oNeed ? 'Why this lands on your desk' : 'Who wins this window'}</b>
-                    <span>
-                      {profile.oNeed
-                        ? `You: ${profile.label}`
-                        : 'POS and payments · restaurant insurance · food and beverage suppliers · furniture · local marketing'}
-                    </span>
+                    <b>{c.name}</b>
+                    <span>Reach the operator during build-out — opener below is written for {profile.oNeed ? profile.label : 'this window'}</span>
                   </div>
                   <div className="call-actions">
                     <button className="btn solid" onClick={() => copy(c.id, (profile.oOpener || defaultOOpener)(c))}>
@@ -1186,7 +1304,7 @@ export default function App() {
       <div className="pilot">
         <div>
           <b>Want this watching your territory?</b>
-          <span>Pilots are open — your vertical, your borough, a ranked feed refreshed hourly.</span>
+          <span>Pilots are open and free while we learn — your vertical, your borough, refreshed hourly.</span>
         </div>
         <div className="pilot-actions">
           {walletReady && (
@@ -1298,6 +1416,28 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
         </div>
       )}
     </>
+  );
+}
+
+function FeedbackRow({ k, fbOf, mark }) {
+  const cur = fbOf(k);
+  const opts = [
+    ['contacted', 'Contacted'],
+    ['won', 'Won'],
+    ['lost', 'Lost'],
+  ];
+  return (
+    <div className="fb-row">
+      <span className="fb-cap">Track it:</span>
+      {opts.map(([v, l]) => (
+        <button key={v} className={'fb' + (cur === v ? ' on ' + v : '')} onClick={() => mark(k, v)}>
+          {l}
+        </button>
+      ))}
+      <button className={'fb dismiss' + (cur === 'dismissed' ? ' on' : '')} onClick={() => mark(k, 'dismissed')}>
+        {cur === 'dismissed' ? 'Restore' : 'Dismiss'}
+      </button>
+    </div>
   );
 }
 
