@@ -301,6 +301,11 @@ export default function App() {
         .some((f) => f.toLowerCase().includes(q));
     });
   }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch]);
+  const boroCounts = useMemo(() => {
+    const m = {};
+    for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
+    return m;
+  }, [facadeFeed]);
   const contractsList = useMemo(() => (onlyWatch ? data.contracts.filter((c) => isWatched('c:' + c.id)) : data.contracts), [onlyWatch, watch]);
   const openingsList = useMemo(() => (onlyWatch ? data.openings.filter((o) => isWatched('o:' + o.id)) : data.openings), [onlyWatch, watch]);
   useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical]);
@@ -548,26 +553,25 @@ export default function App() {
         </div>
       </LayoutGroup>
 
-      <section className="hero">
-        <AnimatePresence mode="popLayout">
-          <motion.h1
-            key={vertical + profileKey}
-            initial={reduce ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? {} : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.28, ease: 'easeOut' }}
-          >
-            {heroText}
-          </motion.h1>
-        </AnimatePresence>
-        <motion.p {...fade(0.05)}>{heroSub}</motion.p>
-      </section>
-
-      {vertical === 'facades' && (
-        <>
+      <div className="lede">
+        <section className="hero">
+          <AnimatePresence mode="popLayout">
+            <motion.h1
+              key={vertical + profileKey}
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? {} : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+            >
+              {heroText}
+            </motion.h1>
+          </AnimatePresence>
+          <motion.p {...fade(0.05)}>{heroSub}</motion.p>
+        </section>
+        {vertical === 'facades' && (
           <div className="stats">
             {[
-              [data.facades.totals.candidates, 'buildings off the calendar (Manhattan + Brooklyn)'],
+              [data.facades.totals.candidates, 'buildings off the compliance calendar, four boroughs'],
               [data.facades.totals.nonFilers10A, 'unfiled for sub-cycle 10A — six months to deadline'],
               [data.facades.totals.swarmpCarryover, 'open SWARMP scopes carried from Cycle 9'],
               [1000, 'per month — the DOB penalty meter after a missed deadline', '$'],
@@ -580,7 +584,11 @@ export default function App() {
               </motion.div>
             ))}
           </div>
+        )}
+      </div>
 
+      {vertical === 'facades' && (
+        <>
           {hasNew && (
             <motion.button className={'news' + (onlyNew ? ' on' : '')} onClick={() => setOnlyNew((v) => !v)} {...fade(0.1)}>
               <span className="news-dot" aria-hidden="true" />
@@ -605,9 +613,10 @@ export default function App() {
               aria-label="Search buildings"
             />
             <div className="chips" role="group" aria-label="Borough">
-              {['all', 'Manhattan', 'Brooklyn'].map((b) => (
+              {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx'].map((b) => (
                 <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} onClick={() => setBoro(b)}>
-                  {b === 'all' ? 'All boroughs' : b}
+                  {b === 'all' ? 'All' : b}
+                  <small>{b === 'all' ? facadeFeed.length : boroCounts[b] || 0}</small>
                 </button>
               ))}
             </div>
@@ -618,7 +627,16 @@ export default function App() {
             <span className="count">{filteredFeed.length} buildings</span>
           </div>
 
-          <div>
+          {filteredFeed.length === 0 && (
+            <div className="empty">
+              <b>Nothing matches</b>
+              No buildings fit the current search and filters.
+              <div>
+                <button onClick={() => { setQuery(''); setBoro('all'); setOnlyNew(false); setOnlyWatch(false); }}>Clear all filters</button>
+              </div>
+            </div>
+          )}
+          <div className="feed">
             {filteredFeed.slice(0, shown).map((c, i) => {
               const open = openId === c.bin;
               const wkey = 'b:' + c.bin;
@@ -994,14 +1012,21 @@ export default function App() {
         </>
       )}
 
+      <div className="pilot">
+        <div>
+          <b>Want this watching your territory?</b>
+          <span>Pilots are open — your vertical, your borough, a ranked feed refreshed hourly.</span>
+        </div>
+        <a href="mailto:maxim122090@gmail.com?subject=Right%20Window%20pilot">Request a pilot</a>
+      </div>
+
       <footer>
-        Working demo of Right Window — timing systems on public registers: the register publishes the event, the
-        event opens a window, we hand you the window with a contact and a reason to call. Sources: NYC Open Data and
-        data.ny.gov, no restrictions on use; every card links to the primary record. Every source passes a written
-        license gate before collection — the ACRIS web portal prohibits robots, so deed data comes from the city's
-        open-data batch and management changes are watched daily through HPD; real-time deeds are available through
-        the City Register's official subscription feed. The same engine runs in production for government procurement
-        (Kyrgyzstan) and film/TV music licensing. Built by <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
+        Right Window reads New York's public registers hourly: the register publishes the event, the event opens a
+        window, you get the window — with a contact and a reason to call. Every card links to the city's own record,
+        and every source passes a written license gate before collection (the ACRIS web portal prohibits robots, so
+        deeds come from the monthly open-data batch while HPD registrations are watched daily). The same engine runs
+        in production for government procurement and film/TV music licensing. Built by{' '}
+        <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
       </footer>
     </div>
   );
@@ -1010,7 +1035,7 @@ export default function App() {
 function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType, isWatched, onWatch }) {
   return (
     <>
-      <div>
+      <div className="feed">
         {items.map((c, i) => {
           const id = idOf(c);
           const open = openId === id;

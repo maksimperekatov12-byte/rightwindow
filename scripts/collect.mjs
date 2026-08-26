@@ -107,7 +107,7 @@ for (const [bin, { c9, c10 }] of byBin) {
   const src = c10 || c9;
   if (!src) continue;
   const boro = (src.borough || '').trim();
-  if (boro !== 'Manhattan' && boro !== 'Brooklyn') continue;
+  if (!['Manhattan', 'Brooklyn', 'Queens', 'Bronx'].includes(boro)) continue;
   const sc = subCycle(src.block);
   if (!sc) continue;
   const windowOpen = sc.opens <= TODAY.toISOString().slice(0, 10);
@@ -154,7 +154,7 @@ for (const [bin, { c9, c10 }] of byBin) {
     finesOwed,
   });
 }
-console.log(`Candidates (Manhattan+Brooklyn): ${candidates.length}`);
+console.log(`Candidates (MN+BK+QN+BX): ${candidates.length}`);
 candidates.sort((a, b) => b.score - a.score || a.monthsLeft - b.monthsLeft);
 
 // HPD join: registrations by BIN for the top slice, then agents by registrationid
@@ -227,7 +227,7 @@ const recentDeeds = new Map();
   });
   for (const r of rows) recentDeeds.set(r.document_id, r);
 }
-const BOro = { Manhattan: 1, Brooklyn: 3 };
+const BOro = { Manhattan: 1, Bronx: 2, Brooklyn: 3, Queens: 4 };
 const ownerByKey = new Map();
 for (const [boroName, boroNum] of Object.entries(BOro)) {
   const blocks = [...new Set(top.filter((c) => c.borough === boroName).map((c) => parseInt(c.block, 10)).filter(Boolean))];
@@ -319,7 +319,7 @@ for (const c of top) {
   const ecbBalance = ecb ? Math.round(ecb.balance) : 0;
   const freshHaz = ecb?.fresh || null;
 
-  const boroNum = c.borough === 'Manhattan' ? 1 : 3;
+  const boroNum = { Manhattan: 1, Bronx: 2, Brooklyn: 3, Queens: 4 }[c.borough];
   const own = ownerByKey.get(`${boroNum}-${parseInt(c.block, 10)}-${parseInt(c.lot, 10)}`);
   const ownerChange = own
     ? { daysAgo: Math.round((TODAY - new Date(own.recorded)) / 86400000), amount: own.amount, recorded: own.recorded.slice(0, 10) }
