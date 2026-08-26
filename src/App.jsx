@@ -219,6 +219,24 @@ const PROFILES = {
     cNeed: null,
     oNeed: null,
   },
+  marketing: {
+    label: 'Local marketing',
+    tile: 'Marketing / launch PR',
+    facade: null,
+    cNeed: null,
+    oNeed: () => `Opening night happens once — launch campaigns, socials and local press get planned six to eight weeks out. This venue is picking who runs that right now.`,
+    oOpener: (c) =>
+      `Re: ${c.name} — saw the filing for ${c.address}. Opening night only happens once; we build launch campaigns for new venues. Want the neighborhood talking before the doors open?`,
+  },
+  signage: {
+    label: 'Signs / storefront',
+    tile: 'Signage / storefronts',
+    facade: null,
+    cNeed: null,
+    oNeed: () => `A storefront sign takes weeks: design, DOB sign permit, fabrication, install. It gets ordered during build-out — which is exactly where this venue is today.`,
+    oOpener: (c) =>
+      `Re: ${c.name} — saw the filing for ${c.address}. Signage takes weeks to design, permit and fabricate; we can have your storefront ready before opening day.`,
+  },
   explore: {
     label: 'Just exploring',
     tile: 'Just exploring',
@@ -228,7 +246,7 @@ const PROFILES = {
   },
 };
 
-const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'explore'];
+const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'marketing', 'signage', 'explore'];
 
 const BADGE = {
   NON_FILER: 'No Cycle 10 filing',
