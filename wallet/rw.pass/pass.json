@@ -1,0 +1,34 @@
+{
+  "formatVersion": 1,
+  "organizationName": "Right Window",
+  "description": "Right Window — NYC opportunity windows",
+  "serialNumber": "TEMPLATE",
+  "passTypeIdentifier": "TEMPLATE",
+  "teamIdentifier": "TEMPLATE",
+  "webServiceURL": "https://rightwindow.vercel.app/api/pk",
+  "authenticationToken": "TEMPLATE",
+  "backgroundColor": "rgb(12,62,51)",
+  "foregroundColor": "rgb(255,255,255)",
+  "labelColor": "rgb(147,197,181)",
+  "sharingProhibited": false,
+  "generic": {
+    "headerFields": [
+      { "key": "fresh", "label": "NEW · 48H", "value": "—", "changeMessage": "%@" }
+    ],
+    "primaryFields": [
+      { "key": "windows", "label": "Buildings off the compliance calendar", "value": "—" }
+    ],
+    "secondaryFields": [
+      { "key": "urgent", "label": "6 months to deadline", "value": "—" },
+      { "key": "updated", "label": "Data pulled", "value": "—" }
+    ],
+    "backFields": [
+      { "key": "about", "label": "What is this", "value": "Right Window reads New York's public registers hourly and finds who needs your services this week — with a contact and a reason to call. This pass updates itself when new windows open." },
+      { "key": "site", "label": "Open the feed", "value": "https://rightwindow.vercel.app" },
+      { "key": "contact", "label": "Pilots", "value": "maxim122090@gmail.com" }
+    ]
+  },
+  "barcodes": [
+    { "format": "PKBarcodeFormatQR", "message": "https://rightwindow.vercel.app", "messageEncoding": "iso-8859-1" }
+  ]
+}

@@ -374,3 +374,14 @@ footer a { color: var(--brand); }
 @media (min-width: 1020px) {
   .feed { align-items: start; }
 }
+
+.pilot-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.wallet-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--display); font-size: 14px; font-weight: 700; text-decoration: none;
+  padding: 12px 20px; border-radius: 999px; background: #000; color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: transform 0.15s ease;
+}
+.wallet-btn:hover { transform: translateY(-1px); }
+.wallet-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }

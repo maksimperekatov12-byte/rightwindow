@@ -30,4 +30,16 @@ jobs:
           else
             git commit -m "data: refresh feed"
             git push
+            echo "PUSH_PASSES=1" >> "$GITHUB_ENV"
           fi
+      - name: Notify Wallet passes
+        if: env.PUSH_PASSES == '1'
+        env:
+          APNS_KEY_P8_B64: ${{ secrets.APNS_KEY_P8_B64 }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PASS_TYPE_ID: ${{ secrets.PASS_TYPE_ID }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          npm i --no-save @vercel/blob > /dev/null 2>&1
+          node scripts/push-passes.mjs

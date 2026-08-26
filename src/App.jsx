@@ -339,7 +339,15 @@ export default function App() {
   const [onlyNew, setOnlyNew] = useState(false);
   const [onlyWatch, setOnlyWatch] = useState(false);
   const [watch, setWatch] = useState(() => loadLS('rw.watch', {}));
+  const [walletReady, setWalletReady] = useState(false);
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    fetch('/api/pass/status')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => setWalletReady(Boolean(j?.configured)))
+      .catch(() => {});
+  }, []);
 
   const profile = PROFILES[profileKey] || PROFILES.explore;
   const fv = profile.facade || GENERIC_FACADE;
@@ -1180,7 +1188,18 @@ export default function App() {
           <b>Want this watching your territory?</b>
           <span>Pilots are open — your vertical, your borough, a ranked feed refreshed hourly.</span>
         </div>
-        <a href="mailto:maxim122090@gmail.com?subject=Right%20Window%20pilot">Request a pilot</a>
+        <div className="pilot-actions">
+          {walletReady && (
+            <a className="wallet-btn" href="/api/pass">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+                <path d="M3 9.5h13a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h5" />
+              </svg>
+              Add to Apple Wallet
+            </a>
+          )}
+          <a href="mailto:maxim122090@gmail.com?subject=Right%20Window%20pilot">Request a pilot</a>
+        </div>
       </div>
 
       <footer>
