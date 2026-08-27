@@ -8,21 +8,20 @@ const has = (c, kind) => c.signals.some((s) => s.kind === kind);
 const rank = (c, kind) => c.signals.find((x) => x.kind === kind)?.urgency ?? 0;
 const money = (n) => '$' + n.toLocaleString('en-US');
 
-function signalStory(c) {
-  if (c.mgmtChange) return `HPD registration changed within days — new management or a quiet sale, and every vendor relationship resets.`;
-  if (c.ownerChange)
-    return `Sold ${c.ownerChange.recorded}${c.ownerChange.amount ? ` for ${money(Math.round(c.ownerChange.amount))}` : ''} — the new owner is rebuilding the vendor list right now.`;
-  if (c.freshHaz)
-    return `A ${c.freshHaz.hazardous ? 'hazardous ' : ''}DOB violation landed ${c.freshHaz.daysAgo} days ago${c.nextHearing ? `, hearing set for ${c.nextHearing}` : ''} — mandatory correction with certification.`;
-  if (has(c, 'NON_FILER') && c.monthsLeft <= 7)
-    return `No Cycle 10 facade report filed and the ${c.subCycle} deadline is ${c.monthsLeft} months out — the penalty meter starts at $1,000/month after that.`;
-  if (has(c, 'SWARMP_CARRYOVER'))
-    return `SWARMP conditions from Cycle 9 are still open — unrepaired, they are presumed UNSAFE at the next filing.`;
-  if (has(c, 'UNSAFE_PRIOR')) return `UNSAFE status on file — sidewalk shed and repairs are mandatory, not optional.`;
-  return `Off the compliance calendar for sub-cycle ${c.subCycle} — a forced-spend window with a legal deadline.`;
-}
-
 const CONSTR = /construction|architect|engineer/i;
+
+function signalStory(c) {
+  if (c.mgmtChange) return 'Registration just changed — new management or a quiet sale.';
+  if (c.ownerChange)
+    return `Sold ${usShort(c.ownerChange.recorded)}${c.ownerChange.amount ? ` for ${money(Math.round(c.ownerChange.amount))}` : ''} — the vendor list resets.`;
+  if (c.freshHaz)
+    return `Violation ${c.freshHaz.daysAgo} days ago${c.nextHearing ? `, hearing ${usShort(c.nextHearing)}` : ''} — correction is mandatory.`;
+  if (has(c, 'NON_FILER') && c.monthsLeft <= 7)
+    return `${c.monthsLeft} months to the ${c.subCycle} deadline, nothing filed. Then $1,000/month.`;
+  if (has(c, 'SWARMP_CARRYOVER')) return 'Open SWARMP — presumed UNSAFE at the next filing.';
+  if (has(c, 'UNSAFE_PRIOR')) return 'UNSAFE on file — shed and repairs are mandatory.';
+  return `Off the ${c.subCycle} calendar — a forced-spend window with a legal deadline.`;
+}
 
 const GENERIC_FACADE = {
   hero: 'Buildings in a forced-spend window',
@@ -41,7 +40,7 @@ const PROFILES = {
       hero: 'Buildings that need a facade engineer — before they know it',
       hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
       sort: byUrgency,
-      why: () => `No Cycle 10 engineer is on record — the first one to call gets the walk-through.`,
+      why: () => 'No engineer on record — first call gets the walk-through.',
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
@@ -57,7 +56,7 @@ const PROFILES = {
       hint: 'Open SWARMP and UNSAFE conditions — mandatory scopes, before they go out to bid.',
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') || byUrgency(a, b),
-      why: () => `A mandatory scope with no contractor attached yet — early contact beats the bid list.`,
+      why: () => 'Mandatory scope, no contractor attached yet.',
       opener: (c) =>
         `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`,
     },
@@ -74,7 +73,7 @@ const PROFILES = {
       sort: (a, b) => byUrgency(a, b) || (b.finesOwed || 0) + (b.ecbBalance || 0) - (a.finesOwed || 0) - (a.ecbBalance || 0),
       why: (c) => {
         const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
-        return `${owed ? `Already ${money(owed)} in open penalties. ` : ''}Non-deferrable capex is financeable capex — this owner needs capital with a legal reason to use it.`;
+        return `${owed ? `${money(owed)} owed. ` : ''}Non-deferrable capex — financeable, with a legal reason to spend.`;
       },
       opener: (c) =>
         `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
@@ -93,8 +92,8 @@ const PROFILES = {
         byUrgency(a, b),
       why: (c) =>
         c.elevator
-          ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing} of ${c.elevator.devices} devices have no ${YEAR} CAT1 test on file` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ' and ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} are due for the 5-year CAT5` : ''} — tests must be filed by December 31, and late devices accrue penalties.`
-          : `Forced-work windows often bundle elevator modernization into the same capex.`,
+          ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing}/${c.elevator.devices} without a ${YEAR} CAT1` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ', ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} due for CAT5` : ''} — filing closes December 31.`
+          : 'Forced-work windows usually bundle elevator capex.',
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat1Missing || 'several'} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`,
       fFilter: (c) => Boolean(c.elevator),
@@ -113,7 +112,7 @@ const PROFILES = {
       why: (c) =>
         c.ownerChange || c.mgmtChange
           ? 'New ownership re-shops every policy in year one.'
-          : 'Open violations and mandated work change the liability picture — renewal conversations start now, not at expiry.',
+          : 'Open violations change the liability picture before renewal.',
       opener: (c) =>
         `Re: ${title(c.address)} — city records show mandated facade work and open violations. Worth reviewing coverage before the repair scope starts?`,
     },
@@ -159,7 +158,7 @@ const PROFILES = {
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') + (b.shed ? 2 : 0) - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') - (a.shed ? 2 : 0) ||
         byUrgency(a, b),
-      why: () => `Mandated exterior work means sidewalk sheds, scaffolding and hoists — access gets booked before the first brick moves.`,
+      why: () => 'Mandated exterior work means shed and scaffold — booked before the first brick moves.',
       opener: (c) =>
         `Re: ${title(c.address)} — city records show mandated facade work ahead. We can quote shed and scaffold access before the scope goes out to bid.`,
       fFilter: (c) => has(c, 'SWARMP_CARRYOVER') || has(c, 'UNSAFE_PRIOR') || Boolean(c.shed),
@@ -175,8 +174,7 @@ const PROFILES = {
       hero: 'Buildings that just changed hands — before the management RFP',
       hint: 'Sales and registration changes only: the window when owners re-bid the management contract.',
       sort: (a, b) => (b.mgmtChange ? 4 : 0) + (b.ownerChange ? 3 : 0) - (a.mgmtChange ? 4 : 0) - (a.ownerChange ? 3 : 0) || byUrgency(a, b),
-      why: () =>
-        `New ownership reviews the management contract in year one — and this building carries open compliance work a stronger manager would fix. That is your pitch.`,
+      why: () => 'New owners review the management contract in year one — and this one carries open compliance work.',
       opener: (c) =>
         `Re: ${title(c.address)} — congratulations on the acquisition. The building carries open facade obligations; we manage compliance-heavy properties and can take this off your plate from day one.`,
       fFilter: (c) => Boolean(c.ownerChange || c.mgmtChange),
@@ -195,10 +193,10 @@ const PROFILES = {
         (b.ecbBalance || 0) - (a.ecbBalance || 0),
       why: (c) =>
         c.nextHearing
-          ? `An OATH hearing is set for ${c.nextHearing} — representation and cure certification decide what it costs.`
+          ? `Hearing ${usShort(c.nextHearing)} — representation decides what it costs.`
           : c.ecbBalance
-            ? `${money(c.ecbBalance)} in ECB penalties sits unpaid — dismissals and settlements are on the table.`
-            : `Active violations need certified correction — that work starts with counsel.`,
+            ? `${money(c.ecbBalance)} unpaid — dismissals and settlements are on the table.`
+            : 'Active violations need certified correction.',
       opener: (c) =>
         `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${c.nextHearing}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
       fFilter: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0 || has(c, 'UNSAFE_PRIOR')),
@@ -217,7 +215,7 @@ const PROFILES = {
         byUrgency(a, b),
       why: (c) => {
         const owed = (c.finesOwed || 0) + (c.ecbBalance || 0);
-        return `${owed ? `With ${money(owed)} in open penalties and mandated work ahead, ` : 'With mandated capex ahead, '}the owner is doing disposition math right now — a quiet valuation lands differently this month.`;
+        return `${owed ? `${money(owed)} owed plus mandated work — ` : 'Mandated capex ahead — '}the owner is doing disposition math right now.`;
       },
       opener: (c) =>
         `Re: ${title(c.address)} — no ask, just context: buildings carrying open facade obligations are trading at interesting numbers right now. If a quiet valuation is ever useful, happy to run one.`,
@@ -386,6 +384,7 @@ export default function App() {
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
+  const [showSources, setShowSources] = useState(false);
   const reduce = useReducedMotion();
   const uid = useRef(null);
   if (uid.current === null) {
@@ -748,10 +747,10 @@ export default function App() {
 
   const heroSub =
     vertical === 'facades'
-      ? "Every building over six stories runs on a public compliance clock. We read the city's records daily and surface the ones that fell off the calendar — with the deadline, the fine meter, and the person to call."
+      ? "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
       : vertical === 'contracts'
-        ? 'A contract award is public the day it happens. The winner now has guaranteed revenue — and two weeks to line up subcontractors, bonding, insurance and staff. That is your window.'
-        : 'A liquor-license application means a venue opens in two to four months — and it is choosing its POS, insurance, suppliers and furniture right now. Same engine, different register.';
+        ? 'A contract award is public the day it lands. The winner has two weeks to line up subs, bonding and crews.'
+        : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
 
   const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 };
   const fade = (delay = 0) =>
@@ -803,7 +802,7 @@ export default function App() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               <h2>What do you do?</h2>
-              <p>Pick what you sell. We'll show you who needs it this week — with the reason, the timing and the person to call.</p>
+              <p>Pick what you sell. We'll show who needs it this week — with the timing and the person to call.</p>
               <div className="tiles">
                 {PROFILE_ORDER.map((k) => (
                   <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
@@ -843,8 +842,7 @@ export default function App() {
             >
               <h2>My buildings</h2>
               <p>
-                Paste the addresses you already work on — one per line. We match them to the city's records and watch
-                them for you: any violation, hearing, sale or deadline on your list reaches you first.
+                Paste the addresses you already work on, one per line. Anything that happens to them reaches you first.
                 {portfolio.length > 0 && <> Currently watching <b>{portfolio.length}</b>.</>}
               </p>
               <textarea
@@ -895,10 +893,7 @@ export default function App() {
                 <button className="modal-close" onClick={() => setPortfolioOpen(false)}>Done</button>
               </div>
               {portfolioText.trim() && (
-                <p className="pf-miss">
-                  These are not in the current feed — they may simply have no open window right now. Keep them here and
-                  try again later, or check the spelling.
-                </p>
+                <p className="pf-miss">Not in the feed — likely no open window right now.</p>
               )}
             </motion.div>
           </motion.div>
@@ -982,14 +977,10 @@ export default function App() {
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
           {pipe && (
             <motion.div className="pipe" {...fade(0.1)}>
-              <b>≈ {fmtUsd(pipe.v)}</b> of potential work on this feed
-              <span>back-of-napkin: {pipe.n}</span>
+              <b>≈ {fmtUsd(pipe.v)}</b> of potential work
+              <span title={`Back-of-napkin: ${pipe.n}`}>matched to your trade and boroughs · hover for the math</span>
             </motion.div>
           )}
-          <motion.p className="fit-note" {...fade(0.14)}>
-            Nothing here is broadcast — every signal is matched to what you sell and where you work. Your trade and
-            your borough shape the feed and the digest.
-          </motion.p>
         </section>
         {vertical === 'facades' && (
           <div className="stats">
@@ -1068,7 +1059,7 @@ export default function App() {
               <span className="found personal" aria-hidden="true">★</span>
               <span>
                 <b>{Object.keys(mine).filter((k) => mine[k] > now).length} personal signal{Object.keys(mine).filter((k) => mine[k] > now).length > 1 ? 's' : ''}</b>{' '}
-                — exclusive to you for 48 hours, pinned to the top. Untouched signals rotate to someone else.
+                — yours for 48 hours, then they rotate to someone else.
               </span>
             </div>
           )}
@@ -1455,16 +1446,14 @@ export default function App() {
                 <div className="sig">
                   <div className="sig-k">Why now</div>
                   <div className="sig-v">
-                    {c.vendor} won {money(c.amount)} from {c.agency}
-                    {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo} day${c.daysAgo === 1 ? '' : 's'} ago`}` : ''} — delivery
-                    and purchasing start immediately. Congratulate first, sell second.
+                    Won {money(c.amount)} from {c.agency}
+                    {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo}d ago`}` : ''} — purchasing starts now.
                   </div>
                 </div>
                 <div className="sig match">
                   <div className="sig-k">{profile.cNeed ? 'Why it matches you' : 'Who wins this window'}</div>
                   <div className="sig-v">
-                    {profile.cNeed?.(c) ||
-                      'Sureties and bonding · commercial insurance · subcontractors · staffing · equipment rental.'}
+                    {profile.cNeed?.(c) || 'Bonding · insurance · subs · staffing · equipment.'}
                   </div>
                 </div>
                 <div className="facts">
@@ -1495,7 +1484,7 @@ export default function App() {
                 <div className="call-block">
                   <div className="call-who">
                     <b>{c.vendor}</b>
-                    <span>Reach the winner while they staff up — opener below is written for {profile.cNeed ? profile.label : 'this window'}</span>
+                    <span>Opener written for {profile.cNeed ? profile.label : 'this window'}</span>
                   </div>
                   <div className="call-actions">
                     <button className="btn solid" onClick={() => copy(c.id, (profile.cOpener || defaultCOpener)(c))}>
@@ -1564,15 +1553,13 @@ export default function App() {
                 <div className="sig">
                   <div className="sig-k">Why now</div>
                   <div className="sig-v">
-                    {c.name} filed for a {c.kind.toLowerCase()} license
-                    {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo}d ago`}` : ''} — the venue at {c.address} opens in
-                    roughly two to four months, and every build-out decision is being made now.
+                    {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — opens in 2–4 months, choosing vendors now.
                   </div>
                 </div>
                 <div className="sig match">
                   <div className="sig-k">{profile.oNeed ? 'Why it matches you' : 'Who wins this window'}</div>
                   <div className="sig-v">
-                    {profile.oNeed?.(c) || 'POS and payments · restaurant insurance · food and beverage suppliers · furniture · signage · local marketing.'}
+                    {profile.oNeed?.(c) || 'POS · insurance · suppliers · furniture · signage · marketing.'}
                   </div>
                 </div>
                 <div className="facts">
@@ -1599,7 +1586,7 @@ export default function App() {
                 <div className="call-block">
                   <div className="call-who">
                     <b>{c.name}</b>
-                    <span>Reach the operator during build-out — opener below is written for {profile.oNeed ? profile.label : 'this window'}</span>
+                    <span>Opener written for {profile.oNeed ? profile.label : 'this window'}</span>
                   </div>
                   <div className="call-actions">
                     <button className="btn solid" onClick={() => copy(c.id, (profile.oOpener || defaultOOpener)(c))}>
@@ -1655,7 +1642,7 @@ export default function App() {
       <div className="pilot">
         <div>
           <b>Want this watching your territory?</b>
-          <span>Pilots are open and free while we learn — your vertical, your borough, refreshed hourly.</span>
+          <span>Pilots are free while we learn.</span>
         </div>
         <form
           className="digest-form"
@@ -1671,7 +1658,7 @@ export default function App() {
         >
           <input name="em" type="email" required placeholder="you@company.com" defaultValue={email} aria-label="Email for the daily digest" />
           <button className="btn solid" type="submit">{emailSaved ? 'Saved' : email ? 'Update digest email' : 'Get the daily digest'}</button>
-          {email && !emailSaved && <span className="digest-note">Daily, only when something new matches you</span>}
+          {email && !emailSaved && <span className="digest-note">Only when something new matches you</span>}
         </form>
         <div className="pilot-row">
           <form
@@ -1704,7 +1691,7 @@ export default function App() {
               {slackState === 'saving' ? 'Connecting…' : slackState === 'ok' ? 'Connected' : slackState === 'error' ? 'Try again' : slackHook ? 'Update Slack' : 'Send to Slack'}
             </button>
             <span className="digest-note">
-              {slackState === 'error' ? 'That URL was rejected — check it in Slack.' : 'Cards land in your channel with Claim buttons'}
+              {slackState === 'error' ? 'That URL was rejected — check it in Slack.' : 'Cards with Claim buttons'}
             </span>
           </form>
         </div>
@@ -1723,13 +1710,23 @@ export default function App() {
       </div>
 
       <footer>
-        Right Window reads New York's public registers hourly: the register publishes the event, the event opens a
-        window, you get the window — with a contact and a reason to call. Every card links to the city's own record,
-        and every source passes a written license gate before collection. Freshness is the city's, not ours — we show
-        it per source: DOB {data.sources?.facades}, ECB {data.sources?.ecb}, elevators {data.sources?.elevators},
-        awards {data.sources?.awards}, SLA {data.sources?.sla}, HPD registrations {data.sources?.hpd}, ACRIS deeds
-        through {data.sources?.acrisThrough}. The same engine runs in production for government procurement and
-        film/TV music licensing. Built by <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
+        <p>
+          Right Window reads New York's public registers and hands you the window — with a contact and a reason to
+          call. Every card links to the city's own record.
+        </p>
+        <button className="foot-toggle" onClick={() => setShowSources((v) => !v)}>
+          {showSources ? 'Hide sources' : 'Sources and freshness'}
+        </button>
+        {showSources && (
+          <p className="foot-detail">
+            DOB {data.sources?.facades} · ECB {data.sources?.ecb} · elevators {data.sources?.elevators} · awards{' '}
+            {live?.sources?.awards || data.sources?.awards} · SLA {data.sources?.sla} · HPD {data.sources?.hpd} ·
+            ACRIS deeds through {data.sources?.acrisThrough}. Every source passes a written license gate before
+            collection; the ACRIS portal prohibits robots, so deeds come from the city's open-data batch. The same
+            engine runs in production for government procurement and film/TV music licensing. Built by{' '}
+            <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
+          </p>
+        )}
       </footer>
     </div>
   );
