@@ -377,6 +377,12 @@ export default function App() {
   const [claims, setClaims] = useState({});
   const [mine, setMine] = useState({});
   const [emailSaved, setEmailSaved] = useState(false);
+  const [slackHook, setSlackHook] = useState(() => loadLS('rw.slack', ''));
+  const [slackState, setSlackState] = useState('idle');
+  const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
+  const [portfolioOpen, setPortfolioOpen] = useState(false);
+  const [portfolioText, setPortfolioText] = useState('');
+  const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
   const reduce = useReducedMotion();
@@ -460,13 +466,14 @@ export default function App() {
             watch: Object.keys(watch),
             feedback: fb,
             lastFeedSeen: data.generatedAt,
-            channels: { email: email || null, walletSerial: null },
+            channels: { email: email || null, slack: slackHook || null, walletSerial: null },
+            portfolio,
           },
         }),
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(t);
-  }, [profileKey, watch, fb, boro, email]);
+  }, [profileKey, watch, fb, boro, email, slackHook, portfolio]);
 
   useEffect(() => {
     fetch('/api/pass/status')
@@ -534,6 +541,7 @@ export default function App() {
     const q = query.trim().toLowerCase();
     const base = facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
+      if (onlyPortfolio && !portfolio.includes(c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
       if (onlyNew && !(c.isNew || c.fresh?.length)) return false;
@@ -544,7 +552,7 @@ export default function App() {
     });
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > now ? 0 : 1);
     return base.sort((a, b) => isMine(a) - isMine(b));
-  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, now]);
+  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, now, onlyPortfolio, portfolio]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
@@ -559,7 +567,7 @@ export default function App() {
     () => data.openings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
     [onlyWatch, watch, fb, showHidden],
   );
-  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden]);
+  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio]);
 
   const hiddenCount = Object.keys(fb).filter((k) => fb[k]?.s === 'dismissed').length;
   const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
@@ -789,6 +797,90 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {portfolioOpen && (
+          <motion.div
+            className="modal-back"
+            role="dialog"
+            aria-modal="true"
+            aria-label="My buildings"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduce ? {} : { opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.target === e.currentTarget && setPortfolioOpen(false)}
+          >
+            <motion.div
+              className="modal"
+              initial={reduce ? false : { opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? {} : { opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h2>My buildings</h2>
+              <p>
+                Paste the addresses you already work on — one per line. We match them to the city's records and watch
+                them for you: any violation, hearing, sale or deadline on your list reaches you first.
+                {portfolio.length > 0 && <> Currently watching <b>{portfolio.length}</b>.</>}
+              </p>
+              <textarea
+                className="pf-input"
+                rows={7}
+                placeholder={'350 5th Ave\n1 Wall St\n255 W 43rd St'}
+                value={portfolioText}
+                onChange={(e) => setPortfolioText(e.target.value)}
+              />
+              <div className="pf-actions">
+                <button
+                  className="btn solid"
+                  onClick={() => {
+                    const lines = portfolioText.split('\n').map((l) => l.trim().toLowerCase()).filter(Boolean);
+                    const found = [];
+                    const missed = [];
+                    for (const line of lines) {
+                      const norm = line.replace(/[.,]/g, '').replace(/\b(street|str)\b/g, 'st').replace(/\bavenue\b/g, 'ave').replace(/\s+/g, ' ');
+                      const hit = data.facades.feed.find((c) => {
+                        const a = c.address.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ');
+                        return a === norm || a.startsWith(norm) || norm.startsWith(a);
+                      });
+                      if (hit) found.push(hit.bin);
+                      else missed.push(line);
+                    }
+                    const next = [...new Set([...portfolio, ...found])];
+                    setPortfolio(next);
+                    saveLS('rw.portfolio', next);
+                    setPortfolioText(missed.join('\n'));
+                    if (found.length) setOnlyPortfolio(true);
+                    if (!missed.length) setPortfolioOpen(false);
+                  }}
+                >
+                  Add to my list
+                </button>
+                {portfolio.length > 0 && (
+                  <button
+                    className="modal-close"
+                    onClick={() => {
+                      setPortfolio([]);
+                      saveLS('rw.portfolio', []);
+                      setOnlyPortfolio(false);
+                    }}
+                  >
+                    Clear list
+                  </button>
+                )}
+                <button className="modal-close" onClick={() => setPortfolioOpen(false)}>Done</button>
+              </div>
+              {portfolioText.trim() && (
+                <p className="pf-miss">
+                  These are not in the current feed — they may simply have no open window right now. Keep them here and
+                  try again later, or check the spelling.
+                </p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <header className="top">
         <div className="logo">
           <svg className="mark" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -958,6 +1050,9 @@ export default function App() {
             </div>
             <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
               ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
+            </button>
+            <button className={'chip-btn' + (onlyPortfolio ? ' on' : '')} onClick={() => (portfolio.length ? setOnlyPortfolio((v) => !v) : setPortfolioOpen(true))}>
+              My buildings{portfolio.length ? ` (${portfolio.length})` : ' +'}
             </button>
             {hiddenCount > 0 && (
               <button className={'chip-btn' + (showHidden ? ' on' : '')} onClick={() => setShowHidden((v) => !v)}>
@@ -1489,6 +1584,41 @@ export default function App() {
           <button className="btn solid" type="submit">{emailSaved ? 'Saved' : email ? 'Update digest email' : 'Get the daily digest'}</button>
           {email && !emailSaved && <span className="digest-note">Daily, only when something new matches you</span>}
         </form>
+        <div className="pilot-row">
+          <form
+            className="digest-form slack"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const v = e.target.elements.hook.value.trim();
+              setSlackState('saving');
+              fetch('/api/slack/connect', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ uid: uid.current, webhook: v }),
+              })
+                .then((r) => r.json())
+                .then((j) => {
+                  if (j.error) {
+                    setSlackState('error');
+                  } else {
+                    setSlackHook(v);
+                    saveLS('rw.slack', v);
+                    setSlackState('ok');
+                    setTimeout(() => setSlackState('idle'), 3000);
+                  }
+                })
+                .catch(() => setSlackState('error'));
+            }}
+          >
+            <input name="hook" type="url" placeholder="Slack incoming webhook URL" defaultValue={slackHook} aria-label="Slack webhook" />
+            <button className="btn solid" type="submit">
+              {slackState === 'saving' ? 'Connecting…' : slackState === 'ok' ? 'Connected' : slackState === 'error' ? 'Try again' : slackHook ? 'Update Slack' : 'Send to Slack'}
+            </button>
+            <span className="digest-note">
+              {slackState === 'error' ? 'That URL was rejected — check it in Slack.' : 'Cards land in your channel with Claim buttons'}
+            </span>
+          </form>
+        </div>
         <div className="pilot-actions">
           {walletReady && (
             <a className="wallet-btn" href="/api/pass">

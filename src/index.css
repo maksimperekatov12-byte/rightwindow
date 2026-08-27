@@ -524,3 +524,14 @@ footer a { color: var(--brand); }
 .legend .ldot.open { background: var(--brand); }
 .legend .ldot.taken { background: var(--warm); }
 .legend .ldot.personal { background: var(--pill); outline: 1.5px solid var(--brand); }
+
+.pilot-row { display: flex; width: 100%; }
+.digest-form.slack { margin-top: 4px; }
+.pf-input {
+  width: 100%; border: 1px solid var(--line-2); border-radius: 10px; padding: 12px 14px;
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--field); resize: vertical;
+  font-family: var(--mono);
+}
+.pf-input:focus { outline: 2px solid var(--brand); outline-offset: -1px; }
+.pf-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.pf-miss { font-size: 12.5px; color: var(--warm); margin-top: 12px !important; }

@@ -1,59 +1,19 @@
-// Daily personalized email digest from prefs/{uid}.json.
-// Env: BLOB_READ_WRITE_TOKEN (required), RESEND_API_KEY (skip if missing),
-//      DIGEST_FROM (default Resend onboarding sender), SITE (default prod URL).
+// Daily personalized digest: email and/or Slack, built from prefs.
 import { readJson, writeJson, listJson } from '../lib/store.mjs';
+import { matchFor } from '../lib/signals.mjs';
+import { digestBlocks, postToSlack } from '../lib/slack.mjs';
 import { readFileSync } from 'node:fs';
 
 const SITE = process.env.SITE || 'https://rightwindow.vercel.app';
-if (!process.env.RESEND_API_KEY) {
-  console.log('send-digest: skipped, RESEND_API_KEY not set');
-  process.exit(0);
-}
 const FROM = process.env.DIGEST_FROM || 'Right Window <onboarding@resend.dev>';
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
-
-const FACADE = new Set(['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre']);
-const CONTR = new Set(['insurance', 'lender', 'staffing', 'equipment', 'qewi', 'restoration']);
-const OPEN = new Set(['insurance', 'lender', 'staffing', 'pos', 'fnb', 'marketing', 'signage']);
-const fMatch = {
-  elevator: (c) => Boolean(c.elevator),
-  propmgmt: (c) => Boolean(c.ownerChange || c.mgmtChange),
-  legal: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0),
-  equipment: (c) => c.signals.some((s) => ['SWARMP_CARRYOVER', 'UNSAFE_PRIOR'].includes(s.kind)) || Boolean(c.shed),
-};
-
-function itemsFor(profile) {
-  const out = [];
-  if (FACADE.has(profile)) {
-    const m = fMatch[profile] || (() => true);
-    for (const c of feed.facades.feed) {
-      if (!(c.isNew || c.fresh?.length) || !m(c)) continue;
-      out.push({ t: titleCase(c.address) + ', ' + c.borough, d: `${c.subCycle} deadline ${c.deadline} · ${c.monthsLeft} mo left`, u: `${SITE}/#b/${c.bin}` });
-    }
-  }
-  if (CONTR.has(profile)) {
-    for (const c of feed.contracts) {
-      if (!c.isNew) continue;
-      out.push({ t: c.vendor, d: `won $${c.amount.toLocaleString('en-US')} from ${c.agency}`, u: `${SITE}/#c/${c.id}` });
-    }
-  }
-  if (OPEN.has(profile)) {
-    for (const o of feed.openings) {
-      if (!o.isNew) continue;
-      out.push({ t: o.name, d: `${o.kind} opening soon · ${o.address}`, u: `${SITE}/#o/${o.id}` });
-    }
-  }
-  return out.slice(0, 6);
-}
-
-const titleCase = (x) => (x || '').toLowerCase().replace(/\b[a-z]/g, (m) => m.toUpperCase());
 
 function html(items, profile) {
   const rows = items
     .map(
       (i) => `<tr><td style="padding:10px 0;border-bottom:1px solid #e3e8e6">
-        <a href="${i.u}" style="color:#0c3e33;font-weight:700;text-decoration:none;font-size:15px">${i.t}</a>
-        <div style="color:#465953;font-size:13px;margin-top:2px">${i.d}</div></td></tr>`,
+        <a href="${SITE}/#${i.kind}/${i.id}" style="color:#0c3e33;font-weight:700;text-decoration:none;font-size:15px">${i.title}</a>
+        <div style="color:#465953;font-size:13px;margin-top:2px">${i.urgent || i.why}</div></td></tr>`,
     )
     .join('');
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px">
@@ -65,12 +25,9 @@ function html(items, profile) {
   </div>`;
 }
 
-// Test mode: DIGEST_TEST=email — send the current top items to one address, ignoring newness.
 if (process.env.DIGEST_TEST) {
-  const items = [];
-  for (const c of feed.facades.feed.slice(0, 3)) items.push({ t: titleCase(c.address) + ', ' + c.borough, d: `${c.subCycle} deadline ${c.deadline} · ${c.monthsLeft} mo left`, u: `${SITE}/#b/${c.bin}` });
-  for (const c of feed.contracts.slice(0, 2)) items.push({ t: c.vendor, d: `won $${c.amount.toLocaleString('en-US')} from ${c.agency}`, u: `${SITE}/#c/${c.id}` });
-  for (const o of feed.openings.slice(0, 1)) items.push({ t: o.name, d: `${o.kind} opening soon · ${o.address}`, u: `${SITE}/#o/${o.id}` });
+  if (!process.env.RESEND_API_KEY) { console.log('test send: no RESEND_API_KEY'); process.exit(1); }
+  const items = matchFor(feed, 'qewi', { onlyNew: false }).slice(0, 6);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
@@ -81,29 +38,40 @@ if (process.env.DIGEST_TEST) {
 }
 
 const paths = await listJson('prefs/');
-let sent = 0, skipped = 0;
+let mail = 0, slack = 0, skipped = 0;
 for (const p of paths) {
   const pref = await readJson(p);
-  const email = pref?.channels?.email;
-  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { skipped++; continue; }
+  if (!pref?.profile) { skipped++; continue; }
   if (pref.lastDigestAt && Date.now() - pref.lastDigestAt < 20 * 3600 * 1000) { skipped++; continue; }
-  const items = itemsFor(pref.profile || 'explore');
+  const portfolio = pref.portfolio?.length ? pref.portfolio : null;
+  const items = matchFor(feed, pref.profile, { onlyNew: true, portfolio }).slice(0, 6);
   if (!items.length) { skipped++; continue; }
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      from: FROM,
-      to: [email],
-      subject: `${items.length} new window${items.length > 1 ? 's' : ''} in NYC — Right Window`,
-      html: html(items, pref.profile || 'your trade'),
-    }),
-  });
-  if (res.ok) {
-    sent++;
-    await writeJson(p, { ...pref, lastDigestAt: Date.now() });
-  } else {
-    console.log('send failed', email.replace(/^(..).*@/, '$1***@'), res.status, (await res.text()).slice(0, 120));
+
+  if (pref.channels?.slack) {
+    const ok = await postToSlack(
+      pref.channels.slack,
+      digestBlocks(items, pref.profile, `${items.length} new window${items.length > 1 ? 's' : ''} today`),
+      `${items.length} new windows today`,
+    );
+    if (ok) slack++;
+  }
+  const email = pref.channels?.email;
+  if (email && process.env.RESEND_API_KEY && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: FROM,
+        to: [email],
+        subject: `${items.length} new window${items.length > 1 ? 's' : ''} in NYC — Right Window`,
+        html: html(items, pref.profile),
+      }),
+    });
+    if (res.ok) mail++;
+  }
+  if (pref.channels?.slack || email) {
+    pref.lastDigestAt = Date.now();
+    await writeJson(p, pref);
   }
 }
-console.log(`send-digest: sent=${sent} skipped=${skipped} of ${paths.length}`);
+console.log(`send-digest: email=${mail} slack=${slack} skipped=${skipped} of ${paths.length}`);

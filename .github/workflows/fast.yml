@@ -34,6 +34,13 @@ jobs:
         env:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
         run: node scripts/assign.mjs
+      - name: Instant alerts
+        if: always()
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+        run: node scripts/notify.mjs
       - name: Commit if changed
         run: |
           git config user.email "maxim122090@gmail.com"
