@@ -4,7 +4,7 @@ import data from './data/feed.json';
 
 // Generated from data/source-policy.json at build time. Nothing on this page is
 // written by hand, so it cannot drift from the gate the collectors actually enforce.
-export default function DataPage({ live, onBack }) {
+export default function DataPage({ live, onBack, isDark, onTheme }) {
   const freshness = { ...(data.sources || {}), ...(live?.sources || {}) };
   const allowed = policy.filter((p) => p.verdict === 'ALLOWED' && p.datasets?.length);
   const denied = policy.filter((p) => p.verdict !== 'ALLOWED');
@@ -12,7 +12,12 @@ export default function DataPage({ live, onBack }) {
 
   return (
     <div className="wrap datapage">
-      <button className="chip-btn back" onClick={onBack}>← Back to the feed</button>
+      <div className="page-bar">
+        <button className="chip-btn back" onClick={onBack}>← Back to the feed</button>
+        <button className="theme-btn" onClick={onTheme} title={isDark ? 'Switch to light' : 'Switch to dark'}>
+          {isDark ? 'Light' : 'Dark'}
+        </button>
+      </div>
 
       <h1>Data, sources and privacy</h1>
       <p className="lead">

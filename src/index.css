@@ -659,3 +659,29 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dlist.tiers li { margin-bottom: 12px; }
 .dlist.tiers .conf { margin-right: 8px; }
 .deny-head .mono { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+
+.theme-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--display); font-size: 12.5px; font-weight: 700;
+  padding: 8px 12px; min-height: 38px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: var(--panel); color: var(--ink-2); cursor: pointer;
+  transition: color .18s ease, border-color .18s ease;
+}
+.theme-btn:hover { color: var(--brand); border-color: var(--brand); }
+.theme-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.page-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+.page-bar .back { margin-bottom: 0; }
+.more-row-inline { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+.trade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 8px; }
+.trade-card {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
+  padding: 15px 16px; border-radius: var(--r); border: 1px solid var(--line);
+  background: var(--glass); box-shadow: var(--glass-edge), var(--shadow);
+  transition: border-color .18s ease, box-shadow .2s ease;
+}
+.trade-card:hover { border-color: var(--brand); box-shadow: var(--glass-edge), var(--shadow-lift); }
+.trade-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.trade-card b { font-family: var(--display); font-size: 15.5px; font-weight: 700; }
+.tc-what { font-size: 13px; color: var(--ink-2); }
+.tc-feed { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.tc-link { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 4px; }

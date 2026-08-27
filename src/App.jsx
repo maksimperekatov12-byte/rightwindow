@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 import DataPage from './Data.jsx';
+import TradesPage from './Trades.jsx';
 
 const YEAR = new Date().getFullYear();
 
@@ -406,10 +407,22 @@ function saveLS(key, v) {
 }
 
 export default function App() {
-  const [route, setRoute] = useState(() => (location.hash === '#data' ? 'data' : 'feed'));
+  // Routes: #data, #trades, #t/<trade>, or the feed. A trade in the URL means a
+  // link can be sent to one contractor and open already set up for his work.
+  const initialRoute = (() => {
+    if (location.hash === '#data') return 'data';
+    if (location.hash === '#trades') return 'trades';
+    return 'feed';
+  })();
+  const hashTrade = (location.hash.match(/^#t\/([a-z]+)$/) || [])[1] || null;
+  const [route, setRoute] = useState(initialRoute);
   const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|o)\//)));
-  const [profileKey, setProfileKey] = useState(() => loadLS('rw.profile', null));
-  const [showOnboard, setShowOnboard] = useState(() => !loadLS('rw.profile', null) && !deepLinked.current);
+  const [profileKey, setProfileKey] = useState(() =>
+    hashTrade && PROFILES[hashTrade] ? hashTrade : loadLS('rw.profile', null),
+  );
+  const [showOnboard, setShowOnboard] = useState(
+    () => !loadLS('rw.profile', null) && !deepLinked.current && !(hashTrade && PROFILES[hashTrade]),
+  );
   const [vertical, setVertical] = useState('facades');
   const [shown, setShown] = useState(7);
   const [openId, setOpenId] = useState(null);
@@ -424,6 +437,7 @@ export default function App() {
   const [walletReady, setWalletReady] = useState(false);
   const [email, setEmail] = useState(() => loadLS('rw.email', ''));
   const [theme, setTheme] = useState(() => loadLS('rw.theme', null));
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [now, setNow] = useState(Date.now());
   const [checkedAt, setCheckedAt] = useState(null);
   const [claims, setClaims] = useState({});
@@ -479,6 +493,14 @@ export default function App() {
   const isDismissed = (k) => fbOf(k) === 'dismissed';
   const statusOf = (k) => (claims[k] ? 'taken' : mine[k] && mine[k] > now ? 'personal' : 'open');
   const hoursLeft = (k) => Math.max(1, Math.round((mine[k] - now) / 3600000));
+
+  useEffect(() => {
+    if (hashTrade && PROFILES[hashTrade]) saveLS('rw.profile', hashTrade);
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e) => setSystemDark(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     const r = document.documentElement;
@@ -597,9 +619,17 @@ export default function App() {
     saveLS('rw.closeRate', r);
   };
 
+  const goTrade = (k) => {
+    try {
+      history.replaceState(null, '', k === 'explore' ? location.pathname : `#t/${k}`);
+    } catch {}
+  };
+
   const pickProfile = (k) => {
     setProfileKey(k);
     saveLS('rw.profile', k);
+    goTrade(k);
+    setRoute('feed');
     if (!loadLS('rw.ticket', 0) && k !== 'explore') setTicket(DEFAULT_TICKET[k] || 0);
     else setShowOnboard(false);
     setShown(7);
@@ -678,9 +708,9 @@ export default function App() {
   }, [live, now]);
   const dataAt = live?.changedAt || pulled.getTime();
   const agoLabel = ago(dataAt);
+  const isDark = theme ? theme === 'dark' : systemDark;
   const toggleTheme = () => {
-    const effDark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const next = effDark ? 'light' : 'dark';
+    const next = isDark ? 'light' : 'dark';
     setTheme(next);
     saveLS('rw.theme', next);
   };
@@ -809,10 +839,16 @@ export default function App() {
   };
 
   // Gross is arithmetic; expected is what a contractor will actually close.
-  // Both are shown — the arrow between them is the honest part.
+  // Both are shown — the arrow between them is the honest part. Counted per
+  // vertical: a signal someone else already claimed is not yours to count.
+  const openCount = useMemo(() => {
+    if (vertical === 'facades') return filteredFeed.filter((c) => !c.occupied && statusOf('b:' + c.bin) !== 'taken').length;
+    if (vertical === 'contracts') return contractsList.filter((c) => statusOf('c:' + c.id) !== 'taken').length;
+    return openingsList.filter((o) => statusOf('o:' + o.id) !== 'taken').length;
+  }, [vertical, filteredFeed, contractsList, openingsList, claims, mine, now]);
+
   const myPipeline = useMemo(() => {
-    if (vertical !== 'facades') return null;
-    const n = filteredFeed.filter((c) => !c.occupied).length;
+    const n = openCount;
     if (!n) return null;
     const avg = Number.isFinite(ticket) && ticket > 0 ? ticket : DEFAULT_TICKET[profileKey] || 0;
     if (!avg) return null;
@@ -821,16 +857,16 @@ export default function App() {
     const expected = gross * rate;
     if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
     return { n, avg, rate, gross, expected };
-  }, [ticket, closeRate, filteredFeed, vertical, profileKey]);
+  }, [ticket, closeRate, openCount, profileKey]);
 
   const pipe = useMemo(() => {
     // Nothing on the feed means nothing to size — the whole block goes away.
-    if (vertical === 'facades' && !filteredFeed.some((c) => !c.occupied)) return null;
+    if (!openCount) return null;
     const fn = PIPE[profileKey];
     if (!fn) return null;
     const r = fn(data.facades.totals, facadeFeed, contractsBase, data.openings);
     return r && r.v > 0 ? r : null;
-  }, [profileKey, facadeFeed, contractsBase, filteredFeed, vertical]);
+  }, [profileKey, facadeFeed, contractsBase, openCount]);
 
   const heroText =
     vertical === 'facades'
@@ -878,10 +914,31 @@ export default function App() {
     </div>
   );
 
+  if (route === 'trades')
+    return (
+      <TradesPage
+        isDark={isDark}
+        onTheme={toggleTheme}
+        profiles={PROFILES}
+        primary={PRIMARY_PROFILES}
+        other={OTHER_PROFILES}
+        onPick={(k) => {
+          pickProfile(k);
+          window.scrollTo({ top: 0 });
+        }}
+        onBack={() => {
+          goTrade(profileKey || 'explore');
+          setRoute('feed');
+        }}
+      />
+    );
+
   if (route === 'data')
     return (
       <DataPage
         live={live}
+        isDark={isDark}
+        onTheme={toggleTheme}
         onBack={() => {
           history.replaceState(null, '', location.pathname);
           setRoute('feed');
@@ -920,9 +977,21 @@ export default function App() {
                 ))}
               </div>
               {!showOther ? (
-                <button className="more-trades" onClick={() => setShowOther(true)}>
-                  Other trades ({OTHER_PROFILES.length})
-                </button>
+                <div className="more-row-inline">
+                  <button className="more-trades" onClick={() => setShowOther(true)}>
+                    Other trades ({OTHER_PROFILES.length})
+                  </button>
+                  <button
+                    className="more-trades"
+                    onClick={() => {
+                      setShowOnboard(false);
+                      history.replaceState(null, '', '#trades');
+                      setRoute('trades');
+                    }}
+                  >
+                    See all trade pages
+                  </button>
+                </div>
               ) : (
                 <div className="tiles secondary">
                   {OTHER_PROFILES.map((k) => (
@@ -1084,10 +1153,18 @@ export default function App() {
           <span>NYC public records</span>
         </div>
         <div className="top-right">
-          <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle dark mode">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-            </svg>
+          <button className="theme-btn" onClick={toggleTheme} title={isDark ? 'Switch to light' : 'Switch to dark'}>
+            {isDark ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.2" />
+                <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+              </svg>
+            )}
+            {isDark ? 'Light' : 'Dark'}
           </button>
           <a
             className="contact-chip"
@@ -1176,12 +1253,16 @@ export default function App() {
               <span className="gross">{fmtMoney(myPipeline.gross)} open</span>
               <span className="arrow" aria-hidden="true">→</span>
               <b
-                title={`${myPipeline.n} open signals × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`}
+                title={`${myPipeline.n} open × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`}
               >
                 ~{fmtMoney(myPipeline.expected)} expected
               </b>
               <span className="pipe-note">
-                {myPipeline.n} open signals · {fmtMoney(myPipeline.avg)} avg contract ·{' '}
+                {myPipeline.n} open{' '}
+                {(vertical === 'contracts' ? 'award' : vertical === 'openings' ? 'opening' : 'signal') +
+                  (myPipeline.n === 1 ? '' : 's')}{' '}
+                ·{' '}
+                {fmtMoney(myPipeline.avg)} avg contract ·{' '}
                 {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
@@ -1192,6 +1273,7 @@ export default function App() {
               <span title={`Back-of-napkin: ${pipe.n}`}>matched to your trade and boroughs</span>
             </motion.div>
           ) : null}
+
         </section>
         {vertical === 'facades' && (
           <div className="stats">
@@ -1995,6 +2077,16 @@ export default function App() {
           }}
         >
           Data, sources and privacy
+        </button>
+        <button
+          className="foot-toggle"
+          onClick={() => {
+            history.replaceState(null, '', '#trades');
+            setRoute('trades');
+            window.scrollTo({ top: 0 });
+          }}
+        >
+          A page for every trade
         </button>
         {showSources && (
           <p className="foot-detail">
