@@ -14,8 +14,9 @@ const SITE = process.env.SITE || 'https://rightwindow.vercel.app';
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 const MAX_PER_RUN = 3;
 
+const COOLDOWN_MS = 45 * 60 * 1000; // never more than one interruption per 45 min
 const paths = await listJson('prefs/');
-let slackSent = 0, mailSent = 0, users = 0;
+let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0;
 
 for (const p of paths) {
   const pref = await readJson(p);
@@ -28,10 +29,23 @@ for (const p of paths) {
 
   const sent = new Set(pref.sentKeys || []);
   const portfolio = pref.portfolio?.length ? pref.portfolio : null;
-  const hits = matchFor(feed, pref.profile, { onlyNew: true, portfolio })
+  const candidates = matchFor(feed, pref.profile, { onlyNew: true, portfolio })
     .filter((i) => i.urgent || (portfolio && i.kind === 'b'))
-    .filter((i) => !sent.has(`${i.kind}:${i.id}`))
-    .slice(0, MAX_PER_RUN);
+    .filter((i) => !sent.has(`${i.kind}:${i.id}`));
+
+  // First run for this user: absorb the existing backlog silently. Instant alerts
+  // are for things that happen *after* you connect, not a blast of history.
+  if (!pref.instantSeeded) {
+    for (const i of candidates) sent.add(`${i.kind}:${i.id}`);
+    pref.instantSeeded = true;
+    pref.sentKeys = [...sent].slice(-400);
+    await writeJson(p, pref);
+    seeded++;
+    continue;
+  }
+  if (pref.lastInstantAt && Date.now() - pref.lastInstantAt < COOLDOWN_MS) { cooled++; continue; }
+
+  const hits = candidates.slice(0, MAX_PER_RUN);
   if (!hits.length) continue;
 
   for (const it of hits) {
@@ -63,6 +77,7 @@ for (const p of paths) {
   }
 
   pref.sentKeys = [...sent].slice(-400);
+  pref.lastInstantAt = Date.now();
   await writeJson(p, pref);
 }
-console.log(`notify: users=${users} slack=${slackSent} email=${mailSent}`);
+console.log(`notify: users=${users} slack=${slackSent} email=${mailSent} seeded=${seeded} cooldown=${cooled}`);
