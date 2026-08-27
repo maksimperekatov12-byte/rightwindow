@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
+import DataPage from './Data.jsx';
 
 const YEAR = new Date().getFullYear();
 
@@ -287,7 +288,14 @@ const PIPE = {
   signage: (t, f, c, o) => ({ v: o.length * 20000, n: `${o.length} openings × ~$20K storefront` }),
 };
 
-const PROFILE_ORDER = ['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'marketing', 'signage', 'explore'];
+// The shelf shows one trade. The rest stay in the product but off the front page:
+// American buyers pay for "built for me", not for "we cover you too".
+const PRIMARY_PROFILES = ['qewi', 'restoration', 'equipment'];
+const OTHER_PROFILES = ['elevator', 'insurance', 'lender', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'marketing', 'signage', 'explore'];
+const PROFILE_ORDER = [...PRIMARY_PROFILES, ...OTHER_PROFILES];
+
+// Typical contract sizes per trade, used until the user tells us theirs.
+const DEFAULT_TICKET = { qewi: 12000, restoration: 180000, equipment: 45000, elevator: 25000, insurance: 12000, lender: 200000, propmgmt: 50000, legal: 7500, cre: 160000, staffing: 25000, pos: 4000, fnb: 60000, marketing: 15000, signage: 20000, explore: 0 };
 
 const BADGE = {
   NON_FILER: 'No Cycle 10 filing',
@@ -340,6 +348,17 @@ function WindowBar({ opens, deadline }) {
   );
 }
 
+// Contact confidence, shown plainly. An honest "unverified" reads stronger than a
+// button that quietly opens Google — and it is the same data-honesty rule as the
+// license gate. Levels light up as enrichment providers are connected.
+function contactOf(c) {
+  const a = c.agent;
+  if (!a) return null;
+  if (a.phone && a.phoneVerified) return { level: 'verified mobile', tone: 'ok', name: a.name, company: a.company, phone: a.phone };
+  if (a.phone) return { level: 'office line', tone: 'mid', name: a.name, company: a.company, phone: a.phone };
+  return { level: 'unverified · HPD registration', tone: 'low', name: a.name, company: a.company, phone: null };
+}
+
 const Star = ({ on }) => (
   <svg width="17" height="17" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" />
@@ -367,6 +386,7 @@ function saveLS(key, v) {
 }
 
 export default function App() {
+  const [route, setRoute] = useState(() => (location.hash === '#data' ? 'data' : 'feed'));
   const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|o)\//)));
   const [profileKey, setProfileKey] = useState(() => loadLS('rw.profile', null));
   const [showOnboard, setShowOnboard] = useState(() => !loadLS('rw.profile', null) && !deepLinked.current);
@@ -397,6 +417,9 @@ export default function App() {
   const [portfolioText, setPortfolioText] = useState('');
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [hideBusy, setHideBusy] = useState(false);
+  const [showOther, setShowOther] = useState(false);
+  const [menuFor, setMenuFor] = useState(null);
+  const [ticket, setTicket] = useState(() => loadLS('rw.ticket', 0));
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
@@ -481,6 +504,7 @@ export default function App() {
           uid: uid.current,
           data: {
             profile: profileKey,
+            ticket,
             boro,
             watch: Object.keys(watch),
             feedback: fb,
@@ -492,7 +516,7 @@ export default function App() {
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(t);
-  }, [profileKey, watch, fb, boro, email, slackHook, portfolio]);
+  }, [profileKey, watch, fb, boro, email, slackHook, portfolio, ticket]);
 
   useEffect(() => {
     fetch('/api/pass/status')
@@ -537,10 +561,16 @@ export default function App() {
     });
   };
 
+  const saveTicket = (v) => {
+    setTicket(v);
+    saveLS('rw.ticket', v);
+  };
+
   const pickProfile = (k) => {
     setProfileKey(k);
     saveLS('rw.profile', k);
-    setShowOnboard(false);
+    if (!loadLS('rw.ticket', 0) && k !== 'explore') setTicket(DEFAULT_TICKET[k] || 0);
+    else setShowOnboard(false);
     setShown(7);
     const p = PROFILES[k];
     setVertical(p?.facade ? 'facades' : p?.cNeed ? 'contracts' : p?.oNeed ? 'openings' : 'facades');
@@ -747,6 +777,12 @@ export default function App() {
     }
   };
 
+  const myPipeline = useMemo(() => {
+    if (!ticket || vertical !== 'facades') return null;
+    const live = filteredFeed.filter((c) => !c.occupied).length;
+    return { n: live, value: live * ticket };
+  }, [ticket, filteredFeed, vertical]);
+
   const pipe = useMemo(() => {
     const fn = PIPE[profileKey];
     if (!fn) return null;
@@ -767,6 +803,10 @@ export default function App() {
       : vertical === 'contracts'
         ? 'A contract award is public the day it lands. The winner has two weeks to line up subs, bonding and crews.'
         : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
+
+  // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
+  const deadlineIso = '2027-02-21';
+  const monthsToDeadline = Math.max(0, Math.round((new Date(deadlineIso) - now) / (30.44 * 86400000)));
 
   const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 };
   const fade = (delay = 0) =>
@@ -796,6 +836,17 @@ export default function App() {
     </div>
   );
 
+  if (route === 'data')
+    return (
+      <DataPage
+        live={live}
+        onBack={() => {
+          history.replaceState(null, '', location.pathname);
+          setRoute('feed');
+        }}
+      />
+    );
+
   return (
     <div className="wrap">
       <AnimatePresence>
@@ -818,14 +869,51 @@ export default function App() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               <h2>What do you do?</h2>
-              <p>Pick what you sell. We'll show who needs it this week — with the timing and the person to call.</p>
+              <p>Facade compliance is what we do best. Pick your side of it and we'll show who needs you this week.</p>
               <div className="tiles">
-                {PROFILE_ORDER.map((k) => (
+                {PRIMARY_PROFILES.map((k) => (
                   <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
                     {PROFILES[k].tile}
                   </button>
                 ))}
               </div>
+              {!showOther ? (
+                <button className="more-trades" onClick={() => setShowOther(true)}>
+                  Other trades ({OTHER_PROFILES.length})
+                </button>
+              ) : (
+                <div className="tiles secondary">
+                  {OTHER_PROFILES.map((k) => (
+                    <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
+                      {PROFILES[k].tile}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {profileKey && profileKey !== 'explore' && (
+                <div className="ticket">
+                  <label htmlFor="tk">Your average contract</label>
+                  <div className="ticket-row">
+                    {[50000, 180000, 500000].map((v) => (
+                      <button key={v} className={'chip-btn' + (ticket === v ? ' on' : '')} onClick={() => saveTicket(v)}>
+                        {fmtUsd(v)}
+                      </button>
+                    ))}
+                    <input
+                      id="tk"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="or type it"
+                      defaultValue={ticket ? String(ticket) : ''}
+                      onBlur={(e) => {
+                        const n = Number(String(e.target.value).replace(/[^\d]/g, ''));
+                        if (n > 0) saveTicket(n);
+                      }}
+                    />
+                  </div>
+                  <span className="ticket-note">We use it to size your pipeline, nothing else.</span>
+                </div>
+              )}
               {profileKey && (
                 <button className="modal-close" onClick={() => setShowOnboard(false)}>
                   Keep “{profile.label}”
@@ -989,7 +1077,19 @@ export default function App() {
 
       <div className="lede">
         <section className="hero">
-          <div className="eyebrow">New York City · public records, read hourly</div>
+          {vertical === 'facades' ? (
+            <motion.div className="hook" {...fade(0)}>
+              <b>
+                <CountUp value={data.facades.totals.nonFilers10A} /> buildings
+              </b>
+              <span>
+                have not filed their sub-cycle 10A facade report. The deadline is {usDate(deadlineIso)} —{' '}
+                <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
+              </span>
+            </motion.div>
+          ) : (
+            <div className="eyebrow">New York City · public records, read hourly</div>
+          )}
           <AnimatePresence mode="popLayout">
             <motion.h1
               key={vertical + profileKey}
@@ -1002,12 +1102,20 @@ export default function App() {
             </motion.h1>
           </AnimatePresence>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
-          {pipe && (
+          {myPipeline ? (
+            <motion.div className="pipe" {...fade(0.1)}>
+              <b>{fmtUsd(myPipeline.value)}</b> in your pipeline right now
+              <span>
+                {myPipeline.n} open signals × {fmtUsd(ticket)} average contract ·{' '}
+                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
+              </span>
+            </motion.div>
+          ) : pipe ? (
             <motion.div className="pipe" {...fade(0.1)}>
               <b>≈ {fmtUsd(pipe.v)}</b> of potential work
-              <span title={`Back-of-napkin: ${pipe.n}`}>matched to your trade and boroughs · hover for the math</span>
+              <span title={`Back-of-napkin: ${pipe.n}`}>matched to your trade and boroughs</span>
             </motion.div>
-          )}
+          ) : null}
         </section>
         {vertical === 'facades' && (
           <div className="stats">
@@ -1085,15 +1193,15 @@ export default function App() {
             <div className="p-banner">
               <span className="found personal" aria-hidden="true">★</span>
               <span>
-                <b>{Object.keys(mine).filter((k) => mine[k] > now).length} personal signal{Object.keys(mine).filter((k) => mine[k] > now).length > 1 ? 's' : ''}</b>{' '}
-                — yours for 48 hours, then they rotate to someone else.
+                <b>{Object.keys(mine).filter((k) => mine[k] > now).length} reserved for you</b> — a taste of exclusivity.
+                On a territory plan every FISP signal in your borough is yours alone, and nobody else sees it.
               </span>
             </div>
           )}
           <div className="legend" aria-hidden="true">
             <span><i className="ldot open" /> open — no one has claimed it</span>
             <span><i className="ldot taken" /> taken — someone is already on it</span>
-            <span><i className="ldot personal" /> personal — yours for 48h</span>
+            <span><i className="ldot personal" /> reserved — yours for 48h</span>
           </div>
 
           <div className="toolbar">
@@ -1387,63 +1495,79 @@ export default function App() {
                           <div className="na-cap">Next action</div>
                           <div className="call-block">
                             <div className="call-who">
-                              {c.agent ? (
-                                <>
-                                  <b>{title(c.agent.company || c.agent.name)}</b>
-                                  {c.agent.company && c.agent.name ? ` — ${title(c.agent.name)}` : ''}
-                                  <span>{c.agent.role}</span>
-                                  {c.agent.address && <span>{title(c.agent.address)}</span>}
-                                </>
-                              ) : (
-                                <span>Contact via HPD registration</span>
-                              )}
+                              {(() => {
+                                const ct = contactOf(c);
+                                if (!ct) return <span>No registered contact on file</span>;
+                                return (
+                                  <>
+                                    <b>{title(ct.company || ct.name)}</b>
+                                    {ct.company && ct.name ? ` — ${title(ct.name)}` : ''}
+                                    <span className={'conf ' + ct.tone}>{ct.level}</span>
+                                  </>
+                                );
+                              })()}
                             </div>
                             <div className="call-actions">
-                              <button className="btn solid" onClick={() => copy(c.bin, fv.opener(c))}>
-                                {copiedId === c.bin ? 'Copied' : 'Copy opener'}
-                              </button>
-                              <button className="btn ghost" onClick={() => copyLink('b', c.bin)}>
-                                {copiedLink === c.bin ? 'Copied' : 'Copy link'}
-                              </button>
-                              {c.agent && (
-                                <a className="btn ghost" href={findUrl(`${c.agent.company || ''} ${c.agent.name || ''} phone New York`)} target="_blank" rel="noreferrer">
-                                  Find phone ↗
-                                </a>
-                              )}
-                              {c.agent && (
-                                <a className="btn ghost" href={liUrl(`${c.agent.name || c.agent.company || ''} ${c.agent.company || ''}`)} target="_blank" rel="noreferrer">
-                                  LinkedIn ↗
-                                </a>
-                              )}
-                              <a className="btn ghost" href={mapsUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
-                                Map ↗
-                              </a>
-                              <a className="btn ghost" href={streetViewUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
-                                Street View ↗
-                              </a>
-                              <button
-                                className="btn ghost"
-                                onClick={() =>
-                                  downloadIcs(
-                                    c.nextHearing
-                                      ? `OATH hearing — ${title(c.address)}`
-                                      : `FISP deadline (${c.subCycle}) — ${title(c.address)}`,
-                                    c.nextHearing || c.deadline,
-                                    `${fv.why(c)}\n\n${location.origin}/#b/${c.bin}`,
-                                    `${title(c.address)}, ${c.borough}, NY`,
-                                  )
-                                }
-                              >
-                                {c.nextHearing ? 'Add hearing' : 'Add deadline'}
-                              </button>
-                              <a
-                                className="btn ghost"
-                                href={`https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=${c.bin}`}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                DOB record ↗
-                              </a>
+                              {(() => {
+                                const ct = contactOf(c);
+                                return ct?.phone ? (
+                                  <a className="btn solid big" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
+                                    Call {ct.phone}
+                                  </a>
+                                ) : (
+                                  <button className="btn solid big" onClick={() => copy(c.bin, fv.opener(c))}>
+                                    {copiedId === c.bin ? 'Opener copied' : 'Copy opener'}
+                                  </button>
+                                );
+                              })()}
+                              <div className="overflow">
+                                <button
+                                  className="btn ghost dots"
+                                  aria-label="More actions"
+                                  aria-expanded={menuFor === c.bin}
+                                  onClick={() => setMenuFor(menuFor === c.bin ? null : c.bin)}
+                                >
+                                  …
+                                </button>
+                                {menuFor === c.bin && (
+                                  <div className="menu" role="menu">
+                                    <button onClick={() => { copy(c.bin, fv.opener(c)); setMenuFor(null); }}>Copy opener</button>
+                                    <button onClick={() => { copyLink('b', c.bin); setMenuFor(null); }}>Copy link</button>
+                                    {c.agent && (
+                                      <a href={findUrl(`${c.agent.company || ''} ${c.agent.name || ''} phone New York`)} target="_blank" rel="noreferrer">
+                                        Search for a phone
+                                      </a>
+                                    )}
+                                    {c.agent && (
+                                      <a href={liUrl(`${c.agent.name || c.agent.company || ''} ${c.agent.company || ''}`)} target="_blank" rel="noreferrer">
+                                        LinkedIn
+                                      </a>
+                                    )}
+                                    <a href={mapsUrl(c.address, c.borough)} target="_blank" rel="noreferrer">Map</a>
+                                    <a href={streetViewUrl(c.address, c.borough)} target="_blank" rel="noreferrer">Street View</a>
+                                    <button
+                                      onClick={() => {
+                                        downloadIcs(
+                                          c.nextHearing ? `OATH hearing — ${title(c.address)}` : `FISP deadline (${c.subCycle}) — ${title(c.address)}`,
+                                          c.nextHearing || c.deadline,
+                                          `${fv.why(c)}\n\n${location.origin}/#b/${c.bin}`,
+                                          `${title(c.address)}, ${c.borough}, NY`,
+                                        );
+                                        setMenuFor(null);
+                                      }}
+                                    >
+                                      {c.nextHearing ? 'Add hearing to calendar' : 'Add deadline to calendar'}
+                                    </button>
+                                    <a
+                                      href={`https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=${c.bin}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      DOB record
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <FeedbackRow k={'b:' + c.bin} fbOf={fbOf} mark={mark} />
@@ -1697,8 +1821,11 @@ export default function App() {
 
       <div className="pilot">
         <div>
-          <b>Want this watching your territory?</b>
-          <span>Pilots are free while we learn.</span>
+          <b>One facade contractor per borough.</b>
+          <span>
+            Territory plans give you every FISP signal in your borough, exclusively — nobody else on the block sees
+            them. The open pool above stays free. Pilots are free while we learn.
+          </span>
         </div>
         <form
           className="digest-form"
@@ -1775,8 +1902,15 @@ export default function App() {
           Right Window reads New York's public registers and hands you the window — with a contact and a reason to
           call. Every card links to the city's own record.
         </p>
-        <button className="foot-toggle" onClick={() => setShowSources((v) => !v)}>
-          {showSources ? 'Hide sources' : 'Sources and freshness'}
+        <button
+          className="foot-toggle"
+          onClick={() => {
+            history.replaceState(null, '', '#data');
+            setRoute('data');
+            window.scrollTo({ top: 0 });
+          }}
+        >
+          Data, sources and privacy
         </button>
         {showSources && (
           <p className="foot-detail">
