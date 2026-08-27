@@ -19,6 +19,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # The pinger pins its code at checkout, so a fresh hourly run also refreshes it.
+      - name: Restart pinger with current code
+        if: always()
+        run: gh workflow run pinger --repo "$GITHUB_REPOSITORY" || echo "could not restart pinger"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Collect all sources
         run: node scripts/collect.mjs
       - name: Heartbeat
