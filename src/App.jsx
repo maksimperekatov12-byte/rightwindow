@@ -305,14 +305,33 @@ const PIPE = {
   signage: (t, f, c, o) => ({ v: o.length * 20000, n: `${o.length} openings × ~$20K storefront` }),
 };
 
-// The shelf shows one trade. The rest stay in the product but off the front page:
-// American buyers pay for "built for me", not for "we cover you too".
-const PRIMARY_PROFILES = ['qewi', 'restoration', 'equipment'];
-const OTHER_PROFILES = ['elevator', 'insurance', 'lender', 'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'marketing', 'signage', 'explore'];
-const PROFILE_ORDER = [...PRIMARY_PROFILES, ...OTHER_PROFILES];
+// Typical contract size per trade *and per register* — the same firm does not
+// bill the same for a mandated facade scope, a subcontract off a city award and
+// a build-out. Used until the user tells us their own number.
+const TICKET = {
+  qewi: { facades: 12000, contracts: 9000 },
+  restoration: { facades: 180000, contracts: 120000 },
+  equipment: { facades: 45000, contracts: 30000 },
+  elevator: { facades: 25000 },
+  insurance: { facades: 12000, contracts: 18000, openings: 9000 },
+  lender: { facades: 200000, contracts: 150000, openings: 120000 },
+  propmgmt: { facades: 50000 },
+  legal: { facades: 7500 },
+  cre: { facades: 160000 },
+  staffing: { contracts: 25000, openings: 18000 },
+  pos: { openings: 4000 },
+  fnb: { openings: 60000 },
+  marketing: { openings: 15000 },
+  signage: { openings: 20000 },
+  explore: {},
+};
+const homeVertical = (k) =>
+  PROFILES[k]?.facade ? 'facades' : PROFILES[k]?.cNeed ? 'contracts' : PROFILES[k]?.oNeed ? 'openings' : 'facades';
+const ticketFor = (k, v) => TICKET[k]?.[v] || TICKET[k]?.[homeVertical(k)] || 0;
 
-// Typical contract sizes per trade, used until the user tells us theirs.
-const DEFAULT_TICKET = { qewi: 12000, restoration: 180000, equipment: 45000, elevator: 25000, insurance: 12000, lender: 200000, propmgmt: 50000, legal: 7500, cre: 160000, staffing: 25000, pos: 4000, fnb: 60000, marketing: 15000, signage: 20000, explore: 0 };
+// A register holding almost nothing is worse than no register — it makes the
+// whole product read as empty. Below this, the tab does not appear at all.
+const MIN_LIST = 4;
 
 const BADGE = {
   NON_FILER: 'No Cycle 10 filing',
@@ -584,17 +603,6 @@ export default function App() {
     forcedVert.current = m ? { b: 'facades', c: 'contracts', o: 'openings' }[m[1]] : '';
   }
   const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
-  const visibleVerts = VERTICALS.filter(
-    (v) =>
-      isExplore ||
-      v.key === forcedVert.current ||
-      (v.key === 'facades' && profile.facade) ||
-      (v.key === 'contracts' && profile.cNeed) ||
-      (v.key === 'openings' && profile.oNeed),
-  );
-  useEffect(() => {
-    if (!visibleVerts.some((v) => v.key === vertical)) setVertical(visibleVerts[0].key);
-  }, [profileKey]);
 
   const watchCount = Object.keys(watch).length;
   const isWatched = (k) => Boolean(watch[k]);
@@ -630,7 +638,7 @@ export default function App() {
     saveLS('rw.profile', k);
     goTrade(k);
     setRoute('feed');
-    if (!loadLS('rw.ticket', 0) && k !== 'explore') setTicket(DEFAULT_TICKET[k] || 0);
+    if (!loadLS('rw.ticket', 0) && k !== 'explore') setTicket(ticketFor(k, homeVertical(k)));
     else setShowOnboard(false);
     setShown(7);
     const p = PROFILES[k];
@@ -681,6 +689,45 @@ export default function App() {
     [liveOpenings, onlyWatch, watch, fb, showHidden],
   );
   useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio, hideBusy]);
+
+  // A register shows up only if this trade can act on it *and* there is enough
+  // in it to be worth a page. Counted before the search box and the filters, so
+  // typing never makes a tab vanish. A deep link always opens its own register.
+  const vertSize = { facades: facadeFeed.length, contracts: contractsBase.length, openings: liveOpenings.length };
+  const matchedVerts = VERTICALS.filter(
+    (v) =>
+      isExplore ||
+      v.key === forcedVert.current ||
+      (v.key === 'facades' && profile.facade) ||
+      (v.key === 'contracts' && profile.cNeed) ||
+      (v.key === 'openings' && profile.oNeed),
+  );
+  const bigEnough = matchedVerts.filter((v) => v.key === forcedVert.current || vertSize[v.key] >= MIN_LIST);
+  const visibleVerts = bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1);
+  useEffect(() => {
+    if (!visibleVerts.some((v) => v.key === vertical)) setVertical(visibleVerts[0].key);
+  }, [profileKey, visibleVerts.map((v) => v.key).join()]);
+
+  // How much work each trade can act on right now: facade rows that pass its own
+  // filter, plus the awards and venue filings it can use. The picker is ordered
+  // by that number, so the trades with a real feed sit in front.
+  const tradeVolume = useMemo(() => {
+    const m = {};
+    for (const k of Object.keys(PROFILES)) {
+      const p = PROFILES[k];
+      const f = p.facade ? data.facades.feed.filter(p.facade.fFilter || (() => true)).length : 0;
+      const c = p.cNeed ? liveContracts.filter(p.cFilter || (() => true)).length : 0;
+      const o = p.oNeed ? liveOpenings.length : 0;
+      m[k] = { facades: f, contracts: c, openings: o, total: k === 'explore' ? -1 : f + c + o };
+    }
+    return m;
+  }, [liveContracts, liveOpenings]);
+  const orderedTrades = useMemo(
+    () => Object.keys(PROFILES).sort((a, b) => tradeVolume[b].total - tradeVolume[a].total),
+    [tradeVolume],
+  );
+  const primaryTrades = orderedTrades.slice(0, 3);
+  const otherTrades = orderedTrades.slice(3);
 
   const hiddenCount = Object.keys(fb).filter((k) => fb[k]?.s === 'dismissed').length;
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
@@ -850,14 +897,14 @@ export default function App() {
   const myPipeline = useMemo(() => {
     const n = openCount;
     if (!n) return null;
-    const avg = Number.isFinite(ticket) && ticket > 0 ? ticket : DEFAULT_TICKET[profileKey] || 0;
+    const avg = Number.isFinite(ticket) && ticket > 0 ? ticket : ticketFor(profileKey, vertical);
     if (!avg) return null;
     const rate = Number.isFinite(closeRate) && closeRate > 0 ? clampRate(closeRate) : DEFAULT_CLOSE_RATE;
     const gross = n * avg;
     const expected = gross * rate;
     if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
     return { n, avg, rate, gross, expected };
-  }, [ticket, closeRate, openCount, profileKey]);
+  }, [ticket, closeRate, openCount, profileKey, vertical]);
 
   const pipe = useMemo(() => {
     // Nothing on the feed means nothing to size — the whole block goes away.
@@ -920,8 +967,9 @@ export default function App() {
         isDark={isDark}
         onTheme={toggleTheme}
         profiles={PROFILES}
-        primary={PRIMARY_PROFILES}
-        other={OTHER_PROFILES}
+        primary={primaryTrades}
+        other={otherTrades}
+        volume={tradeVolume}
         onPick={(k) => {
           pickProfile(k);
           window.scrollTo({ top: 0 });
@@ -970,7 +1018,7 @@ export default function App() {
               <h2>What do you do?</h2>
               <p>Facade compliance is what we do best. Pick your side of it and we'll show who needs you this week.</p>
               <div className="tiles">
-                {PRIMARY_PROFILES.map((k) => (
+                {primaryTrades.map((k) => (
                   <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
                     {PROFILES[k].tile}
                   </button>
@@ -979,7 +1027,7 @@ export default function App() {
               {!showOther ? (
                 <div className="more-row-inline">
                   <button className="more-trades" onClick={() => setShowOther(true)}>
-                    Other trades ({OTHER_PROFILES.length})
+                    Other trades ({otherTrades.length})
                   </button>
                   <button
                     className="more-trades"
@@ -994,7 +1042,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="tiles secondary">
-                  {OTHER_PROFILES.map((k) => (
+                  {otherTrades.map((k) => (
                     <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
                       {PROFILES[k].tile}
                     </button>

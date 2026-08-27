@@ -511,9 +511,15 @@ const awardsRaw = await fetchAll('qyyg-4tf5', {
   $order: 'start_date DESC',
   $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
 }, 2000);
-contracts = awardsRaw
-  .filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name)
-  .slice(0, 20)
+// The trade filters run downstream of this cap, so a plain top-20 starves the
+// construction trades: only 9 of the 141 awards in a 14-day window are construction.
+// Take the most recent 20, then top up with every construction award in the window.
+const CONSTR_CAT = /construction|architect|engineer/i;
+const eligible = awardsRaw.filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name);
+const keptAwards = new Map();
+for (const a of [...eligible.slice(0, 20), ...eligible.filter((a) => CONSTR_CAT.test(a.category_description || ''))])
+  keptAwards.set(a.request_id, a);
+contracts = [...keptAwards.values()]
   .map((a) => ({
     id: a.request_id,
     vendor: a.vendor_name,
@@ -539,11 +545,11 @@ try {
 const qs = new URLSearchParams({
   $where: "premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review'",
   $order: 'received_date DESC',
-  $limit: '40',
+  $limit: '60',
   $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
 });
 const slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs}`);
-openings = slaRaw.slice(0, 20).map((o) => ({
+openings = slaRaw.slice(0, 40).map((o) => ({
   id: o.application_id,
   name: o.dba || o.legalname,
   legal: o.legalname,
