@@ -2,6 +2,7 @@
 // every 10 minutes. Writes feed.json ONLY when something actually changed,
 // so Vercel deploys stay within the free tier while signals land in minutes.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readJson, writeJson } from '../lib/store.mjs';
 
 const TODAY = new Date();
 async function getJson(url, tries = 3) {
@@ -84,28 +85,39 @@ if (seen) {
   }
 }
 
-const strip = (arr) => arr.map(({ daysAgo, ...rest }) => rest);
+// Intraday data goes to Blob, not git: the site reads it live, so a tick costs
+// no commit and no redeploy — that is what makes a 5-minute cadence possible.
+const strip = (arr) => arr.map(({ daysAgo, isNew, ...rest }) => rest);
+const prevLive = await readJson('live/intraday.json');
+const prevContracts = prevLive?.contracts || feed.contracts || [];
+const prevOpenings = prevLive?.openings || feed.openings || [];
 const changed =
-  JSON.stringify(strip(contracts)) !== JSON.stringify(strip(feed.contracts || [])) ||
-  JSON.stringify(strip(openings)) !== JSON.stringify(strip(feed.openings || []));
+  JSON.stringify(strip(contracts)) !== JSON.stringify(strip(prevContracts)) ||
+  JSON.stringify(strip(openings)) !== JSON.stringify(strip(prevOpenings));
 
-if (!changed) {
-  console.log('fast: no changes');
-  process.exit(0);
-}
-
-feed.contracts = contracts;
-feed.openings = openings;
-feed.generatedAt = nowIso;
-feed.whatsNew = {
-  ...(feed.whatsNew || { windowHours: 48, buildings: 0, signals: 0 }),
-  contracts: contracts.filter((c) => c.isNew).length,
-  openings: openings.filter((o) => o.isNew).length,
-};
+let awardsDate = feed.sources?.awards || null;
 try {
   const m = await getJson('https://data.cityofnewyork.us/api/views/qyyg-4tf5.json');
-  feed.sources = { ...(feed.sources || {}), awards: new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10) };
+  awardsDate = new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
 } catch {}
-writeFileSync(feedPath, JSON.stringify(feed, null, 1));
-if (seen) writeFileSync(seenPath, JSON.stringify(seen, null, 1));
-console.log(`fast: updated — contracts new=${feed.whatsNew.contracts}, openings new=${feed.whatsNew.openings}`);
+
+await writeJson('live/intraday.json', {
+  checkedAt: Date.now(),
+  changedAt: changed ? Date.now() : prevLive?.changedAt || Date.now(),
+  contracts,
+  openings,
+  whatsNew: {
+    contracts: contracts.filter((c) => c.isNew).length,
+    openings: openings.filter((o) => o.isNew).length,
+  },
+  sources: { awards: awardsDate },
+});
+// seen memory is committed by the hourly lane; keep it fresh locally when we can
+if (seen && changed) {
+  try { writeFileSync(seenPath, JSON.stringify(seen, null, 1)); } catch {}
+}
+console.log(
+  changed
+    ? `fast: updated — contracts new=${contracts.filter((c) => c.isNew).length}, openings new=${openings.filter((o) => o.isNew).length}`
+    : 'fast: no changes (heartbeat written)',
+);

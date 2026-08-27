@@ -1,54 +1,25 @@
 name: fast-refresh
+# Fallback only — the pinger workflow drives the real cadence. Kept for manual runs.
 on:
-  schedule:
-    # off-herd minutes: GitHub drops schedules that land on :00/:10/... during load spikes
-    - cron: '4,14,24,34,44,54 * * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: data-writes
-  cancel-in-progress: false
+  contents: read
 
 jobs:
   fast:
     runs-on: ubuntu-latest
+    env:
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Check intraday sources
-        run: node scripts/collect-fast.mjs
-      - name: Heartbeat
-        if: always()
-        env:
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-        run: |
-          npm i --no-save @vercel/blob > /dev/null 2>&1
-          node scripts/heartbeat.mjs
-      - name: Rotate personal signals
-        if: always()
-        env:
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-        run: node scripts/assign.mjs
-      - name: Instant alerts
-        if: always()
-        env:
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
-        run: node scripts/notify.mjs
-      - name: Commit if changed
-        run: |
-          git config user.email "maxim122090@gmail.com"
-          git config user.name "Maxim Perekatov"
-          git add src/data/feed.json data/seen.json
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "data: fast refresh (awards/openings)"
-            for i in 1 2 3; do git pull --rebase && git push && break || sleep 5; done
-          fi
+      - run: npm i --no-save @vercel/blob
+      - run: node scripts/collect-fast.mjs
+      - run: node scripts/heartbeat.mjs
+      - run: node scripts/assign.mjs
+      - run: node scripts/notify.mjs

@@ -1,0 +1,54 @@
+name: pinger
+# GitHub's cron scheduler is best-effort and was skipping most 10-minute ticks,
+# so the cadence is driven from inside a long-running job instead: one run loops
+# for ~5.5h at a fixed interval, then the next scheduled run takes over.
+# The repo is public, so Actions minutes are free.
+on:
+  schedule:
+    - cron: '11 */5 * * *'
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: How long this run should keep pinging (minutes)
+        required: false
+        default: '330'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pinger
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+      INTERVAL_SECONDS: '300'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm i --no-save @vercel/blob
+      - name: Ping loop
+        run: |
+          MINUTES="${{ inputs.minutes || '330' }}"
+          END=$(( $(date +%s) + MINUTES * 60 ))
+          TICK=0
+          while [ "$(date +%s)" -lt "$END" ]; do
+            TICK=$((TICK + 1))
+            echo "--- tick $TICK at $(date -u +%H:%M:%SZ) ---"
+            node scripts/collect-fast.mjs || echo "collect-fast failed, continuing"
+            node scripts/heartbeat.mjs   || echo "heartbeat failed, continuing"
+            node scripts/assign.mjs      || echo "assign failed, continuing"
+            node scripts/notify.mjs      || echo "notify failed, continuing"
+            REMAIN=$(( END - $(date +%s) ))
+            [ "$REMAIN" -le "$INTERVAL_SECONDS" ] && break
+            sleep "$INTERVAL_SECONDS"
+          done
+          echo "loop finished after $TICK ticks"

@@ -376,6 +376,7 @@ export default function App() {
   const [checkedAt, setCheckedAt] = useState(null);
   const [claims, setClaims] = useState({});
   const [mine, setMine] = useState({});
+  const [live, setLive] = useState(null);
   const [emailSaved, setEmailSaved] = useState(false);
   const [slackHook, setSlackHook] = useState(() => loadLS('rw.slack', ''));
   const [slackState, setSlackState] = useState('idle');
@@ -431,6 +432,10 @@ export default function App() {
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => j?.checkedAt && setCheckedAt(j.checkedAt))
         .catch(() => {});
+      fetch('/api/live')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => j?.contracts && setLive(j))
+        .catch(() => {});
       fetch('/api/claims')
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => j && setClaims(j))
@@ -446,7 +451,7 @@ export default function App() {
         .catch(() => {});
     };
     pull();
-    const h = setInterval(pull, 60000);
+    const h = setInterval(pull, 30000);
     return () => {
       clearInterval(i);
       clearInterval(h);
@@ -558,26 +563,29 @@ export default function App() {
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
   }, [facadeFeed]);
-  const contractsBase = useMemo(() => data.contracts.filter(profile.cFilter || (() => true)), [profileKey]);
+  const liveContracts = live?.contracts || data.contracts;
+  const liveOpenings = live?.openings || data.openings;
+  const contractsBase = useMemo(() => liveContracts.filter(profile.cFilter || (() => true)), [profileKey, liveContracts]);
   const contractsList = useMemo(
     () => contractsBase.filter((c) => showHidden === isDismissed('c:' + c.id) && (!onlyWatch || isWatched('c:' + c.id))),
     [contractsBase, onlyWatch, watch, fb, showHidden],
   );
   const openingsList = useMemo(
-    () => data.openings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
-    [onlyWatch, watch, fb, showHidden],
+    () => liveOpenings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
+    [liveOpenings, onlyWatch, watch, fb, showHidden],
   );
   useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio]);
 
   const hiddenCount = Object.keys(fb).filter((k) => fb[k]?.s === 'dismissed').length;
-  const wn = data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 };
+  const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
   const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
   const ago = (t) => {
     const m = Math.max(0, Math.round((now - t) / 60000));
     return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : `${Math.floor(m / 60)}h ${m % 60}m ago`;
   };
-  const agoLabel = ago(pulled.getTime());
+  const dataAt = live?.changedAt || pulled.getTime();
+  const agoLabel = ago(dataAt);
   const toggleTheme = () => {
     const effDark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     const next = effDark ? 'light' : 'dark';
@@ -598,14 +606,14 @@ export default function App() {
         setShown(Math.max(7, idx + 1));
       }
     } else if (t === 'c') {
-      const idx = data.contracts.findIndex((c) => c.id === id);
+      const idx = (live?.contracts || data.contracts).findIndex((c) => c.id === id);
       if (idx >= 0) {
         setVertical('contracts');
         setOpenId(id);
         setShown(Math.max(7, idx + 1));
       }
     } else {
-      const idx = data.openings.findIndex((o) => o.id === id);
+      const idx = (live?.openings || data.openings).findIndex((o) => o.id === id);
       if (idx >= 0) {
         setVertical('openings');
         setOpenId(id);
@@ -906,8 +914,10 @@ export default function App() {
               animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
-              <span title={`Heavy refresh hourly; intraday sources re-checked every 10 minutes. Data build: ${pulled.toLocaleString('en-US')}`}>
-              {checkedAt ? `checked ${ago(checkedAt)} · new data ${agoLabel}` : `new data ${agoLabel}`}
+              <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
+              {checkedAt || live?.checkedAt
+                ? `checked ${ago(live?.checkedAt || checkedAt)} · new data ${agoLabel}`
+                : `new data ${agoLabel}`}
             </span>
           </div>
         </div>
@@ -1402,7 +1412,7 @@ export default function App() {
                   )}
                   <div className="fact">
                     <div className="k">Source</div>
-                    <div className="v">City Record — Recent Contract Awards, as of {data.sources?.awards || 'today'}</div>
+                    <div className="v">City Record — Recent Contract Awards, as of {live?.sources?.awards || data.sources?.awards || 'today'}</div>
                   </div>
                 </div>
                 <div className="na-cap">Next action</div>
