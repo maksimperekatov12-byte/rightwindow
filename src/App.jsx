@@ -268,6 +268,22 @@ const PROFILES = {
 const fmtUsd = (n) =>
   n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : `$${Math.round(n / 1000)}K`;
 
+// Three significant figures, then the same $K / $M split as everywhere else.
+const sig3 = (n) => {
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  const mag = Math.pow(10, Math.floor(Math.log10(n)) - 2);
+  return Math.round(n / mag) * mag;
+};
+const fmtMoney = (n) => {
+  const v = sig3(n);
+  if (v >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
+  if (v >= 1e3) return `$${Math.round(v / 1e3)}K`;
+  return `$${v}`;
+};
+
+const DEFAULT_CLOSE_RATE = 0.03;
+const clampRate = (v) => Math.min(1, Math.max(0.01, v));
+
 const PIPE = {
   qewi: (t) => ({ v: t.nonFilers10A * 5000, n: `${t.nonFilers10A.toLocaleString('en-US')} unfiled buildings × ~$5K per FISP inspection` }),
   restoration: (t) => ({ v: t.swarmpCarryover * 100000, n: `${t.swarmpCarryover.toLocaleString('en-US')} open SWARMP scopes × ~$100K per mandated repair` }),
@@ -351,12 +367,16 @@ function WindowBar({ opens, deadline }) {
 // Contact confidence, shown plainly. An honest "unverified" reads stronger than a
 // button that quietly opens Google — and it is the same data-honesty rule as the
 // license gate. Levels light up as enrichment providers are connected.
+// Three states, always labelled. "none" shows no number at all rather than a
+// number we cannot stand behind.
 function contactOf(c) {
   const a = c.agent;
   if (!a) return null;
-  if (a.phone && a.phoneVerified) return { level: 'verified mobile', tone: 'ok', name: a.name, company: a.company, phone: a.phone };
-  if (a.phone) return { level: 'office line', tone: 'mid', name: a.name, company: a.company, phone: a.phone };
-  return { level: 'unverified · HPD registration', tone: 'low', name: a.name, company: a.company, phone: null };
+  const base = { name: a.name, company: a.company, from: a.contactSource || 'HPD registration' };
+  if (a.phone && a.confidence === 'verified')
+    return { ...base, phone: a.phone, email: a.email || null, level: 'verified direct', tone: 'ok' };
+  if (a.phone) return { ...base, phone: a.phone, email: a.email || null, level: 'office line · HPD registration', tone: 'mid' };
+  return { ...base, phone: null, email: null, level: 'no direct line on file', tone: 'low' };
 }
 
 const Star = ({ on }) => (
@@ -420,6 +440,10 @@ export default function App() {
   const [showOther, setShowOther] = useState(false);
   const [menuFor, setMenuFor] = useState(null);
   const [ticket, setTicket] = useState(() => loadLS('rw.ticket', 0));
+  const [closeRate, setCloseRate] = useState(() => {
+    const v = Number(loadLS('rw.closeRate', DEFAULT_CLOSE_RATE));
+    return Number.isFinite(v) && v > 0 ? clampRate(v) : DEFAULT_CLOSE_RATE;
+  });
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
@@ -505,6 +529,7 @@ export default function App() {
           data: {
             profile: profileKey,
             ticket,
+            closeRate,
             boro,
             watch: Object.keys(watch),
             feedback: fb,
@@ -516,7 +541,7 @@ export default function App() {
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(t);
-  }, [profileKey, watch, fb, boro, email, slackHook, portfolio, ticket]);
+  }, [profileKey, watch, fb, boro, email, slackHook, portfolio, ticket, closeRate]);
 
   useEffect(() => {
     fetch('/api/pass/status')
@@ -564,6 +589,12 @@ export default function App() {
   const saveTicket = (v) => {
     setTicket(v);
     saveLS('rw.ticket', v);
+  };
+
+  const saveCloseRate = (v) => {
+    const r = Number.isFinite(v) && v > 0 ? clampRate(v) : DEFAULT_CLOSE_RATE;
+    setCloseRate(r);
+    saveLS('rw.closeRate', r);
   };
 
   const pickProfile = (k) => {
@@ -777,18 +808,29 @@ export default function App() {
     }
   };
 
+  // Gross is arithmetic; expected is what a contractor will actually close.
+  // Both are shown — the arrow between them is the honest part.
   const myPipeline = useMemo(() => {
-    if (!ticket || vertical !== 'facades') return null;
-    const live = filteredFeed.filter((c) => !c.occupied).length;
-    return { n: live, value: live * ticket };
-  }, [ticket, filteredFeed, vertical]);
+    if (vertical !== 'facades') return null;
+    const n = filteredFeed.filter((c) => !c.occupied).length;
+    if (!n) return null;
+    const avg = Number.isFinite(ticket) && ticket > 0 ? ticket : DEFAULT_TICKET[profileKey] || 0;
+    if (!avg) return null;
+    const rate = Number.isFinite(closeRate) && closeRate > 0 ? clampRate(closeRate) : DEFAULT_CLOSE_RATE;
+    const gross = n * avg;
+    const expected = gross * rate;
+    if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
+    return { n, avg, rate, gross, expected };
+  }, [ticket, closeRate, filteredFeed, vertical, profileKey]);
 
   const pipe = useMemo(() => {
+    // Nothing on the feed means nothing to size — the whole block goes away.
+    if (vertical === 'facades' && !filteredFeed.some((c) => !c.occupied)) return null;
     const fn = PIPE[profileKey];
     if (!fn) return null;
     const r = fn(data.facades.totals, facadeFeed, contractsBase, data.openings);
     return r && r.v > 0 ? r : null;
-  }, [profileKey, facadeFeed, contractsBase]);
+  }, [profileKey, facadeFeed, contractsBase, filteredFeed, vertical]);
 
   const heroText =
     vertical === 'facades'
@@ -911,7 +953,34 @@ export default function App() {
                       }}
                     />
                   </div>
-                  <span className="ticket-note">We use it to size your pipeline, nothing else.</span>
+                  <label htmlFor="cr" className="second">How many of those do you close?</label>
+                  <div className="ticket-row">
+                    {[2, 3, 5, 10].map((p) => (
+                      <button
+                        key={p}
+                        className={'chip-btn' + (Math.round(closeRate * 100) === p ? ' on' : '')}
+                        onClick={() => saveCloseRate(p / 100)}
+                      >
+                        {p}%
+                      </button>
+                    ))}
+                    <input
+                      id="cr"
+                      type="number"
+                      min="1"
+                      max="100"
+                      inputMode="numeric"
+                      placeholder="%"
+                      defaultValue={Math.round(closeRate * 100)}
+                      onBlur={(e) => {
+                        const n = Number(e.target.value);
+                        saveCloseRate(Number.isFinite(n) && n > 0 ? Math.min(100, Math.max(1, n)) / 100 : DEFAULT_CLOSE_RATE);
+                      }}
+                    />
+                  </div>
+                  <span className="ticket-note">
+                    Both numbers stay on this device and only size your pipeline.
+                  </span>
                 </div>
               )}
               {profileKey && (
@@ -1042,8 +1111,8 @@ export default function App() {
             />
             <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
               {checkedAt || live?.checkedAt
-                ? `checked ${ago(live?.checkedAt || checkedAt)} · new data ${agoLabel}`
-                : `new data ${agoLabel}`}
+                ? `checked ${ago(live?.checkedAt || checkedAt)} · city published ${agoLabel}`
+                : `city published ${agoLabel}`}
             </span>
             <span className="etclock" title="New York time">
               {new Date(now).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET
@@ -1104,9 +1173,16 @@ export default function App() {
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
           {myPipeline ? (
             <motion.div className="pipe" {...fade(0.1)}>
-              <b>{fmtUsd(myPipeline.value)}</b> in your pipeline right now
-              <span>
-                {myPipeline.n} open signals × {fmtUsd(ticket)} average contract ·{' '}
+              <span className="gross">{fmtMoney(myPipeline.gross)} open</span>
+              <span className="arrow" aria-hidden="true">→</span>
+              <b
+                title={`${myPipeline.n} open signals × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`}
+              >
+                ~{fmtMoney(myPipeline.expected)} expected
+              </b>
+              <span className="pipe-note">
+                {myPipeline.n} open signals · {fmtMoney(myPipeline.avg)} avg contract ·{' '}
+                {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
@@ -1481,7 +1557,8 @@ export default function App() {
                             <div className="fact">
                               <div className="k">Source</div>
                               <div className="v">
-                                DOB NOW {data.sources?.facades || ''} · ECB {data.sources?.ecb || ''} · HPD {data.sources?.hpd || ''} — official city records
+                                DOB NOW {data.sources?.facades || ''} · ECB {data.sources?.ecb || ''} · HPD {data.sources?.hpd || ''} — official city records ·{' '}
+                                <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                               </div>
                             </div>
                             <div className="fact">
@@ -1503,6 +1580,7 @@ export default function App() {
                                     <b>{title(ct.company || ct.name)}</b>
                                     {ct.company && ct.name ? ` — ${title(ct.name)}` : ''}
                                     <span className={'conf ' + ct.tone}>{ct.level}</span>
+                                    <span className="from">from {ct.from}</span>
                                   </>
                                 );
                               })()}
@@ -1535,7 +1613,7 @@ export default function App() {
                                     <button onClick={() => { copyLink('b', c.bin); setMenuFor(null); }}>Copy link</button>
                                     {c.agent && (
                                       <a href={findUrl(`${c.agent.company || ''} ${c.agent.name || ''} phone New York`)} target="_blank" rel="noreferrer">
-                                        Search for a phone
+                                        Search the web
                                       </a>
                                     )}
                                     {c.agent && (
@@ -1657,7 +1735,10 @@ export default function App() {
                   )}
                   <div className="fact">
                     <div className="k">Source</div>
-                    <div className="v">City Record — Recent Contract Awards, as of {live?.sources?.awards || data.sources?.awards || 'today'}</div>
+                    <div className="v">
+                      City Record — Recent Contract Awards, as of {live?.sources?.awards || data.sources?.awards || 'today'} ·{' '}
+                      <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                    </div>
                   </div>
                 </div>
                 <div className="na-cap">Next action</div>
@@ -1759,7 +1840,10 @@ export default function App() {
                   )}
                   <div className="fact">
                     <div className="k">Source</div>
-                    <div className="v">NY State Liquor Authority — pending licenses, as of {data.sources?.sla || 'today'}</div>
+                    <div className="v">
+                      NY State Liquor Authority — pending licenses, as of {data.sources?.sla || 'today'} ·{' '}
+                      <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                    </div>
                   </div>
                 </div>
                 <div className="na-cap">Next action</div>

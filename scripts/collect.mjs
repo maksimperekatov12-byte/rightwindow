@@ -9,6 +9,7 @@
 // UNSAFE and chronic no-report. Calendar itself is not a signal - everyone knows it.
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { enrichContact, enrichmentProvider, enrichmentReady } from '../lib/enrich.mjs';
 
 // Source gate (same rule as Signal): a source without an ALLOWED verdict in
 // data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
@@ -468,6 +469,27 @@ for (const c of top) {
         }
       : null,
   });
+}
+
+// Contact enrichment: stub by default, real provider behind env. Cached on disk,
+// so a rebuild does not re-query. Never invents a number.
+if (enrichmentReady()) {
+  console.log(`Enriching contacts via ${enrichmentProvider()}...`);
+  let hits = 0;
+  for (const c of cards.slice(0, 400)) {
+    if (!c.agent?.company) continue;
+    const e = await enrichContact({ company: c.agent.company, name: c.agent.name, address: c.agent.address });
+    if (e.confidence !== 'none') {
+      c.agent.phone = e.phone;
+      c.agent.email = e.email;
+      c.agent.confidence = e.confidence;
+      c.agent.contactSource = e.source;
+      hits++;
+    }
+  }
+  console.log(`Contacts enriched: ${hits}`);
+} else {
+  console.log(`Enrichment: ${enrichmentProvider()} (no key) — contacts stay at HPD registration level`);
 }
 
 // Demo feed: most urgent first (post-enrichment), multifamily with a resolved contact

@@ -1,102 +1,127 @@
 import React from 'react';
+import policy from '../data/source-policy.json';
 import data from './data/feed.json';
 
-// A vendor-review page, on purpose. Enterprise buyers have a procedure, and it kills
-// deals after the handshake. Answering it before the first call is cheaper than
-// answering it after.
+// Generated from data/source-policy.json at build time. Nothing on this page is
+// written by hand, so it cannot drift from the gate the collectors actually enforce.
 export default function DataPage({ live, onBack }) {
-  const s = data.sources || {};
-  const sources = [
-    ['DOB NOW — Facade Compliance Filings', 'xubg-57si', 'NYC Open Data', s.facades, 'FISP cycle status, sub-cycle deadlines, prior engineer'],
-    ['DOB NOW — Approved Permits', 'rbx6-tga4', 'NYC Open Data', s.facades, 'Active sheds and scaffolds: who is already on site'],
-    ['DOB NOW — Job Application Filings', 'w9ak-ipjd', 'NYC Open Data', s.facades, 'Facade work already filed, stage and declared cost'],
-    ['ECB / OATH Violations', '6bgk-3dad', 'NYC Open Data', s.ecb, 'Open violations, unpaid balances, hearing dates'],
-    ['Elevator Safety Compliance', 'e5aq-a4j2', 'NYC Open Data', s.elevators, 'CAT1 and CAT5 test status by device'],
-    ['HPD Registrations and Contacts', 'tesw-yqqr · feu5-w2e2', 'NYC Open Data', s.hpd, 'Managing agent of record, business address'],
-    ['ACRIS Deeds (open-data batch)', 'bnx9-e6tj · 8h5j-fqxa', 'NYC Open Data', s.acrisThrough, 'Ownership changes'],
-    ['Recent Contract Awards', 'qyyg-4tf5', 'NYC Open Data', live?.sources?.awards || s.awards, 'City contract winners'],
-    ['Liquor License Applications', 'f8i8-k2gm', 'NY State Open Data', s.sla, 'Venues opening in 2–4 months'],
-  ];
+  const freshness = { ...(data.sources || {}), ...(live?.sources || {}) };
+  const allowed = policy.filter((p) => p.verdict === 'ALLOWED' && p.datasets?.length);
+  const denied = policy.filter((p) => p.verdict !== 'ALLOWED');
+  const noCall = policy.filter((p) => p.verdict === 'ALLOWED' && !p.datasets?.length);
 
   return (
     <div className="wrap datapage">
       <button className="chip-btn back" onClick={onBack}>← Back to the feed</button>
-      <h1>Where the data comes from</h1>
+
+      <h1>Data, sources and privacy</h1>
       <p className="lead">
-        Every source passes a written license gate before a single request is made. A source without a recorded
-        verdict and licence is not collected — the collector throws rather than guesses.
+        Every source is checked against <code>data/source-policy.json</code> before a request is made. A source with no
+        recorded verdict and licence is not collected — the collector throws rather than guesses. This page is
+        generated from that same file.
       </p>
 
       <h2>Sources in use</h2>
       <div className="scrollx">
         <table className="dtable">
           <thead>
-            <tr><th>Source</th><th>Dataset</th><th>Publisher</th><th>Last updated</th><th>What we take</th></tr>
+            <tr>
+              <th>Dataset</th>
+              <th>What it provides</th>
+              <th>Publisher</th>
+              <th>Verdict</th>
+              <th>Last updated</th>
+            </tr>
           </thead>
           <tbody>
-            {sources.map((r) => (
-              <tr key={r[1]}>
-                <td>{r[0]}</td>
-                <td className="mono">{r[1]}</td>
-                <td>{r[2]}</td>
-                <td className="mono">{r[3] || '—'}</td>
-                <td>{r[4]}</td>
-              </tr>
-            ))}
+            {allowed.flatMap((p) =>
+              p.datasets.map(([name, id, provides, key]) => (
+                <tr key={id}>
+                  <td>
+                    {name}
+                    <span className="mono did">{id}</span>
+                  </td>
+                  <td>{provides}</td>
+                  <td>{p.publisher}</td>
+                  <td>
+                    <span className="verdict ok">{p.verdict}</span>
+                  </td>
+                  <td className="mono">{freshness[key] || '—'}</td>
+                </tr>
+              )),
+            )}
           </tbody>
         </table>
       </div>
       <p className="fine">
-        Freshness is the city's, not ours. These dates are read from each dataset's own metadata on every collection
-        run and shown unmodified — including when a source lags.
+        Last-updated dates are read from each dataset's own metadata on every collection run and shown unmodified,
+        including when a source lags. The header carries the same two clocks: when we last checked, and when the city
+        last published.
       </p>
+      {allowed.map((p) => (
+        <p className="fine" key={p.id}>
+          <b>{p.publisher} licence.</b> {p.license}
+        </p>
+      ))}
 
-      <h2>What we refuse to collect</h2>
-      <div className="deny">
-        <div className="deny-head">
-          <b>ACRIS web portal</b> <span className="denied">DENIED</span>
+      <h2>What we don't collect, and why</h2>
+      {denied.map((p) => (
+        <div className="deny" key={p.id}>
+          <div className="deny-head">
+            <b>{p.publisher}</b>
+            <span className="verdict denied">{p.verdict}</span>
+            <span className="mono">{p.host}</span>
+          </div>
+          <p>{p.license}</p>
+          <p>{p.notes}</p>
         </div>
-        <p>
-          The City Register's Bandwidth Policy prohibits automated access: “Further access to ACRIS is denied… detection
-          of automated scripts/robots… contact the City Register to learn about our subscription data services.”
-        </p>
-        <p>
-          So we do not scrape it. Deed data comes from the city's own open-data batch, which lags about a month, and
-          same-week ownership changes are detected through HPD registrations instead. Real-time deeds are available
-          through the City Register's official paid feed, which is the route we would take for a production account.
-        </p>
-      </div>
+      ))}
+      <p className="fine">
+        We could get fresher deed data by ignoring that policy. We don't. Same-week ownership changes are detected
+        through HPD registrations instead, and a production account would buy the City Register's official feed.
+      </p>
 
       <h2>Buildings, not people</h2>
       <ul className="dlist">
-        <li>The subjects of this product are buildings and companies. We do not profile private individuals.</li>
+        <li>The subjects of this product are buildings and companies. No private individual is profiled.</li>
         <li>
-          Contacts are business roles from public filings — the managing agent of record and the officer registered
-          with HPD, at their business address. No home addresses, no personal phone numbers scraped from anywhere.
+          Contacts are business roles from public filings — the managing agent of record, at their business address. No
+          home addresses, no personal numbers.
         </li>
-        <li>Every contact carries a confidence label. “Unverified” is shown as unverified rather than dressed up.</li>
-        <li>Nothing about tenants, residents or occupants is collected.</li>
+        <li>Nothing about tenants, residents or occupants is collected or displayed.</li>
       </ul>
 
-      <h2>Calling and messaging</h2>
-      <ul className="dlist">
+      <h2>How contacts are obtained</h2>
+      <p className="lead sm">Every contact carries one of three labels, and the label is never upgraded by guesswork.</p>
+      <ul className="dlist tiers">
         <li>
-          We surface business contacts for business-to-business outreach. Compliance with TCPA, state calling rules and
-          the National and state Do-Not-Call registries remains the caller's responsibility, and we say so plainly.
+          <span className="conf ok">verified direct</span> A licensed enrichment provider returned a direct business
+          number for that role. The number is shown.
         </li>
-        <li>We do not dial, auto-dial or send messages on anyone's behalf. Drafted openers are copied by a human.</li>
-        <li>Any enrichment provider we add will be a licensed, contracted B2B source — never a scraped one.</li>
+        <li>
+          <span className="conf mid">office line · HPD registration</span> A business line on file with the city. The
+          number is shown, labelled for what it is.
+        </li>
+        <li>
+          <span className="conf low">no direct line on file</span> We have the company and the role, not a number. No
+          number is shown. Searching the web for one stays a link, under the menu, named as a web search.
+        </li>
       </ul>
+      {noCall.map((p) => (
+        <p className="fine" key={p.id}>
+          <b>Current provider: {p.publisher}.</b> {p.license}
+        </p>
+      ))}
 
-      <h2>Retention and access</h2>
-      <ul className="dlist">
-        <li>Feed data is rebuilt from public sources; there is no private customer data in it.</li>
-        <li>Account state — trade, boroughs, watchlist, feedback — is stored per anonymous id and deleted on request.</li>
-        <li>Email and Slack destinations are used only to deliver the signals you asked for.</li>
-      </ul>
+      <h2>Compliance</h2>
+      <p className="lead sm">
+        This is a business-to-business research tool built on public records. We surface who to contact and why; we
+        never dial, auto-dial or send anything on your behalf. Calls, texts and email you send are yours, and so are
+        the TCPA, Do-Not-Call and CAN-SPAM obligations that come with them.
+      </p>
 
       <p className="fine">
-        Questions a vendor review needs answered that are not here? Write to{' '}
+        A question your vendor review needs answered that isn't here? Write to{' '}
         <a href="mailto:maxim122090@gmail.com">maxim122090@gmail.com</a> and it gets added to this page.
       </p>
     </div>

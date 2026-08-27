@@ -3,21 +3,92 @@
     "id": "nyc-opendata",
     "host": "data.cityofnewyork.us",
     "verdict": "ALLOWED",
-    "license": "NYC Open Data — 'Open Data belongs to all New Yorkers. There are no restrictions on the use of Open Data' (portal FAQ).",
-    "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, contract awards, ACRIS index (monthly batch)."
+    "license": "NYC Open Data \u2014 'Open Data belongs to all New Yorkers. There are no restrictions on the use of Open Data' (portal FAQ).",
+    "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, contract awards, ACRIS index (monthly batch).",
+    "publisher": "NYC Open Data",
+    "datasets": [
+      [
+        "DOB NOW \u2014 Facade Compliance Filings",
+        "xubg-57si",
+        "FISP cycle status, sub-cycle deadlines, prior engineer",
+        "facades"
+      ],
+      [
+        "DOB NOW \u2014 Approved Permits",
+        "rbx6-tga4",
+        "Active sheds and scaffolds: who is already on site",
+        "facades"
+      ],
+      [
+        "DOB NOW \u2014 Job Application Filings",
+        "w9ak-ipjd",
+        "Facade work already filed, its stage and declared cost",
+        "facades"
+      ],
+      [
+        "ECB / OATH Violations",
+        "6bgk-3dad",
+        "Open violations, unpaid balances, hearing dates",
+        "ecb"
+      ],
+      [
+        "Elevator Safety Compliance",
+        "e5aq-a4j2",
+        "CAT1 and CAT5 test status per device",
+        "elevators"
+      ],
+      [
+        "HPD Registrations and Contacts",
+        "tesw-yqqr \u00b7 feu5-w2e2",
+        "Managing agent of record and business address",
+        "hpd"
+      ],
+      [
+        "ACRIS deeds \u2014 open-data batch",
+        "bnx9-e6tj \u00b7 8h5j-fqxa",
+        "Ownership changes",
+        "acrisThrough"
+      ],
+      [
+        "Recent Contract Awards",
+        "qyyg-4tf5",
+        "City contract winners",
+        "awards"
+      ]
+    ]
   },
   {
     "id": "ny-opendata",
     "host": "data.ny.gov",
     "verdict": "ALLOWED",
     "license": "data.ny.gov open data portal; anonymous API access.",
-    "notes": "SLA pending liquor licenses."
+    "notes": "SLA pending liquor licenses.",
+    "publisher": "New York State Open Data",
+    "datasets": [
+      [
+        "Liquor License Applications",
+        "f8i8-k2gm",
+        "Venues opening in two to four months",
+        "sla"
+      ]
+    ]
   },
   {
     "id": "acris-web",
     "host": "a836-acris.nyc.gov",
     "verdict": "DENIED",
     "license": "ACRIS Bandwidth Policy (checked 2026-08-26): 'Further access to ACRIS is denied... detection of automated scripts/robots... contact the City Register (212-487-6300) to learn about our subscription data services. ACRIS index data can be obtained from NYC Open Data.'",
-    "notes": "Robots explicitly prohibited. Real-time deeds = City Register subscription data service (official, paid). Do not scrape; do not evade detection. Deed data in this product comes from the NYC Open Data ACRIS batch (~monthly)."
+    "notes": "Robots explicitly prohibited. Real-time deeds = City Register subscription data service (official, paid). Do not scrape; do not evade detection. Deed data in this product comes from the NYC Open Data ACRIS batch (~monthly).",
+    "publisher": "ACRIS web portal",
+    "datasets": []
+  },
+  {
+    "id": "enrich-stub",
+    "host": "stub",
+    "verdict": "ALLOWED",
+    "license": "No external calls. The built-in stub returns nothing and exists so contact enrichment has a default that cannot leak data.",
+    "notes": "Default ENRICH_PROVIDER. Returns confidence 'none' for every lookup.",
+    "publisher": "Contact enrichment (built-in stub)",
+    "datasets": []
   }
 ]
