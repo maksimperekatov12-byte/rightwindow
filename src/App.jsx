@@ -584,6 +584,22 @@ export default function App() {
     const m = Math.max(0, Math.round((now - t) / 60000));
     return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : `${Math.floor(m / 60)}h ${m % 60}m ago`;
   };
+  const checksToday = live?.pulse?.length || 0;
+  const lastChangeAt = live?.changedAt || pulled.getTime();
+  const lastChangeLabel = ago(lastChangeAt);
+  const recentDays = useMemo(() => {
+    const days = [];
+    const log = live?.changeLog || [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now - i * 86400000);
+      const key = d.toISOString().slice(0, 10);
+      const n = log
+        .filter((c) => new Date(c.at).toISOString().slice(0, 10) === key)
+        .reduce((s2, c) => s2 + (c.contracts || 0) + (c.openings || 0), 0);
+      days.push({ day: key.slice(5), n });
+    }
+    return days;
+  }, [live, now]);
   const dataAt = live?.changedAt || pulled.getTime();
   const agoLabel = ago(dataAt);
   const toggleTheme = () => {
@@ -914,10 +930,13 @@ export default function App() {
               animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
-              <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
+            <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
               {checkedAt || live?.checkedAt
                 ? `checked ${ago(live?.checkedAt || checkedAt)} · new data ${agoLabel}`
                 : `new data ${agoLabel}`}
+            </span>
+            <span className="etclock" title="New York time">
+              {new Date(now).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET
             </span>
           </div>
         </div>
@@ -997,20 +1016,51 @@ export default function App() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       >
+      <motion.div className="livestrip" {...fade(0.08)}>
+        <button
+          className={'news' + (onlyNew ? ' on' : '') + (vertical !== 'facades' || !hasNew ? ' plain' : '')}
+          onClick={() => vertical === 'facades' && hasNew && setOnlyNew((v) => !v)}
+        >
+          <span className="news-dot" aria-hidden="true" />
+          <span>
+            {hasNew ? (
+              <>
+                <b>New in the last 48 hours:</b>{' '}
+                {[
+                  wn.buildings && `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`,
+                  wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
+                  wn.contracts && `${wn.contracts} contract${wn.contracts > 1 ? 's' : ''}`,
+                  wn.openings && `${wn.openings} venue filing${wn.openings > 1 ? 's' : ''}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </>
+            ) : (
+              <>
+                <b>No new windows in the last 48 hours.</b> The registers have been quiet — we keep checking.
+              </>
+            )}
+          </span>
+          {vertical === 'facades' && hasNew && <span className="news-cta">{onlyNew ? 'show all' : 'show only new'}</span>}
+        </button>
+        <div className="pulseline">
+          <span title="Every check writes a timestamp, whether the city published anything or not">
+            {checksToday ? `${checksToday} checks in the last 24h` : 'checking every 5 minutes'}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>last new signal {lastChangeLabel}</span>
+          {recentDays.some((d) => d.n > 0) && (
+            <span className="spark" aria-label="new signals per day, last 7 days">
+              {recentDays.map((d) => (
+                <i key={d.day} className={d.n ? 'on' : ''} style={{ height: 4 + Math.min(14, d.n * 3) }} title={`${d.day}: ${d.n} new`} />
+              ))}
+            </span>
+          )}
+        </div>
+      </motion.div>
+
       {vertical === 'facades' && (
         <>
-          {hasNew && (
-            <motion.button className={'news' + (onlyNew ? ' on' : '')} onClick={() => setOnlyNew((v) => !v)} {...fade(0.1)}>
-              <span className="news-dot" aria-hidden="true" />
-              <span>
-                <b>New in the last 48 hours:</b> {wn.buildings} buildings · {wn.signals} fresh signals
-                {wn.contracts ? ` · ${wn.contracts} contracts` : ''}
-                {wn.openings ? ` · ${wn.openings} venue filings` : ''}
-              </span>
-              <span className="news-cta">{onlyNew ? 'show all' : 'show only new'}</span>
-            </motion.button>
-          )}
-
           <p className="personas-hint">{fv.hint}</p>
 
           {Object.keys(mine).filter((k) => mine[k] > now).length > 0 && (
@@ -1184,8 +1234,8 @@ export default function App() {
                         <div className="card-body">
                           <WindowBar opens={subOpens(c.subCycle)} deadline={c.deadline} />
                           <div className="winbar-legend">
-                            <span>window opened {subOpens(c.subCycle)}</span>
-                            <span>deadline {c.deadline}</span>
+                            <span>window opened {usShort(subOpens(c.subCycle))}</span>
+                            <span>deadline {usDate(c.deadline)}</span>
                           </div>
 
                           <div className="sig">
@@ -1207,7 +1257,7 @@ export default function App() {
                               <div className="k">Last report</div>
                               <div className="v">
                                 Cycle {c.lastCycle}
-                                {c.lastFiling ? ` · ${c.lastFiling}` : ''} · {c.lastStatus || 'n/a'}
+                                {c.lastFiling ? ` · ${usDate(c.lastFiling)}` : ''} · {c.lastStatus || 'n/a'}
                               </div>
                             </div>
                             {c.priorQewi && (
@@ -1235,7 +1285,7 @@ export default function App() {
                               <div className="fact">
                                 <div className="k">Sold</div>
                                 <div className="v">
-                                  {c.ownerChange.recorded}
+                                  {usDate(c.ownerChange.recorded)}
                                   {c.ownerChange.amount ? ` · ${money(Math.round(c.ownerChange.amount))}` : ''} · ACRIS deed
                                 </div>
                               </div>
@@ -1265,7 +1315,12 @@ export default function App() {
                             {c.nextHearing && (
                               <div className="fact">
                                 <div className="k">Next OATH hearing</div>
-                                <div className="v">{c.nextHearing}</div>
+                                <div className="v">
+                                  {usDate(c.nextHearing)}
+                                  {businessDaysUntil(c.nextHearing) != null && (
+                                    <span className="bdays"> · {businessDaysUntil(c.nextHearing)} business days</span>
+                                  )}
+                                </div>
                               </div>
                             )}
                             <div className="fact">
@@ -1313,6 +1368,27 @@ export default function App() {
                                   LinkedIn ↗
                                 </a>
                               )}
+                              <a className="btn ghost" href={mapsUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
+                                Map ↗
+                              </a>
+                              <a className="btn ghost" href={streetViewUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
+                                Street View ↗
+                              </a>
+                              <button
+                                className="btn ghost"
+                                onClick={() =>
+                                  downloadIcs(
+                                    c.nextHearing
+                                      ? `OATH hearing — ${title(c.address)}`
+                                      : `FISP deadline (${c.subCycle}) — ${title(c.address)}`,
+                                    c.nextHearing || c.deadline,
+                                    `${fv.why(c)}\n\n${location.origin}/#b/${c.bin}`,
+                                    `${title(c.address)}, ${c.borough}, NY`,
+                                  )
+                                }
+                              >
+                                {c.nextHearing ? 'Add hearing' : 'Add deadline'}
+                              </button>
                               <a
                                 className="btn ghost"
                                 href={`https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=${c.bin}`}
@@ -1511,7 +1587,7 @@ export default function App() {
                   {c.received && (
                     <div className="fact">
                       <div className="k">Application received</div>
-                      <div className="v">{c.received} · under review</div>
+                      <div className="v">{usDate(c.received)} · under review</div>
                     </div>
                   )}
                   <div className="fact">
@@ -1532,6 +1608,9 @@ export default function App() {
                     <button className="btn ghost" onClick={() => copyLink('o', c.id)}>
                       {copiedLink === c.id ? 'Copied' : 'Copy link'}
                     </button>
+                    <a className="btn ghost" href={mapsUrl(c.address, c.county)} target="_blank" rel="noreferrer">
+                      Map ↗
+                    </a>
                     <a className="btn ghost" href={findUrl(`"${c.legal}" ${c.address} phone`)} target="_blank" rel="noreferrer">
                       Find contact ↗
                     </a>
@@ -1772,6 +1851,55 @@ const defaultCOpener = (c) =>
   `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`;
 const defaultOOpener = (c) =>
   `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
+
+// US conveniences: dates the way Americans read them, an ET clock, map links a
+// field crew can actually use, and calendar files for anything with a date.
+const usDate = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso.length <= 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+const usShort = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso.length <= 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+const businessDaysUntil = (iso) => {
+  if (!iso) return null;
+  const end = new Date(iso.length <= 10 ? iso + 'T12:00:00' : iso);
+  let n = 0;
+  const cur = new Date();
+  if (isNaN(end) || end < cur) return null;
+  while (cur < end) {
+    cur.setDate(cur.getDate() + 1);
+    const wd = cur.getDay();
+    if (wd !== 0 && wd !== 6) n++;
+  }
+  return n;
+};
+const mapsUrl = (addr, boro) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${addr}, ${boro}, NY`)}`;
+const streetViewUrl = (addr, boro) =>
+  `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=&query=${encodeURIComponent(`${addr}, ${boro}, NY`)}`;
+
+function downloadIcs(title, dateIso, description, location) {
+  const d = String(dateIso).slice(0, 10).replace(/-/g, '');
+  const uid = `${d}-${Math.random().toString(36).slice(2)}@rightwindow`;
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const esc = (t) => String(t || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+  const ics = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Right Window//EN', 'BEGIN:VEVENT',
+    `UID:${uid}`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`,
+    `SUMMARY:${esc(title)}`, `DESCRIPTION:${esc(description)}`, `LOCATION:${esc(location)}`,
+    'BEGIN:VALARM', 'TRIGGER:-P7D', 'ACTION:DISPLAY', `DESCRIPTION:${esc(title)}`, 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR',
+  ].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+  a.download = 'right-window-event.ics';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 const findUrl = (q) => `https://www.google.com/search?q=${encodeURIComponent(q.trim())}`;
 const liUrl = (q) => `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(q.trim())}`;

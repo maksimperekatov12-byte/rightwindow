@@ -101,9 +101,23 @@ try {
   awardsDate = new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
 } catch {}
 
+// Rolling proof of life: every check is recorded, every change is labelled.
+const DAY = 24 * 3600 * 1000;
+const nowMs = Date.now();
+const pulse = [...(prevLive?.pulse || []), nowMs].filter((t) => nowMs - t < DAY).slice(-400);
+const changeLog = [...(prevLive?.changeLog || [])];
+if (changed) {
+  const newC = contracts.filter((c) => c.isNew).length;
+  const newO = openings.filter((o) => o.isNew).length;
+  changeLog.push({ at: nowMs, contracts: newC, openings: newO });
+}
+const recentChanges = changeLog.filter((c) => nowMs - c.at < 7 * DAY).slice(-60);
+
 await writeJson('live/intraday.json', {
-  checkedAt: Date.now(),
-  changedAt: changed ? Date.now() : prevLive?.changedAt || Date.now(),
+  checkedAt: nowMs,
+  changedAt: changed ? nowMs : prevLive?.changedAt || nowMs,
+  pulse,
+  changeLog: recentChanges,
   contracts,
   openings,
   whatsNew: {
