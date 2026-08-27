@@ -3,6 +3,13 @@ import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 
 import data from './data/feed.json';
 
 const YEAR = new Date().getFullYear();
+
+// One place for how people reach Maxim. Add PHONE when there is a US number.
+const CONTACT = {
+  name: 'Maxim Perekatov',
+  email: 'maxim122090@gmail.com',
+  phone: '', // e.g. '+1 (917) 555-0134' — shown as a tap-to-call link when set
+};
 const byUrgency = (a, b) => b.urgencyScore - a.urgencyScore || a.monthsLeft - b.monthsLeft;
 const has = (c, kind) => c.signals.some((s) => s.kind === kind);
 const rank = (c, kind) => c.signals.find((x) => x.kind === kind)?.urgency ?? 0;
@@ -11,6 +18,10 @@ const money = (n) => '$' + n.toLocaleString('en-US');
 const CONSTR = /construction|architect|engineer/i;
 
 function signalStory(c) {
+  if (c.payingForNothing)
+    return `Shed up ${Math.round(c.shed.ageDays / 30)} months and no repair filed — they pay for the shed, not the fix.`;
+  if (c.filing?.stalled)
+    return `Facade work filed ${usShort(c.filing.filed)} and approved, but no permit pulled — the project stalled.`;
   if (c.mgmtChange) return 'Registration just changed — new management or a quiet sale.';
   if (c.ownerChange)
     return `Sold ${usShort(c.ownerChange.recorded)}${c.ownerChange.amount ? ` for ${money(Math.round(c.ownerChange.amount))}` : ''} — the vendor list resets.`;
@@ -158,7 +169,10 @@ const PROFILES = {
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') + (b.shed ? 2 : 0) - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') - (a.shed ? 2 : 0) ||
         byUrgency(a, b),
-      why: () => 'Mandated exterior work means shed and scaffold — booked before the first brick moves.',
+      why: (c) =>
+        c.payingForNothing
+          ? 'Shed has been up over a year with no repair filed — that rental is running with nothing to show.'
+          : 'Mandated exterior work means shed and scaffold — booked before the first brick moves.',
       opener: (c) =>
         `Re: ${title(c.address)} — city records show mandated facade work ahead. We can quote shed and scaffold access before the scope goes out to bid.`,
       fFilter: (c) => has(c, 'SWARMP_CARRYOVER') || has(c, 'UNSAFE_PRIOR') || Boolean(c.shed),
@@ -283,8 +297,8 @@ const BADGE = {
   OWNER_CHANGE: 'Just sold',
   NEW_MGMT: 'Management changed',
   ELEV_DUE: 'Elevator tests due',
-  SHED_EXPIRED: 'Shed permit expired',
-  SHED_RENEWAL: 'Shed renewal due',
+  SHED_NO_REPAIR: 'Shed up, no repair filed',
+  FILING_STALLED: 'Filing stalled',
 };
 
 const VERTICALS = [
@@ -382,6 +396,7 @@ export default function App() {
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [portfolioText, setPortfolioText] = useState('');
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
+  const [hideBusy, setHideBusy] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
@@ -545,6 +560,7 @@ export default function App() {
     const q = query.trim().toLowerCase();
     const base = facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
+      if (hideBusy && c.occupied) return false;
       if (onlyPortfolio && !portfolio.includes(c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
@@ -556,7 +572,7 @@ export default function App() {
     });
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > now ? 0 : 1);
     return base.sort((a, b) => isMine(a) - isMine(b));
-  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, now, onlyPortfolio, portfolio]);
+  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, now, onlyPortfolio, portfolio, hideBusy]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
@@ -573,7 +589,7 @@ export default function App() {
     () => liveOpenings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
     [liveOpenings, onlyWatch, watch, fb, showHidden],
   );
-  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio]);
+  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio, hideBusy]);
 
   const hiddenCount = Object.keys(fb).filter((k) => fb[k]?.s === 'dismissed').length;
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
@@ -916,6 +932,17 @@ export default function App() {
               <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
             </svg>
           </button>
+          <a
+            className="contact-chip"
+            href={`mailto:${CONTACT.email}?subject=Right%20Window`}
+            title={`Email ${CONTACT.name}`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <rect x="2.5" y="4.5" width="19" height="15" rx="2.5" />
+              <path d="m3 6 9 7 9-7" />
+            </svg>
+            Contact
+          </a>
           <button className="profile-chip" onClick={() => setShowOnboard(true)}>
             {profileKey ? profile.label : 'Who are you?'} <span aria-hidden="true">›</span>
           </button>
@@ -1102,6 +1129,9 @@ export default function App() {
             <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
               ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
             </button>
+            <button className={'chip-btn' + (hideBusy ? ' on' : '')} onClick={() => setHideBusy((v) => !v)} title="Hide buildings where a contractor already pulled a permit">
+              Hide worked
+            </button>
             <button className={'chip-btn' + (onlyPortfolio ? ' on' : '')} onClick={() => (portfolio.length ? setOnlyPortfolio((v) => !v) : setPortfolioOpen(true))}>
               My buildings{portfolio.length ? ` (${portfolio.length})` : ' +'}
             </button>
@@ -1174,6 +1204,7 @@ export default function App() {
                           <span className="badge pers">Yours · {hoursLeft('b:' + c.bin)}h left</span>
                         )}
                         {statusOf('b:' + c.bin) === 'taken' && !fbOf('b:' + c.bin) && <span className="badge tkn">Taken</span>}
+                        {c.occupied && <span className="badge busy" title="A contractor already pulled a permit here">Contractor on site</span>}
                         {fbOf('b:' + c.bin) && fbOf('b:' + c.bin) !== 'dismissed' && (
                           <span className={'badge st ' + fbOf('b:' + c.bin)}>{fbOf('b:' + c.bin)}</span>
                         )}
@@ -1236,6 +1267,16 @@ export default function App() {
                             </div>
                             <div className="sig-v">{signalStory(c)}</div>
                           </div>
+                          {c.occupied && (
+                            <div className="sig busy">
+                              <div className="sig-k">Already worked</div>
+                              <div className="sig-v">
+                                {c.filing?.who ? `${title(c.filing.who)} pulled a permit` : 'A permit is already pulled'}
+                                {c.filing?.filed ? ` after filing ${usShort(c.filing.filed)}` : ''}. Ranked low on purpose — call only if you
+                                want the next cycle.
+                              </div>
+                            </div>
+                          )}
                           {profile.facade && (
                             <div className="sig match">
                               <div className="sig-k">Why it matches you</div>
@@ -1291,12 +1332,6 @@ export default function App() {
                                 </div>
                               </div>
                             )}
-                            {c.shed && (
-                              <div className="fact">
-                                <div className="k">Sidewalk shed</div>
-                                <div className="v">{c.shed.state === 'expired' ? `permit expired ${c.shed.exp}` : `renewal due by ${c.shed.exp}`}</div>
-                              </div>
-                            )}
                             {c.ecbBalance > 0 && (
                               <div className="fact">
                                 <div className="k">Open ECB balance</div>
@@ -1311,6 +1346,27 @@ export default function App() {
                                   {businessDaysUntil(c.nextHearing) != null && (
                                     <span className="bdays"> · {businessDaysUntil(c.nextHearing)} business days</span>
                                   )}
+                                </div>
+                              </div>
+                            )}
+                            {c.shed && (
+                              <div className="fact">
+                                <div className="k">Sidewalk shed</div>
+                                <div className={'v' + (c.shed.longStanding ? ' fine' : '')}>
+                                  {c.shed.state === 'active' ? 'Up' : 'Permit lapsed'} {Math.round(c.shed.ageDays / 30)} months
+                                  {c.shed.who ? ` · ${title(c.shed.who)}` : ''}
+                                  {c.shed.longStanding ? ' · past the 1-year mark' : ''}
+                                </div>
+                              </div>
+                            )}
+                            {c.filing && (
+                              <div className="fact">
+                                <div className="k">Facade filing</div>
+                                <div className="v">
+                                  {usShort(c.filing.filed)}
+                                  {c.filing.who ? ` · ${title(c.filing.who)}` : ''} ·{' '}
+                                  {c.filing.permitted ? 'permit pulled' : c.filing.stalled ? 'approved, no permit' : c.filing.status || 'in review'}
+                                  {c.filing.cost ? ` · ${money(c.filing.cost)} declared` : ''}
                                 </div>
                               </div>
                             )}
@@ -1695,6 +1751,11 @@ export default function App() {
             </span>
           </form>
         </div>
+        <div className="pilot-contact">
+          <span>Questions? Reach {CONTACT.name} directly</span>
+          <a href={`mailto:${CONTACT.email}?subject=Right%20Window`}>{CONTACT.email}</a>
+          {CONTACT.phone && <a href={`tel:${CONTACT.phone.replace(/[^+\d]/g, '')}`}>{CONTACT.phone}</a>}
+        </div>
         <div className="pilot-actions">
           {walletReady && (
             <a className="wallet-btn" href="/api/pass">
@@ -1705,7 +1766,7 @@ export default function App() {
               Add to Apple Wallet
             </a>
           )}
-          <a href="mailto:maxim122090@gmail.com?subject=Right%20Window%20pilot">Request a pilot</a>
+          <a href={`mailto:${CONTACT.email}?subject=Right%20Window%20pilot`}>Request a pilot</a>
         </div>
       </div>
 
@@ -1724,7 +1785,7 @@ export default function App() {
             ACRIS deeds through {data.sources?.acrisThrough}. Every source passes a written license gate before
             collection; the ACRIS portal prohibits robots, so deeds come from the city's open-data batch. The same
             engine runs in production for government procurement and film/TV music licensing. Built by{' '}
-            <a href="mailto:maxim122090@gmail.com">Maxim Perekatov</a>.
+            <a href={`mailto:${CONTACT.email}`}>{CONTACT.name}</a>.
           </p>
         )}
       </footer>

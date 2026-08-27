@@ -270,24 +270,71 @@ for (let i = 0; i < top.length; i += 50) {
 }
 console.log(`Elevator data for ${elevByBin.size} buildings`);
 
-// Chain: sidewalk shed permits expiring or expired for candidate bins
-console.log('Fetching shed permits...');
+// Chain: active sidewalk sheds / scaffolds from DOB NOW approved permits.
+// This is the credibility check: an UNSAFE facade almost always already has a shed
+// and a contractor on site. Knowing that turns a dead lead into an honest one — and
+// surfaces the real prize: a shed standing for a year with no repair filed.
+console.log('Fetching active shed and scaffold permits...');
+const todayIso = TODAY.toISOString().slice(0, 10);
 const shedByBin = new Map();
-for (let i = 0; i < top.length; i += 50) {
-  const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
+for (let i = 0; i < top.length; i += 40) {
+  const bins = top.slice(i, i + 40).map((c) => `'${c.bin}'`).join(',');
   const rows = await fetchAll(
-    'ipu4-2q9a',
-    { $where: `bin__ in(${bins}) and permit_subtype='SH' and expiration_date IS NOT NULL`, $select: 'bin__,issuance_date,expiration_date' },
+    'rbx6-tga4',
+    {
+      $where: `bin in(${bins}) and work_type in('Sidewalk Shed','Suspended Scaffold','Supported Scaffold') and permit_status='Permit Issued'`,
+      $select: 'bin,job_filing_number,work_type,issued_date,expired_date,applicant_business_name',
+    },
     5000,
   );
   for (const r of rows) {
-    const exp = parseYmd(r.expiration_date);
-    if (!exp) continue;
-    const cur = shedByBin.get(r.bin__);
-    if (!cur || exp > cur.exp) shedByBin.set(r.bin__, { exp, issued: parseYmd(r.issuance_date) });
+    const issued = parseYmd(r.issued_date);
+    const expires = parseYmd(r.expired_date);
+    if (!issued) continue;
+    const cur = shedByBin.get(r.bin) || { jobs: new Map() };
+    // A shed's age is measured from the first permit of its job number; renewals keep it.
+    const j = cur.jobs.get(r.job_filing_number) || { first: issued, last: expires, type: r.work_type, who: r.applicant_business_name };
+    if (issued < j.first) j.first = issued;
+    if (expires && (!j.last || expires > j.last)) j.last = expires;
+    cur.jobs.set(r.job_filing_number, j);
+    shedByBin.set(r.bin, cur);
   }
 }
 console.log(`Shed permits for ${shedByBin.size} buildings`);
+
+// Chain: facade work already filed (someone is on it) — DOB NOW job applications.
+console.log('Fetching facade job filings...');
+const FACADE_RE = /FACADE|FISP|LOCAL LAW 11|PARAPET|EXTERIOR WALL|POINTING|LINTEL/i;
+const filingByBin = new Map();
+for (let i = 0; i < top.length; i += 40) {
+  const bins = top.slice(i, i + 40).map((c) => `'${c.bin}'`).join(',');
+  const rows = await fetchAll(
+    'w9ak-ipjd',
+    {
+      $where: `bin in(${bins}) and job_type='Alteration' and filing_status not in('Filing Withdrawn')`,
+      $select: 'bin,job_filing_number,job_description,filing_status,filing_date,approved_date,first_permit_date,initial_cost,applicant_business_name,existing_height',
+    },
+    5000,
+  );
+  for (const r of rows) {
+    if (!FACADE_RE.test(r.job_description || '')) continue;
+    const filed = parseYmd(r.filing_date);
+    if (!filed || TODAY - filed > 730 * 86400000) continue;
+    const cur = filingByBin.get(r.bin);
+    if (!cur || filed > cur.filed) {
+      filingByBin.set(r.bin, {
+        filed,
+        status: r.filing_status || null,
+        approved: parseYmd(r.approved_date),
+        permitted: Boolean(parseYmd(r.first_permit_date)),
+        cost: Number(r.initial_cost || 0),
+        who: r.applicant_business_name || null,
+        height: Number(r.existing_height || 0),
+      });
+    }
+  }
+}
+console.log(`Facade filings for ${filingByBin.size} buildings`);
 
 // HPD registration change watcher: the registration dataset updates daily, so a change
 // in registrationid or managing-agent company is a days-fresh, fully-open proxy for a
@@ -331,20 +378,53 @@ for (const c of top) {
       ? { devices: elev.devices, cat1Missing: elev.cat1Missing, cat1Overdue: elev.cat1Overdue, cat5Due: elev.cat5Due }
       : null;
 
+  // Occupancy: is someone already working on this facade?
   const sh = shedByBin.get(c.bin);
   let shed = null;
-  if (sh) {
-    const days = Math.round((sh.exp - TODAY) / 86400000);
-    if (days < 0 && days > -548) shed = { state: 'expired', days: -days, exp: sh.exp.toISOString().slice(0, 10) };
-    else if (days >= 0 && days <= 90) shed = { state: 'renewal', days, exp: sh.exp.toISOString().slice(0, 10) };
+  if (sh && sh.jobs.size) {
+    let first = null, last = null, type = null, who = null;
+    for (const j of sh.jobs.values()) {
+      if (!first || j.first < first) { first = j.first; type = j.type; who = j.who; }
+      if (j.last && (!last || j.last > last)) last = j.last;
+    }
+    const ageDays = Math.round((TODAY - first) / 86400000);
+    const active = last && last >= TODAY;
+    shed = {
+      state: active ? 'active' : 'lapsed',
+      ageDays,
+      since: first.toISOString().slice(0, 10),
+      until: last ? last.toISOString().slice(0, 10) : null,
+      type,
+      who: who || null,
+      longStanding: ageDays >= 365,
+    };
   }
+
+  const fl = filingByBin.get(c.bin);
+  const filing = fl
+    ? {
+        filed: fl.filed.toISOString().slice(0, 10),
+        daysSince: Math.round((TODAY - fl.filed) / 86400000),
+        status: fl.status,
+        permitted: fl.permitted,
+        stalled: Boolean(fl.approved && !fl.permitted && TODAY - fl.approved > 70 * 86400000),
+        cost: fl.cost > 50000 ? fl.cost : null,
+        who: fl.who,
+      }
+    : null;
+  const height = fl?.height > 0 ? fl.height : null;
+
+  // The prize: a shed standing over a year with nobody filed to do the repair.
+  const payingForNothing = Boolean(shed?.state === 'active' && shed.longStanding && !filing);
+  const occupied = Boolean(filing?.permitted || (shed?.state === 'active' && !shed.longStanding && filing));
 
   const mgmtChange = mgmtChangeByBin.get(c.bin) || null;
   const signals = [...c.signals];
   if (mgmtChange) signals.push({ kind: 'NEW_MGMT', urgency: 3, monthsLeft: c.monthsLeft });
   if (ownerChange && ownerChange.daysAgo <= 180) signals.push({ kind: 'OWNER_CHANGE', urgency: 3, monthsLeft: c.monthsLeft });
   if (elevator) signals.push({ kind: 'ELEV_DUE', urgency: elevator.cat1Overdue > 0 ? 3 : 2, monthsLeft: c.monthsLeft });
-  if (shed) signals.push({ kind: shed.state === 'expired' ? 'SHED_EXPIRED' : 'SHED_RENEWAL', urgency: 2, monthsLeft: c.monthsLeft });
+  if (payingForNothing) signals.push({ kind: 'SHED_NO_REPAIR', urgency: 4, monthsLeft: c.monthsLeft });
+  if (filing?.stalled) signals.push({ kind: 'FILING_STALLED', urgency: 3, monthsLeft: c.monthsLeft });
 
   const urgencyScore =
     c.score +
@@ -352,7 +432,9 @@ for (const c of top) {
     (mgmtChange ? 4 : 0) +
     (ownerChange && ownerChange.daysAgo <= 180 ? 4 - Math.min(2, Math.floor(ownerChange.daysAgo / 60)) : 0) +
     (elevator ? (elevator.cat1Overdue > 0 ? 3 : 2) : 0) +
-    (shed ? 2 : 0) +
+    (payingForNothing ? 5 : 0) +
+    (filing?.stalled ? 3 : 0) +
+    (occupied ? -6 : 0) +
     Math.min(3, Math.round(ecbBalance / 100000)) +
     (c.monthsLeft <= 7 ? 1 : 0);
   cards.push({
@@ -362,6 +444,10 @@ for (const c of top) {
     ownerChange,
     elevator,
     shed,
+    filing,
+    height,
+    occupied,
+    payingForNothing,
     ecbBalance,
     freshHaz,
     nextHearing: ecb?.nextHearing ? ecb.nextHearing.toISOString().slice(0, 10) : null,
