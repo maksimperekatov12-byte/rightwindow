@@ -505,3 +505,22 @@ footer a { color: var(--brand); }
 }
 .theme-btn:hover { color: var(--brand); border-color: var(--brand); }
 .theme-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.found.open { background: var(--brand-wash); color: var(--brand); }
+.found.taken { background: var(--warm-wash); color: var(--warm); }
+.found.personal { background: var(--pill); color: #fff; font-size: 12px; line-height: 1; }
+.badge.pers { background: var(--pill); color: #fff; }
+.badge.tkn { background: var(--warm-wash); color: var(--warm); }
+.p-banner {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 11px 14px;
+  border-radius: 12px; font-size: 13.5px;
+  background: var(--brand-wash); border: 1px solid var(--brand);
+  box-shadow: var(--glass-edge);
+}
+.p-banner .found { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.p-banner b { font-weight: 700; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin: 0 0 12px; }
+.legend .ldot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.legend .ldot.open { background: var(--brand); }
+.legend .ldot.taken { background: var(--warm); }
+.legend .ldot.personal { background: var(--pill); outline: 1.5px solid var(--brand); }

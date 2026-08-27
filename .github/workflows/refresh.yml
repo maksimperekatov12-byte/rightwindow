@@ -40,6 +40,13 @@ jobs:
             for i in 1 2 3; do git pull --rebase && git push && break || sleep 5; done
             echo "PUSH_PASSES=1" >> "$GITHUB_ENV"
           fi
+      - name: Assign personal signals
+        if: always()
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          npm i --no-save @vercel/blob > /dev/null 2>&1
+          node scripts/assign.mjs
       - name: Notify Wallet passes
         if: env.PUSH_PASSES == '1'
         env:

@@ -374,6 +374,8 @@ export default function App() {
   const [theme, setTheme] = useState(() => loadLS('rw.theme', null));
   const [now, setNow] = useState(Date.now());
   const [checkedAt, setCheckedAt] = useState(null);
+  const [claims, setClaims] = useState({});
+  const [mine, setMine] = useState({});
   const [emailSaved, setEmailSaved] = useState(false);
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
@@ -389,6 +391,14 @@ export default function App() {
   }
 
   const mark = (k, st) => {
+    if ((st === 'contacted' || st === 'won') && !claims[k]) {
+      setClaims((c) => ({ ...c, [k]: { at: Date.now() } }));
+      fetch('/api/claims', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ uid: uid.current, key: k }),
+      }).catch(() => {});
+    }
     setFb((f) => {
       const n = { ...f };
       if (n[k]?.s === st) delete n[k];
@@ -399,6 +409,8 @@ export default function App() {
   };
   const fbOf = (k) => fb[k]?.s || null;
   const isDismissed = (k) => fbOf(k) === 'dismissed';
+  const statusOf = (k) => (claims[k] ? 'taken' : mine[k] && mine[k] > now ? 'personal' : 'open');
+  const hoursLeft = (k) => Math.max(1, Math.round((mine[k] - now) / 3600000));
 
   useEffect(() => {
     const r = document.documentElement;
@@ -408,11 +420,25 @@ export default function App() {
 
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 30000);
-    const pull = () =>
+    const pull = () => {
       fetch('/api/heartbeat')
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => j?.checkedAt && setCheckedAt(j.checkedAt))
         .catch(() => {});
+      fetch('/api/claims')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => j && setClaims(j))
+        .catch(() => {});
+      fetch('/api/mine?uid=' + uid.current)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+          if (!j?.items) return;
+          const m = {};
+          for (const it of j.items) m[it.key] = it.until;
+          setMine(m);
+        })
+        .catch(() => {});
+    };
     pull();
     const h = setInterval(pull, 60000);
     return () => {
@@ -506,7 +532,7 @@ export default function App() {
   );
   const filteredFeed = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return facadeFeed.filter((c) => {
+    const base = facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
@@ -516,7 +542,9 @@ export default function App() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(q));
     });
-  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden]);
+    const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > now ? 0 : 1);
+    return base.sort((a, b) => isMine(a) - isMine(b));
+  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, now]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
@@ -883,6 +911,21 @@ export default function App() {
 
           <p className="personas-hint">{fv.hint}</p>
 
+          {Object.keys(mine).filter((k) => mine[k] > now).length > 0 && (
+            <div className="p-banner">
+              <span className="found personal" aria-hidden="true">★</span>
+              <span>
+                <b>{Object.keys(mine).filter((k) => mine[k] > now).length} personal signal{Object.keys(mine).filter((k) => mine[k] > now).length > 1 ? 's' : ''}</b>{' '}
+                — exclusive to you for 48 hours, pinned to the top. Untouched signals rotate to someone else.
+              </span>
+            </div>
+          )}
+          <div className="legend" aria-hidden="true">
+            <span><i className="ldot open" /> open — no one has claimed it</span>
+            <span><i className="ldot taken" /> taken — someone is already on it</span>
+            <span><i className="ldot personal" /> personal — yours for 48h</span>
+          </div>
+
           <div className="toolbar">
             <input
               ref={searchRef}
@@ -958,16 +1001,33 @@ export default function App() {
                 >
                   <div className="card-row">
                     <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
-                      <span className="found" aria-hidden="true">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 6 9 17l-5-5" />
-                        </svg>
+                      <span
+                        className={'found ' + statusOf('b:' + c.bin)}
+                        title={
+                          statusOf('b:' + c.bin) === 'taken'
+                            ? 'Taken — someone is already on it'
+                            : statusOf('b:' + c.bin) === 'personal'
+                              ? `Personal — yours for ${hoursLeft('b:' + c.bin)}h`
+                              : 'Open — no one has claimed it yet'
+                        }
+                      >
+                        {statusOf('b:' + c.bin) === 'personal' ? (
+                          '★'
+                        ) : (
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 6 9 17l-5-5" />
+                          </svg>
+                        )}
                       </span>
                       <span className="head-main">
                         <span className="addr">{title(c.address)}</span>
                         <span className="boro">{c.borough}</span>
                         {c.isNew && <span className="badge new">New</span>}
                         {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
+                        {statusOf('b:' + c.bin) === 'personal' && (
+                          <span className="badge pers">Yours · {hoursLeft('b:' + c.bin)}h left</span>
+                        )}
+                        {statusOf('b:' + c.bin) === 'taken' && !fbOf('b:' + c.bin) && <span className="badge tkn">Taken</span>}
                         {fbOf('b:' + c.bin) && fbOf('b:' + c.bin) !== 'dismissed' && (
                           <span className={'badge st ' + fbOf('b:' + c.bin)}>{fbOf('b:' + c.bin)}</span>
                         )}
@@ -1191,6 +1251,7 @@ export default function App() {
             reduce={reduce}
             isWatched={(c) => isWatched('c:' + c.id)}
             onWatch={(c) => toggleWatch('c:' + c.id)}
+            statusOf={statusOf}
             renderHead={(c) => (
               <>
                 <span className="head-main">
@@ -1300,6 +1361,7 @@ export default function App() {
             reduce={reduce}
             isWatched={(o) => isWatched('o:' + o.id)}
             onWatch={(o) => toggleWatch('o:' + o.id)}
+            statusOf={statusOf}
             renderHead={(c) => (
               <>
                 <span className="head-main">
@@ -1454,7 +1516,7 @@ export default function App() {
   );
 }
 
-function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType, isWatched, onWatch }) {
+function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType, isWatched, onWatch, statusOf }) {
   return (
     <>
       <div className="feed">
@@ -1480,7 +1542,10 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
             >
               <div className="card-row">
                 <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
-                  <span className="found" aria-hidden="true">
+                  <span
+                    className={'found ' + (statusOf ? statusOf(hashType + ':' + id) : 'open')}
+                    title={statusOf && statusOf(hashType + ':' + id) === 'taken' ? 'Taken — someone is already on it' : 'Open — no one has claimed it yet'}
+                  >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 6 9 17l-5-5" />
                     </svg>
