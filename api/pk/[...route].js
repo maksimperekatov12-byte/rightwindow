@@ -1,6 +1,6 @@
 // Apple PassKit Web Service (spec: Wallet Developer Guide).
 // Registrations live in the private Blob store as JSON: reg/{serial}.json
-import { readJson, writeJson, removeJson, listJson } from '../../lib/store.mjs';
+import { readJson, writeJson, removeJson, readDoc, updateDoc } from '../../lib/store.mjs';
 import { walletConfigured, buildPass, loadFeed, authTokenFor } from '../../lib/wallet.mjs';
 
 const readBody = (req) =>
@@ -13,6 +13,11 @@ const readBody = (req) =>
   });
 
 const authed = (req, serial) => (req.headers.authorization || '') === `ApplePass ${authTokenFor(serial)}`;
+
+// Apple's "get serial numbers" call carries no Authorization header, so it
+// cannot be locked down — instead it must be cheap. One index document keyed by
+// device replaces a list() plus a read per pass on every unauthenticated hit.
+const REG_INDEX = 'reg-index.json';
 
 export default async function handler(req, res) {
   if (!walletConfigured()) return res.status(503).end();
@@ -41,20 +46,28 @@ export default async function handler(req, res) {
       const body = await readBody(req);
       const existing = await readJson(`reg/${serial}.json`);
       await writeJson(`reg/${serial}.json`, { deviceId, pushToken: body.pushToken, ts: Date.now() });
+      await updateDoc(REG_INDEX, (doc) => {
+        const list = doc[deviceId] || [];
+        if (list.includes(serial)) return null;
+        doc[deviceId] = [...list, serial].slice(-50);
+        return doc;
+      });
       return res.status(existing ? 200 : 201).end();
     }
     if (req.method === 'DELETE' && serial) {
       if (!authed(req, serial)) return res.status(401).end();
       await removeJson(`reg/${serial}.json`);
+      await updateDoc(REG_INDEX, (doc) => {
+        const list = (doc[deviceId] || []).filter((x) => x !== serial);
+        if (list.length === (doc[deviceId] || []).length) return null;
+        if (list.length) doc[deviceId] = list;
+        else delete doc[deviceId];
+        return doc;
+      });
       return res.status(200).end();
     }
     if (req.method === 'GET') {
-      const paths = await listJson('reg/');
-      const serials = [];
-      for (const p of paths) {
-        const r = await readJson(p);
-        if (r?.deviceId === deviceId) serials.push(p.replace(/^reg\//, '').replace(/\.json$/, ''));
-      }
+      const serials = (await readDoc(REG_INDEX))[deviceId] || [];
       if (!serials.length) return res.status(204).end();
       return res.json({ serialNumbers: serials, lastUpdated: loadFeed().generatedAt });
     }

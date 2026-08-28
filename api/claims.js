@@ -49,5 +49,25 @@ export default async function handler(req, res) {
     if (taken) return res.json({ status: 'taken', at: taken.at });
     return res.status(201).json({ status: 'claimed' });
   }
+  if (req.method === 'DELETE') {
+    // Only the device that claimed it can release it — otherwise anyone could
+    // clear the whole shared pool.
+    const body = await readBody(req);
+    const uid = String(body?.uid || '');
+    const key = String(body?.key || '');
+    if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bco]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
+    let released = false;
+    try {
+      await updateDoc(CLAIMS, (doc) => {
+        if (doc[key]?.uid !== uid) return null;
+        delete doc[key];
+        released = true;
+        return doc;
+      });
+    } catch {
+      return res.status(503).json({ error: 'store unavailable' });
+    }
+    return res.json({ status: released ? 'released' : 'not yours' });
+  }
   res.status(405).end();
 }

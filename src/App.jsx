@@ -53,7 +53,10 @@ const PROFILES = {
       hero: 'Buildings that need a facade engineer — *before they know it*',
       hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
       sort: byUrgency,
-      why: () => 'No engineer on record — first call gets the walk-through.',
+      why: (c) =>
+        c.filing
+          ? `Last filing by ${c.filing.firm || 'another firm'} — Cycle 10 is still open here.`
+          : 'No engineer on record — first call gets the walk-through.',
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
@@ -71,7 +74,11 @@ const PROFILES = {
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') || byUrgency(a, b),
       why: () => 'Mandatory scope, no contractor attached yet.',
       opener: (c) =>
-        `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`,
+        has(c, 'SWARMP_CARRYOVER')
+          ? `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`
+          : has(c, 'UNSAFE_PRIOR')
+            ? `Re: ${title(c.address)} — the facade is on file as UNSAFE, so the repair is mandatory. We can walk the scope and price it this week.`
+            : `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. We can walk the scope and price it this week.`,
     },
     cNeed: (c) => `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.`,
     cFilter: (c) => CONSTR.test(c.category || ''),
@@ -108,7 +115,9 @@ const PROFILES = {
           ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing}/${c.elevator.devices} without a ${YEAR} CAT1` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ', ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} due for CAT5` : ''} — filing closes December 31.`
           : 'Forced-work windows usually bundle elevator capex.',
       opener: (c) =>
-        `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat1Missing || 'several'} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`,
+        c.elevator?.cat1Missing
+          ? `Re: ${title(c.address)} — DOB shows ${c.elevator.cat1Missing} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`
+          : `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat5Due || 'several'} elevator device(s) overdue for the five-year CAT5. We can test and file before the December 31 deadline.`,
       fFilter: (c) => Boolean(c.elevator),
     },
     cNeed: null,
@@ -126,8 +135,12 @@ const PROFILES = {
         c.ownerChange || c.mgmtChange
           ? 'New ownership re-shops every policy in year one.'
           : 'Open violations change the liability picture before renewal.',
-      opener: (c) =>
-        `Re: ${title(c.address)} — city records show mandated facade work and open violations. Worth reviewing coverage before the repair scope starts?`,
+      opener: (c) => {
+        const violations = Boolean(c.freshHaz || (c.ecbBalance || 0) > 0);
+        return `Re: ${title(c.address)} — city records show mandated facade work${violations ? ' and open violations' : ''}${
+          c.ownerChange || c.mgmtChange ? ' under new ownership' : ''
+        }. Worth reviewing coverage before the repair scope starts?`;
+      },
     },
     cNeed: (c) => `${c.vendor} must post performance bonds and certificates of insurance before mobilizing ${money(c.amount)} of city work — usually within two weeks of the award.`,
     cOpener: (c) =>
@@ -453,11 +466,12 @@ function saveLS(key, v) {
 export default function App() {
   // Routes: #data, #trades, #t/<trade>, or the feed. A trade in the URL means a
   // link can be sent to one contractor and open already set up for his work.
-  const initialRoute = (() => {
+  const routeFromHash = () => {
     if (location.hash === '#data') return 'data';
     if (location.hash === '#trades') return 'trades';
     return 'feed';
-  })();
+  };
+  const initialRoute = routeFromHash();
   const hashTrade = (location.hash.match(/^#t\/([a-z]+)$/) || [])[1] || null;
   const [route, setRoute] = useState(initialRoute);
   const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|o)\//)));
@@ -506,6 +520,7 @@ export default function App() {
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const lastPrefs = useRef('');
+  const [hashTick, setHashTick] = useState(0);
   const [themeColors, setThemeColors] = useState(readThemeColors);
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
   const reduce = useReducedMotion();
@@ -519,8 +534,25 @@ export default function App() {
     uid.current = u;
   }
 
+  const mine_ = useRef({});
   const mark = (k, st) => {
+    // Toggling the status back off releases the claim this device made, so a
+    // misclick does not lock a building amber for everyone, forever.
+    if (fb[k]?.s === st && mine_.current[k]) {
+      delete mine_.current[k];
+      setClaims((c) => {
+        const n = { ...c };
+        delete n[k];
+        return n;
+      });
+      fetch('/api/claims', {
+        method: 'DELETE',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ uid: uid.current, key: k }),
+      }).catch(() => {});
+    }
     if ((st === 'contacted' || st === 'won') && !claims[k]) {
+      mine_.current[k] = 1;
       setClaims((c) => ({ ...c, [k]: { at: Date.now() } }));
       fetch('/api/claims', {
         method: 'POST',
@@ -540,6 +572,26 @@ export default function App() {
   const isDismissed = (k) => fbOf(k) === 'dismissed';
   const statusOf = (k) => (claims[k] ? 'taken' : mine[k] && mine[k] > now ? 'personal' : 'open');
   const hoursLeft = (k) => Math.max(1, Math.round((mine[k] - now) / 3600000));
+
+  useEffect(() => {
+    const onHash = () => {
+      setRoute(routeFromHash());
+      const t = (location.hash.match(/^#t\/([a-z]+)$/) || [])[1];
+      if (t && PROFILES[t]) {
+        setProfileKey(t);
+        saveLS('rw.profile', t);
+        setShowOnboard(false);
+      }
+      // A card link pasted into an open tab must open that card, not just
+      // change the address bar.
+      if (/^#(b|c|o)\//.test(location.hash)) {
+        deepLinkDone.current = false;
+        setHashTick((n) => n + 1);
+      }
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   useEffect(() => {
     if (hashTrade && PROFILES[hashTrade]) saveLS('rw.profile', hashTrade);
@@ -736,7 +788,17 @@ export default function App() {
     () => liveOpenings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
     [liveOpenings, onlyWatch, watch, fb, showHidden],
   );
-  useEffect(() => setShown(7), [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio, hideBusy]);
+  const keepShown = useRef(0);
+  useEffect(() => {
+    // A deep link has just asked for enough rows to reach its target; the
+    // vertical it set must not immediately snap the list back to seven.
+    if (keepShown.current) {
+      setShown(keepShown.current);
+      keepShown.current = 0;
+      return;
+    }
+    setShown(7);
+  }, [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio, hideBusy]);
 
   // A register shows up only if this trade can act on it *and* there is enough
   // in it to be worth a page. Counted before the search box and the filters, so
@@ -810,39 +872,77 @@ export default function App() {
     saveLS('rw.theme', next);
   };
 
+  const deepLinkDone = useRef(false);
   useEffect(() => {
+    if (deepLinkDone.current) return;
     const m = location.hash.match(/^#(b|c|o)\/(.+)$/);
     if (!m) return;
     const [, t, id] = m;
+    const open = (vert, idx) => {
+      deepLinkDone.current = true;
+      keepShown.current = Math.max(7, idx + 1);
+      setVertical(vert);
+      setOpenId(id);
+      setShown(keepShown.current);
+      setTimeout(
+        () => document.getElementById(`rw-${id}`)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }),
+        500,
+      );
+    };
     if (t === 'b') {
-      const base = [...data.facades.feed].sort(byUrgency);
-      const idx = base.findIndex((c) => c.bin === id);
-      if (idx >= 0) {
-        setVertical('facades');
-        setOpenId(id);
-        setShown(Math.max(7, idx + 1));
-      }
+      const idx = [...data.facades.feed].sort(byUrgency).findIndex((c) => c.bin === id);
+      if (idx >= 0) open('facades', idx);
     } else if (t === 'c') {
       const idx = (live?.contracts || data.contracts).findIndex((c) => c.id === id);
-      if (idx >= 0) {
-        setVertical('contracts');
-        setOpenId(id);
-        setShown(Math.max(7, idx + 1));
-      }
+      if (idx >= 0) open('contracts', idx);
     } else {
       const idx = (live?.openings || data.openings).findIndex((o) => o.id === id);
-      if (idx >= 0) {
-        setVertical('openings');
-        setOpenId(id);
-        setShown(Math.max(7, idx + 1));
-      }
+      if (idx >= 0) open('openings', idx);
     }
-    setTimeout(() => document.getElementById(`rw-${m[2]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 500);
-  }, []);
+    // live arrives after mount; a row that only exists there resolves on retry.
+  }, [live, reduce, hashTick]);
+
+  // A dialog that does not take focus, hold it, and give it back is unusable
+  // with a keyboard or a screen reader.
+  const dialogRef = useRef(null);
+  const restoreFocus = useRef(null);
+  const dialogOpen = showOnboard || portfolioOpen;
+  useEffect(() => {
+    if (!dialogOpen) {
+      restoreFocus.current?.focus?.();
+      restoreFocus.current = null;
+      return;
+    }
+    restoreFocus.current = document.activeElement;
+    const node = dialogRef.current;
+    const focusables = () =>
+      [...(node?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') || [])].filter(
+        (el) => !el.disabled && el.offsetParent !== null,
+      );
+    focusables()[0]?.focus();
+    const onTab = (e) => {
+      if (e.key !== 'Tab') return;
+      const f = focusables();
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onTab);
+    return () => document.removeEventListener('keydown', onTab);
+  }, [dialogOpen]);
 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Escape' && showOnboard && profileKey) setShowOnboard(false);
+      if (e.key === 'Escape' && portfolioOpen) setPortfolioOpen(false);
+      if (e.key === 'Escape' && menuFor) setMenuFor(null);
       if (e.key === '/' && !showOnboard && !/input|textarea|select/i.test(e.target.tagName)) {
         e.preventDefault();
         searchRef.current?.focus();
@@ -855,7 +955,7 @@ export default function App() {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', onScroll);
     };
-  }, [showOnboard, profileKey]);
+  }, [showOnboard, profileKey, portfolioOpen, menuFor]);
 
   const toggleCard = (type, id, wasOpen) => {
     setOpenId(wasOpen ? null : id);
@@ -1058,6 +1158,7 @@ export default function App() {
           >
             <motion.div
               className="modal"
+              ref={dialogRef}
               initial={reduce ? false : { opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? {} : { opacity: 0, y: 12, scale: 0.98 }}
@@ -1081,7 +1182,7 @@ export default function App() {
                     className="more-trades"
                     onClick={() => {
                       setShowOnboard(false);
-                      history.replaceState(null, '', '#trades');
+                      history.pushState(null, '', '#trades');
                       setRoute('trades');
                     }}
                   >
@@ -1173,6 +1274,7 @@ export default function App() {
           >
             <motion.div
               className="modal"
+              ref={dialogRef}
               initial={reduce ? false : { opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? {} : { opacity: 0, y: 12, scale: 0.98 }}
@@ -1284,8 +1386,8 @@ export default function App() {
             />
             <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
               {checkedAt || live?.checkedAt
-                ? `checked ${ago(live?.checkedAt || checkedAt)} · city published ${agoLabel}`
-                : `city published ${agoLabel}`}
+                ? `checked ${ago(live?.checkedAt || checkedAt)} · feed changed ${agoLabel}`
+                : `feed changed ${agoLabel}`}
             </span>
             <span className="etclock" title="New York time">
               {new Date(now).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET
@@ -1301,7 +1403,21 @@ export default function App() {
               key={v.key}
               role="tab"
               aria-selected={vertical === v.key}
+              tabIndex={vertical === v.key ? 0 : -1}
               className={vertical === v.key ? 'on' : ''}
+              onKeyDown={(e) => {
+                const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+                if (!d) return;
+                e.preventDefault();
+                const i = visibleVerts.findIndex((x) => x.key === vertical);
+                const next = visibleVerts[(i + d + visibleVerts.length) % visibleVerts.length];
+                setVertical(next.key);
+                setOpenId(null);
+                setShown(7);
+                e.currentTarget.parentElement?.querySelectorAll('[role=tab]')[
+                  visibleVerts.indexOf(next)
+                ]?.focus();
+              }}
               onClick={() => {
                 setVertical(v.key);
                 setOpenId(null);
@@ -1387,7 +1503,7 @@ export default function App() {
         <div className="stats">
           {[
             [data.facades.totals.candidates, 'buildings off the compliance calendar, four boroughs'],
-            [data.facades.totals.nonFilers10A, 'unfiled for sub-cycle 10A — six months to deadline'],
+            [data.facades.totals.nonFilers10A, `unfiled for sub-cycle 10A — ${monthsToDeadline} months to deadline`],
             [data.facades.totals.swarmpCarryover, 'open SWARMP scopes carried from Cycle 9'],
             [1000, 'per month — the DOB penalty meter after a missed deadline', '$'],
           ].map(([n, l, pre], i) => (
@@ -1753,7 +1869,7 @@ export default function App() {
                               <div className="k source">Source</div>
                               <div className="v">
                                 DOB NOW {data.sources?.facades || ''} · ECB {data.sources?.ecb || ''} · HPD {data.sources?.hpd || ''} — official city records ·{' '}
-                                <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                                <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                               </div>
                             </div>
                             <div className="fact">
@@ -1932,7 +2048,7 @@ export default function App() {
                     <div className="k source">Source</div>
                     <div className="v">
                       City Record — Recent Contract Awards, as of {live?.sources?.awards || data.sources?.awards || 'today'} ·{' '}
-                      <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                      <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                     </div>
                   </div>
                 </div>
@@ -2037,7 +2153,7 @@ export default function App() {
                     <div className="k source">Source</div>
                     <div className="v">
                       NY State Liquor Authority — pending licenses, as of {data.sources?.sla || 'today'} ·{' '}
-                      <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                      <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                     </div>
                   </div>
                 </div>
@@ -2184,7 +2300,7 @@ export default function App() {
         <button
           className="foot-toggle"
           onClick={() => {
-            history.replaceState(null, '', '#data');
+            history.pushState(null, '', '#data');
             setRoute('data');
             window.scrollTo({ top: 0 });
           }}
@@ -2194,7 +2310,7 @@ export default function App() {
         <button
           className="foot-toggle"
           onClick={() => {
-            history.replaceState(null, '', '#trades');
+            history.pushState(null, '', '#trades');
             setRoute('trades');
             window.scrollTo({ top: 0 });
           }}

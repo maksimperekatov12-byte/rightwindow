@@ -1,7 +1,7 @@
 // Notify all registered Wallet passes via APNs (empty push -> device refetches the pass;
 // the changed "fresh" field's changeMessage becomes the lock-screen notification).
 // Env: APNS_KEY_P8_B64, APNS_KEY_ID, APPLE_TEAM_ID, PASS_TYPE_ID, BLOB_READ_WRITE_TOKEN
-import { readJson, listJson } from '../lib/store.mjs';
+import { readJson, readDoc } from '../lib/store.mjs';
 import { createSign, createPrivateKey } from 'node:crypto';
 import { connect } from 'node:http2';
 
@@ -19,7 +19,11 @@ const signer = createSign('SHA256');
 signer.update(unsigned);
 const jwt = `${unsigned}.${signer.sign({ key, dsaEncoding: 'ieee-p1363' }).toString('base64url')}`;
 
-const paths = await listJson('reg/');
+// The device index is one read; a list() here is an advanced operation on a
+// 2,000/month budget, spent hourly whether or not anyone has a pass.
+const paths = Object.values(await readDoc('reg-index.json'))
+  .flat()
+  .map((serial) => `reg/${serial}.json`);
 if (!paths.length) {
   console.log('push-passes: no registered devices');
   process.exit(0);
