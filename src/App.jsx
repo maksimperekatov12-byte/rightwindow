@@ -454,6 +454,10 @@ function WindowBar({ opens, deadline }) {
 // license gate. Levels light up as enrichment providers are connected.
 // Three states, always labelled. "none" shows no number at all rather than a
 // number we cannot stand behind.
+// The subject line carries the address, because that is what makes a cold email
+// to a managing agent look like business rather than a blast.
+const emailSubject = (c) => `${title(c.address)} — ${c.subCycle} facade compliance`;
+
 function contactOf(c, resolved) {
   const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
@@ -472,6 +476,16 @@ function contactOf(c, resolved) {
       phone: a.phone,
       email: a.email || null,
       level: `listed · ${a.contactSource || 'directory'}`,
+      tone: 'mid',
+    };
+  // No line, but a published inbox. Worth saying which it is: a shared mailbox
+  // is a slower door than a direct number, and the user should expect that.
+  if (a.email)
+    return {
+      ...base,
+      phone: null,
+      email: a.email,
+      level: `${/^(info|contact|management|office|admin|hello|leasing|inquiries)@/i.test(a.email) ? 'office inbox' : 'email'} · ${a.contactSource || 'company site'}`,
       tone: 'mid',
     };
   // A redacted public build ships the flag without the value: the card should
@@ -1626,7 +1640,9 @@ export default function App() {
           <span>
             {hasNew ? (
               <>
-                <b>New in the 48 hours to {feedStale ? usShort(data.generatedAt.slice(0, 10)) : 'now'}:</b>{' '}
+                <b>
+                  {feedStale ? `New in the 48 hours to ${usShort(data.generatedAt.slice(0, 10))}:` : 'New in the last 48 hours:'}
+                </b>{' '}
                 {[
                   wn.buildings && `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`,
                   wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
@@ -1663,7 +1679,7 @@ export default function App() {
           {recentDays.some((d) => d.n > 0) && (
             <span className="spark" aria-label="new signals per day, last 7 days">
               {recentDays.map((d) => (
-                <i key={d.day} className={d.n ? 'on' : ''} style={{ height: 4 + Math.min(14, d.n * 3) }} title={`${d.day}: ${d.n} new`} />
+                <i key={d.day} className={d.n ? 'on' : ''} style={{ height: Math.min(18, 4 + Math.min(14, d.n * 3)) }} title={`${d.day}: ${d.n} new`} />
               ))}
             </span>
           )}
@@ -1987,11 +2003,24 @@ export default function App() {
                             <div className="call-actions">
                               {(() => {
                                 const ct = contactOf(c, contacts[c.bin]);
-                                return ct?.phone ? (
-                                  <a className="btn solid big" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
-                                    Call {ct.phone}
-                                  </a>
-                                ) : (
+                                if (ct?.phone)
+                                  return (
+                                    <a className="btn solid big" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
+                                      Call {ct.phone}
+                                    </a>
+                                  );
+                                // No line, but a published inbox: send the opener
+                                // there rather than making the user retype it.
+                                if (ct?.email)
+                                  return (
+                                    <a
+                                      className="btn solid big"
+                                      href={`mailto:${ct.email}?subject=${encodeURIComponent(emailSubject(c))}&body=${encodeURIComponent(fv.opener(c))}`}
+                                    >
+                                      Email {ct.email}
+                                    </a>
+                                  );
+                                return (
                                   <button className="btn solid big" onClick={() => copy(c.bin, fv.opener(c))}>
                                     {copiedId === c.bin ? 'Opener copied' : 'Copy opener'}
                                   </button>

@@ -577,11 +577,16 @@ footer a { color: var(--brand); }
 .news.plain { cursor: default; }
 .news:disabled { cursor: default; opacity: 1; }
 .pulseline {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 7px; padding: 0 3px;
+  display: flex; align-items: center; gap: 5px 10px; flex-wrap: wrap;
+  min-height: 22px; line-height: 1.45;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 8px; padding: 0 3px;
 }
-.spark { display: inline-flex; align-items: flex-end; gap: 3px; height: 18px; margin-left: 2px; }
-.spark i { width: 5px; border-radius: 2px; background: var(--line-2); display: block; }
+.pulseline > span { white-space: nowrap; }
+.spark {
+  display: inline-flex; align-items: flex-end; gap: 3px;
+  height: 18px; margin-left: 4px; flex: none; overflow: hidden;
+}
+.spark i { width: 5px; max-height: 18px; border-radius: 2px; background: var(--line-2); display: block; flex: none; }
 .spark i.on { background: var(--brand); }
 .bdays { color: var(--ink-3); font-size: 12.5px; }
 .etclock { color: var(--ink-3); padding-left: 8px; border-left: 1px solid var(--line-2); }
@@ -731,7 +736,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .trade-card b { font-family: var(--sans); font-size: 15.5px; font-weight: 700; }
 .tc-what { font-size: 13px; color: var(--ink-2); }
 .tc-feed { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
-.tc-link { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+.tc-link {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 4px;
+  overflow-wrap: anywhere; word-break: break-word; max-width: 100%;
+}
+.trade-card b, .tc-what, .tc-feed { overflow-wrap: anywhere; max-width: 100%; }
 
 /* ---------- the block ---------- */
 /* The model is the subject of the product, not decoration, so it gets the half
