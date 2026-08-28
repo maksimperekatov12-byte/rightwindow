@@ -454,20 +454,30 @@ function WindowBar({ opens, deadline }) {
 // license gate. Levels light up as enrichment providers are connected.
 // Three states, always labelled. "none" shows no number at all rather than a
 // number we cannot stand behind.
-function contactOf(c) {
-  const a = c.agent;
+function contactOf(c, resolved) {
+  const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
-  const base = { name: a.name, company: a.company, from: a.contactSource || 'HPD registration' };
+  const base = { name: a.name, company: a.company, from: 'HPD registration' };
   if (a.phone && a.confidence === 'verified')
-    return { ...base, phone: a.phone, email: a.email || null, level: 'verified direct', tone: 'ok' };
+    return {
+      ...base,
+      phone: a.phone,
+      email: a.email || null,
+      level: `verified · ${a.contactSource || 'company site'}`,
+      tone: 'ok',
+    };
   if (a.phone)
     return {
       ...base,
       phone: a.phone,
       email: a.email || null,
-      level: `listed number · ${a.contactSource || 'directory'}`,
+      level: `listed · ${a.contactSource || 'directory'}`,
       tone: 'mid',
     };
+  // A redacted public build ships the flag without the value: the card should
+  // say a number exists rather than claim there is none.
+  if (a.contactKnown)
+    return { ...base, phone: null, email: null, level: 'number held privately — connecting', tone: 'mid' };
   return { ...base, phone: null, email: null, level: 'no direct line on file', tone: 'low' };
 }
 
@@ -555,6 +565,7 @@ export default function App() {
   const [showSources, setShowSources] = useState(false);
   const lastPrefs = useRef('');
   const lastLive = useRef('');
+  const [contacts, setContacts] = useState({});
   const [hashTick, setHashTick] = useState(0);
   const [themeColors, setThemeColors] = useState(readThemeColors);
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
@@ -681,6 +692,7 @@ export default function App() {
           if (j.checkedAt) setCheckedAt(j.checkedAt);
           if (j.contracts) setLive(j);
           if (j.claims) setClaims(j.claims);
+          if (j.contacts) setContacts(j.contacts);
           if (j.mine) {
             const m = {};
             for (const it of j.mine) m[it.key] = it.until;
@@ -1960,7 +1972,7 @@ export default function App() {
                           <div className="call-block">
                             <div className="call-who">
                               {(() => {
-                                const ct = contactOf(c);
+                                const ct = contactOf(c, contacts[c.bin]);
                                 if (!ct) return <span>No registered contact on file</span>;
                                 return (
                                   <>
@@ -1974,7 +1986,7 @@ export default function App() {
                             </div>
                             <div className="call-actions">
                               {(() => {
-                                const ct = contactOf(c);
+                                const ct = contactOf(c, contacts[c.bin]);
                                 return ct?.phone ? (
                                   <a className="btn solid big" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
                                     Call {ct.phone}

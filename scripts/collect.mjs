@@ -468,9 +468,13 @@ for (const c of top) {
 
 // Contact enrichment: stub by default, real provider behind env. Cached on disk,
 // so a rebuild does not re-query. Never invents a number.
-if (enrichmentReady()) {
-  console.log(`Enriching contacts via ${enrichmentProvider()}...`);
+// Runs whether or not a live provider is configured: the cache holds numbers
+// that a measured run already resolved, and those are as real as fresh ones.
+{
+  const live = enrichmentReady();
+  console.log(live ? `Enriching contacts via ${enrichmentProvider()}...` : 'Enrichment: reading cached contacts only');
   let hits = 0;
+  const byLevel = { verified: 0, listed: 0 };
   for (const c of cards.slice(0, 400)) {
     if (!c.agent?.company) continue;
     const e = await enrichContact({ company: c.agent.company, name: c.agent.name, address: c.agent.address });
@@ -479,13 +483,13 @@ if (enrichmentReady()) {
       c.agent.email = e.email;
       c.agent.confidence = e.confidence;
       c.agent.contactSource = e.source;
+      byLevel[e.confidence] = (byLevel[e.confidence] || 0) + 1;
       hits++;
     }
   }
-  console.log(`Contacts enriched: ${hits}`);
-} else {
-  console.log(`Enrichment: ${enrichmentProvider()} (no key) — contacts stay at HPD registration level`);
+  console.log(`Contacts resolved: ${hits} (verified ${byLevel.verified}, listed ${byLevel.listed})`);
 }
+
 
 // Demo feed: most urgent first (post-enrichment), multifamily with a resolved contact
 cards.sort((a, b) => b.urgencyScore - a.urgencyScore);
@@ -637,17 +641,38 @@ const out = {
 // emails must not ride along in it: the card keeps the contact's name, company
 // and confidence level, and the number itself is only written when the operator
 // has explicitly opted in for a private deployment.
+// feed.json is committed hourly to a repo that is public so Actions minutes are
+// free. Two kinds of thing must not ride along in it:
+//
+//  - provider-licensed phones and emails, which almost every enrichment ToS
+//    forbids redistributing;
+//  - the names of the individual people on HPD registrations. Those filings are
+//    public record, but the site tells visitors "buildings, not people", and a
+//    git repo mirrors and indexes them in a way the city's own portal does not.
+//
+// Both stay in the pipeline and reach the private serving path; only the
+// committed artefact is redacted. PUBLISH_CONTACTS=1 opts a private deployment
+// back in.
 const PUBLISH_CONTACTS = process.env.PUBLISH_CONTACTS === '1';
 if (!PUBLISH_CONTACTS) {
-  let stripped = 0;
+  let contacts = 0;
+  let names = 0;
   for (const c of out.facades.feed) {
     if (!c.agent) continue;
-    if (c.agent.phone || c.agent.email) stripped++;
-    if (c.agent.confidence && c.agent.confidence !== 'none') c.agent.contactKnown = true;
+    if (c.agent.phone || c.agent.email) contacts++;
+    if (c.agent.name) names++;
+    // Keep the shape the card renders against, so a redacted feed still shows
+    // which contacts exist rather than pretending there are none.
+    c.agent.contactKnown = Boolean(c.agent.phone || c.agent.email);
+    c.agent.namedContact = Boolean(c.agent.name);
     delete c.agent.phone;
     delete c.agent.email;
+    delete c.agent.name;
   }
-  if (stripped) console.log(`Contacts withheld from the public feed: ${stripped} (set PUBLISH_CONTACTS=1 for a private deployment)`);
+  console.log(
+    `Public feed redacted: ${contacts} contacts and ${names} personal names withheld ` +
+      '(set PUBLISH_CONTACTS=1 for a private deployment)',
+  );
 }
 writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(out, null, 1));
 // The HPD baseline advances only once the feed it produced is safely on disk:

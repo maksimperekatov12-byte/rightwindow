@@ -11,14 +11,19 @@ import { fetchLive } from '../lib/live-source.mjs';
 export default async function handler(req, res) {
   const uid = String(req.query.uid || '');
   const live = await fetchLive();
+  // Resolved phone numbers are deliberately absent from the committed feed, so
+  // this is the only path that carries them. Kept out of the shared public
+  // response body's cache key on purpose: it is the same data for everyone, and
+  // one blob read per minute is the whole cost.
+  const contacts = (await readJsonSoft('contacts.json')) || {};
 
   // An upstream failure must not be cached as if it were the state of the city.
   if (!live) {
     res.setHeader('Cache-Control', 'no-store');
-    if (!/^[0-9a-f-]{36}$/.test(uid)) return res.json({});
+    if (!/^[0-9a-f-]{36}$/.test(uid)) return res.json({ contacts });
   } else if (!/^[0-9a-f-]{36}$/.test(uid)) {
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600');
-    return res.json(live);
+    return res.json({ ...live, contacts });
   }
 
   // Personal signals rotate on a 48-hour hold, so a stale minute costs nothing.
@@ -28,5 +33,5 @@ export default async function handler(req, res) {
     .filter(([, a]) => a.uid === uid && a.until > now)
     .map(([key, a]) => ({ key, until: a.until }));
   if (live) res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
-  res.json({ ...(live || {}), mine });
+  res.json({ ...(live || {}), contacts, mine });
 }

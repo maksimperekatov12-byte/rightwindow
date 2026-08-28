@@ -34,7 +34,8 @@ jobs:
         run: |
           npm i --no-save @vercel/blob > /dev/null 2>&1
           node scripts/assign.mjs || echo "assign failed (store down?) — feed commit continues"
-          node scripts/migrate-blobs.mjs || echo "migrate failed — feed commit continues" 
+          node scripts/migrate-blobs.mjs || echo "migrate failed — feed commit continues"
+          node scripts/push-contacts.mjs || echo "push-contacts failed — feed commit continues" 
       - name: Commit refreshed data
         if: always()
         run: |
