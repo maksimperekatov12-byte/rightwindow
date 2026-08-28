@@ -384,13 +384,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 }
 .pilot b { font-family: var(--display); font-weight: 400; font-size: 24px; letter-spacing: -0.005em; display: block; }
 .pilot span { font-size: 13.5px; opacity: 0.85; }
-.pilot a {
+.pilot .pilot-actions a,
+.pilot > a {
   flex: none; font-family: var(--sans); font-size: 14px; font-weight: 700; text-decoration: none;
   padding: 12px 22px; border-radius: var(--r-sm); background: #fff; color: #0C3E33;
   transition: transform 0.15s ease;
 }
-.pilot a:hover { transform: translateY(-1px); }
-.pilot a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.pilot .pilot-actions a:hover,
+.pilot > a:hover { transform: translateY(-1px); }
+.pilot a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: var(--r-sm); }
 
 /* ---------- modal ---------- */
 .modal-back {
@@ -613,7 +615,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   font-size: 13.5px; margin-bottom: 4px;
 }
 .pilot-contact span { opacity: .85; }
-.pilot-contact a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.pilot-contact a {
+  background: none; padding: 0; color: #fff; font-weight: 700;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px;
+}
+.pilot-contact a:hover { text-decoration-thickness: 2px; }
 .badge.busy { background: var(--panel-2); color: var(--ink-3); border: 1px solid var(--line-2); }
 .sig.busy { border-left-color: var(--ink-3); background: var(--panel); }
 .sig.busy .sig-k { color: var(--ink-3); }
