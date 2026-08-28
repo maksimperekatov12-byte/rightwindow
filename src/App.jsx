@@ -1738,6 +1738,30 @@ export default function App() {
 
       {vertical === 'facades' && (
         <>
+          {(() => {
+            // One meter for the whole feed: the sub-cycle clock is the same for
+            // every building on it, so drawing it per card said nothing.
+            const cycles = [...new Set(filteredFeed.map((c) => c.subCycle))];
+            if (cycles.length !== 1) return null;
+            const cyc = cycles[0];
+            const opens = subOpens(cyc);
+            const deadline = filteredFeed[0]?.deadline;
+            if (!opens || !deadline) return null;
+            // The hook above already states the deadline; this carries what the
+            // bar actually adds — how much of the window is already spent.
+            const elapsed = Math.round(((now - new Date(opens)) / (new Date(deadline) - new Date(opens))) * 100);
+            return (
+              <div className="cycle-bar" title={`Sub-cycle ${cyc} opened ${usDate(opens)}`}>
+                <div className="cycle-head">
+                  <b>Sub-cycle {cyc}</b>
+                  <span>
+                    <strong>{elapsed}% of the window is gone</strong> · {monthsToDeadline} months to {usDate(deadline)}
+                  </span>
+                </div>
+                <WindowBar opens={opens} deadline={deadline} />
+              </div>
+            );
+          })()}
           <p className="personas-hint">{fv.hint}</p>
 
           {Object.keys(mine).filter((k) => mine[k] > now).length > 0 && (
@@ -1903,12 +1927,6 @@ export default function App() {
                         style={{ overflow: 'hidden' }}
                       >
                         <div className="card-body">
-                          <WindowBar opens={subOpens(c.subCycle)} deadline={c.deadline} />
-                          <div className="winbar-legend">
-                            <span>window opened {usShort(subOpens(c.subCycle))}</span>
-                            <span>deadline {usDate(c.deadline)}</span>
-                          </div>
-
                           <div className="sig">
                             <div className="sig-k">
                               Why now

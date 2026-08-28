@@ -776,3 +776,13 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+
+/* The sub-cycle clock belongs to the feed: every building on it shares the same
+   window, so it is drawn once above the list instead of on each card. */
+.cycle-bar { margin: 14px 0 4px; }
+.cycle-head {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2); margin-bottom: 6px;
+}
+.cycle-head b { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.cycle-head strong { color: var(--warm); font-weight: 700; }

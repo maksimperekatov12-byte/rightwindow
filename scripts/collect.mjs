@@ -344,9 +344,19 @@ console.log(`Facade filings for ${filingByBin.size} buildings`);
 // in registrationid or managing-agent company is a days-fresh, fully-open proxy for a
 // sale or management change — the legal alternative to scraping web-ACRIS.
 const baselinePath = new URL('../data/hpd-baseline.json', import.meta.url);
+// The diff only sees a change during the one run that catches it, and the very
+// next run writes the new state into the baseline — so a management change
+// detected at 3pm was gone by 4pm and reached nobody. The detections are logged
+// and kept for the same 90 days the ACRIS deed signal uses, because that is how
+// long a new agent is still rebuilding a vendor list.
+const mgmtLogPath = new URL('../data/mgmt-changes.json', import.meta.url);
+const MGMT_WINDOW_DAYS = 90;
 let baseline = {};
 try { if (existsSync(baselinePath)) baseline = JSON.parse(readFileSync(baselinePath, 'utf8')); } catch {}
-const mgmtChangeByBin = new Map();
+let mgmtLog = {};
+try { if (existsSync(mgmtLogPath)) mgmtLog = JSON.parse(readFileSync(mgmtLogPath, 'utf8')); } catch {}
+
+let freshMgmt = 0;
 const newBaseline = { ...baseline };
 for (const c of top) {
   const reg = regByBin.get(c.bin);
@@ -355,11 +365,25 @@ for (const c of top) {
   const nowState = { registrationid: reg.registrationid, agentCompany: agent?.corporationname || null };
   const prev = baseline[c.bin];
   if (prev && (prev.registrationid !== nowState.registrationid || (prev.agentCompany || '') !== (nowState.agentCompany || ''))) {
-    mgmtChangeByBin.set(c.bin, { prevCompany: prev.agentCompany || null, detected: TODAY.toISOString().slice(0, 10) });
+    mgmtLog[c.bin] = {
+      prevCompany: prev.agentCompany || null,
+      newCompany: nowState.agentCompany || null,
+      detected: TODAY.toISOString().slice(0, 10),
+    };
+    freshMgmt++;
   }
   newBaseline[c.bin] = nowState;
 }
-console.log(`HPD watcher: baseline ${Object.keys(baseline).length} bins, changes detected: ${mgmtChangeByBin.size}`);
+// Age the log out rather than letting it grow for ever.
+for (const [bin, entry] of Object.entries(mgmtLog)) {
+  const age = (TODAY - new Date(entry.detected)) / 86400000;
+  if (!(age >= 0) || age > MGMT_WINDOW_DAYS) delete mgmtLog[bin];
+}
+const mgmtChangeByBin = new Map(Object.entries(mgmtLog));
+console.log(
+  `HPD watcher: baseline ${Object.keys(baseline).length} bins, ${freshMgmt} new this run, ` +
+    `${mgmtChangeByBin.size} inside the ${MGMT_WINDOW_DAYS}-day window`,
+);
 
 const cards = [];
 for (const c of top) {
@@ -732,4 +756,5 @@ writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(
 // committing a moved baseline against a stale feed loses those management
 // changes permanently, because the "previous" state has already passed them.
 writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 1));
+writeFileSync(mgmtLogPath, JSON.stringify(mgmtLog, null, 1));
 console.log(`Written: facades ${feed.length}, contracts ${contracts.length}, openings ${openings.length}. Totals:`, out.facades.totals);
