@@ -75,6 +75,44 @@ Queens and the Bronx — of which **4,791** are unfiled for sub-cycle 10A with s
 
 ---
 
+## How a card gets a contact
+
+The city names a managing agent on every registration but never publishes a way
+to reach one. Four levels, each named for where the contact came from, and the
+label is never upgraded by guesswork:
+
+| Level | Means |
+|---|---|
+| `verified` | read off the company's own domain or a `.gov` record |
+| `listed` | a third-party directory vouching for the same company |
+| `via <operator>` | the registered owner is a holding company with nothing of its own; this reaches the firm that demonstrably runs the building |
+| none | no number is shown, and searching for one stays a link named as a web search |
+
+Measured on 50 randomly drawn agents from the live feed: 36 had a findable
+phone, 3 more a published inbox, and 10 of the remaining 11 were reachable
+through an operator — 49 of 50. The gap is structural, not a provider problem:
+a building owned through a single-purpose LLC has no business presence to find,
+which is exactly what the fourth level exists for.
+
+Three passes keep it current as new buildings arrive:
+
+```
+cache        contacts already resolved, shared through the private store so a
+             CI run inherits them and never re-queries
+provider     ENRICH_PROVIDER + ENRICH_API_KEY — searches, opens the candidate
+             page, and reads the number off the page rather than the snippet
+HPD          free and offline: where two companies share a head officer on a
+             city filing, the contact propagates as `via`, evidenced by the
+             filing itself
+```
+
+Anything still unreached lands in `data/unresolved-contacts.json`, ordered by
+how many buildings it would unlock — the queue for the next deliberate sweep.
+
+Contacts never travel through git. `feed.json` is committed hourly to this
+public repo, so the committed copy carries only a `contactKnown` flag; the
+values go to the private store and reach the card at request time.
+
 ## Data honesty
 
 Every source passes a written license gate before a single request is made

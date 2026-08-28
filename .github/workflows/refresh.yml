@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.email "maxim122090@gmail.com"
           git config user.name "Maxim Perekatov"
-          git add src/data/feed.json data/hpd-baseline.json data/seen.json
+          git add src/data/feed.json data/hpd-baseline.json data/seen.json data/unresolved-contacts.json
           if git diff --cached --quiet; then
             echo "No data changes"
           else

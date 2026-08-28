@@ -512,6 +512,26 @@ for (const c of top) {
   // firm whose head officer signs for both, labelled as reaching that firm.
   const viaHpd = resolveAffiliates(cards);
   console.log(`Affiliates resolved from HPD head officers: ${viaHpd}`);
+
+  // Whatever the automatic passes could not reach becomes the queue for the
+  // next deliberate sweep. New buildings arrive every hour with agents nobody
+  // has looked up yet; without this the gap is invisible until someone opens a
+  // card and finds no way to call.
+  const unresolved = new Map();
+  for (const c of cards.slice(0, 400)) {
+    const a = c.agent;
+    if (!a?.company || a.phone || a.email) continue;
+    const k = a.company.toUpperCase().trim();
+    const cur = unresolved.get(k) || { company: a.company, addr: a.address || '', headOfficer: a.headOfficer || null, cards: 0 };
+    cur.cards++;
+    unresolved.set(k, cur);
+  }
+  const queue = [...unresolved.values()].sort((x, y) => y.cards - x.cards);
+  writeFileSync(new URL('../data/unresolved-contacts.json', import.meta.url), JSON.stringify(queue, null, 1));
+  console.log(
+    `Contacts still unresolved: ${queue.length} companies covering ${queue.reduce((n, x) => n + x.cards, 0)} cards ` +
+      '(queued in data/unresolved-contacts.json)',
+  );
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
       const { writeJson } = await import('../lib/store.mjs');
