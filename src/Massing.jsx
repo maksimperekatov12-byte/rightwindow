@@ -2,95 +2,74 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// A block, not a logo. One building on a facade deadline, wearing the shed and
-// the scaffold the law puts there — the rest of the block is context.
-// The layout is hand-authored rather than generated: composition matters more
-// than variety, and a fixed array is the cheapest possible determinism.
-const GROUND = { w: 13.4, d: 9.8, t: 0.18 };
-const SUBJECT = { x: 0.4, z: 1.2, w: 2.0, d: 1.9, h: 7.2 };
+// A Manhattan block, drawn the way a zoning study draws it: tiered setback
+// masses, water tanks on the roofs, an avenue and a cross street cut into the
+// base. One building — the one with the deadline — carries the brand colour.
+// Hand-authored: composition matters more than variety, and a fixed array is
+// the cheapest possible determinism.
+const GROUND = { w: 15.5, d: 11.0, t: 0.18 };
+const AVENUE = { x: -0.6, w: 0.85 };
+const STREET = { z: 0.35, w: 0.7 };
+
+// Each building is a stack of tiers (the wedding-cake setbacks the 1916 zoning
+// law forced on the city) plus, on some, a rooftop water tank.
+const SUBJECT = {
+  x: 1.15, z: 2.0,
+  tiers: [
+    { w: 2.15, d: 1.9, h: 3.4 },
+    { w: 1.7, d: 1.5, h: 2.2 },
+    { w: 1.2, d: 1.05, h: 1.5 },
+    { w: 0.5, d: 0.45, h: 0.34 },
+  ],
+};
 const NEIGHBOURS = [
-  { x: -4.6, z: 2.3, w: 2.5, d: 2.0, h: 3.1 },
-  { x: -2.3, z: 2.6, w: 1.7, d: 1.5, h: 4.4 },
-  { x: 3.3, z: 2.0, w: 2.0, d: 1.8, h: 2.3 },
-  { x: 5.5, z: 2.6, w: 1.8, d: 1.7, h: 3.7 },
-  { x: -4.6, z: -1.1, w: 2.2, d: 2.2, h: 5.2 },
-  { x: -1.9, z: -1.4, w: 1.9, d: 1.8, h: 2.6 },
-  { x: 2.7, z: -1.4, w: 2.1, d: 2.0, h: 4.3 },
-  { x: -2.6, z: -3.6, w: 2.8, d: 1.9, h: 2.1 },
-  { x: 2.0, z: -3.7, w: 3.0, d: 2.0, h: 5.8 },
+  { x: -4.5, z: -2.7, tiers: [{ w: 2.2, d: 1.9, h: 2.6 }, { w: 1.7, d: 1.45, h: 1.2 }], tank: [0.55, 0.5] },
+  { x: -2.3, z: -3.3, tiers: [{ w: 1.6, d: 1.5, h: 4.6 }] },
+  { x: -2.7, z: -1.3, tiers: [{ w: 1.7, d: 1.3, h: 1.6 }], tank: [-0.4, 0.25] },
+  { x: 1.4, z: -3.0, tiers: [{ w: 2.0, d: 1.8, h: 3.0 }, { w: 1.5, d: 1.35, h: 1.4 }, { w: 1.0, d: 0.9, h: 0.95 }] },
+  { x: 3.95, z: -2.6, tiers: [{ w: 1.9, d: 1.7, h: 2.2 }], tank: [0.5, -0.35] },
+  { x: 5.75, z: -3.4, tiers: [{ w: 1.4, d: 1.3, h: 3.4 }] },
+  { x: -5.0, z: 1.9, tiers: [{ w: 1.8, d: 1.6, h: 2.0 }, { w: 1.3, d: 1.15, h: 1.0 }] },
+  { x: -3.1, z: 2.8, tiers: [{ w: 1.5, d: 1.4, h: 3.6 }], tank: [0.35, 0.35] },
+  { x: -4.4, z: 4.1, tiers: [{ w: 2.0, d: 1.2, h: 1.3 }] },
+  { x: 3.9, z: 2.1, tiers: [{ w: 1.8, d: 1.7, h: 2.6 }, { w: 1.35, d: 1.25, h: 1.1 }], tank: [-0.4, 0.4] },
+  { x: 5.8, z: 1.4, tiers: [{ w: 1.3, d: 1.2, h: 1.9 }] },
+  { x: 3.3, z: 3.9, tiers: [{ w: 2.4, d: 1.35, h: 1.5 }] },
+  { x: 5.6, z: 3.6, tiers: [{ w: 1.5, d: 1.2, h: 2.5 }], tank: [0.4, -0.3] },
 ];
-
-const SHED = { over: 0.7, deckY: 1.25, deckT: 0.12, post: 0.09 };
-const DECK_TOP = SHED.deckY + SHED.deckT / 2;
-const OUTER_W = SUBJECT.w + SHED.over * 2;
-const OUTER_D = SUBJECT.d + SHED.over * 2;
-
-// The deck is a ring, not a slab: it covers the sidewalk and stops at the wall.
-const SHED_DECK = [
-  { x: SUBJECT.x, z: SUBJECT.z + SUBJECT.d / 2 + SHED.over / 2, sx: OUTER_W, sz: SHED.over },
-  { x: SUBJECT.x, z: SUBJECT.z - SUBJECT.d / 2 - SHED.over / 2, sx: OUTER_W, sz: SHED.over },
-  { x: SUBJECT.x + SUBJECT.w / 2 + SHED.over / 2, z: SUBJECT.z, sx: SHED.over, sz: SUBJECT.d },
-  { x: SUBJECT.x - SUBJECT.w / 2 - SHED.over / 2, z: SUBJECT.z, sx: SHED.over, sz: SUBJECT.d },
-];
-
-const SHED_POSTS = (() => {
-  const posts = [];
-  const hx = OUTER_W / 2 - SHED.post;
-  const hz = OUTER_D / 2 - SHED.post;
-  for (let i = 0; i < 5; i++) {
-    const x = SUBJECT.x - hx + (2 * hx * i) / 4;
-    posts.push({ x, z: SUBJECT.z + hz }, { x, z: SUBJECT.z - hz });
-  }
-  for (let i = 1; i < 4; i++) {
-    const z = SUBJECT.z - hz + (2 * hz * i) / 4;
-    posts.push({ x: SUBJECT.x + hx, z }, { x: SUBJECT.x - hx, z });
-  }
-  return posts;
-})();
-
-const SCAF = { bays: 4, lifts: 6, top: 5.6, standoff: 0.16, t: 0.085 };
-const SCAFFOLD = (() => {
-  const members = [];
-  const z = SUBJECT.z + SUBJECT.d / 2 + SCAF.standoff;
-  const span = SUBJECT.w;
-  for (let i = 0; i <= SCAF.bays; i++) {
-    const x = SUBJECT.x - span / 2 + (span * i) / SCAF.bays;
-    members.push({
-      x, z,
-      y: (DECK_TOP + SCAF.top) / 2,
-      sx: SCAF.t, sy: SCAF.top - DECK_TOP, sz: SCAF.t,
-      key: DECK_TOP + i * 0.06,
-    });
-  }
-  for (let i = 0; i <= SCAF.lifts; i++) {
-    const y = DECK_TOP + ((SCAF.top - DECK_TOP) * i) / SCAF.lifts;
-    members.push({
-      x: SUBJECT.x, z, y,
-      sx: span + SCAF.t, sy: SCAF.t * 0.9, sz: SCAF.t,
-      key: y,
-    });
-  }
-  const lo = Math.min(...members.map((m) => m.key));
-  const hi = Math.max(...members.map((m) => m.key));
-  for (const m of members) m.delay = ((m.key - lo) / (hi - lo)) * 0.68;
-  return members;
-})();
+const BUILDINGS = [...NEIGHBOURS, SUBJECT];
+const SUBJECT_INDEX = BUILDINGS.length - 1;
 
 const ORBIT_RATE = (Math.PI * 2) / 48;
 const BASE_YAW = -0.62;
-const MEMBER_IN = 0.52;
-const MEMBER_RISE = 0.32;
+const RISE = 0.55;      // one building's grow-in, seconds
+const STAGGER = 0.055;  // per building
 const LOOK_AT = new THREE.Vector3(0, 2.1, 0);
 
-// The theme's line colour carries the alpha meant for CSS borders, and three
-// warns on every alpha it drops. The material owns how faint a hairline gets.
-const opaque = (css) => String(css).replace(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+).*$/, 'rgb($1,$2,$3)');
+const TANK = { r: 0.21, h: 0.42, roofR: 0.25, roofH: 0.2 };
 
-function Mass({ box, edges, body, line, x, z, w, d, h }) {
+function Building({ b, geo, mat, body, groupRef }) {
+  let y = 0;
+  const tiers = b.tiers.map((t, i) => {
+    const cy = y + t.h / 2;
+    y += t.h;
+    return { ...t, cy, key: i };
+  });
+  const top = tiers[tiers.length - 1];
   return (
-    <group position={[x, h / 2, z]} scale={[w, h, d]}>
-      <mesh geometry={box} material={body} />
-      <lineSegments geometry={edges} material={line} />
+    <group ref={groupRef} position={[b.x, 0, b.z]}>
+      {tiers.map((t) => (
+        <group key={t.key} position={[0, t.cy, 0]} scale={[t.w, t.h, t.d]}>
+          <mesh geometry={geo.box} material={body} />
+          <lineSegments geometry={geo.edges} material={mat.line} />
+        </group>
+      ))}
+      {b.tank && (
+        <group position={[b.tank[0], y, b.tank[1]]}>
+          <mesh geometry={geo.tank} material={mat.tank} position={[0, TANK.h / 2 + 0.06, 0]} />
+          <mesh geometry={geo.roof} material={mat.tank} position={[0, TANK.h + 0.06 + TANK.roofH / 2, 0]} />
+        </group>
+      )}
     </group>
   );
 }
@@ -102,24 +81,27 @@ function Model({ colors, reduced }) {
 
   const geo = useMemo(() => {
     const box = new THREE.BoxGeometry(1, 1, 1);
-    return { box, edges: new THREE.EdgesGeometry(box) };
+    return {
+      box,
+      edges: new THREE.EdgesGeometry(box),
+      tank: new THREE.CylinderGeometry(TANK.r, TANK.r, TANK.h, 14),
+      roof: new THREE.CylinderGeometry(0.02, TANK.roofR, TANK.roofH, 14),
+    };
   }, []);
   useEffect(() => () => {
-    geo.box.dispose();
-    geo.edges.dispose();
+    for (const g of Object.values(geo)) g.dispose();
   }, [geo]);
 
-  // Built once and recoloured in place: rebuilding on every theme toggle would
-  // also reset the scaffold's opacity, and the intro only plays once.
+  // Built once and recoloured in place — rebuilding on a theme toggle would
+  // replay the one-time intro.
   const mat = useMemo(() => {
-    // Faces are pushed back a hair so the drafted edges never fight the solid.
     const solid = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
     return {
       mass: new THREE.MeshLambertMaterial(solid),
       subject: new THREE.MeshLambertMaterial(solid),
       ground: new THREE.MeshLambertMaterial(solid),
-      shed: new THREE.MeshLambertMaterial(solid),
-      scaffold: new THREE.MeshLambertMaterial({ transparent: true, opacity: reduced ? 1 : 0 }),
+      street: new THREE.MeshLambertMaterial(solid),
+      tank: new THREE.MeshLambertMaterial(solid),
       line: new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5, depthWrite: false }),
     };
   }, []);
@@ -128,14 +110,17 @@ function Model({ colors, reduced }) {
   }, [mat]);
 
   useEffect(() => {
-    const bg = new THREE.Color(opaque(colors.bg));
-    const ink = new THREE.Color(opaque(colors.ink));
-    const line = new THREE.Color(opaque(colors.line));
+    // The theme's line colour carries the alpha meant for CSS borders; opaqued
+    // it is the right hue, and the material owns how faint the hairline gets.
+    const opaque = (c) => new THREE.Color(String(c).replace(/rgba?\(([^)]+?)(?:,[^,)]+)?\)/, 'rgb($1)'));
+    const bg = opaque(colors.bg);
+    const ink = opaque(colors.ink);
+    const line = opaque(colors.line);
     mat.mass.color.copy(ink).lerp(bg, 0.78);
-    mat.subject.color.set(opaque(colors.brand));
+    mat.subject.color.set(colors.brand);
     mat.ground.color.copy(bg).lerp(line, 0.07);
-    mat.shed.color.set(opaque(colors.warm));
-    mat.scaffold.color.set(opaque(colors.warm));
+    mat.street.color.copy(bg).lerp(ink, 0.16);
+    mat.tank.color.copy(ink).lerp(bg, 0.5);
     mat.line.color.copy(line);
     invalidate();
   }, [colors.ink, colors.brand, colors.warm, colors.line, colors.bg, mat, invalidate]);
@@ -146,42 +131,44 @@ function Model({ colors, reduced }) {
   }, [camera, invalidate, aspect]);
 
   const orbit = useRef(null);
-  const members = useRef([]);
+  const groups = useRef([]);
   const clock = useRef(0);
+  const intro0 = useRef(0);
   const settled = useRef(reduced);
 
   useEffect(() => {
     if (!reduced) return;
     settled.current = true;
-    mat.scaffold.opacity = 1;
-    for (let i = 0; i < members.current.length; i++) {
-      const el = members.current[i];
-      if (el) {
-        el.visible = true;
-        el.position.y = SCAFFOLD[i].y;
+    for (const g of groups.current) {
+      if (g) {
+        g.visible = true;
+        g.scale.y = 1;
       }
     }
     invalidate();
-  }, [reduced, mat, invalidate]);
+  }, [reduced, invalidate]);
 
-  useFrame((_, delta) => {
+  // The intro extrudes the block out of the ground once, nearest lot first —
+  // the way a massing model gets built, not the way a logo spins up.
+  useFrame((state, delta) => {
     if (reduced) return;
     clock.current += delta > 0.05 ? 0.05 : delta;
-    const t = clock.current;
-    if (orbit.current) orbit.current.rotation.y = BASE_YAW + t * ORBIT_RATE;
+    if (orbit.current) orbit.current.rotation.y = BASE_YAW + clock.current * ORBIT_RATE;
     if (settled.current) return;
+    // The intro runs on wall clock, not frame count: a tab that renders rarely
+    // (or resumes after being hidden) should finish the build, not stretch it.
+    if (!intro0.current) intro0.current = performance.now();
+    const t = (performance.now() - intro0.current) / 1000;
     let done = true;
-    for (let i = 0; i < SCAFFOLD.length; i++) {
-      const el = members.current[i];
-      if (!el) continue;
-      const m = SCAFFOLD[i];
-      const p = (t - m.delay) / MEMBER_IN;
+    for (let i = 0; i < BUILDINGS.length; i++) {
+      const g = groups.current[i];
+      if (!g) continue;
+      const p = (t - i * STAGGER) / RISE;
       if (p < 1) done = false;
       const e = p <= 0 ? 0 : p >= 1 ? 1 : 1 - (1 - p) * (1 - p) * (1 - p);
-      el.visible = p > 0;
-      el.position.y = m.y - MEMBER_RISE * (1 - e);
+      g.visible = p > 0;
+      g.scale.y = Math.max(e, 0.0001);
     }
-    mat.scaffold.opacity = t < MEMBER_IN ? t / MEMBER_IN : 1;
     if (done) settled.current = true;
   });
 
@@ -191,34 +178,18 @@ function Model({ colors, reduced }) {
     <group ref={orbit} rotation={[0, BASE_YAW, 0]} scale={fit}>
       <mesh geometry={geo.box} material={mat.ground} position={[0, -GROUND.t / 2, 0]} scale={[GROUND.w, GROUND.t, GROUND.d]} />
       <lineSegments geometry={geo.edges} material={mat.line} position={[0, -GROUND.t / 2, 0]} scale={[GROUND.w, GROUND.t, GROUND.d]} />
+      {/* streets read as cuts, not paint: thin strips a hair above the slab */}
+      <mesh geometry={geo.box} material={mat.street} position={[AVENUE.x, 0.012, 0]} scale={[AVENUE.w, 0.02, GROUND.d]} />
+      <mesh geometry={geo.box} material={mat.street} position={[0, 0.012, STREET.z]} scale={[GROUND.w, 0.02, STREET.w]} />
 
-      {NEIGHBOURS.map((b, i) => (
-        <Mass key={i} box={geo.box} edges={geo.edges} body={mat.mass} line={mat.line} {...b} />
-      ))}
-      <Mass box={geo.box} edges={geo.edges} body={mat.subject} line={mat.line} {...SUBJECT} />
-
-      {SHED_DECK.map((p, i) => (
-        <mesh key={i} geometry={geo.box} material={mat.shed} position={[p.x, SHED.deckY, p.z]} scale={[p.sx, SHED.deckT, p.sz]} />
-      ))}
-      {SHED_POSTS.map((p, i) => (
-        <mesh
+      {BUILDINGS.map((b, i) => (
+        <Building
           key={i}
-          geometry={geo.box}
-          material={mat.shed}
-          position={[p.x, (SHED.deckY - SHED.deckT / 2) / 2, p.z]}
-          scale={[SHED.post, SHED.deckY - SHED.deckT / 2, SHED.post]}
-        />
-      ))}
-
-      {SCAFFOLD.map((m, i) => (
-        <mesh
-          key={i}
-          ref={(el) => (members.current[i] = el)}
-          geometry={geo.box}
-          material={mat.scaffold}
-          visible={reduced}
-          position={[m.x, m.y, m.z]}
-          scale={[m.sx, m.sy, m.sz]}
+          b={b}
+          geo={geo}
+          mat={mat}
+          body={i === SUBJECT_INDEX ? mat.subject : mat.mass}
+          groupRef={(el) => (groups.current[i] = el)}
         />
       ))}
     </group>
@@ -260,8 +231,8 @@ export default function Massing({ colors, reduced = false, className }) {
         frameloop={reduced ? 'demand' : onScreen ? 'always' : 'never'}
         camera={{ position: [14.6, 10.4, 18.2], fov: 30, near: 4, far: 70 }}
       >
-        <ambientLight intensity={1.6} />
-        <directionalLight position={[6, 9, 5]} intensity={2.1} />
+        <ambientLight intensity={2.0} />
+        <directionalLight position={[6, 9, 5]} intensity={1.0} />
         <Model colors={colors} reduced={reduced} />
       </Canvas>
     </div>

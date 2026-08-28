@@ -1379,7 +1379,7 @@ export default function App() {
                 <Massing colors={themeColors} reduced={reduce} className="massing" />
               </Suspense>
             )}
-            <span className="massing-cap">Shed up, no repair filed</span>
+            <span className="massing-cap">Sub-cycle 10A · nothing filed</span>
           </div>
         )}
       </div>
