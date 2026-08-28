@@ -8,6 +8,10 @@
 // the site reads it back through GitHub's CDN for free. See lib/live-source.mjs.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { readDoc, CLAIMS } from '../lib/store.mjs';
+import { assertCollectable } from '../lib/policy.mjs';
+
+assertCollectable('data.cityofnewyork.us');
+assertCollectable('data.ny.gov');
 
 const TODAY = new Date();
 async function getJson(url, tries = 3) {

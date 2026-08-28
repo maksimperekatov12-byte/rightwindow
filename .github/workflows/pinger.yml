@@ -56,8 +56,19 @@ jobs:
             sleep 5
           done
           if [ ! -s "$DATA_DIR/intraday.json" ]; then
-            git fetch -q --depth 1 origin data && git show origin/data:intraday.json > "$DATA_DIR/intraday.json" \
-              && echo "seeded from git" || echo "no data branch yet — first run"
+            git fetch -q --depth 1 origin data 2>/dev/null \
+              && git show origin/data:intraday.json > "$DATA_DIR/intraday.json" 2>/dev/null \
+              && echo "seeded from git" || true
+          fi
+          if [ ! -s "$DATA_DIR/intraday.json" ]; then
+            # Distinguish "no branch yet" from "could not reach GitHub". Publishing
+            # on a blip would force-push a reset pulse and an empty change log over
+            # the real history — the proof-of-life the demo rests on.
+            if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+              echo "data branch exists but could not be read — refusing to publish over it"
+              exit 1
+            fi
+            echo "no data branch yet — first run"
           else
             echo "seeded from data branch"
           fi

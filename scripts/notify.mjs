@@ -1,7 +1,7 @@
 // Instant alerts: runs in the 10-minute lane. Sends only signals whose clock is
 // measured in days (fresh violations, hearings within a month, ownership flips)
 // and never repeats one — per user, per signal, forever.
-import { readDoc, writeJson, PREFS } from '../lib/store.mjs';
+import { readDoc, updateDoc, PREFS } from '../lib/store.mjs';
 import { matchFor } from '../lib/signals.mjs';
 import { signalBlocks, postToSlack } from '../lib/slack.mjs';
 import { readFileSync } from 'node:fs';
@@ -18,7 +18,8 @@ const COOLDOWN_MS = 45 * 60 * 1000; // never more than one interruption per 45 m
 // All preferences live in one document: one read for every user, one write at
 // the end, instead of a list() plus a get() and a put() per user.
 const prefsDoc = await readDoc(PREFS);
-let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0, dirty = false;
+let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0;
+const touched = new Map();
 
 for (const pref of Object.values(prefsDoc)) {
   if (!pref?.profile) continue;
@@ -40,7 +41,7 @@ for (const pref of Object.values(prefsDoc)) {
     for (const i of candidates) sent.add(`${i.kind}:${i.id}`);
     pref.instantSeeded = true;
     pref.sentKeys = [...sent].slice(-400);
-    dirty = true;
+    touched.set(pref.uid, { instantSeeded: true, sentKeys: pref.sentKeys });
     seeded++;
     continue;
   }
@@ -79,10 +80,14 @@ for (const pref of Object.values(prefsDoc)) {
 
   pref.sentKeys = [...sent].slice(-400);
   pref.lastInstantAt = Date.now();
-  dirty = true;
+  touched.set(pref.uid, { sentKeys: pref.sentKeys, lastInstantAt: pref.lastInstantAt });
 }
-if (dirty) await writeJson(PREFS, prefsDoc);
+if (touched.size)
+  await updateDoc(PREFS, (doc) => {
+    for (const [uid, fields] of touched) if (doc[uid]) Object.assign(doc[uid], fields);
+    return doc;
+  });
 console.log(
   `notify: users=${users} slack=${slackSent} email=${mailSent} seeded=${seeded} cooldown=${cooled}` +
-    (dirty ? '' : ' (no write)'),
+    (touched.size ? '' : ' (no write)'),
 );

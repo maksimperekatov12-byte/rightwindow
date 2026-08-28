@@ -1,5 +1,5 @@
 // Daily personalized digest: email and/or Slack, built from prefs.
-import { readDoc, writeJson, PREFS } from '../lib/store.mjs';
+import { readDoc, updateDoc, PREFS } from '../lib/store.mjs';
 import { matchFor } from '../lib/signals.mjs';
 import { digestBlocks, postToSlack } from '../lib/slack.mjs';
 import { readFileSync } from 'node:fs';
@@ -39,7 +39,8 @@ if (process.env.DIGEST_TEST) {
 
 const prefsDoc = await readDoc(PREFS);
 const everyone = Object.values(prefsDoc);
-let mail = 0, slack = 0, skipped = 0, dirty = false;
+let mail = 0, slack = 0, skipped = 0;
+const touched = new Map();
 for (const pref of everyone) {
   if (!pref?.profile) { skipped++; continue; }
   if (pref.lastDigestAt && Date.now() - pref.lastDigestAt < 20 * 3600 * 1000) { skipped++; continue; }
@@ -71,8 +72,12 @@ for (const pref of everyone) {
   }
   if (pref.channels?.slack || email) {
     pref.lastDigestAt = Date.now();
-    dirty = true;
+    touched.set(pref.uid, { lastDigestAt: pref.lastDigestAt });
   }
 }
-if (dirty) await writeJson(PREFS, prefsDoc);
+if (touched.size)
+  await updateDoc(PREFS, (doc) => {
+    for (const [uid, fields] of touched) if (doc[uid]) Object.assign(doc[uid], fields);
+    return doc;
+  });
 console.log(`send-digest: email=${mail} slack=${slack} skipped=${skipped} of ${everyone.length}`);

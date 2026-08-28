@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 import DataPage from './Data.jsx';
@@ -299,6 +299,33 @@ const readThemeColors = () => {
   };
 };
 
+// Each claim state gets its own shape, so the feed is readable without colour.
+const STATUS_MARK = {
+  open: { glyph: 'check', label: 'Open — no one has claimed it yet' },
+  taken: { glyph: 'lock', label: 'Taken — someone is already on it' },
+  personal: { glyph: 'star', label: 'Reserved for you' },
+};
+function StatusDot({ status, note }) {
+  const mark = STATUS_MARK[status] || STATUS_MARK.open;
+  return (
+    <span className={'found ' + status} title={note || mark.label}>
+      {mark.glyph === 'star' ? (
+        <span aria-hidden="true">★</span>
+      ) : mark.glyph === 'lock' ? (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+        </svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      )}
+      <span className="sr-only">{note || mark.label}</span>
+    </span>
+  );
+}
+
 const emphasize = (text) =>
   String(text)
     .split(/(\*[^*]+\*)/)
@@ -433,7 +460,14 @@ function contactOf(c) {
   const base = { name: a.name, company: a.company, from: a.contactSource || 'HPD registration' };
   if (a.phone && a.confidence === 'verified')
     return { ...base, phone: a.phone, email: a.email || null, level: 'verified direct', tone: 'ok' };
-  if (a.phone) return { ...base, phone: a.phone, email: a.email || null, level: 'office line · HPD registration', tone: 'mid' };
+  if (a.phone)
+    return {
+      ...base,
+      phone: a.phone,
+      email: a.email || null,
+      level: `listed number · ${a.contactSource || 'directory'}`,
+      tone: 'mid',
+    };
   return { ...base, phone: null, email: null, level: 'no direct line on file', tone: 'low' };
 }
 
@@ -520,11 +554,13 @@ export default function App() {
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const lastPrefs = useRef('');
+  const lastLive = useRef('');
   const [hashTick, setHashTick] = useState(0);
   const [themeColors, setThemeColors] = useState(readThemeColors);
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
   const reduce = useReducedMotion();
   const uid = useRef(null);
+  const secret = useRef(null);
   if (uid.current === null) {
     let u = loadLS('rw.uid', null);
     if (!u) {
@@ -532,6 +568,12 @@ export default function App() {
       saveLS('rw.uid', u);
     }
     uid.current = u;
+    let sec = loadLS('rw.secret', null);
+    if (!sec) {
+      sec = crypto.randomUUID().replace(/-/g, '');
+      saveLS('rw.secret', sec);
+    }
+    secret.current = sec;
   }
 
   const mine_ = useRef({});
@@ -623,15 +665,19 @@ export default function App() {
   // every 30 seconds from a tab left open all day is what exhausted the free
   // operation allowance and suspended the store on 2026-08-28.
   useEffect(() => {
-    const i = setInterval(() => setNow(Date.now()), 30000);
+    const i = setInterval(() => {
+      if (!document.hidden) setNow(Date.now());
+    }, 30000);
     let last = 0;
     const pull = (force) => {
       if (!force && (document.hidden || Date.now() - last < 45000)) return;
       last = Date.now();
       fetch('/api/live?uid=' + uid.current)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => {
-          if (!j) return;
+        .then((r) => (r.ok ? r.text() : null))
+        .then((text) => {
+          if (!text || text === lastLive.current) return;
+          lastLive.current = text;
+          const j = JSON.parse(text);
           if (j.checkedAt) setCheckedAt(j.checkedAt);
           if (j.contracts) setLive(j);
           if (j.claims) setClaims(j.claims);
@@ -660,6 +706,7 @@ export default function App() {
     const t = setTimeout(() => {
       const body = JSON.stringify({
           uid: uid.current,
+          secret: secret.current,
           data: {
             profile: profileKey,
             ticket,
@@ -755,8 +802,9 @@ export default function App() {
     () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || fv.sort),
     [profileKey, sortMode],
   );
+  const deferredQuery = useDeferredValue(query);
   const filteredFeed = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     const base = facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
       if (hideBusy && c.occupied) return false;
@@ -769,9 +817,10 @@ export default function App() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(q));
     });
-    const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > now ? 0 : 1);
+    const at = Date.now();
+    const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > at ? 0 : 1);
     return base.sort((a, b) => isMine(a) - isMine(b));
-  }, [facadeFeed, query, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, now, onlyPortfolio, portfolio, hideBusy]);
+  }, [facadeFeed, deferredQuery, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, onlyPortfolio, portfolio, hideBusy]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
@@ -847,7 +896,10 @@ export default function App() {
     const m = Math.max(0, Math.round((now - t) / 60000));
     return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : `${Math.floor(m / 60)}h ${m % 60}m ago`;
   };
-  const checksToday = live?.pulse?.length || 0;
+  const checksToday = (live?.pulse || []).filter((t) => now - t < 86400000).length;
+  // The newness flags are baked at collection time; past a few hours the window
+  // they describe is no longer "the last 48 hours" from the reader's position.
+  const feedStale = now - new Date(data.generatedAt).getTime() > 3 * 3600000;
   const lastChangeAt = live?.changedAt || pulled.getTime();
   const lastChangeLabel = ago(lastChangeAt);
   const recentDays = useMemo(() => {
@@ -890,6 +942,18 @@ export default function App() {
       );
     };
     if (t === 'b') {
+      // A shared building must open for the recipient whatever their saved
+      // filters say — a Manhattan-only view, a watchlist filter or an earlier
+      // dismissal used to swallow the link with no sign anything happened.
+      const target = data.facades.feed.find((c) => c.bin === id);
+      if (target) {
+        setBoro('all');
+        setOnlyWatch(false);
+        setOnlyNew(false);
+        setOnlyPortfolio(false);
+        setHideBusy(false);
+        setShowHidden(isDismissed('b:' + id));
+      }
       const idx = [...data.facades.feed].sort(byUrgency).findIndex((c) => c.bin === id);
       if (idx >= 0) open('facades', idx);
     } else if (t === 'c') {
@@ -937,6 +1001,15 @@ export default function App() {
     document.addEventListener('keydown', onTab);
     return () => document.removeEventListener('keydown', onTab);
   }, [dialogOpen]);
+
+  useEffect(() => {
+    if (!menuFor) return;
+    const close = (e) => {
+      if (!e.target.closest?.('.menu, .btn.dots')) setMenuFor(null);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [menuFor]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -1036,11 +1109,18 @@ export default function App() {
   // Gross is arithmetic; expected is what a contractor will actually close.
   // Both are shown — the arrow between them is the honest part. Counted per
   // vertical: a signal someone else already claimed is not yours to count.
+  // Counted against the live pool, not the current view: with the "Hidden"
+  // toggle on, the view lists hold only dismissed rows, and sizing a pipeline
+  // from buildings the user threw away is worse than showing nothing.
   const openCount = useMemo(() => {
-    if (vertical === 'facades') return filteredFeed.filter((c) => !c.occupied && statusOf('b:' + c.bin) !== 'taken').length;
-    if (vertical === 'contracts') return contractsList.filter((c) => statusOf('c:' + c.id) !== 'taken').length;
-    return openingsList.filter((o) => statusOf('o:' + o.id) !== 'taken').length;
-  }, [vertical, filteredFeed, contractsList, openingsList, claims, mine, now]);
+    if (vertical === 'facades')
+      return filteredFeed.filter(
+        (c) => !isDismissed('b:' + c.bin) && !c.occupied && statusOf('b:' + c.bin) !== 'taken',
+      ).length;
+    if (vertical === 'contracts')
+      return contractsList.filter((c) => !isDismissed('c:' + c.id) && statusOf('c:' + c.id) !== 'taken').length;
+    return openingsList.filter((o) => !isDismissed('o:' + o.id) && statusOf('o:' + o.id) !== 'taken').length;
+  }, [vertical, filteredFeed, contractsList, openingsList, claims, mine, now, fb]);
 
   const myPipeline = useMemo(() => {
     const n = openCount;
@@ -1093,11 +1173,11 @@ export default function App() {
 
   const miniToolbar = (list, total) => (
     <div className="toolbar">
-      <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
+      <button className={'chip-btn' + (onlyWatch ? ' on' : '')} aria-pressed={onlyWatch} onClick={() => setOnlyWatch((v) => !v)}>
         ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
       </button>
       {hiddenCount > 0 && (
-        <button className={'chip-btn' + (showHidden ? ' on' : '')} onClick={() => setShowHidden((v) => !v)}>
+        <button className={'chip-btn' + (showHidden ? ' on' : '')} aria-pressed={showHidden} onClick={() => setShowHidden((v) => !v)}>
           Hidden ({hiddenCount})
         </button>
       )}
@@ -1168,7 +1248,7 @@ export default function App() {
               <p>Facade compliance is what we do best. Pick your side of it and we'll show who needs you this week.</p>
               <div className="tiles">
                 {primaryTrades.map((k) => (
-                  <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
+                  <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} aria-pressed={profileKey === k} onClick={() => pickProfile(k)}>
                     {PROFILES[k].tile}
                   </button>
                 ))}
@@ -1192,7 +1272,7 @@ export default function App() {
               ) : (
                 <div className="tiles secondary">
                   {otherTrades.map((k) => (
-                    <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} onClick={() => pickProfile(k)}>
+                    <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} aria-pressed={profileKey === k} onClick={() => pickProfile(k)}>
                       {PROFILES[k].tile}
                     </button>
                   ))}
@@ -1203,7 +1283,7 @@ export default function App() {
                   <label htmlFor="tk">Your average contract</label>
                   <div className="ticket-row">
                     {[50000, 180000, 500000].map((v) => (
-                      <button key={v} className={'chip-btn' + (ticket === v ? ' on' : '')} onClick={() => saveTicket(v)}>
+                      <button key={v} className={'chip-btn' + (ticket === v ? ' on' : '')} aria-pressed={ticket === v} onClick={() => saveTicket(v)}>
                         {fmtUsd(v)}
                       </button>
                     ))}
@@ -1225,6 +1305,7 @@ export default function App() {
                       <button
                         key={p}
                         className={'chip-btn' + (Math.round(closeRate * 100) === p ? ' on' : '')}
+                        aria-pressed={Math.round(closeRate * 100) === p}
                         onClick={() => saveCloseRate(p / 100)}
                       >
                         {p}%
@@ -1287,6 +1368,7 @@ export default function App() {
               </p>
               <textarea
                 className="pf-input"
+                aria-label="Addresses of buildings you work on, one per line"
                 rows={7}
                 placeholder={'350 5th Ave\n1 Wall St\n255 W 43rd St'}
                 value={portfolioText}
@@ -1386,7 +1468,7 @@ export default function App() {
             />
             <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
               {checkedAt || live?.checkedAt
-                ? `checked ${ago(live?.checkedAt || checkedAt)} · feed changed ${agoLabel}`
+                ? `checked ≤${ago(live?.checkedAt || checkedAt)} · feed changed ${agoLabel}`
                 : `feed changed ${agoLabel}`}
             </span>
             <span className="etclock" title="New York time">
@@ -1532,7 +1614,7 @@ export default function App() {
           <span>
             {hasNew ? (
               <>
-                <b>New in the last 48 hours:</b>{' '}
+                <b>New in the 48 hours to {feedStale ? usShort(data.generatedAt.slice(0, 10)) : 'now'}:</b>{' '}
                 {[
                   wn.buildings && `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`,
                   wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
@@ -1552,7 +1634,11 @@ export default function App() {
         </button>
         <div className="pulseline">
           <span title="Every check writes a timestamp, whether the city published anything or not">
-            {checksToday >= 24 ? `${checksToday} checks in the last 24h` : 'checking every 5 minutes'}
+            {checksToday >= 24
+              ? `${checksToday} checks in the last 24h`
+              : checkedAt && now - checkedAt < 15 * 60000
+                ? 'checking every 5 minutes'
+                : 'checks paused'}
           </span>
           {checkedAt && now - checkedAt > 40 * 60000 && (
             <>
@@ -1614,24 +1700,24 @@ export default function App() {
                 ['Queens', 'Queens', 'qn', 'N'],
                 ['Bronx', 'Bronx', 'bx', '2'],
               ].map(([b, label, line, glyph]) => (
-                <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} onClick={() => setBoro(b)}>
+                <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} aria-pressed={boro === b} onClick={() => setBoro(b)}>
                   {line && <span className={'bullet ' + line} aria-hidden="true">{glyph}</span>}
                   {label}
                   <small>{b === 'all' ? facadeFeed.length : boroCounts[b] || 0}</small>
                 </button>
               ))}
             </div>
-            <button className={'chip-btn' + (onlyWatch ? ' on' : '')} onClick={() => setOnlyWatch((v) => !v)}>
+            <button className={'chip-btn' + (onlyWatch ? ' on' : '')} aria-pressed={onlyWatch} onClick={() => setOnlyWatch((v) => !v)}>
               ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
             </button>
-            <button className={'chip-btn' + (hideBusy ? ' on' : '')} onClick={() => setHideBusy((v) => !v)} title="Hide buildings where a contractor already pulled a permit">
+            <button className={'chip-btn' + (hideBusy ? ' on' : '')} aria-pressed={hideBusy} onClick={() => setHideBusy((v) => !v)} title="Hide buildings where a contractor already pulled a permit">
               Hide worked
             </button>
-            <button className={'chip-btn' + (onlyPortfolio ? ' on' : '')} onClick={() => (portfolio.length ? setOnlyPortfolio((v) => !v) : setPortfolioOpen(true))}>
+            <button className={'chip-btn' + (onlyPortfolio ? ' on' : '')} aria-pressed={onlyPortfolio} onClick={() => (portfolio.length ? setOnlyPortfolio((v) => !v) : setPortfolioOpen(true))}>
               My buildings{portfolio.length ? ` (${portfolio.length})` : ' +'}
             </button>
             {hiddenCount > 0 && (
-              <button className={'chip-btn' + (showHidden ? ' on' : '')} onClick={() => setShowHidden((v) => !v)}>
+              <button className={'chip-btn' + (showHidden ? ' on' : '')} aria-pressed={showHidden} onClick={() => setShowHidden((v) => !v)}>
                 Hidden ({hiddenCount})
               </button>
             )}
@@ -1672,24 +1758,14 @@ export default function App() {
                 >
                   <div className="card-row">
                     <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
-                      <span
-                        className={'found ' + statusOf('b:' + c.bin)}
-                        title={
-                          statusOf('b:' + c.bin) === 'taken'
-                            ? 'Taken — someone is already on it'
-                            : statusOf('b:' + c.bin) === 'personal'
-                              ? `Personal — yours for ${hoursLeft('b:' + c.bin)}h`
-                              : 'Open — no one has claimed it yet'
+                      <StatusDot
+                        status={statusOf('b:' + c.bin)}
+                        note={
+                          statusOf('b:' + c.bin) === 'personal'
+                            ? `Reserved for you for ${hoursLeft('b:' + c.bin)}h`
+                            : null
                         }
-                      >
-                        {statusOf('b:' + c.bin) === 'personal' ? (
-                          '★'
-                        ) : (
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20 6 9 17l-5-5" />
-                          </svg>
-                        )}
-                      </span>
+                      />
                       <span className="head-main">
                         <span className="addr">{title(c.address)}</span>
                         <span className="boro">{c.borough}</span>
@@ -1914,12 +1990,13 @@ export default function App() {
                                   className="btn ghost dots"
                                   aria-label="More actions"
                                   aria-expanded={menuFor === c.bin}
+                                  aria-haspopup="true"
                                   onClick={() => setMenuFor(menuFor === c.bin ? null : c.bin)}
                                 >
                                   …
                                 </button>
                                 {menuFor === c.bin && (
-                                  <div className="menu" role="menu">
+                                  <div className="menu">
                                     <button onClick={() => { copy(c.bin, fv.opener(c)); setMenuFor(null); }}>Copy opener</button>
                                     <button onClick={() => { copyLink('b', c.bin); setMenuFor(null); }}>Copy link</button>
                                     {c.agent && (
@@ -2248,7 +2325,7 @@ export default function App() {
               fetch('/api/slack/connect', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ uid: uid.current, webhook: v }),
+                body: JSON.stringify({ uid: uid.current, secret: secret.current, webhook: v }),
               })
                 .then((r) => r.json())
                 .then((j) => {
@@ -2358,14 +2435,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
             >
               <div className="card-row">
                 <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
-                  <span
-                    className={'found ' + (statusOf ? statusOf(hashType + ':' + id) : 'open')}
-                    title={statusOf && statusOf(hashType + ':' + id) === 'taken' ? 'Taken — someone is already on it' : 'Open — no one has claimed it yet'}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  </span>
+                  <StatusDot status={statusOf ? statusOf(hashType + ':' + id) : 'open'} />
                   {renderHead(c)}
                   <motion.span
                     className="chev"

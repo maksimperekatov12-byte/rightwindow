@@ -10,17 +10,11 @@
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { enrichContact, enrichmentProvider, enrichmentReady } from '../lib/enrich.mjs';
+import { assertCollectable } from '../lib/policy.mjs';
 
 // Source gate (same rule as Signal): a source without an ALLOWED verdict in
 // data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
 // own Bandwidth Policy — real-time deeds are the City Register's paid feed, not a scrape.
-const POLICY = JSON.parse(readFileSync(new URL('../data/source-policy.json', import.meta.url), 'utf8'));
-function assertCollectable(host) {
-  const p = POLICY.find((x) => x.host === host);
-  if (!p) throw new Error(`Source ${host} is not in data/source-policy.json — collection refused.`);
-  if (p.verdict !== 'ALLOWED') throw new Error(`Source ${host} verdict is ${p.verdict} — collection refused. ${p.license}`);
-  return p;
-}
 assertCollectable('data.cityofnewyork.us');
 assertCollectable('data.ny.gov');
 console.log('Source gate: data.cityofnewyork.us ALLOWED, data.ny.gov ALLOWED, a836-acris.nyc.gov DENIED (robots prohibited by city policy)');
@@ -46,7 +40,9 @@ async function getJson(url, tries = 4) {
 async function fetchAll(dataset, params, pageSize = 50000) {
   const rows = [];
   for (let offset = 0; ; offset += pageSize) {
-    const qs = new URLSearchParams({ ...params, $limit: String(pageSize), $offset: String(offset) });
+    // Paging without $order can skip or repeat rows between requests, and a
+    // dropped filing turns a compliant building into a false lead.
+    const qs = new URLSearchParams({ $order: ':id', ...params, $limit: String(pageSize), $offset: String(offset) });
     const page = await getJson(`${BASE}/${dataset}.json?${qs}`);
     rows.push(...page);
     process.stdout.write(`  ${dataset}: ${rows.length}\r`);
@@ -356,7 +352,6 @@ for (const c of top) {
   }
   newBaseline[c.bin] = nowState;
 }
-writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 1));
 console.log(`HPD watcher: baseline ${Object.keys(baseline).length} bins, changes detected: ${mgmtChangeByBin.size}`);
 
 const cards = [];
@@ -638,5 +633,25 @@ const out = {
   contracts,
   openings,
 };
+// feed.json is committed hourly to a PUBLIC repo. Provider-licensed phones and
+// emails must not ride along in it: the card keeps the contact's name, company
+// and confidence level, and the number itself is only written when the operator
+// has explicitly opted in for a private deployment.
+const PUBLISH_CONTACTS = process.env.PUBLISH_CONTACTS === '1';
+if (!PUBLISH_CONTACTS) {
+  let stripped = 0;
+  for (const c of out.facades.feed) {
+    if (!c.agent) continue;
+    if (c.agent.phone || c.agent.email) stripped++;
+    if (c.agent.confidence && c.agent.confidence !== 'none') c.agent.contactKnown = true;
+    delete c.agent.phone;
+    delete c.agent.email;
+  }
+  if (stripped) console.log(`Contacts withheld from the public feed: ${stripped} (set PUBLISH_CONTACTS=1 for a private deployment)`);
+}
 writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(out, null, 1));
+// The HPD baseline advances only once the feed it produced is safely on disk:
+// committing a moved baseline against a stale feed loses those management
+// changes permanently, because the "previous" state has already passed them.
+writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 1));
 console.log(`Written: facades ${feed.length}, contracts ${contracts.length}, openings ${openings.length}. Totals:`, out.facades.totals);

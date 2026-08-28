@@ -17,12 +17,18 @@ export default async function handler(req, res) {
   if (webhook && !/^https:\/\/hooks\.slack\.com\/services\/[\w/+-]+$/.test(webhook))
     return res.status(400).json({ error: 'That does not look like a Slack incoming webhook URL.' });
 
+  let denied = false;
   await updateDoc(PREFS, (doc) => {
     const pref = doc[uid] || { uid };
+    if (pref.secret && pref.secret !== b?.secret) {
+      denied = true;
+      return null;
+    }
     pref.channels = { ...(pref.channels || {}), slack: webhook || null };
     doc[uid] = pref;
     return doc;
   });
+  if (denied) return res.status(403).json({ error: 'not yours' });
 
   if (webhook) {
     const ok = await fetch(webhook, {

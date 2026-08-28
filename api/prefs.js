@@ -60,16 +60,32 @@ const readBody = (req) =>
     req.on('end', () => { try { resolve(JSON.parse(d || '{}')); } catch { resolve(null); } });
   });
 
+// The uid is also sent as a query parameter to /api/live, so it leaks through
+// Referer headers, CDN logs and shared links — it identifies, it does not
+// authorise. Writes carry a separate secret that only ever travels in a body.
+const secretOk = (s) => typeof s === 'string' && /^[\w-]{20,80}$/.test(s);
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const body = await readBody(req);
   const uid = String(body?.uid || '');
+  const secret = body?.secret;
   if (!/^[0-9a-f-]{36}$/.test(uid) || !body?.data) return res.status(400).json({ error: 'bad request' });
+  if (!secretOk(secret)) return res.status(400).json({ error: 'bad request' });
+  let denied = false;
   try {
     await updateDoc(PREFS, (doc) => {
-      doc[uid] = { ...(doc[uid] || {}), ...clean(body.data), uid, savedAt: Date.now() };
+      const prev = doc[uid];
+      // First write for this uid claims it; later writes must present the same
+      // secret, so knowing somebody's uid is not enough to overwrite them.
+      if (prev?.secret && prev.secret !== secret) {
+        denied = true;
+        return null;
+      }
+      doc[uid] = { ...(prev || {}), ...clean(body.data), uid, secret, savedAt: Date.now() };
       return doc;
     });
+    if (denied) return res.status(403).json({ error: 'not yours' });
     return res.json({ ok: true });
   } catch (e) {
     console.error('prefs write failed', e.message);
