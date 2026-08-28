@@ -20,6 +20,4 @@ jobs:
           node-version: 20
       - run: npm i --no-save @vercel/blob
       - run: node scripts/collect-fast.mjs
-      - run: node scripts/heartbeat.mjs
-      - run: node scripts/assign.mjs
       - run: node scripts/notify.mjs

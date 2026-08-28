@@ -1,7 +1,8 @@
-// Personal-signal assigner. Runs hourly after collect:
+// Personal-signal assigner. Runs in the hourly lane after collect (48-hour holds
+// do not need a five-minute cadence, and every run costs blob operations):
 //  - expires assignments older than 48h (they rotate to another user or back to the pool)
 //  - keeps every active user holding up to 3 exclusive, profile-matched, unclaimed signals
-import { readJson, writeJson, listJson } from '../lib/store.mjs';
+import { readDoc, writeJson, CLAIMS, PREFS } from '../lib/store.mjs';
 import { readFileSync } from 'node:fs';
 
 if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -21,16 +22,12 @@ const fMatch = {
   equipment: (c) => c.signals.some((s) => ['SWARMP_CARRYOVER', 'UNSAFE_PRIOR'].includes(s.kind)) || Boolean(c.shed),
 };
 
-const prefPaths = await listJson('prefs/');
-const users = [];
-for (const p of prefPaths) {
-  const r = await readJson(p);
-  if (r?.uid && r.profile && FACADE.has(r.profile)) users.push({ uid: r.uid, profile: r.profile });
-}
-const claimPaths = await listJson('claim/');
-const claimed = new Set(claimPaths.map((p) => p.replace(/^claim\//, '').replace(/\.json$/, '')));
+const users = Object.values(await readDoc(PREFS))
+  .filter((r) => r?.uid && r.profile && FACADE.has(r.profile))
+  .map((r) => ({ uid: r.uid, profile: r.profile }));
+const claimed = new Set(Object.keys(await readDoc(CLAIMS)));
 
-const idx = (await readJson('assign/index.json')) || {};
+const idx = await readDoc('assign/index.json');
 let expired = 0;
 const lastHolder = {};
 for (const [key, a] of Object.entries(idx)) {
@@ -59,5 +56,10 @@ for (const u of users) {
     added++;
   }
 }
-await writeJson('assign/index.json', idx);
-console.log(`assign: users=${users.length} expired=${expired} added=${added} active=${Object.keys(idx).length}`);
+// Writing is an "advanced" blob operation on a tight monthly budget — skip it
+// when the index did not actually move.
+if (expired || added) await writeJson('assign/index.json', idx);
+console.log(
+  `assign: users=${users.length} expired=${expired} added=${added} active=${Object.keys(idx).length}` +
+    (expired || added ? '' : ' (no write)'),
+);

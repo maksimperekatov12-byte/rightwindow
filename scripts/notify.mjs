@@ -1,7 +1,7 @@
 // Instant alerts: runs in the 10-minute lane. Sends only signals whose clock is
 // measured in days (fresh violations, hearings within a month, ownership flips)
 // and never repeats one — per user, per signal, forever.
-import { readJson, writeJson, listJson } from '../lib/store.mjs';
+import { readDoc, writeJson, PREFS } from '../lib/store.mjs';
 import { matchFor } from '../lib/signals.mjs';
 import { signalBlocks, postToSlack } from '../lib/slack.mjs';
 import { readFileSync } from 'node:fs';
@@ -15,11 +15,12 @@ const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.met
 const MAX_PER_RUN = 3;
 
 const COOLDOWN_MS = 45 * 60 * 1000; // never more than one interruption per 45 min
-const paths = await listJson('prefs/');
-let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0;
+// All preferences live in one document: one read for every user, one write at
+// the end, instead of a list() plus a get() and a put() per user.
+const prefsDoc = await readDoc(PREFS);
+let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0, dirty = false;
 
-for (const p of paths) {
-  const pref = await readJson(p);
+for (const pref of Object.values(prefsDoc)) {
   if (!pref?.profile) continue;
   const slack = pref.channels?.slack;
   const email = pref.channels?.email;
@@ -39,7 +40,7 @@ for (const p of paths) {
     for (const i of candidates) sent.add(`${i.kind}:${i.id}`);
     pref.instantSeeded = true;
     pref.sentKeys = [...sent].slice(-400);
-    await writeJson(p, pref);
+    dirty = true;
     seeded++;
     continue;
   }
@@ -78,6 +79,10 @@ for (const p of paths) {
 
   pref.sentKeys = [...sent].slice(-400);
   pref.lastInstantAt = Date.now();
-  await writeJson(p, pref);
+  dirty = true;
 }
-console.log(`notify: users=${users} slack=${slackSent} email=${mailSent} seeded=${seeded} cooldown=${cooled}`);
+if (dirty) await writeJson(PREFS, prefsDoc);
+console.log(
+  `notify: users=${users} slack=${slackSent} email=${mailSent} seeded=${seeded} cooldown=${cooled}` +
+    (dirty ? '' : ' (no write)'),
+);

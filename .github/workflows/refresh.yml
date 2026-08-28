@@ -27,13 +27,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Collect all sources
         run: node scripts/collect.mjs
-      - name: Heartbeat
+      - name: Rotate personal signals
         if: always()
         env:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
         run: |
           npm i --no-save @vercel/blob > /dev/null 2>&1
-          node scripts/heartbeat.mjs
+          node scripts/assign.mjs
       - name: Commit refreshed data
         run: |
           git config user.email "maxim122090@gmail.com"

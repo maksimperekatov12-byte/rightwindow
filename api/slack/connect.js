@@ -1,5 +1,5 @@
 // Store a Slack incoming webhook against a uid, and send a test card.
-import { readJson, writeJson } from '../../lib/store.mjs';
+import { updateDoc, PREFS } from '../../lib/store.mjs';
 
 const readBody = (req) =>
   new Promise((resolve) => {
@@ -17,9 +17,12 @@ export default async function handler(req, res) {
   if (webhook && !/^https:\/\/hooks\.slack\.com\/services\/[\w/+-]+$/.test(webhook))
     return res.status(400).json({ error: 'That does not look like a Slack incoming webhook URL.' });
 
-  const prefs = (await readJson(`prefs/${uid}.json`)) || { uid };
-  prefs.channels = { ...(prefs.channels || {}), slack: webhook || null };
-  await writeJson(`prefs/${uid}.json`, prefs);
+  await updateDoc(PREFS, (doc) => {
+    const pref = doc[uid] || { uid };
+    pref.channels = { ...(pref.channels || {}), slack: webhook || null };
+    doc[uid] = pref;
+    return doc;
+  });
 
   if (webhook) {
     const ok = await fetch(webhook, {

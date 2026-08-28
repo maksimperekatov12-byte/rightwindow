@@ -480,6 +480,7 @@ export default function App() {
   const [fb, setFb] = useState(() => loadLS('rw.fb', {}));
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
+  const lastPrefs = useRef('');
   const reduce = useReducedMotion();
   const uid = useRef(null);
   if (uid.current === null) {
@@ -527,45 +528,46 @@ export default function App() {
     else delete r.dataset.theme;
   }, [theme]);
 
+  // One request, and only while somebody is looking. Four endpoints polled
+  // every 30 seconds from a tab left open all day is what exhausted the free
+  // operation allowance and suspended the store on 2026-08-28.
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 30000);
-    const pull = () => {
-      fetch('/api/heartbeat')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => j?.checkedAt && setCheckedAt(j.checkedAt))
-        .catch(() => {});
-      fetch('/api/live')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => j?.contracts && setLive(j))
-        .catch(() => {});
-      fetch('/api/claims')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => j && setClaims(j))
-        .catch(() => {});
-      fetch('/api/mine?uid=' + uid.current)
+    let last = 0;
+    const pull = (force) => {
+      if (!force && (document.hidden || Date.now() - last < 45000)) return;
+      last = Date.now();
+      fetch('/api/live?uid=' + uid.current)
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => {
-          if (!j?.items) return;
-          const m = {};
-          for (const it of j.items) m[it.key] = it.until;
-          setMine(m);
+          if (!j) return;
+          if (j.checkedAt) setCheckedAt(j.checkedAt);
+          if (j.contracts) setLive(j);
+          if (j.claims) setClaims(j.claims);
+          if (j.mine) {
+            const m = {};
+            for (const it of j.mine) m[it.key] = it.until;
+            setMine(m);
+          }
         })
         .catch(() => {});
     };
-    pull();
-    const h = setInterval(pull, 30000);
+    pull(true);
+    const h = setInterval(pull, 60000);
+    const onVis = () => {
+      if (!document.hidden) pull(true);
+    };
+    document.addEventListener('visibilitychange', onVis);
     return () => {
       clearInterval(i);
       clearInterval(h);
+      document.removeEventListener('visibilitychange', onVis);
     };
   }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      fetch('/api/prefs', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
+      const body = JSON.stringify({
           uid: uid.current,
           data: {
             profile: profileKey,
@@ -578,7 +580,14 @@ export default function App() {
             channels: { email: email || null, slack: slackHook || null, walletSerial: null },
             portfolio,
           },
-        }),
+        });
+      // Saving is a billed write; an unchanged payload is not worth one.
+      if (body === lastPrefs.current) return;
+      lastPrefs.current = body;
+      fetch('/api/prefs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body,
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(t);

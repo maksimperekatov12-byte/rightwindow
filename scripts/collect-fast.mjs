@@ -1,8 +1,13 @@
 // Fast lane: re-check the intraday sources (contract awards + SLA licenses)
-// every 10 minutes. Writes feed.json ONLY when something actually changed,
-// so Vercel deploys stay within the free tier while signals land in minutes.
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { readJson, writeJson } from '../lib/store.mjs';
+// every five minutes and publish the result.
+//
+// The published document does NOT go to Vercel Blob any more. One put() per
+// tick is 288 advanced operations a day against a 2,000/month allowance, and
+// that is what suspended the store on 2026-08-28. It is written to a working
+// copy of the orphan `data` branch instead, which the workflow force-pushes;
+// the site reads it back through GitHub's CDN for free. See lib/live-source.mjs.
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readDoc, CLAIMS } from '../lib/store.mjs';
 
 const TODAY = new Date();
 async function getJson(url, tries = 3) {
@@ -91,10 +96,13 @@ if (seen) {
   }
 }
 
-// Intraday data goes to Blob, not git: the site reads it live, so a tick costs
-// no commit and no redeploy — that is what makes a 5-minute cadence possible.
+// The previous published document is the local working copy of the data branch,
+// so continuity of the pulse and the change log costs nothing to read.
+const outDir = process.env.DATA_DIR || new URL('../.data', import.meta.url).pathname;
+const outPath = `${outDir}/intraday.json`;
 const strip = (arr) => arr.map(({ daysAgo, isNew, ...rest }) => rest);
-const prevLive = await readJson('live/intraday.json');
+let prevLive = null;
+try { prevLive = JSON.parse(readFileSync(outPath, 'utf8')); } catch {}
 const prevContracts = prevLive?.contracts || feed.contracts || [];
 const prevOpenings = prevLive?.openings || feed.openings || [];
 const changed =
@@ -119,7 +127,23 @@ if (changed) {
 }
 const recentChanges = changeLog.filter((c) => nowMs - c.at < 7 * DAY).slice(-60);
 
-await writeJson('live/intraday.json', {
+// Claim colours ride along in the published document so browsers never pay a
+// blob read for them. Claims move on human timescales, so re-reading the store
+// every third tick (15 minutes) is enough; the claimer sees their own instantly.
+const CLAIM_EVERY = Number(process.env.CLAIM_REFRESH_TICKS || 3);
+const tick = Number(process.env.TICK || 0);
+let claims = prevLive?.claims || {};
+if (process.env.BLOB_READ_WRITE_TOKEN && (!prevLive || tick % CLAIM_EVERY === 0)) {
+  try {
+    const doc = await readDoc(CLAIMS);
+    claims = Object.fromEntries(Object.entries(doc).map(([k, v]) => [k, { at: v.at }]));
+  } catch (e) {
+    console.log(`fast: claims unavailable (${e.message}) — keeping previous`);
+  }
+}
+
+mkdirSync(outDir, { recursive: true });
+writeFileSync(outPath, JSON.stringify({
   checkedAt: nowMs,
   changedAt: changed ? nowMs : prevLive?.changedAt || nowMs,
   pulse,
@@ -131,7 +155,8 @@ await writeJson('live/intraday.json', {
     openings: openings.filter((o) => o.isNew).length,
   },
   sources: { awards: awardsDate },
-});
+  claims,
+}));
 // seen memory is committed by the hourly lane; keep it fresh locally when we can
 if (seen && changed) {
   try { writeFileSync(seenPath, JSON.stringify(seen, null, 1)); } catch {}
@@ -139,5 +164,5 @@ if (seen && changed) {
 console.log(
   changed
     ? `fast: updated — contracts new=${contracts.filter((c) => c.isNew).length}, openings new=${openings.filter((o) => o.isNew).length}`
-    : 'fast: no changes (heartbeat written)',
+    : `fast: no changes (checked ${new Date(nowMs).toISOString().slice(11, 19)}Z)`,
 );

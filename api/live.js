@@ -1,9 +1,28 @@
-// Intraday layer: contracts, openings and freshness written by the pinger every
-// few minutes. Served straight from Blob so the site is fresh without a redeploy.
-import { readJson } from '../lib/store.mjs';
+// The one endpoint the browser polls: intraday signals, proof of life, claim
+// colours, and this visitor's personal signals — in a single response.
+//
+// It used to be four endpoints polled every 30 seconds, each hitting Blob. That
+// is what drained the free operation allowance. The public half now comes from
+// GitHub's CDN and is edge-cached for everyone; only the per-visitor half is
+// ever computed per uid.
+import { readDoc } from '../lib/store.mjs';
+import { fetchLive } from '../lib/live-source.mjs';
 
 export default async function handler(req, res) {
-  const live = await readJson('live/intraday.json');
-  res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=60');
-  res.json(live || {});
+  const uid = String(req.query.uid || '');
+  const live = (await fetchLive()) || {};
+
+  if (!/^[0-9a-f-]{36}$/.test(uid)) {
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600');
+    return res.json(live);
+  }
+
+  // Personal signals rotate on a 48-hour hold, so a stale minute costs nothing.
+  const idx = await readDoc('assign/index.json');
+  const now = Date.now();
+  const mine = Object.entries(idx)
+    .filter(([, a]) => a.uid === uid && a.until > now)
+    .map(([key, a]) => ({ key, until: a.until }));
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
+  res.json({ ...live, mine });
 }

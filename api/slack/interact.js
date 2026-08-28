@@ -2,7 +2,7 @@
 // Verified with Slack's signing secret; Claim writes the same global claim state
 // the website reads, so the dot turns amber for everyone.
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { readJson, writeJson } from '../../lib/store.mjs';
+import { updateDoc, CLAIMS } from '../../lib/store.mjs';
 
 export const config = { api: { bodyParser: false } };
 
@@ -39,11 +39,15 @@ export default async function handler(req, res) {
   const who = payload.user?.name || payload.user?.username || 'someone';
 
   if (action.action_id === 'claim' && /^[bco]:[\w-]{1,40}$/.test(key)) {
-    const existing = await readJson(`claim/${key}.json`);
-    if (existing) {
+    let taken = false;
+    await updateDoc(CLAIMS, (doc) => {
+      if (doc[key]) { taken = true; return null; }
+      doc[key] = { uid: `slack:${payload.user?.id || 'unknown'}`, at: Date.now(), via: 'slack' };
+      return doc;
+    });
+    if (taken) {
       return res.json({ replace_original: false, response_type: 'ephemeral', text: 'Already claimed — someone got there first.' });
     }
-    await writeJson(`claim/${key}.json`, { uid: `slack:${payload.user?.id || 'unknown'}`, at: Date.now(), via: 'slack' });
     return res.json({
       replace_original: false,
       response_type: 'in_channel',
