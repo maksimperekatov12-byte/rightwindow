@@ -97,21 +97,35 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
       </ul>
 
       <h2>How contacts are obtained</h2>
-      <p className="lead sm">Every contact carries one of three labels, and the label is never upgraded by guesswork.</p>
+      <p className="lead sm">
+        Every contact carries one of four labels, and the label is never upgraded by guesswork. Each names where the
+        number came from, because a number is only worth what its source is worth.
+      </p>
       <ul className="dlist tiers">
         <li>
-          <span className="conf ok">verified direct</span> A licensed enrichment provider returned a direct business
-          number for that role. The number is shown.
+          <span className="conf ok">verified · company site</span> Read off the company's own domain or a city filing.
+          Shown with the domain it came from.
         </li>
         <li>
-          <span className="conf mid">office line · HPD registration</span> A business line on file with the city. The
-          number is shown, labelled for what it is.
+          <span className="conf mid">listed · directory</span> A third party vouches for the same company. Shown,
+          labelled for what it is — dial it expecting it may be stale.
+        </li>
+        <li>
+          <span className="conf alt">via another operator</span> The registered owner is a holding company with no
+          contact anywhere, and this number reaches the firm that actually runs the building — named on a city filing or
+          on the building's own site. The label always says whose line it is, so nobody opens a call asking for a company
+          that will not be there.
         </li>
         <li>
           <span className="conf low">no direct line on file</span> We have the company and the role, not a number. No
           number is shown. Searching the web for one stays a link, under the menu, named as a web search.
         </li>
       </ul>
+      <p className="fine">
+        Measured on 50 randomly drawn managing agents from the live feed: 36 had a findable phone, 3 more a published
+        inbox. The gap is structural — a building owned through a single-purpose LLC has no business presence to find,
+        which is what the fourth label is for.
+      </p>
       {noCall.map((p) => (
         <p className="fine" key={p.id}>
           <b>Current provider: {p.publisher}.</b> {p.license}

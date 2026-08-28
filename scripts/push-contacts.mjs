@@ -15,21 +15,26 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
 
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 const out = {};
-let verified = 0;
-let listed = 0;
+const tally = {};
 
 for (const c of feed.facades.feed) {
   if (!c.agent?.company) continue;
   const e = await enrichContact({ company: c.agent.company, address: c.agent.address });
-  if (e.confidence === 'none' || !e.phone) continue;
-  out[c.bin] = { phone: e.phone, email: e.email || null, confidence: e.confidence, source: e.source };
-  if (e.confidence === 'verified') verified++;
-  else listed++;
+  if (e.confidence === 'none' || (!e.phone && !e.email)) continue;
+  out[c.bin] = {
+    phone: e.phone || null,
+    email: e.email || null,
+    confidence: e.confidence,
+    source: e.source,
+    ...(e.via ? { via: e.via } : {}),
+  };
+  tally[e.confidence] = (tally[e.confidence] || 0) + 1;
 }
 
 try {
   await writeJson('contacts.json', out);
-  console.log(`push-contacts: ${Object.keys(out).length} published (verified ${verified}, listed ${listed})`);
+  const parts = Object.entries(tally).map(([k, v]) => `${k} ${v}`).join(', ');
+  console.log(`push-contacts: ${Object.keys(out).length} published (${parts || 'none'})`);
 } catch (e) {
   console.log(`push-contacts: store unavailable (${e.message}) — contacts stay local`);
 }

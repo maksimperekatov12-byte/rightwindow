@@ -675,6 +675,9 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .conf.ok { background: var(--brand-wash); color: var(--brand); }
 .conf.mid { background: var(--warm-wash); color: var(--warm); }
 .conf.low { background: var(--panel-2); color: var(--ink-3); }
+/* Reaches the operator, not the registered entity — its own colour so it is
+   never mistaken for a direct contact at a glance. */
+.conf.alt { background: rgba(42, 78, 140, 0.13); color: var(--blueprint); }
 
 .datapage { max-width: 860px; padding-top: 28px; }
 .datapage .back { margin-bottom: 22px; }

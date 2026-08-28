@@ -458,10 +458,34 @@ function WindowBar({ opens, deadline }) {
 // to a managing agent look like business rather than a blast.
 const emailSubject = (c) => `${title(c.address)} — ${c.subCycle} facade compliance`;
 
+// Writing to the operator is not writing to the registered owner, so the opener
+// says which building it is about before it says anything else. Without this the
+// message reads as though it were meant for someone else, which is how a cold
+// email gets deleted.
+const openerFor = (c, fv, ct) => {
+  const body = fv.opener(c);
+  if (!ct?.via) return body;
+  return `${body}\n\n(Reaching you as the managing agent on record for ${title(c.address)}; the registration is held by ${title(ct.company || 'the owner')}.)`;
+};
+
 function contactOf(c, resolved) {
   const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
   const base = { name: a.name, company: a.company, from: 'HPD registration' };
+
+  // Tested first, because it is the one case where the number is right but the
+  // NAME is not: the registered entity is a holding company and this reaches the
+  // firm that actually runs the building. A caller who does not know that opens
+  // by asking for a company nobody there has heard of.
+  if (a.via && (a.phone || a.email))
+    return {
+      ...base,
+      phone: a.phone || null,
+      email: a.email || null,
+      via: a.via,
+      level: `via ${a.via}`,
+      tone: 'alt',
+    };
   if (a.phone && a.confidence === 'verified')
     return {
       ...base,
@@ -2015,13 +2039,13 @@ export default function App() {
                                   return (
                                     <a
                                       className="btn solid big"
-                                      href={`mailto:${ct.email}?subject=${encodeURIComponent(emailSubject(c))}&body=${encodeURIComponent(fv.opener(c))}`}
+                                      href={`mailto:${ct.email}?subject=${encodeURIComponent(emailSubject(c))}&body=${encodeURIComponent(openerFor(c, fv, ct))}`}
                                     >
                                       Email {ct.email}
                                     </a>
                                   );
                                 return (
-                                  <button className="btn solid big" onClick={() => copy(c.bin, fv.opener(c))}>
+                                  <button className="btn solid big" onClick={() => copy(c.bin, openerFor(c, fv, ct))}>
                                     {copiedId === c.bin ? 'Opener copied' : 'Copy opener'}
                                   </button>
                                 );
@@ -2038,7 +2062,7 @@ export default function App() {
                                 </button>
                                 {menuFor === c.bin && (
                                   <div className="menu">
-                                    <button onClick={() => { copy(c.bin, fv.opener(c)); setMenuFor(null); }}>Copy opener</button>
+                                    <button onClick={() => { copy(c.bin, openerFor(c, fv, contactOf(c, contacts[c.bin]))); setMenuFor(null); }}>Copy opener</button>
                                     <button onClick={() => { copyLink('b', c.bin); setMenuFor(null); }}>Copy link</button>
                                     {c.agent && (
                                       <a href={findUrl(`${c.agent.company || ''} ${c.agent.name || ''} phone New York`)} target="_blank" rel="noreferrer">

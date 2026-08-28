@@ -483,6 +483,7 @@ for (const c of top) {
       c.agent.email = e.email;
       c.agent.confidence = e.confidence;
       c.agent.contactSource = e.source;
+      if (e.via) c.agent.via = e.via;
       byLevel[e.confidence] = (byLevel[e.confidence] || 0) + 1;
       hits++;
     }
