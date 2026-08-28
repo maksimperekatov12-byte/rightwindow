@@ -13,6 +13,19 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
   process.exit(1);
 }
 
+// Runs from the hourly lane so the migration happens on its own the moment the
+// store comes back from suspension. Two cheap gates keep the hourly cost at one
+// read: a suspended store exits quietly, a done marker exits quietly.
+try {
+  if (await readJson('state/migrated.json')) {
+    console.log('migrate: already done');
+    process.exit(0);
+  }
+} catch (e) {
+  console.log(`migrate: store not available yet (${e.message}) — will retry next hour`);
+  process.exit(0);
+}
+
 const claims = await readDoc(CLAIMS);
 let n = 0;
 for (const p of await listJson('claim/')) {
@@ -34,3 +47,6 @@ for (const p of await listJson('prefs/')) {
 }
 if (m) await writeJson(PREFS, prefs);
 console.log(`migrate: prefs +${m} (total ${Object.keys(prefs).length})`);
+
+await writeJson('state/migrated.json', { at: Date.now(), claims: n, prefs: m });
+console.log('migrate: marker written — this will not run again');
