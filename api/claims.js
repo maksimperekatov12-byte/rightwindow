@@ -21,7 +21,13 @@ export const publicClaims = (doc) => {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const doc = await readDoc(CLAIMS);
+    let doc;
+    try {
+      doc = await readDoc(CLAIMS);
+    } catch {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.json({});
+    }
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
     return res.json(publicClaims(doc));
   }
@@ -31,11 +37,15 @@ export default async function handler(req, res) {
     const key = String(body?.key || '');
     if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bco]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
     let taken = null;
-    await updateDoc(CLAIMS, (doc) => {
-      if (doc[key]) { taken = doc[key]; return null; }
-      doc[key] = { uid, at: Date.now() };
-      return doc;
-    });
+    try {
+      await updateDoc(CLAIMS, (doc) => {
+        if (doc[key]) { taken = doc[key]; return null; }
+        doc[key] = { uid, at: Date.now() };
+        return doc;
+      });
+    } catch {
+      return res.status(503).json({ error: 'store unavailable' });
+    }
     if (taken) return res.json({ status: 'taken', at: taken.at });
     return res.status(201).json({ status: 'claimed' });
   }

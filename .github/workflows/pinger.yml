@@ -47,9 +47,20 @@ jobs:
       - name: Seed the published document
         run: |
           mkdir -p "$DATA_DIR"
-          curl -sfL --max-time 20 \
-            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/intraday.json" \
-            -o "$DATA_DIR/intraday.json" && echo "seeded from data branch" || echo "no data branch yet — first run"
+          # Losing the seed resets the proof-of-life counter to 1 in front of
+          # whoever is looking, so it retries and falls back to git itself.
+          for i in 1 2 3; do
+            curl -sfL --max-time 20 \
+              "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/intraday.json?r=$i" \
+              -o "$DATA_DIR/intraday.json" && break
+            sleep 5
+          done
+          if [ ! -s "$DATA_DIR/intraday.json" ]; then
+            git fetch -q --depth 1 origin data && git show origin/data:intraday.json > "$DATA_DIR/intraday.json" \
+              && echo "seeded from git" || echo "no data branch yet — first run"
+          else
+            echo "seeded from data branch"
+          fi
           git config --global user.email "actions@github.com"
           git config --global user.name "right-window-pinger"
       - name: Ping loop

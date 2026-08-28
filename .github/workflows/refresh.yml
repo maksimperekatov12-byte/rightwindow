@@ -33,8 +33,9 @@ jobs:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
         run: |
           npm i --no-save @vercel/blob > /dev/null 2>&1
-          node scripts/assign.mjs
+          node scripts/assign.mjs || echo "assign failed (store down?) — feed commit continues" 
       - name: Commit refreshed data
+        if: always()
         run: |
           git config user.email "maxim122090@gmail.com"
           git config user.name "Maxim Perekatov"

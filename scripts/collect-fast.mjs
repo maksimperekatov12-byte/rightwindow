@@ -120,7 +120,9 @@ const DAY = 24 * 3600 * 1000;
 const nowMs = Date.now();
 const pulse = [...(prevLive?.pulse || []), nowMs].filter((t) => nowMs - t < DAY).slice(-400);
 const changeLog = [...(prevLive?.changeLog || [])];
-if (changed) {
+// A cold start has nothing to compare against — recording "changed" there
+// fabricates a history entry for an event that never happened.
+if (changed && prevLive) {
   const newC = contracts.filter((c) => c.isNew).length;
   const newO = openings.filter((o) => o.isNew).length;
   changeLog.push({ at: nowMs, contracts: newC, openings: newO });
@@ -130,7 +132,7 @@ const recentChanges = changeLog.filter((c) => nowMs - c.at < 7 * DAY).slice(-60)
 // Claim colours ride along in the published document so browsers never pay a
 // blob read for them. Claims move on human timescales, so re-reading the store
 // every third tick (15 minutes) is enough; the claimer sees their own instantly.
-const CLAIM_EVERY = Number(process.env.CLAIM_REFRESH_TICKS || 3);
+const CLAIM_EVERY = Number(process.env.CLAIM_REFRESH_TICKS || 6);
 const tick = Number(process.env.TICK || 0);
 let claims = prevLive?.claims || {};
 if (process.env.BLOB_READ_WRITE_TOKEN && (!prevLive || tick % CLAIM_EVERY === 0)) {

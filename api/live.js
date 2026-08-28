@@ -5,24 +5,28 @@
 // is what drained the free operation allowance. The public half now comes from
 // GitHub's CDN and is edge-cached for everyone; only the per-visitor half is
 // ever computed per uid.
-import { readDoc } from '../lib/store.mjs';
+import { readJsonSoft } from '../lib/store.mjs';
 import { fetchLive } from '../lib/live-source.mjs';
 
 export default async function handler(req, res) {
   const uid = String(req.query.uid || '');
-  const live = (await fetchLive()) || {};
+  const live = await fetchLive();
 
-  if (!/^[0-9a-f-]{36}$/.test(uid)) {
+  // An upstream failure must not be cached as if it were the state of the city.
+  if (!live) {
+    res.setHeader('Cache-Control', 'no-store');
+    if (!/^[0-9a-f-]{36}$/.test(uid)) return res.json({});
+  } else if (!/^[0-9a-f-]{36}$/.test(uid)) {
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600');
     return res.json(live);
   }
 
   // Personal signals rotate on a 48-hour hold, so a stale minute costs nothing.
-  const idx = await readDoc('assign/index.json');
+  const idx = (await readJsonSoft('assign/index.json')) || {};
   const now = Date.now();
   const mine = Object.entries(idx)
     .filter(([, a]) => a.uid === uid && a.until > now)
     .map(([key, a]) => ({ key, until: a.until }));
-  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
-  res.json({ ...live, mine });
+  if (live) res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
+  res.json({ ...(live || {}), mine });
 }

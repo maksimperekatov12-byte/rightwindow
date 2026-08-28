@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 import DataPage from './Data.jsx';
@@ -37,7 +37,7 @@ function signalStory(c) {
 }
 
 const GENERIC_FACADE = {
-  hero: 'Buildings in a forced-spend window',
+  hero: 'Buildings in a *forced-spend* window',
   hint: 'Ranked by urgency — deadlines, fresh violations, ownership changes, penalty balances.',
   sort: byUrgency,
   why: (c) => signalStory(c),
@@ -50,7 +50,7 @@ const PROFILES = {
     label: 'Facade engineer',
     tile: 'Facade engineering / inspections (QEWI)',
     facade: {
-      hero: 'Buildings that need a facade engineer — before they know it',
+      hero: 'Buildings that need a facade engineer — *before they know it*',
       hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
       sort: byUrgency,
       why: () => 'No engineer on record — first call gets the walk-through.',
@@ -65,7 +65,7 @@ const PROFILES = {
     label: 'Restoration contractor',
     tile: 'Facade restoration / exterior repair',
     facade: {
-      hero: 'Repair work the law has already sold for you',
+      hero: 'Repair work *the law has already sold* for you',
       hint: 'Open SWARMP and UNSAFE conditions — mandatory scopes, before they go out to bid.',
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') || byUrgency(a, b),
@@ -81,7 +81,7 @@ const PROFILES = {
     label: 'C-PACE / lender',
     tile: 'Financing (C-PACE, bridge, equipment)',
     facade: {
-      hero: 'Forced capital projects, found before the loan request',
+      hero: 'Forced capital projects, found *before the loan request*',
       hint: 'Mandatory capex with a fine meter — financeable projects that cannot be postponed.',
       sort: (a, b) => byUrgency(a, b) || (b.finesOwed || 0) + (b.ecbBalance || 0) - (a.finesOwed || 0) - (a.ecbBalance || 0),
       why: (c) => {
@@ -98,7 +98,7 @@ const PROFILES = {
     label: 'Elevator services',
     tile: 'Elevator service / modernization',
     facade: {
-      hero: 'Elevators with a legal test due — and no one booked',
+      hero: 'Elevators with a legal test due — *and no one booked*',
       hint: `Buildings whose devices have no ${YEAR} CAT1 test or an overdue 5-year CAT5 — the deadline is Dec 31.`,
       sort: (a, b) =>
         (b.elevator?.cat1Missing || 0) + (b.elevator?.cat5Due || 0) - (a.elevator?.cat1Missing || 0) - (a.elevator?.cat5Due || 0) ||
@@ -118,7 +118,7 @@ const PROFILES = {
     label: 'Insurance / bonding',
     tile: 'Insurance / surety bonds',
     facade: {
-      hero: 'Buildings whose risk profile just changed',
+      hero: 'Buildings whose risk profile *just changed*',
       hint: 'New owners re-shop coverage; active violations raise liability; mandated work needs builder’s risk.',
       sort: (a, b) =>
         (b.ownerChange ? 3 : 0) + (b.freshHaz ? 2 : 0) - (a.ownerChange ? 3 : 0) - (a.freshHaz ? 2 : 0) || byUrgency(a, b),
@@ -166,7 +166,7 @@ const PROFILES = {
     label: 'Equipment / access',
     tile: 'Equipment rental / scaffolding',
     facade: {
-      hero: 'Mandated repairs that need access equipment',
+      hero: 'Mandated repairs that need *access equipment*',
       hint: 'SWARMP and UNSAFE scopes mean sheds, scaffolding and hoists — booked by whoever calls first.',
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') + (b.shed ? 2 : 0) - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') - (a.shed ? 2 : 0) ||
@@ -187,7 +187,7 @@ const PROFILES = {
     label: 'Property management',
     tile: 'Property management',
     facade: {
-      hero: 'Buildings that just changed hands — before the management RFP',
+      hero: 'Buildings that just changed hands — *before the management RFP*',
       hint: 'Sales and registration changes only: the window when owners re-bid the management contract.',
       sort: (a, b) => (b.mgmtChange ? 4 : 0) + (b.ownerChange ? 3 : 0) - (a.mgmtChange ? 4 : 0) - (a.ownerChange ? 3 : 0) || byUrgency(a, b),
       why: () => 'New owners review the management contract in year one — and this one carries open compliance work.',
@@ -202,7 +202,7 @@ const PROFILES = {
     label: 'Code attorney / expeditor',
     tile: 'Code attorneys / expeditors',
     facade: {
-      hero: 'Hearings on the calendar, violations on the clock',
+      hero: 'Hearings on the calendar, *violations on the clock*',
       hint: 'Buildings with OATH hearings ahead, fresh violations or unpaid ECB balances — clients with a date.',
       sort: (a, b) =>
         (b.nextHearing ? 4 : 0) + (b.freshHaz ? 2 : 0) - (a.nextHearing ? 4 : 0) - (a.freshHaz ? 2 : 0) ||
@@ -224,7 +224,7 @@ const PROFILES = {
     label: 'CRE broker / investor',
     tile: 'CRE brokerage / investment',
     facade: {
-      hero: 'Owners under compliance pressure — before they list',
+      hero: 'Owners under compliance pressure — *before they list*',
       hint: 'Penalty balances, mandated capex and hearings — the polite word is “motivated”.',
       sort: (a, b) =>
         (b.ecbBalance || 0) + (b.finesOwed || 0) + (b.freshHaz ? 50000 : 0) - (a.ecbBalance || 0) - (a.finesOwed || 0) - (a.freshHaz ? 50000 : 0) ||
@@ -265,6 +265,31 @@ const PROFILES = {
     oNeed: null,
   },
 };
+
+// A phrase wrapped in *asterisks* comes out in the display italic. It is the one
+// thing the serif can do that the grotesque cannot, so it is spent on the
+// clause that carries the argument.
+// The block model is the heaviest thing on the page, so it is code-split and
+// only ever mounted on a wide screen with motion allowed.
+const Massing = lazy(() => import('./Massing.jsx'));
+
+// three.js cannot read CSS variables, so the live theme is handed over by hand.
+const readThemeColors = () => {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (n, f) => (cs.getPropertyValue(n) || f).trim();
+  return {
+    ink: v('--ink', '#101613'),
+    brand: v('--brand', '#14594A'),
+    warm: v('--warm', '#8A6410'),
+    line: v('--line-2', 'rgba(15,30,26,0.16)'),
+    bg: v('--bg-0', '#F1EFE9'),
+  };
+};
+
+const emphasize = (text) =>
+  String(text)
+    .split(/(\*[^*]+\*)/)
+    .map((p, i) => (p.startsWith('*') && p.endsWith('*') ? <em key={i}>{p.slice(1, -1)}</em> : p));
 
 const fmtUsd = (n) =>
   n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : `$${Math.round(n / 1000)}K`;
@@ -481,6 +506,8 @@ export default function App() {
   const [showHidden, setShowHidden] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const lastPrefs = useRef('');
+  const [themeColors, setThemeColors] = useState(readThemeColors);
+  const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
   const reduce = useReducedMotion();
   const uid = useRef(null);
   if (uid.current === null) {
@@ -527,6 +554,18 @@ export default function App() {
     if (theme) r.dataset.theme = theme;
     else delete r.dataset.theme;
   }, [theme]);
+
+  // The attribute above lands in an effect, so the colours are re-read after it.
+  useEffect(() => {
+    setThemeColors(readThemeColors());
+  }, [theme, systemDark]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 980px)');
+    const on = (e) => setWide(e.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
 
   // One request, and only while somebody is looking. Four endpoints polled
   // every 30 seconds from a tab left open all day is what exhausted the free
@@ -928,8 +967,8 @@ export default function App() {
     vertical === 'facades'
       ? fv.hero
       : vertical === 'contracts'
-        ? 'Companies that won city money yesterday'
-        : 'Venues that will open their doors in a few months';
+        ? 'Companies that won city money *yesterday*'
+        : 'Venues that will open their doors *in a few months*';
 
   const heroSub =
     vertical === 'facades'
@@ -1283,8 +1322,9 @@ export default function App() {
           {vertical === 'facades' ? (
             <motion.div className="hook" {...fade(0)}>
               <b>
-                <CountUp value={data.facades.totals.nonFilers10A} /> buildings
+                <CountUp value={data.facades.totals.nonFilers10A} />
               </b>
+              <i>buildings</i>
               <span>
                 have not filed their sub-cycle 10A facade report. The deadline is {usDate(deadlineIso)} —{' '}
                 <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
@@ -1301,7 +1341,7 @@ export default function App() {
               exit={reduce ? {} : { opacity: 0, y: -8 }}
               transition={{ duration: 0.28, ease: 'easeOut' }}
             >
-              {heroText}
+              {emphasize(heroText)}
             </motion.h1>
           </AnimatePresence>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
@@ -1333,23 +1373,33 @@ export default function App() {
 
         </section>
         {vertical === 'facades' && (
-          <div className="stats">
-            {[
-              [data.facades.totals.candidates, 'buildings off the compliance calendar, four boroughs'],
-              [data.facades.totals.nonFilers10A, 'unfiled for sub-cycle 10A — six months to deadline'],
-              [data.facades.totals.swarmpCarryover, 'open SWARMP scopes carried from Cycle 9'],
-              [1000, 'per month — the DOB penalty meter after a missed deadline', '$'],
-            ].map(([n, l, pre], i) => (
-              <motion.div className="stat" key={l} {...fade(0.08 + i * 0.06)}>
-                <div className="n">
-                  <CountUp value={n} prefix={pre || ''} />
-                </div>
-                <div className="l">{l}</div>
-              </motion.div>
-            ))}
+          <div className="massing-slot">
+            {wide && !reduce && (
+              <Suspense fallback={null}>
+                <Massing colors={themeColors} reduced={reduce} className="massing" />
+              </Suspense>
+            )}
+            <span className="massing-cap">Shed up, no repair filed</span>
           </div>
         )}
       </div>
+      {vertical === 'facades' && (
+        <div className="stats">
+          {[
+            [data.facades.totals.candidates, 'buildings off the compliance calendar, four boroughs'],
+            [data.facades.totals.nonFilers10A, 'unfiled for sub-cycle 10A — six months to deadline'],
+            [data.facades.totals.swarmpCarryover, 'open SWARMP scopes carried from Cycle 9'],
+            [1000, 'per month — the DOB penalty meter after a missed deadline', '$'],
+          ].map(([n, l, pre], i) => (
+            <motion.div className="stat" key={l} {...fade(0.08 + i * 0.06)}>
+              <div className="n">
+                <CountUp value={n} prefix={pre || ''} />
+              </div>
+              <div className="l">{l}</div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       <motion.div
         key={vertical}
@@ -1386,8 +1436,14 @@ export default function App() {
         </button>
         <div className="pulseline">
           <span title="Every check writes a timestamp, whether the city published anything or not">
-            {checksToday ? `${checksToday} checks in the last 24h` : 'checking every 5 minutes'}
+            {checksToday >= 24 ? `${checksToday} checks in the last 24h` : 'checking every 5 minutes'}
           </span>
+          {checkedAt && now - checkedAt > 40 * 60000 && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>last completed check {ago(checkedAt)}</span>
+            </>
+          )}
           <span aria-hidden="true">·</span>
           <span>last new signal {lastChangeLabel}</span>
           {recentDays.some((d) => d.n > 0) && (
@@ -1694,7 +1750,7 @@ export default function App() {
                               </div>
                             )}
                             <div className="fact">
-                              <div className="k">Source</div>
+                              <div className="k source">Source</div>
                               <div className="v">
                                 DOB NOW {data.sources?.facades || ''} · ECB {data.sources?.ecb || ''} · HPD {data.sources?.hpd || ''} — official city records ·{' '}
                                 <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
@@ -1873,7 +1929,7 @@ export default function App() {
                     </div>
                   )}
                   <div className="fact">
-                    <div className="k">Source</div>
+                    <div className="k source">Source</div>
                     <div className="v">
                       City Record — Recent Contract Awards, as of {live?.sources?.awards || data.sources?.awards || 'today'} ·{' '}
                       <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
@@ -1978,7 +2034,7 @@ export default function App() {
                     </div>
                   )}
                   <div className="fact">
-                    <div className="k">Source</div>
+                    <div className="k source">Source</div>
                     <div className="v">
                       NY State Liquor Authority — pending licenses, as of {data.sources?.sla || 'today'} ·{' '}
                       <button className="linkish" onClick={() => { history.replaceState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
