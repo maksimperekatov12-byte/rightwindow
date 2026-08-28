@@ -53,10 +53,12 @@ const PROFILES = {
       hero: 'Buildings that need a facade engineer — *before they know it*',
       hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
       sort: byUrgency,
-      why: (c) =>
-        c.filing
-          ? `Last filing by ${c.filing.firm || 'another firm'} — Cycle 10 is still open here.`
-          : 'No engineer on record — first call gets the walk-through.',
+      why: (c) => {
+        const incumbent = c.filing?.who && c.priorQewi && c.filing.who.toUpperCase() === c.priorQewi.toUpperCase();
+        if (incumbent) return `${title(c.priorQewi)} filed Cycle 9 and is back on the current job — a harder door.`;
+        if (c.filing?.who) return `${title(c.filing.who)} is on the job filing, but no Cycle 10 report is on record.`;
+        return `${title(c.priorQewi || 'The last engineer')} filed Cycle 9 and has not been re-engaged.`;
+      },
       opener: (c) =>
         `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
@@ -346,6 +348,25 @@ const fmtMoney = (n) => {
   if (v >= 1e3) return `$${Math.round(v / 1e3)}K`;
   return `$${v}`;
 };
+
+// Facts are chosen by trade, not by what happens to be in the row. Order is the
+// order they appear, so each trade's own evidence leads. Measured against the
+// 400-card feed: elevator data sits on 250 cards and was being shown to code
+// attorneys and lenders alike, while every card carried the same 10A window.
+const ALL_FACTS = ['report', 'engineer', 'filing', 'shed', 'elevators', 'sold', 'mgmt', 'ecb', 'hearing', 'penalty', 'owner'];
+const FACTS = {
+  qewi: ['report', 'engineer', 'filing', 'penalty', 'owner', 'ecb'],
+  restoration: ['report', 'filing', 'shed', 'engineer', 'penalty', 'owner'],
+  equipment: ['shed', 'filing', 'report', 'penalty', 'owner'],
+  elevator: ['elevators', 'report', 'owner', 'penalty'],
+  insurance: ['sold', 'mgmt', 'ecb', 'hearing', 'report', 'owner'],
+  lender: ['penalty', 'ecb', 'report', 'filing', 'sold', 'owner'],
+  propmgmt: ['sold', 'mgmt', 'ecb', 'penalty', 'report', 'owner'],
+  legal: ['hearing', 'ecb', 'penalty', 'report', 'owner'],
+  cre: ['penalty', 'ecb', 'sold', 'report', 'owner', 'hearing'],
+  explore: ALL_FACTS,
+};
+const factsFor = (k) => FACTS[k] || ALL_FACTS;
 
 const DEFAULT_CLOSE_RATE = 0.03;
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
@@ -1913,102 +1934,133 @@ export default function App() {
                           )}
 
                           <div className="facts">
-                            <div className="fact">
-                              <div className="k">Last report</div>
-                              <div className="v">
-                                Cycle {c.lastCycle}
-                                {c.lastFiling ? ` · ${usDate(c.lastFiling)}` : ''} · {c.lastStatus || 'n/a'}
-                              </div>
-                            </div>
-                            {c.priorQewi && (
-                              <div className="fact">
-                                <div className="k">Prior engineer</div>
-                                <div className="v">{title(c.priorQewi)} — no Cycle 10 engagement on record</div>
-                              </div>
-                            )}
-                            {c.owner && (
-                              <div className="fact">
-                                <div className="k">Owner of record</div>
-                                <div className="v">{title(c.owner)}</div>
-                              </div>
-                            )}
-                            {c.mgmtChange && (
-                              <div className="fact">
-                                <div className="k">Registration changed</div>
-                                <div className="v">
-                                  detected {c.mgmtChange.detected}
-                                  {c.mgmtChange.prevCompany ? ` · was ${title(c.mgmtChange.prevCompany)}` : ''} · HPD daily
+                            {factsFor(profileKey).map((id) => {
+                              const F = {
+                                report: () => (
+                                  <>
+                                    <div className="k">Last report</div>
+                                    <div className="v">
+                                      Cycle {c.lastCycle}
+                                      {c.lastFiling ? ` · ${usDate(c.lastFiling)}` : ''} · {c.lastStatus || 'n/a'}
+                                    </div>
+                                  </>
+                                ),
+                                engineer: () =>
+                                  c.priorQewi && (
+                                    <>
+                                      <div className="k">Prior engineer</div>
+                                      <div className="v">
+                                        {title(c.priorQewi)}
+                                        {c.filing?.who && c.filing.who.toUpperCase() === c.priorQewi.toUpperCase()
+                                          ? ' — also the applicant on the current job'
+                                          : ' — no Cycle 10 engagement on record'}
+                                      </div>
+                                    </>
+                                  ),
+                                owner: () =>
+                                  c.owner && (
+                                    <>
+                                      <div className="k">Owner of record</div>
+                                      <div className="v">
+                                        {title(c.owner)}
+                                        {c.lastFiling ? <span className="bdays"> · as of the Cycle 9 report</span> : null}
+                                      </div>
+                                    </>
+                                  ),
+                                mgmt: () =>
+                                  c.mgmtChange && (
+                                    <>
+                                      <div className="k">Registration changed</div>
+                                      <div className="v">
+                                        detected {c.mgmtChange.detected}
+                                        {c.mgmtChange.prevCompany ? ` · was ${title(c.mgmtChange.prevCompany)}` : ''} · HPD daily
+                                      </div>
+                                    </>
+                                  ),
+                                sold: () =>
+                                  c.ownerChange && (
+                                    <>
+                                      <div className="k">Sold</div>
+                                      <div className="v">
+                                        {usDate(c.ownerChange.recorded)}
+                                        {c.ownerChange.amount ? ` · ${money(Math.round(c.ownerChange.amount))}` : ''} · ACRIS deed
+                                      </div>
+                                    </>
+                                  ),
+                                elevators: () =>
+                                  c.elevator && (
+                                    <>
+                                      <div className="k">Elevators</div>
+                                      <div className="v">
+                                        {c.elevator.cat1Missing > 0 ? `${c.elevator.cat1Missing} of ${c.elevator.devices} without a ${YEAR} CAT1 test` : ''}
+                                        {c.elevator.cat1Missing > 0 && c.elevator.cat5Due > 0 ? ' · ' : ''}
+                                        {c.elevator.cat5Due > 0 ? `${c.elevator.cat5Due} due for 5-year CAT5` : ''}
+                                      </div>
+                                    </>
+                                  ),
+                                ecb: () =>
+                                  c.ecbBalance > 0 && (
+                                    <>
+                                      <div className="k">Open ECB balance</div>
+                                      <div className="v fine">{money(c.ecbBalance)} unpaid</div>
+                                    </>
+                                  ),
+                                hearing: () =>
+                                  c.nextHearing && (
+                                    <>
+                                      <div className="k">Next OATH hearing</div>
+                                      <div className="v">
+                                        {usDate(c.nextHearing)}
+                                        {businessDaysUntil(c.nextHearing) != null && (
+                                          <span className="bdays"> · {businessDaysUntil(c.nextHearing)} business days</span>
+                                        )}
+                                      </div>
+                                    </>
+                                  ),
+                                shed: () =>
+                                  c.shed && (
+                                    <>
+                                      <div className="k">Sidewalk shed</div>
+                                      <div className={'v' + (c.shed.longStanding ? ' fine' : '')}>
+                                        {c.shed.state === 'active' ? 'Up' : 'Permit lapsed'} {Math.round(c.shed.ageDays / 30)} months
+                                        {c.shed.who ? ` · ${title(c.shed.who)}` : ''}
+                                        {c.shed.longStanding ? ' · past the 1-year mark' : ''}
+                                      </div>
+                                    </>
+                                  ),
+                                filing: () =>
+                                  c.filing && (
+                                    <>
+                                      <div className="k">Facade filing</div>
+                                      <div className="v">
+                                        {usShort(c.filing.filed)}
+                                        {c.filing.who ? ` · ${title(c.filing.who)}` : ''} ·{' '}
+                                        {c.filing.permitted ? 'permit pulled' : c.filing.stalled ? 'approved, no permit' : c.filing.status || 'in review'}
+                                        {c.filing.cost ? ` · ${money(c.filing.cost)} declared` : ''}
+                                      </div>
+                                    </>
+                                  ),
+                                penalty: () => (
+                                  <>
+                                    <div className="k">Penalty meter</div>
+                                    <div className={'v' + (c.finesOwed > 0 ? ' fine' : '')}>
+                                      {c.finesOwed > 0 ? `${money(c.finesOwed)} already owed` : '$1,000/mo after a missed deadline'}
+                                    </div>
+                                  </>
+                                ),
+                              };
+                              const body = F[id]?.();
+                              return body ? (
+                                <div className="fact" key={id}>
+                                  {body}
                                 </div>
-                              </div>
-                            )}
-                            {c.ownerChange && (
-                              <div className="fact">
-                                <div className="k">Sold</div>
-                                <div className="v">
-                                  {usDate(c.ownerChange.recorded)}
-                                  {c.ownerChange.amount ? ` · ${money(Math.round(c.ownerChange.amount))}` : ''} · ACRIS deed
-                                </div>
-                              </div>
-                            )}
-                            {c.elevator && (
-                              <div className="fact">
-                                <div className="k">Elevators</div>
-                                <div className="v">
-                                  {c.elevator.cat1Missing > 0 ? `${c.elevator.cat1Missing} of ${c.elevator.devices} without a ${YEAR} CAT1 test` : ''}
-                                  {c.elevator.cat1Missing > 0 && c.elevator.cat5Due > 0 ? ' · ' : ''}
-                                  {c.elevator.cat5Due > 0 ? `${c.elevator.cat5Due} due for 5-year CAT5` : ''}
-                                </div>
-                              </div>
-                            )}
-                            {c.ecbBalance > 0 && (
-                              <div className="fact">
-                                <div className="k">Open ECB balance</div>
-                                <div className="v fine">{money(c.ecbBalance)} unpaid</div>
-                              </div>
-                            )}
-                            {c.nextHearing && (
-                              <div className="fact">
-                                <div className="k">Next OATH hearing</div>
-                                <div className="v">
-                                  {usDate(c.nextHearing)}
-                                  {businessDaysUntil(c.nextHearing) != null && (
-                                    <span className="bdays"> · {businessDaysUntil(c.nextHearing)} business days</span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                            {c.shed && (
-                              <div className="fact">
-                                <div className="k">Sidewalk shed</div>
-                                <div className={'v' + (c.shed.longStanding ? ' fine' : '')}>
-                                  {c.shed.state === 'active' ? 'Up' : 'Permit lapsed'} {Math.round(c.shed.ageDays / 30)} months
-                                  {c.shed.who ? ` · ${title(c.shed.who)}` : ''}
-                                  {c.shed.longStanding ? ' · past the 1-year mark' : ''}
-                                </div>
-                              </div>
-                            )}
-                            {c.filing && (
-                              <div className="fact">
-                                <div className="k">Facade filing</div>
-                                <div className="v">
-                                  {usShort(c.filing.filed)}
-                                  {c.filing.who ? ` · ${title(c.filing.who)}` : ''} ·{' '}
-                                  {c.filing.permitted ? 'permit pulled' : c.filing.stalled ? 'approved, no permit' : c.filing.status || 'in review'}
-                                  {c.filing.cost ? ` · ${money(c.filing.cost)} declared` : ''}
-                                </div>
-                              </div>
-                            )}
+                              ) : null;
+                            })}
                             <div className="fact">
                               <div className="k source">Source</div>
                               <div className="v">
                                 DOB NOW {data.sources?.facades || ''} · ECB {data.sources?.ecb || ''} · HPD {data.sources?.hpd || ''} — official city records ·{' '}
                                 <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
-                              </div>
-                            </div>
-                            <div className="fact">
-                              <div className="k">Penalty meter</div>
-                              <div className={'v' + (c.finesOwed > 0 ? ' fine' : '')}>
-                                {c.finesOwed > 0 ? `${money(c.finesOwed)} already owed` : '$1,000/mo after a missed deadline'}
                               </div>
                             </div>
                           </div>
