@@ -9,8 +9,9 @@
 // UNSAFE and chronic no-report. Calendar itself is not a signal - everyone knows it.
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { enrichContact, enrichmentProvider, enrichmentReady } from '../lib/enrich.mjs';
+import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCache } from '../lib/enrich.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
+import { resolveAffiliates } from '../lib/affiliate.mjs';
 
 // Source gate (same rule as Signal): a source without an ALLOWED verdict in
 // data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
@@ -170,14 +171,20 @@ console.log(`HPD-registered (multifamily): ${regByBin.size}`);
 
 const regIds = [...new Set([...regByBin.values()].map((r) => r.registrationid))];
 const agentByReg = new Map();
+const headByReg = new Map();
 for (let i = 0; i < regIds.length; i += 50) {
   const ids = regIds.slice(i, i + 50).map((x) => `'${x}'`).join(',');
   const rows = await fetchAll(
     'feu5-w2e2',
-    { $where: `registrationid in(${ids}) and type in('Agent','SiteManager')`, $select: 'registrationid,type,corporationname,firstname,lastname,businesshousenumber,businessstreetname,businessapartment,businesscity,businessstate,businesszip' },
+    { $where: `registrationid in(${ids}) and type in('Agent','SiteManager','HeadOfficer')`, $select: 'registrationid,type,corporationname,firstname,lastname,businesshousenumber,businessstreetname,businessapartment,businesscity,businessstate,businesszip' },
     2000,
   );
   for (const r of rows) {
+    if (r.type === 'HeadOfficer') {
+      const who = [r.firstname, r.lastname].filter(Boolean).join(' ').trim();
+      if (who) headByReg.set(r.registrationid, who.toUpperCase());
+      continue;
+    }
     const cur = agentByReg.get(r.registrationid);
     if (!cur || (r.type === 'Agent' && cur.type !== 'Agent')) agentByReg.set(r.registrationid, r);
   }
@@ -454,6 +461,7 @@ for (const c of top) {
           company: agent.corporationname || null,
           name: [agent.firstname, agent.lastname].filter(Boolean).join(' ') || null,
           role: agent.type === 'Agent' ? 'Managing agent (HPD registration)' : 'Site manager (HPD registration)',
+          headOfficer: (reg && headByReg.get(reg.registrationid)) || null,
           address: [
             [agent.businesshousenumber, agent.businessstreetname].filter(Boolean).join(' '),
             agent.businessapartment,
@@ -471,6 +479,17 @@ for (const c of top) {
 // Runs whether or not a live provider is configured: the cache holds numbers
 // that a measured run already resolved, and those are as real as fresh ones.
 {
+  // CI has no cache on disk — it lives in the private store, so a run inherits
+  // everything resolved before it and only pays for genuinely new companies.
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { readJson } = await import('../lib/store.mjs');
+      const got = await pullCache(readJson);
+      console.log(`Contact cache: pulled ${got} entries from the private store`);
+    } catch (e) {
+      console.log(`Contact cache: could not pull (${e.message}) — starting from what is on disk`);
+    }
+  }
   const live = enrichmentReady();
   console.log(live ? `Enriching contacts via ${enrichmentProvider()}...` : 'Enrichment: reading cached contacts only');
   let hits = 0;
@@ -488,7 +507,20 @@ for (const c of top) {
       hits++;
     }
   }
-  console.log(`Contacts resolved: ${hits} (verified ${byLevel.verified}, listed ${byLevel.listed})`);
+  console.log(`Contacts resolved: ${hits} (verified ${byLevel.verified || 0}, listed ${byLevel.listed || 0})`);
+  // Second pass, free and offline: a holding LLC inherits the contact of the
+  // firm whose head officer signs for both, labelled as reaching that firm.
+  const viaHpd = resolveAffiliates(cards);
+  console.log(`Affiliates resolved from HPD head officers: ${viaHpd}`);
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { writeJson } = await import('../lib/store.mjs');
+      const n = await pushCache(writeJson);
+      console.log(`Contact cache: pushed ${n} entries to the private store`);
+    } catch (e) {
+      console.log(`Contact cache: could not push (${e.message})`);
+    }
+  }
 }
 
 
