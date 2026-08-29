@@ -1,9 +1,9 @@
 {
- "generatedAt": "2026-08-29T14:23:22.549Z",
+ "generatedAt": "2026-08-29T18:19:48.414Z",
  "sources": {
-  "facades": "2026-08-27",
+  "facades": "2026-08-29",
   "hpd": "2026-08-12",
-  "ecb": "2026-08-27",
+  "ecb": "2026-08-29",
   "elevators": "2026-08-27",
   "awards": "2026-08-29",
   "sla": "2026-08-29",
@@ -11,17 +11,17 @@
  },
  "whatsNew": {
   "windowHours": 48,
-  "buildings": 25,
-  "signals": 6,
+  "buildings": 26,
+  "signals": 7,
   "contracts": 26,
   "openings": 19
  },
  "facades": {
   "totals": {
-   "candidates": 12341,
-   "nonFilers10A": 4788,
-   "swarmpCarryover": 5417,
-   "unsafePrior": 1017
+   "candidates": 12323,
+   "nonFilers10A": 4779,
+   "swarmpCarryover": 5414,
+   "unsafePrior": 1012
   },
   "feed": [
    {
@@ -178,6 +178,86 @@
      "role": "Managing agent (HPD registration)",
      "headOfficer": "HERMINIO TORRES",
      "address": "1735 PARK AVENUE, 300, New York NY 10035",
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": []
+   },
+   {
+    "bin": "4537921",
+    "address": "27-40 HOYT AVENUE SOUTH",
+    "borough": "Queens",
+    "block": "839",
+    "lot": "1",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 6
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2026-04-10",
+    "priorQewi": "CANY ARCHITECTURE & ENGINEERING DPC",
+    "owner": "GEORGE T. DOURIS HOUSING DEVELOPMENT",
+    "finesOwed": 31980,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 4,
+     "cat1Missing": 4,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "active",
+     "ageDays": 1626,
+     "since": "2022-03-18",
+     "until": "2027-01-01",
+     "type": "Supported Scaffold",
+     "who": "RE-BRICK CONSTRUCTION INC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 1250,
+    "freshHaz": {
+     "daysAgo": 3,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "ATOI OF A SIDEWALK SHED AT EXP 1 OF A 15 STORY RESIDENTIAL BUILDING OBSERVED MISSING PARAPET JOB INFO PANEL AS REQUIRED IN 3301.9.2 (SIDEWALK SHED PAR"
+    },
+    "nextHearing": "2026-11-10",
+    "urgencyScore": 18,
+    "multifamily": true,
+    "agent": {
+     "company": "SPITI MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "headOfficer": "STACY BLIAGOS",
+     "address": "27-40 HOYT AVE SOUTH, 2ND FL, Astoria NY 11102",
      "contactKnown": false,
      "namedContact": true
     },
@@ -1037,7 +1117,7 @@
      "severity": "CLASS - 1",
      "desc": "FAILURE TO MAINTAIN BUILDING FACADE WALL\"S\" AND APPURTENANCES. NOTE: AT THE TIME OF INSPECTION I OBSERVED AT EX #1, SOUTH ELEVATION, CRACKEDTERRA-COTT"
     },
-    "nextHearing": null,
+    "nextHearing": "2027-03-09",
     "urgencyScore": 15,
     "multifamily": true,
     "agent": {
@@ -1120,81 +1200,6 @@
      "role": "Managing agent (HPD registration)",
      "headOfficer": "MOSES BERKOVITZ",
      "address": "101 BROADWAY, 502, BROOKLYN NY 11211",
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": []
-   },
-   {
-    "bin": "4537921",
-    "address": "27-40 HOYT AVENUE SOUTH",
-    "borough": "Queens",
-    "block": "839",
-    "lot": "1",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2026-04-10",
-    "priorQewi": "CANY ARCHITECTURE & ENGINEERING DPC",
-    "owner": "GEORGE T. DOURIS HOUSING DEVELOPMENT",
-    "finesOwed": 31980,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 4,
-     "cat1Missing": 4,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "active",
-     "ageDays": 1626,
-     "since": "2022-03-18",
-     "until": "2027-01-01",
-     "type": "Supported Scaffold",
-     "who": "RE-BRICK CONSTRUCTION INC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 15,
-    "multifamily": true,
-    "agent": {
-     "company": "SPITI MANAGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "headOfficer": "STACY BLIAGOS",
-     "address": "27-40 HOYT AVE SOUTH, 2ND FL, Astoria NY 11102",
      "contactKnown": false,
      "namedContact": true
     },
@@ -1570,6 +1575,96 @@
     },
     "isNew": true,
     "fresh": []
+   },
+   {
+    "bin": "1041291",
+    "address": "880 FIFTH AVENUE",
+    "borough": "Manhattan",
+    "block": "1384",
+    "lot": "1",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "FILING_STALLED",
+      "urgency": 3,
+      "monthsLeft": 6
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2022-06-02",
+    "priorQewi": "ILYA SHTULBERG, PE",
+    "owner": "BROWN HARRIS STEVENS",
+    "finesOwed": 4000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 7,
+     "cat1Missing": 7,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "active",
+     "ageDays": 1105,
+     "since": "2023-08-21",
+     "until": "2026-12-31",
+     "type": "Supported Scaffold",
+     "who": "PLATINUM SERVICES NY LLC",
+     "longStanding": true
+    },
+    "filing": {
+     "filed": "2026-05-14",
+     "daysSince": 108,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": null,
+     "who": "KN3 ENGINEERING LLC"
+    },
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 5000,
+    "freshHaz": {
+     "daysAgo": 51,
+     "hazardous": false,
+     "severity": "CLASS - 1",
+     "desc": "AT TIME OF INSPECTION, ACTIVE SITE AT OCCUPIED 20-STORY BUILDING. RESPONDED TO REPORTED WORKER INJURY. SITE PERSONNEL STATED INJURY OCCURRED DURING RE"
+    },
+    "nextHearing": "2026-09-17",
+    "urgencyScore": 15,
+    "multifamily": true,
+    "agent": {
+     "company": "BROWN HARRIS STEVENS",
+     "role": "Managing agent (HPD registration)",
+     "headOfficer": "JEFF GRANT",
+     "address": "770 LEXINGTON AVE, 5, NEW YORK NY 10065",
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [
+     "FILING_STALLED"
+    ]
    },
    {
     "bin": "3391660",
@@ -3519,89 +3614,6 @@
     "fresh": []
    },
    {
-    "bin": "3320933",
-    "address": "2533 BATCHELDER STREET",
-    "borough": "Brooklyn",
-    "block": "7449",
-    "lot": "1",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2026-07-21",
-    "priorQewi": "SW ENGINEERING CO., PLLC",
-    "owner": "VINTAGE REAL ESTATE SERVICES",
-    "finesOwed": 75160,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "active",
-     "ageDays": 1572,
-     "since": "2022-05-11",
-     "until": "2027-03-09",
-     "type": "Sidewalk Shed",
-     "who": "ACE GROUP NY CORP",
-     "longStanding": true
-    },
-    "filing": {
-     "filed": "2026-05-12",
-     "daysSince": 110,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": true,
-     "cost": 537405.5,
-     "who": "SW ENGINEERING COMPANY"
-    },
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 13750,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "multifamily": true,
-    "agent": {
-     "company": "VINTAGE REAL ESTATE SERVICES",
-     "role": "Managing agent (HPD registration)",
-     "headOfficer": "HELLEN GERTZ",
-     "address": "3000 MARCUS AVE, 2E06, LAKE SUCCESS NY 11042",
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": []
-   },
-   {
     "bin": "1080777",
     "address": "30 EAST 30 STREET",
     "borough": "Manhattan",
@@ -4037,71 +4049,6 @@
      "role": "Managing agent (HPD registration)",
      "headOfficer": "EZRIEL WEINBERGER",
      "address": "1651 CONEY ISLAND AVE, 4, BROOKLYN NY 11230",
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": []
-   },
-   {
-    "bin": "1075481",
-    "address": "31 TIEMANN PLACE",
-    "borough": "Manhattan",
-    "block": "1995",
-    "lot": "7501",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-17",
-    "priorQewi": "LANE ENGINEERING CONSULTING, P.C.",
-    "owner": "BNS REAL ESTATE",
-    "finesOwed": 30350,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 3105,
-     "since": "2018-02-28",
-     "until": "2026-10-12",
-     "type": "Sidewalk Shed",
-     "who": "PARSONS CONSTRUCTION INC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "multifamily": true,
-    "agent": {
-     "company": "MD Squared Property Group",
-     "role": "Managing agent (HPD registration)",
-     "headOfficer": "MARIA RICARDO",
-     "address": "7 PENN PLAZA, 601, New York NY 10001",
      "contactKnown": false,
      "namedContact": true
     },
@@ -5963,7 +5910,7 @@
     "score": 7,
     "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2025-10-28",
+    "lastFiling": "2026-08-28",
     "priorQewi": "DYNAMIC STRUCTURES INC.",
     "owner": "PUNIA AND MARX",
     "finesOwed": 27000,
@@ -14180,7 +14127,7 @@
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 6250,
+    "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 10,
@@ -16255,6 +16202,68 @@
     "fresh": []
    },
    {
+    "bin": "2017687",
+    "address": "3450 GATES PLACE",
+    "borough": "Bronx",
+    "block": "3324",
+    "lot": "55",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 6
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2023-09-21",
+    "priorQewi": "GEORGE J. XERAKIAS",
+    "owner": "3450 Gates Pl. Assoc., L.L.C.",
+    "finesOwed": 30250,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 1
+    },
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 9375,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 10,
+    "multifamily": true,
+    "agent": {
+     "company": "3450 GATES PL. ASSOC LLC",
+     "role": "Managing agent (HPD registration)",
+     "headOfficer": "ROSS YASGURREVTR",
+     "address": "726 EAST 237TH ST, Bronx NY 10466",
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": true,
+    "fresh": []
+   },
+   {
     "bin": "1029933",
     "address": "121 WEST 72 STREET",
     "borough": "Manhattan",
@@ -16455,12 +16464,12 @@
     "height": null,
     "occupied": true,
     "payingForNothing": false,
-    "ecbBalance": 5000,
+    "ecbBalance": 6250,
     "freshHaz": {
-     "daysAgo": 12,
+     "daysAgo": 11,
      "hazardous": false,
      "severity": "CLASS - 1",
-     "desc": "1) THE 5TH FLOOR CALL BUTTON DOES NOT CALL THE ELEVATOR TO THIS FLOOR. UPON INSPECTION THE FLOOR IS FOUND TO BE OUT-OF-SERVICE CREATING A HAZARDOUS CO"
+     "desc": "FAILURE TO MAINTAIN ELEVATOR ASPER BC3001.2 & 27-987. UPON AN INSPECTION THE ELEVATOR IS FOUND OUT OF SERVICE CREATING A HAZARDOUS CONDITION FOR HUMAN"
     },
     "nextHearing": "2026-10-28",
     "urgencyScore": 9,
@@ -24224,9 +24233,9 @@
     "height": null,
     "occupied": true,
     "payingForNothing": false,
-    "ecbBalance": 625,
+    "ecbBalance": 0,
     "freshHaz": null,
-    "nextHearing": "2027-01-07",
+    "nextHearing": null,
     "urgencyScore": 4,
     "multifamily": true,
     "agent": {
@@ -26226,7 +26235,7 @@
     "height": null,
     "occupied": true,
     "payingForNothing": false,
-    "ecbBalance": 18750,
+    "ecbBalance": 12500,
     "freshHaz": {
      "daysAgo": 68,
      "hazardous": false,
@@ -26621,7 +26630,7 @@
     "height": 75,
     "occupied": true,
     "payingForNothing": false,
-    "ecbBalance": 5000,
+    "ecbBalance": 5030,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 4,
