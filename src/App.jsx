@@ -18,6 +18,15 @@ const has = (c, kind) => c.signals.some((s) => s.kind === kind);
 const rank = (c, kind) => c.signals.find((x) => x.kind === kind)?.urgency ?? 0;
 const money = (n) => '$' + n.toLocaleString('en-US');
 
+// The City Record carries three kinds of notice and they ask for different
+// things. An award names the firm that already took the money, so you sell to
+// it. A solicitation names an agency that wants bids by a date, so the window
+// is still open and the contact printed on it is the officer to ask. An intent
+// to award is the objection window on a sole-source deal — the shortest window
+// in the product and the only one where saying nothing forfeits it.
+const isOpenNotice = (c) => c.kind === 'SOLICITATION' || c.kind === 'INTENT';
+const noticeLabel = (c) => (c.kind === 'INTENT' ? 'Intent to award' : 'Open for bids');
+
 const CONSTR = /construction|architect|engineer/i;
 
 function signalStory(c) {
@@ -303,7 +312,7 @@ const Storefronts = lazy(() => import('./Storefronts.jsx'));
 // element stands for.
 const HEROES = {
   facades: { Scene: Massing, cap: 'Sub-cycle 10A · nothing filed' },
-  contracts: { Scene: CivicWorks, cap: 'Awarded · no subs named yet' },
+  contracts: { Scene: CivicWorks, cap: 'Bid window open · winner not named' },
   openings: { Scene: Storefronts, cap: 'Licence pending · vendors not chosen' },
 };
 
@@ -1347,10 +1356,16 @@ export default function App() {
     } else if (vertical === 'contracts') {
       downloadCsv(
         'right-window-contracts.csv',
-        ['Vendor', 'Amount', 'Agency', 'Contract', 'Awarded', 'Days ago', 'Why you', 'Vendor address', 'Suggested opener', 'Link'],
+        ['Kind', 'Vendor or title', 'Amount', 'Agency', 'Contract', 'Awarded', 'Days ago', 'Bids due', 'Days to bid', 'PIN', 'Contact', 'Phone', 'Email', 'Why you', 'Vendor address', 'Suggested opener', 'Link'],
         contractsList.map((c) => [
-          c.vendor, c.amount, c.agency, c.title, c.date, c.daysAgo,
-          profile.cNeed?.(c) || 'Winner is mobilizing: subs, bonding, insurance, staffing, equipment.',
+          c.kind === 'SOLICITATION' ? 'Open for bids' : c.kind === 'INTENT' ? 'Intent to award' : 'Award',
+          isOpenNotice(c) ? c.title : c.vendor,
+          c.amount ?? '', c.agency, c.title, c.date ?? '', c.daysAgo ?? '',
+          c.dueDate ? c.dueDate.slice(0, 10) : '', c.daysLeft ?? '', c.epin || '',
+          c.contact?.name || '', c.contact?.phone || '', c.contact?.email || '',
+          isOpenNotice(c)
+            ? c.scope || `${c.category} · ${c.method}`
+            : profile.cNeed?.(c) || 'Winner is mobilizing: subs, bonding, insurance, staffing, equipment.',
           c.vendorAddress || '',
           (profile.cOpener || defaultCOpener)(c),
           `${location.origin}/#c/${c.id}`,
@@ -1402,14 +1417,14 @@ export default function App() {
     vertical === 'facades'
       ? fv.hero
       : vertical === 'contracts'
-        ? 'Companies that won city money *yesterday*'
+        ? 'City work you can still *bid on today*'
         : 'Venues that will open their doors *in a few months*';
 
   const heroSub =
     vertical === 'facades'
       ? "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
       : vertical === 'contracts'
-        ? 'A contract award is public the day it lands. The winner has two weeks to line up subs, bonding and crews.'
+        ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
         : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
@@ -1814,8 +1829,9 @@ export default function App() {
               </b>
               <span className="pipe-note">
                 {myPipeline.n} open{' '}
-                {(vertical === 'contracts' ? 'award' : vertical === 'openings' ? 'opening' : 'signal') +
-                  (myPipeline.n === 1 ? '' : 's')}{' '}
+                {vertical === 'contracts'
+                  ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
+                  : (vertical === 'openings' ? 'opening' : 'signal') + (myPipeline.n === 1 ? '' : 's')}{' '}
                 ·{' '}
                 {fmtMoney(myPipeline.avg)} avg contract ·{' '}
                 {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
@@ -2465,16 +2481,38 @@ export default function App() {
             renderHead={(c) => (
               <>
                 <span className="head-main">
-                  <span className="addr">{c.vendor}</span>
+                  <span className="addr">{isOpenNotice(c) ? c.title : c.vendor}</span>
                   {c.isNew && <span className="badge new">New</span>}
                   {fbOf('c:' + c.id) && fbOf('c:' + c.id) !== 'dismissed' && (
                     <span className={'badge st ' + fbOf('c:' + c.id)}>{fbOf('c:' + c.id)}</span>
                   )}
-                  <span className="badge">Won {money(c.amount)}</span>
+                  {isOpenNotice(c) ? (
+                    <span className={'badge' + (c.kind === 'INTENT' ? ' urgent' : '')}>{noticeLabel(c)}</span>
+                  ) : (
+                    <span className="badge">Won {money(c.amount)}</span>
+                  )}
+                  {isOpenNotice(c) && <span className="boro">{c.agency}</span>}
                 </span>
                 <span className="head-side">
-                  <span className={'clock' + (c.daysAgo != null && c.daysAgo <= 3 ? ' tight' : '')}>
-                    {c.daysAgo != null ? `${c.daysAgo}d ago` : c.date}
+                  <span
+                    className={
+                      'clock' +
+                      (isOpenNotice(c)
+                        ? c.daysLeft != null && c.daysLeft <= 5
+                          ? ' tight'
+                          : ''
+                        : c.daysAgo != null && c.daysAgo <= 3
+                          ? ' tight'
+                          : '')
+                    }
+                  >
+                    {isOpenNotice(c)
+                      ? c.daysLeft != null
+                        ? `${c.daysLeft}d to ${c.kind === 'INTENT' ? 'object' : 'bid'}`
+                        : usShort(c.dueDate)
+                      : c.daysAgo != null
+                        ? `${c.daysAgo}d ago`
+                        : c.date}
                   </span>
                 </span>
               </>
@@ -2484,14 +2522,34 @@ export default function App() {
                 <div className="sig">
                   <div className="sig-k">Why now</div>
                   <div className="sig-v">
-                    Won {money(c.amount)} from {c.agency}
-                    {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo}d ago`}` : ''} — purchasing starts now.
+                    {c.kind === 'SOLICITATION' ? (
+                      <>
+                        {c.agency} is taking bids until {usDate(c.dueDate)}
+                        {c.daysLeft != null ? ` — ${c.daysLeft} business ${c.daysLeft === 1 ? 'day' : 'days'} left` : ''}. This
+                        window is still open; nobody has won it.
+                      </>
+                    ) : c.kind === 'INTENT' ? (
+                      <>
+                        {c.agency} intends to award this without competition. Objections close {usDate(c.dueDate)}
+                        {c.daysLeft != null ? ` — ${c.daysLeft} business ${c.daysLeft === 1 ? 'day' : 'days'} left` : ''}. Saying
+                        nothing forfeits it.
+                      </>
+                    ) : (
+                      <>
+                        Won {money(c.amount)} from {c.agency}
+                        {c.daysAgo != null ? ` ${c.daysAgo === 0 ? 'today' : `${c.daysAgo}d ago`}` : ''} — purchasing starts now.
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="sig match">
-                  <div className="sig-k">{profile.cNeed ? 'Why it matches you' : 'Who wins this window'}</div>
+                  <div className="sig-k">
+                    {isOpenNotice(c) ? 'What this is' : profile.cNeed ? 'Why it matches you' : 'Who wins this window'}
+                  </div>
                   <div className="sig-v">
-                    {profile.cNeed?.(c) || 'Bonding · insurance · subs · staffing · equipment.'}
+                    {isOpenNotice(c)
+                      ? c.scope || `${c.category} · ${c.method}`
+                      : profile.cNeed?.(c) || 'Bonding · insurance · subs · staffing · equipment.'}
                   </div>
                 </div>
                 <div className="facts">
@@ -2500,13 +2558,27 @@ export default function App() {
                     <div className="v">{c.title}</div>
                   </div>
                   <div className="fact">
-                    <div className="k">Awarded by</div>
+                    <div className="k">{isOpenNotice(c) ? 'Agency' : 'Awarded by'}</div>
                     <div className="v">{c.agency}</div>
                   </div>
                   <div className="fact">
                     <div className="k">Method</div>
                     <div className="v">{c.method}</div>
                   </div>
+                  {isOpenNotice(c) && c.epin && (
+                    <div className="fact">
+                      <div className="k">PIN / EPIN</div>
+                      <div className="v">
+                        <span className="mono">{c.epin}</span> — quote this to the agency or search it in PASSPort
+                      </div>
+                    </div>
+                  )}
+                  {isOpenNotice(c) && c.submitTo && (
+                    <div className="fact">
+                      <div className="k">Bids to</div>
+                      <div className="v">{c.submitTo}</div>
+                    </div>
+                  )}
                   {c.vendorAddress && (
                     <div className="fact">
                       <div className="k">Vendor address</div>
@@ -2516,7 +2588,7 @@ export default function App() {
                   <div className="fact">
                     <div className="k source">Source</div>
                     <div className="v">
-                      City Record — Recent Contract Awards, as of {live?.sources?.awards || data.sources?.awards || 'today'} ·{' '}
+                      City Record Online, as of {live?.sources?.awards || data.sources?.awards || 'today'} ·{' '}
                       <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                     </div>
                   </div>
@@ -2524,25 +2596,47 @@ export default function App() {
                 <div className="na-cap">Next action</div>
                 <div className="call-block">
                   <div className="call-who">
-                    <b>{c.vendor}</b>
-                    <span>Opener written for {profile.cNeed ? profile.label : 'this window'}</span>
+                    <b>{isOpenNotice(c) ? c.contact?.name || c.agency : c.vendor}</b>
+                    <span>
+                      {isOpenNotice(c)
+                        ? c.contact?.name
+                          ? `${c.agency} — named on the notice`
+                          : 'No officer named on this notice'
+                        : `Opener written for ${profile.cNeed ? profile.label : 'this window'}`}
+                    </span>
                   </div>
                   <div className="call-actions">
                     <button className="btn solid" onClick={() => copy(c.id, (profile.cOpener || defaultCOpener)(c))}>
                       {copiedId === c.id ? 'Copied' : 'Copy opener'}
                     </button>
+                    {/* the city prints this contact so bidders can use it; no
+                        search and no guessing */}
+                    {isOpenNotice(c) && c.contact?.phone && (
+                      <a className="btn ghost" href={`tel:${c.contact.phone.replace(/[^\d+]/g, '')}`}>
+                        {c.contact.phone}
+                      </a>
+                    )}
+                    {isOpenNotice(c) && c.contact?.email && (
+                      <a className="btn ghost" href={`mailto:${c.contact.email}?subject=${encodeURIComponent(c.title || '')}`}>
+                        Email ↗
+                      </a>
+                    )}
                     <button className="btn ghost" onClick={() => copyLink('c', c.id)}>
                       {copiedLink === c.id ? 'Copied' : 'Copy link'}
                     </button>
-                    <a className="btn ghost" href={findUrl(`${c.vendor} phone contact`)} target="_blank" rel="noreferrer">
-                      Find contact ↗
-                    </a>
-                    <a className="btn ghost" href={liUrl(c.vendor)} target="_blank" rel="noreferrer">
-                      LinkedIn ↗
-                    </a>
+                    {!isOpenNotice(c) && (
+                      <>
+                        <a className="btn ghost" href={findUrl(`${c.vendor} phone contact`)} target="_blank" rel="noreferrer">
+                          Find contact ↗
+                        </a>
+                        <a className="btn ghost" href={liUrl(c.vendor)} target="_blank" rel="noreferrer">
+                          LinkedIn ↗
+                        </a>
+                      </>
+                    )}
                     <a
                       className="btn ghost"
-                      href="https://data.cityofnewyork.us/City-Government/Recent-Contract-Awards/qyyg-4tf5"
+                      href="https://data.cityofnewyork.us/City-Government/City-Record-Online/dg92-zbpx"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -2955,8 +3049,13 @@ function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason }) {
   );
 }
 
-const defaultCOpener = (c) =>
-  `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`;
+const defaultCOpener = (c) => {
+  if (c.kind === 'INTENT')
+    return `Re: ${c.title}${c.epin ? ` (PIN ${c.epin})` : ''} — we saw the intent-to-award notice. We can perform this scope and would like to be considered; what is the process for filing an objection before ${usDate(c.dueDate)}?`;
+  if (c.kind === 'SOLICITATION')
+    return `Re: ${c.title}${c.epin ? ` (PIN ${c.epin})` : ''} — we intend to bid before the ${usDate(c.dueDate)} deadline. Could you confirm where the bid documents are posted and whether a pre-bid conference is scheduled?`;
+  return `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`;
+};
 const defaultOOpener = (c) =>
   `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
 

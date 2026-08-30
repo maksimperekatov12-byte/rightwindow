@@ -642,12 +642,33 @@ console.log('Chains in cards:', {
   shed: cards.filter((c) => c.shed).length,
 });
 
-// ---- Vertical 2: fresh city contract awards (companies that just won money) ----
-console.log('Fetching recent contract awards...');
+// ---- Vertical 2: the City Record ----
+//
+// This used to read qyyg-4tf5, which is a saved Socrata filter over dg92-zbpx
+// rather than a dataset of its own: both hold exactly the same 53,533 'Award'
+// rows. Reading the parent costs the same request and adds the half of the
+// register that is still open. An award is the moment an opportunity closed; a
+// solicitation with a live due date is one that has not, and the city prints a
+// named contracting officer with a phone and an email on the notice itself.
+//
+// dg92-zbpx is 1.1M rows, two thirds of them 'Changes in Personnel'. Never
+// fetch it without a type and a date.
+console.log('Fetching the City Record (awards, solicitations, intents)...');
 const since = new Date(TODAY - 14 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+const openAfter = new Date(TODAY).toISOString().slice(0, 19);
+const CROL = 'dg92-zbpx';
+// The notice body is raw HTML, and 0x1a stands in for every apostrophe in it.
+const plain = (html) =>
+  String(html || '')
+    .replace(/\u001a/g, "'")
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|\u00a0/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 let contracts = [];
 try {
-const awardsRaw = await fetchAll('qyyg-4tf5', {
+const awardsRaw = await fetchAll(CROL, {
   $where: `type_of_notice_description='Award' and start_date>='${since}'`,
   $order: 'start_date DESC',
   $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
@@ -660,9 +681,10 @@ const eligible = awardsRaw.filter((a) => Number(a.contract_amount) >= 100000 && 
 const keptAwards = new Map();
 for (const a of [...eligible.slice(0, 20), ...eligible.filter((a) => CONSTR_CAT.test(a.category_description || ''))])
   keptAwards.set(a.request_id, a);
-contracts = [...keptAwards.values()]
+const awards = [...keptAwards.values()]
   .map((a) => ({
     id: a.request_id,
+    kind: 'AWARD',
     vendor: a.vendor_name,
     vendorAddress: a.vendor_address || null,
     agency: a.agency_name,
@@ -674,8 +696,57 @@ contracts = [...keptAwards.values()]
     daysAgo: a.start_date ? Math.max(0, Math.round((TODAY - new Date(a.start_date)) / 86400000)) : null,
   }))
   .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.amount - a.amount);
+
+// Open windows. The contact printed here is the officer the city names on the
+// notice so that bidders can call them — republishing it is what the notice is
+// for, which is why it is not treated like the managing-agent contacts the
+// public feed redacts.
+const openNotice = async (type, kind, limit) => {
+  const rows = await fetchAll(CROL, {
+    $where: `type_of_notice_description='${type}' and due_date > '${openAfter}'`,
+    $order: 'due_date',
+    $select:
+      'request_id,start_date,due_date,agency_name,short_title,category_description,' +
+      'selection_method_description,pin,address_to_request,contact_name,contact_phone,email,additional_description_1',
+  }, 2000);
+  return rows.slice(0, limit).map((r) => {
+    const scope = plain(r.additional_description_1);
+    return {
+      id: r.request_id,
+      kind,
+      agency: r.agency_name,
+      title: r.short_title,
+      category: r.category_description,
+      method: r.selection_method_description,
+      date: r.start_date?.slice(0, 10),
+      dueDate: r.due_date || null,
+      daysLeft: r.due_date ? businessDaysTo(r.due_date.slice(0, 10)) : null,
+      epin: r.pin || null,
+      submitTo: r.address_to_request || null,
+      scope: scope ? scope.slice(0, 300) : null,
+      contact: {
+        name: r.contact_name || null,
+        phone: r.contact_phone || null,
+        email: r.email || null,
+      },
+    };
+  });
+};
+const [solicitations, intents] = await Promise.all([
+  openNotice('Solicitation', 'SOLICITATION', 120),
+  openNotice('Intent to Award', 'INTENT', 20),
+]);
+// Open windows lead, soonest deadline first; the awards that already landed
+// follow. A closed opportunity should never outrank one that is still open.
+contracts = [
+  ...[...solicitations, ...intents].sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || '')),
+  ...awards,
+];
+console.log(
+  `City Record: ${solicitations.length} open solicitations, ${intents.length} intents, ${awards.length} awards`,
+);
 } catch (e) {
-  console.log(`Contract awards unavailable (${e.message}) — keeping previous data`);
+  console.log(`City Record unavailable (${e.message}) — keeping previous data`);
   contracts = prevFeed()?.contracts || [];
 }
 
@@ -759,7 +830,7 @@ const sources = {
   elevators: await sourceMeta('e5aq-a4j2'),
   permits: await sourceMeta('rbx6-tga4'),
   jobs: await sourceMeta('w9ak-ipjd'),
-  awards: await sourceMeta('qyyg-4tf5'),
+  awards: await sourceMeta(CROL),
   sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
   acrisThrough,
 };
