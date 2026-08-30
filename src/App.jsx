@@ -295,6 +295,17 @@ const PROFILES = {
 // The block model is the heaviest thing on the page, so it is code-split and
 // only ever mounted on a wide screen with motion allowed.
 const Massing = lazy(() => import('./Massing.jsx'));
+const CivicWorks = lazy(() => import('./CivicWorks.jsx'));
+const Storefronts = lazy(() => import('./Storefronts.jsx'));
+
+// Each register gets its own object and its own line under it. The caption is
+// the object's job: it says which fact of the register the brand-coloured
+// element stands for.
+const HEROES = {
+  facades: { Scene: Massing, cap: 'Sub-cycle 10A · nothing filed' },
+  contracts: { Scene: CivicWorks, cap: 'Awarded · no subs named yet' },
+  openings: { Scene: Storefronts, cap: 'Licence pending · vendors not chosen' },
+};
 
 // three.js cannot read CSS variables, so the live theme is handed over by hand.
 const readThemeColors = () => {
@@ -1814,14 +1825,18 @@ export default function App() {
           ) : null}
 
         </section>
-        {vertical === 'facades' && (
+        {HEROES[vertical] && (
           <div className="massing-slot">
             {wide && !reduce && (
               <Suspense fallback={null}>
-                <Massing colors={themeColors} reduced={reduce} className="massing" />
+                {React.createElement(HEROES[vertical].Scene, {
+                  colors: themeColors,
+                  reduced: reduce,
+                  className: 'massing',
+                })}
               </Suspense>
             )}
-            <span className="massing-cap">Sub-cycle 10A · nothing filed</span>
+            <span className="massing-cap">{HEROES[vertical].cap}</span>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { Stage, opaque, SOLID, useRiseIn } from './Stage.jsx';
 
 // A Manhattan block, drawn the way a zoning study draws it: tiered setback
 // masses, water tanks on the roofs, an avenue and a cross street cut into the
@@ -95,13 +96,12 @@ function Model({ colors, reduced }) {
   // Built once and recoloured in place — rebuilding on a theme toggle would
   // replay the one-time intro.
   const mat = useMemo(() => {
-    const solid = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
     return {
-      mass: new THREE.MeshLambertMaterial(solid),
-      subject: new THREE.MeshLambertMaterial(solid),
-      ground: new THREE.MeshLambertMaterial(solid),
-      street: new THREE.MeshLambertMaterial(solid),
-      tank: new THREE.MeshLambertMaterial(solid),
+      mass: new THREE.MeshLambertMaterial(SOLID),
+      subject: new THREE.MeshLambertMaterial(SOLID),
+      ground: new THREE.MeshLambertMaterial(SOLID),
+      street: new THREE.MeshLambertMaterial(SOLID),
+      tank: new THREE.MeshLambertMaterial(SOLID),
       line: new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5, depthWrite: false }),
     };
   }, []);
@@ -110,9 +110,6 @@ function Model({ colors, reduced }) {
   }, [mat]);
 
   useEffect(() => {
-    // The theme's line colour carries the alpha meant for CSS borders; opaqued
-    // it is the right hue, and the material owns how faint the hairline gets.
-    const opaque = (c) => new THREE.Color(String(c).replace(/rgba?\(([^)]+?)(?:,[^,)]+)?\)/, 'rgb($1)'));
     const bg = opaque(colors.bg);
     const ink = opaque(colors.ink);
     const line = opaque(colors.line);
@@ -131,22 +128,14 @@ function Model({ colors, reduced }) {
   }, [camera, invalidate, aspect]);
 
   const orbit = useRef(null);
-  const groups = useRef([]);
   const clock = useRef(0);
-  const intro0 = useRef(0);
-  const settled = useRef(reduced);
+  const { groups, show, step } = useRiseIn({ count: BUILDINGS.length, rise: RISE, stagger: STAGGER, reduced });
 
   useEffect(() => {
     if (!reduced) return;
-    settled.current = true;
-    for (const g of groups.current) {
-      if (g) {
-        g.visible = true;
-        g.scale.y = 1;
-      }
-    }
+    show();
     invalidate();
-  }, [reduced, invalidate]);
+  }, [reduced, invalidate, show]);
 
   // The intro extrudes the block out of the ground once, nearest lot first —
   // the way a massing model gets built, not the way a logo spins up.
@@ -154,22 +143,7 @@ function Model({ colors, reduced }) {
     if (reduced) return;
     clock.current += delta > 0.05 ? 0.05 : delta;
     if (orbit.current) orbit.current.rotation.y = BASE_YAW + clock.current * ORBIT_RATE;
-    if (settled.current) return;
-    // The intro runs on wall clock, not frame count: a tab that renders rarely
-    // (or resumes after being hidden) should finish the build, not stretch it.
-    if (!intro0.current) intro0.current = performance.now();
-    const t = (performance.now() - intro0.current) / 1000;
-    let done = true;
-    for (let i = 0; i < BUILDINGS.length; i++) {
-      const g = groups.current[i];
-      if (!g) continue;
-      const p = (t - i * STAGGER) / RISE;
-      if (p < 1) done = false;
-      const e = p <= 0 ? 0 : p >= 1 ? 1 : 1 - (1 - p) * (1 - p) * (1 - p);
-      g.visible = p > 0;
-      g.scale.y = Math.max(e, 0.0001);
-    }
-    if (done) settled.current = true;
+    step();
   });
 
   const fit = Math.max(0.66, Math.min(0.98, aspect / 1.55));
@@ -197,44 +171,13 @@ function Model({ colors, reduced }) {
 }
 
 export default function Massing({ colors, reduced = false, className }) {
-  const host = useRef(null);
-  const [onScreen, setOnScreen] = useState(true);
-
-  // A hero canvas that keeps drawing in a background tab or below the fold is a
-  // battery bug, not an animation.
-  useEffect(() => {
-    if (reduced) return;
-    const el = host.current;
-    if (!el) return;
-    let seen = true;
-    const sync = () => setOnScreen(seen && !document.hidden);
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        seen = entry.isIntersecting;
-        sync();
-      },
-      { threshold: 0.01 },
-    );
-    io.observe(el);
-    document.addEventListener('visibilitychange', sync);
-    return () => {
-      io.disconnect();
-      document.removeEventListener('visibilitychange', sync);
-    };
-  }, [reduced]);
-
   return (
-    <div ref={host} className={className} aria-hidden="true">
-      <Canvas
-        dpr={[1, 1.75]}
-        gl={{ antialias: true, alpha: true }}
-        frameloop={reduced ? 'demand' : onScreen ? 'always' : 'never'}
-        camera={{ position: [14.6, 10.4, 18.2], fov: 30, near: 4, far: 70 }}
-      >
-        <ambientLight intensity={2.0} />
-        <directionalLight position={[6, 9, 5]} intensity={1.0} />
-        <Model colors={colors} reduced={reduced} />
-      </Canvas>
-    </div>
+    <Stage
+      reduced={reduced}
+      className={className}
+      camera={{ position: [14.6, 10.4, 18.2], fov: 30, near: 4, far: 70 }}
+    >
+      <Model colors={colors} reduced={reduced} />
+    </Stage>
   );
 }
