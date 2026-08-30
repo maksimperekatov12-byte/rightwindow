@@ -71,7 +71,7 @@ const contracts = [...keptAwards.values()]
 
 // openings
 const qs2 = new URLSearchParams({
-  $where: "premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review'",
+  $where: `premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review' and received_date >= '${new Date(TODAY - 150 * 86400000).toISOString().slice(0, 10)}'`,
   $order: 'received_date DESC',
   $limit: '60',
   $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
@@ -118,6 +118,13 @@ try {
   const m = await getJson('https://data.cityofnewyork.us/api/views/qyyg-4tf5.json');
   awardsDate = new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
 } catch {}
+// The venue card prints an "as of" date; publishing the awards date but not this
+// one left it showing whatever the last hourly run happened to bake in.
+let slaDate = feed.sources?.sla || null;
+try {
+  const m = await getJson('https://data.ny.gov/api/views/f8i8-k2gm.json');
+  slaDate = new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
+} catch {}
 
 // Rolling proof of life: every check is recorded, every change is labelled.
 const DAY = 24 * 3600 * 1000;
@@ -160,7 +167,7 @@ writeFileSync(outPath, JSON.stringify({
     contracts: contracts.filter((c) => c.isNew).length,
     openings: openings.filter((o) => o.isNew).length,
   },
-  sources: { awards: awardsDate },
+  sources: { awards: awardsDate, sla: slaDate },
   claims,
 }));
 // seen memory is committed by the hourly lane; keep it fresh locally when we can

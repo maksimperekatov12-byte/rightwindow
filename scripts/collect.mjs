@@ -191,6 +191,20 @@ for (let i = 0; i < regIds.length; i += 50) {
 }
 console.log(`Agents resolved: ${agentByReg.size}`);
 
+// Business days to a date, so a hearing three weeks out scores like the
+// deadline it is rather than like a calendar distance.
+function businessDaysTo(d) {
+  let n = 0;
+  const cur = new Date(TODAY);
+  const end = new Date(d);
+  while (cur < end && n < 400) {
+    cur.setDate(cur.getDate() + 1);
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) n++;
+  }
+  return n;
+}
+
 // ECB violations for candidate bins: fresh hazardous events + open penalty balances + next hearings
 console.log('Fetching ECB violations for top candidates...');
 const ecbByBin = new Map();
@@ -198,7 +212,7 @@ for (let i = 0; i < top.length; i += 50) {
   const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
   const rows = await fetchAll(
     '6bgk-3dad',
-    { $where: `bin in(${bins}) and ecb_violation_status='ACTIVE'`, $select: 'bin,issue_date,severity,violation_description,balance_due,hearing_date' },
+    { $where: `bin in(${bins}) and ecb_violation_status='ACTIVE'`, $select: 'bin,issue_date,severity,violation_description,balance_due,hearing_date,hearing_status' },
     5000,
   );
   for (const r of rows) {
@@ -207,12 +221,16 @@ for (let i = 0; i < top.length; i += 50) {
     const d = parseYmd(r.issue_date);
     if (d) {
       const daysAgo = Math.round((TODAY - d) / 86400000);
-      const hazardous = /HAZARD/i.test(r.severity || '');
+      const sev = (r.severity || '').trim();
+      const hazardous = /\bCLASS\s*-?\s*1\b/i.test(sev) || /^hazardous$/i.test(sev);
       if (daysAgo >= 0 && daysAgo <= 120 && (!agg.fresh || (hazardous && !agg.fresh.hazardous) || daysAgo < agg.fresh.daysAgo)) {
-        agg.fresh = { daysAgo, hazardous, severity: (r.severity || '').trim(), desc: (r.violation_description || '').replace(/\s+/g, ' ').slice(0, 150).trim() };
+        agg.fresh = { daysAgo, hazardous, severity: sev, desc: (r.violation_description || '').replace(/\s+/g, ' ').slice(0, 150).trim() };
       }
     }
-    const h = parseYmd(r.hearing_date);
+    // Only a hearing still waiting to happen is a date somebody can be helped
+    // with; a defaulted or decided one is a different, worse conversation.
+    const pending = /pending|scheduled/i.test(r.hearing_status || '');
+    const h = pending ? parseYmd(r.hearing_date) : null;
     if (h && h > TODAY && (!agg.nextHearing || h < agg.nextHearing)) agg.nextHearing = h;
     ecbByBin.set(r.bin, agg);
   }
@@ -464,7 +482,13 @@ for (const c of top) {
     (payingForNothing ? 5 : 0) +
     (filing?.stalled ? 3 : 0) +
     (occupied ? -6 : 0) +
-    Math.min(3, Math.round(ecbBalance / 100000)) +
+    // Scaled to the range this data actually occupies: median $4.9k, max $65k.
+    Math.min(3, Math.floor(ecbBalance / 15000)) +
+    // A hearing is a date somebody has to prepare for; the closer it is, the
+    // more a code attorney or expeditor is worth to them today.
+    (nextHearing ? (businessDaysTo(nextHearing) <= 21 ? 3 : 1) : 0) +
+    // A shed permit about to lapse forces a decision: renew, or finish the work.
+    (shed?.until && new Date(shed.until) - TODAY < 60 * 86400000 ? 2 : 0) +
     (c.monthsLeft <= 7 ? 1 : 0);
   cards.push({
     ...c,
@@ -622,7 +646,7 @@ console.log('Fetching SLA pending licenses (NYC counties)...');
 let openings = [];
 try {
 const qs = new URLSearchParams({
-  $where: "premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review'",
+  $where: `premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review' and received_date >= '${new Date(TODAY - 150 * 86400000).toISOString().slice(0, 10)}'`,
   $order: 'received_date DESC',
   $limit: '60',
   $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
@@ -695,6 +719,8 @@ const sources = {
   hpd: await sourceMeta('tesw-yqqr'),
   ecb: await sourceMeta('6bgk-3dad'),
   elevators: await sourceMeta('e5aq-a4j2'),
+  permits: await sourceMeta('rbx6-tga4'),
+  jobs: await sourceMeta('w9ak-ipjd'),
   awards: await sourceMeta('qyyg-4tf5'),
   sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
   acrisThrough,

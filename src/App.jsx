@@ -51,7 +51,7 @@ const PROFILES = {
     tile: 'Facade engineering / inspections (QEWI)',
     facade: {
       hero: 'Buildings that need a facade engineer — *before they know it*',
-      hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by how little time is left.',
+      hint: 'Buildings with no engineer engaged for Cycle 10 — ranked by urgency, then by how little time is left.',
       sort: byUrgency,
       why: (c) => {
         const incumbent = c.filing?.who && c.priorQewi && c.filing.who.toUpperCase() === c.priorQewi.toUpperCase();
@@ -134,7 +134,7 @@ const PROFILES = {
     label: 'Insurance / bonding',
     tile: 'Insurance / surety bonds',
     facade: {
-      hero: 'Buildings whose risk profile *just changed*',
+      hero: 'Risk that just moved — and scopes that need *covering*',
       hint: 'New owners re-shop coverage; active violations raise liability; mandated work needs builder’s risk.',
       sort: (a, b) =>
         (b.ownerChange ? 3 : 0) + (b.freshHaz ? 2 : 0) - (a.ownerChange ? 3 : 0) - (a.freshHaz ? 2 : 0) || byUrgency(a, b),
@@ -225,7 +225,7 @@ const PROFILES = {
     tile: 'Code attorneys / expeditors',
     facade: {
       hero: 'Hearings on the calendar, *violations on the clock*',
-      hint: 'Buildings with OATH hearings ahead, fresh violations or unpaid ECB balances — clients with a date.',
+      hint: 'Buildings with OATH hearings ahead, fresh violations, unpaid balances or an UNSAFE order — clients with a date.',
       sort: (a, b) =>
         (b.nextHearing ? 4 : 0) + (b.freshHaz ? 2 : 0) - (a.nextHearing ? 4 : 0) - (a.freshHaz ? 2 : 0) ||
         (b.ecbBalance || 0) - (a.ecbBalance || 0),
@@ -314,10 +314,10 @@ const STATUS_MARK = {
   taken: { glyph: 'lock', label: 'Taken — someone is already on it' },
   personal: { glyph: 'star', label: 'Reserved for you' },
 };
-function StatusDot({ status, note }) {
+function StatusDot({ status, note, legend }) {
   const mark = STATUS_MARK[status] || STATUS_MARK.open;
   return (
-    <span className={'found ' + status} title={note || mark.label}>
+    <span className={'found ' + status + (legend ? ' legend-dot' : '')} title={legend ? undefined : note || mark.label}>
       {mark.glyph === 'star' ? (
         <span aria-hidden="true">★</span>
       ) : mark.glyph === 'lock' ? (
@@ -383,25 +383,6 @@ const factsFor = (k) => FACTS[k] || ALL_FACTS;
 const DEFAULT_CLOSE_RATE = 0.03;
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 
-const PIPE = {
-  qewi: (t) => ({ v: t.nonFilers10A * 5000, n: `${t.nonFilers10A.toLocaleString('en-US')} unfiled buildings × ~$5K per FISP inspection` }),
-  restoration: (t) => ({ v: t.swarmpCarryover * 100000, n: `${t.swarmpCarryover.toLocaleString('en-US')} open SWARMP scopes × ~$100K per mandated repair` }),
-  elevator: (t, f) => {
-    const d = f.reduce((s, c) => s + (c.elevator ? c.elevator.cat1Missing + c.elevator.cat5Due : 0), 0);
-    return { v: d * 650, n: `${d} devices due on this feed × ~$650 per test` };
-  },
-  insurance: (t, f) => ({ v: f.length * 12000, n: `${f.length} buildings × ~$12K annual premium` }),
-  lender: (t, f) => ({ v: f.length * 200000, n: `${f.length} buildings × ~$200K financeable scope` }),
-  equipment: (t, f) => ({ v: f.length * 45000, n: `${f.length} mandated scopes × ~$45K shed and scaffold` }),
-  propmgmt: (t, f) => ({ v: f.length * 50000, n: `${f.length} buildings changing hands × ~$50K/yr management fee` }),
-  legal: (t, f) => ({ v: f.length * 7500, n: `${f.length} buildings with hearings or penalties × ~$7.5K per matter` }),
-  cre: (t, f) => ({ v: f.length * 160000, n: `${f.length} pressured owners × ~2% fee on a typical $8M sale` }),
-  staffing: (t, f, c) => ({ v: c.length * 25000, n: `${c.length} fresh awards × ~$25K staffing package` }),
-  pos: (t, f, c, o) => ({ v: o.length * 4000, n: `${o.length} openings × ~$4K/yr per venue` }),
-  fnb: (t, f, c, o) => ({ v: o.length * 60000, n: `${o.length} openings × ~$60K/yr supply` }),
-  marketing: (t, f, c, o) => ({ v: o.length * 15000, n: `${o.length} openings × ~$15K launch budget` }),
-  signage: (t, f, c, o) => ({ v: o.length * 20000, n: `${o.length} openings × ~$20K storefront` }),
-};
 
 // Typical contract size per trade *and per register* — the same firm does not
 // bill the same for a mandated facade scope, a subcontract off a city award and
@@ -618,6 +599,7 @@ export default function App() {
   const [mine, setMine] = useState({});
   const [live, setLive] = useState(null);
   const [emailSaved, setEmailSaved] = useState(false);
+  const [claimTaken, setClaimTaken] = useState(null);
   const [slackHook, setSlackHook] = useState(() => loadLS('rw.slack', ''));
   const [slackState, setSlackState] = useState('idle');
   const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
@@ -659,7 +641,7 @@ export default function App() {
     secret.current = sec;
   }
 
-  const mine_ = useRef({});
+  const mine_ = useRef(loadLS('rw.mine', {}));
   const mark = (k, st) => {
     // Toggling the status back off releases the claim this device made, so a
     // misclick does not lock a building amber for everyone, forever.
@@ -677,13 +659,25 @@ export default function App() {
       }).catch(() => {});
     }
     if ((st === 'contacted' || st === 'won') && !claims[k]) {
-      mine_.current[k] = 1;
+      // Paint it amber straight away, but only keep ownership if the server
+      // agrees — otherwise somebody claimed it a second before you did.
       setClaims((c) => ({ ...c, [k]: { at: Date.now() } }));
       fetch('/api/claims', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ uid: uid.current, key: k }),
-      }).catch(() => {});
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+          if (j?.status === 'claimed') {
+            mine_.current[k] = 1;
+            saveLS('rw.mine', { ...loadLS('rw.mine', {}), [k]: 1 });
+          } else if (j?.status === 'taken') {
+            setClaimTaken(k);
+            setTimeout(() => setClaimTaken((cur) => (cur === k ? null : cur)), 4000);
+          }
+        })
+        .catch(() => {});
     }
     setFb((f) => {
       const n = { ...f };
@@ -837,7 +831,8 @@ export default function App() {
   }
   const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
 
-  const watchCount = Object.keys(watch).length;
+  const vertPrefix = vertical === 'facades' ? 'b:' : vertical === 'contracts' ? 'c:' : 'o:';
+  const watchCount = Object.keys(watch).filter((k) => k.startsWith(vertPrefix)).length;
   const isWatched = (k) => Boolean(watch[k]);
   const toggleWatch = (k) => {
     setWatch((w) => {
@@ -976,7 +971,7 @@ export default function App() {
   const primaryTrades = orderedTrades.slice(0, 3);
   const otherTrades = orderedTrades.slice(3);
 
-  const hiddenCount = Object.keys(fb).filter((k) => fb[k]?.s === 'dismissed').length;
+  const hiddenCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && fb[k]?.s === 'dismissed').length;
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
   const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
@@ -1228,15 +1223,6 @@ export default function App() {
     if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
     return { n, avg, rate, gross, expected };
   }, [ticket, closeRate, openCount, profileKey, vertical]);
-
-  const pipe = useMemo(() => {
-    // Nothing on the feed means nothing to size — the whole block goes away.
-    if (!openCount) return null;
-    const fn = PIPE[profileKey];
-    if (!fn) return null;
-    const r = fn(data.facades.totals, facadeFeed, contractsBase, data.openings);
-    return r && r.v > 0 ? r : null;
-  }, [profileKey, facadeFeed, contractsBase, openCount]);
 
   const heroText =
     vertical === 'facades'
@@ -1662,11 +1648,6 @@ export default function App() {
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
-          ) : pipe ? (
-            <motion.div className="pipe" {...fade(0.1)}>
-              <b>≈ {fmtUsd(pipe.v)}</b> of potential work
-              <span title={`Back-of-napkin: ${pipe.n}`}>matched to your trade and boroughs</span>
-            </motion.div>
           ) : null}
 
         </section>
@@ -1803,9 +1784,9 @@ export default function App() {
             </div>
           )}
           <div className="legend" aria-hidden="true">
-            <span><i className="ldot open" /> open — no one has claimed it</span>
-            <span><i className="ldot taken" /> taken — someone is already on it</span>
-            <span><i className="ldot personal" /> reserved — yours for 48h</span>
+            <span><StatusDot status="open" legend /> open — no one has claimed it</span>
+            <span><StatusDot status="taken" legend /> taken — someone is already on it</span>
+            <span><StatusDot status="personal" legend /> reserved — yours for 48h</span>
           </div>
 
           <div className="toolbar">
@@ -1935,6 +1916,7 @@ export default function App() {
                         <span className="badge">{BADGE[topSignal.kind]}</span>
                         {c.freshHaz && <span className="badge urgent">Violation {c.freshHaz.daysAgo}d ago</span>}
                         {c.signals.length > 1 && <span className="badge more">+{c.signals.length - 1}</span>}
+                        {claimTaken === 'b:' + c.bin && <span className="badge urgent">Someone claimed it first</span>}
                       </span>
                       <span className="head-side">
                         <span className={'clock' + (c.monthsLeft <= 7 ? ' tight' : '')}>{c.monthsLeft} mo left</span>
@@ -2500,13 +2482,39 @@ export default function App() {
             if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return;
             setEmail(v);
             saveLS('rw.email', v);
-            setEmailSaved(true);
-            setTimeout(() => setEmailSaved(false), 2600);
+            setEmailSaved('saving');
+            fetch('/api/prefs', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ uid: uid.current, secret: secret.current, data: { channels: { email: v } } }),
+            })
+              .then((r) => {
+                setEmailSaved(r.ok ? 'ok' : 'fail');
+                setTimeout(() => setEmailSaved(false), 3200);
+              })
+              .catch(() => {
+                setEmailSaved('fail');
+                setTimeout(() => setEmailSaved(false), 3200);
+              });
           }}
         >
           <input name="em" type="email" required placeholder="you@company.com" defaultValue={email} aria-label="Email for the daily digest" />
-          <button className="btn solid" type="submit">{emailSaved ? 'Saved' : email ? 'Update digest email' : 'Get the daily digest'}</button>
-          {email && !emailSaved && <span className="digest-note">Only when something new matches you</span>}
+          <button className="btn solid" type="submit">
+            {emailSaved === 'saving'
+              ? 'Saving…'
+              : emailSaved === 'ok'
+                ? 'Saved'
+                : emailSaved === 'fail'
+                  ? 'Try again'
+                  : email
+                    ? 'Update digest email'
+                    : 'Get the daily digest'}
+          </button>
+          {emailSaved === 'fail' ? (
+            <span className="digest-note">Could not save — check your connection and try again.</span>
+          ) : (
+            email && !emailSaved && <span className="digest-note">Only when something new matches you</span>
+          )}
         </form>
         <div className="pilot-row">
           <form

@@ -794,3 +794,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   color: var(--ink-3); letter-spacing: .02em;
 }
 .count-note { color: var(--brand); }
+
+/* The legend has to show the same glyphs the cards use, not stand-in circles —
+   otherwise it teaches a code the feed does not speak. */
+.legend .found.legend-dot {
+  width: 17px; height: 17px; margin-right: 5px; vertical-align: -4px;
+}
+.legend .found.legend-dot svg { width: 10px; height: 10px; }
+.legend .found.legend-dot .sr-only { display: none; }
