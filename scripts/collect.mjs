@@ -155,8 +155,42 @@ for (const [bin, { c9, c10 }] of byBin) {
 console.log(`Candidates (MN+BK+QN+BX): ${candidates.length}`);
 candidates.sort((a, b) => b.score - a.score || a.monthsLeft - b.monthsLeft);
 
-// HPD join: registrations by BIN for the top slice, then agents by registrationid
-const top = candidates.slice(0, 600);
+// Take the best of each borough rather than the best overall.
+//
+// The register is genuinely Manhattan-heavy — FISP covers buildings over six
+// storeys, and Manhattan has 50,702 of the 86,234 — so a pure score ordering
+// gave Manhattan 206 of 400 while three adjacent Brooklyn ZIPs held two
+// buildings between them. That is fine as a ranking and useless as a product:
+// territory is sold per borough, so each borough needs enough depth to be worth
+// working. A borough that cannot fill its quota gives the remainder back to the
+// others, so nothing is wasted holding a seat empty.
+function balancedByBorough(rows, total) {
+  const boroughs = [...new Set(rows.map((r) => r.borough))].filter(Boolean);
+  if (!boroughs.length) return rows.slice(0, total);
+  const pools = new Map(boroughs.map((b) => [b, rows.filter((r) => r.borough === b)]));
+  const picked = [];
+  const taken = new Map(boroughs.map((b) => [b, 0]));
+  // Deal one at a time so an under-filled borough releases its share as we go.
+  let progress = true;
+  while (picked.length < total && progress) {
+    progress = false;
+    for (const b of boroughs) {
+      if (picked.length >= total) break;
+      const pool = pools.get(b);
+      const i = taken.get(b);
+      if (i >= pool.length) continue;
+      picked.push(pool[i]);
+      taken.set(b, i + 1);
+      progress = true;
+    }
+  }
+  return picked;
+}
+
+// HPD join: registrations by BIN for the top slice, then agents by registrationid.
+// Balanced here too, not only at the feed cut: contacts and violations are only
+// fetched for this shortlist, so a borough missing from it can never appear.
+const top = balancedByBorough(candidates, 600);
 console.log('Fetching HPD registrations for top candidates...');
 const regByBin = new Map();
 for (let i = 0; i < top.length; i += 50) {
@@ -486,7 +520,7 @@ for (const c of top) {
     Math.min(3, Math.floor(ecbBalance / 15000)) +
     // A hearing is a date somebody has to prepare for; the closer it is, the
     // more a code attorney or expeditor is worth to them today.
-    (nextHearing ? (businessDaysTo(nextHearing) <= 21 ? 3 : 1) : 0) +
+    (ecb?.nextHearing ? (businessDaysTo(ecb.nextHearing) <= 21 ? 3 : 1) : 0) +
     // A shed permit about to lapse forces a decision: renew, or finish the work.
     (shed?.until && new Date(shed.until) - TODAY < 60 * 86400000 ? 2 : 0) +
     (c.monthsLeft <= 7 ? 1 : 0);
@@ -597,7 +631,11 @@ for (const c of top) {
 
 // Demo feed: most urgent first (post-enrichment), multifamily with a resolved contact
 cards.sort((a, b) => b.urgencyScore - a.urgencyScore);
-const feed = cards.filter((c) => c.multifamily && c.agent).slice(0, 400);
+const eligible = cards.filter((c) => c.multifamily && c.agent);
+const feed = balancedByBorough(eligible, 400);
+// Within the feed, urgency still decides the order — the quota governs who is on
+// the list, not who is at the top of it.
+feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
 console.log('Chains in cards:', {
   ownerChange: cards.filter((c) => c.ownerChange).length,
   elevator: cards.filter((c) => c.elevator).length,
