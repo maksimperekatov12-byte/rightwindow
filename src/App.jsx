@@ -347,7 +347,11 @@ const MANDATES = {
     source: 'DOB Safety Violations (Local Law 152)',
     sourceKey: 'mandates',
     dataset: 'https://data.cityofnewyork.us/Housing-Development/DOB-Safety-Violations/855j-jady',
-    badge: (c) => (c.violations > 1 ? `${c.violations} open violations` : 'Open violation'),
+    // Every card here shares one deadline, so the head row has to differ on
+    // something else or four hundred rows read identically.
+    badge: (c) =>
+      `${c.violations > 1 ? `${c.violations} open · ` : ''}` +
+      (c.openDays ? `open ${Math.round(c.openDays / 30)} mo` : 'open violation'),
     clock: (c) => `${c.monthsLeft} mo left`,
     tight: (c) => c.monthsLeft <= 6,
     why: (c) =>
@@ -2664,8 +2668,18 @@ export default function App() {
                                   <div className="menu">
                                     <button onClick={() => { copy(c.bin, openerFor(c, fv, contactOf(c, contacts[c.bin]))); setMenuFor(null); }}>Copy opener</button>
                                     <button onClick={() => { copyLink('b', c.bin); setMenuFor(null); }}>Copy link</button>
+                                    {/* With no company and the name redacted this used to search the
+                                        literal string "phone New York". Fall back to the building. */}
                                     {c.agent && (
-                                      <a href={findUrl(`${c.agent.company || ''} ${c.agent.name || ''} phone New York`)} target="_blank" rel="noreferrer">
+                                      <a
+                                        href={findUrl(
+                                          c.agent.company || c.agent.name
+                                            ? `${c.agent.company || ''} ${c.agent.name || ''} phone New York`.trim()
+                                            : `"${c.address}" ${c.borough} managing agent phone`,
+                                        )}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                      >
                                         Search the web
                                       </a>
                                     )}
