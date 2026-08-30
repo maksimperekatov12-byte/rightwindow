@@ -17,7 +17,10 @@ const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.met
 const out = {};
 const tally = {};
 
-for (const c of feed.facades.feed) {
+// Every register that carries an agent, not just the first one written — the
+// same mistake the redaction loop made when the second register was added.
+const withAgents = [feed.facades.feed, ...['gas', 'elevators', 'carbon'].map((k) => feed[k]?.feed || [])].flat();
+for (const c of withAgents) {
   if (!c.agent?.company) continue;
   const e = await enrichContact({ company: c.agent.company, address: c.agent.address });
   if (e.confidence === 'none' || (!e.phone && !e.email)) continue;

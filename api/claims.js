@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     const body = await readBody(req);
     const uid = String(body?.uid || '');
     const key = String(body?.key || '');
-    if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bco]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
+    if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bcgeko]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
     let taken = null;
     try {
       await updateDoc(CLAIMS, (doc) => {
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     const body = await readBody(req);
     const uid = String(body?.uid || '');
     const key = String(body?.key || '');
-    if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bco]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
+    if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bcgeko]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
     let released = false;
     try {
       await updateDoc(CLAIMS, (doc) => {

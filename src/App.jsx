@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Su
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 import DataPage from './Data.jsx';
-import { NO_LESSON, reasonsFor, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
+import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
 import TradesPage from './Trades.jsx';
 
 const YEAR = new Date().getFullYear();
@@ -910,12 +910,29 @@ export default function App() {
           if (j?.status === 'claimed') {
             mine_.current[k] = 1;
             saveLS('rw.mine', { ...loadLS('rw.mine', {}), [k]: 1 });
-          } else if (j?.status === 'taken') {
+            return;
+          }
+          if (j?.status === 'taken') {
             setClaimTaken(k);
             setTimeout(() => setClaimTaken((cur) => (cur === k ? null : cur)), 4000);
+            return;
           }
+          // Anything else means the claim never landed. Painting the card amber
+          // and leaving it there tells four other people it is worked when it
+          // is not, so the optimistic colour comes back off.
+          setClaims((c) => {
+            const n = { ...c };
+            delete n[k];
+            return n;
+          });
         })
-        .catch(() => {});
+        .catch(() => {
+          setClaims((c) => {
+            const n = { ...c };
+            delete n[k];
+            return n;
+          });
+        });
     }
     setFb((f) => {
       const n = { ...f };
@@ -1165,9 +1182,14 @@ export default function App() {
     setSortMode('profile');
   };
 
+  // monthsLeft is the same number on every card in a register — they share one
+  // sub-cycle — so sorting by it was a no-op that silently fell through to
+  // urgency. A hearing date is the one date that actually differs.
   const SORTS = {
     profile: fv.sort,
-    deadline: (a, b) => a.monthsLeft - b.monthsLeft || byUrgency(a, b),
+    hearing: (a, b) =>
+      (a.nextHearing ? Date.parse(a.nextHearing) : Infinity) - (b.nextHearing ? Date.parse(b.nextHearing) : Infinity) ||
+      byUrgency(a, b),
     money: (a, b) => (b.ecbBalance || 0) + (b.finesOwed || 0) - (a.ecbBalance || 0) - (a.finesOwed || 0),
   };
   const facadeFeed = useMemo(
@@ -1206,38 +1228,61 @@ export default function App() {
   const contractsBase = useMemo(() => liveContracts.filter(profile.cFilter || (() => true)), [profileKey, liveContracts]);
   const contractsList = useMemo(
     () =>
-      contractsBase.filter(
-        (c) =>
-          showHidden === isDismissed('c:' + c.id) &&
-          (showHidden || !taughtAway('c:', c)) &&
-          (!onlyWatch || isWatched('c:' + c.id)),
-      ),
-    [contractsBase, onlyWatch, watch, fb, showHidden],
+      contractsBase.filter((c) => {
+        if (showHidden !== isDismissed('c:' + c.id)) return false;
+        if (!showHidden && taughtAway('c:', c)) return false;
+        if (onlyWatch && !isWatched('c:' + c.id)) return false;
+        const q = deferredQuery.trim().toLowerCase();
+        if (!q) return true;
+        return [c.vendor, c.agency, c.title, c.category, c.contact?.name, c.epin]
+          .filter(Boolean)
+          .some((f) => String(f).toLowerCase().includes(q));
+      }),
+    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery],
   );
   const mandateLists = useMemo(() => {
+    const q = deferredQuery.trim().toLowerCase();
+    const zips = zipsIn(q);
     const out = {};
     for (const key of mandateKeys) {
       const pre = MANDATES[key].prefix;
-      out[key] = (data[key]?.feed || []).filter(
-        (c) =>
-          showHidden === isDismissed(pre + c.bin) &&
-          (showHidden || !taughtAway(pre, c)) &&
-          (!onlyWatch || isWatched(pre + c.bin)),
-      );
+      out[key] = (data[key]?.feed || []).filter((c) => {
+        if (showHidden !== isDismissed(pre + c.bin)) return false;
+        if (!showHidden && taughtAway(pre, c)) return false;
+        if (onlyWatch && !isWatched(pre + c.bin)) return false;
+        if (boro !== 'all' && c.borough !== boro) return false;
+        if (!q) return true;
+        if (zips) return Boolean(c.zip) && zips.includes(c.zip);
+        return [c.address, c.agent?.company, c.zip, c.bin]
+          .filter(Boolean)
+          .some((f) => String(f).toLowerCase().includes(q));
+      });
     }
     return out;
-  }, [onlyWatch, watch, fb, showHidden]);
+  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro]);
   const mandateList = mandateLists[vertical] || [];
   const openingsList = useMemo(
     () =>
-      liveOpenings.filter(
-        (o) =>
-          showHidden === isDismissed('o:' + o.id) &&
-          (showHidden || !taughtAway('o:', o)) &&
-          (!onlyWatch || isWatched('o:' + o.id)),
-      ),
-    [liveOpenings, onlyWatch, watch, fb, showHidden],
+      liveOpenings.filter((o) => {
+        if (showHidden !== isDismissed('o:' + o.id)) return false;
+        if (!showHidden && taughtAway('o:', o)) return false;
+        if (onlyWatch && !isWatched('o:' + o.id)) return false;
+        const q = deferredQuery.trim().toLowerCase();
+        if (!q) return true;
+        return [o.name, o.legal, o.address, o.county, o.kind]
+          .filter(Boolean)
+          .some((f) => String(f).toLowerCase().includes(q));
+      }),
+    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery],
   );
+  const visibleForReasons =
+    vertical === 'facades'
+      ? filteredFeed
+      : MANDATES[vertical]
+        ? mandateList
+        : vertical === 'contracts'
+          ? contractsList
+          : openingsList;
   const keepShown = useRef(0);
   useEffect(() => {
     // A deep link has just asked for enough rows to reach its target; the
@@ -1626,8 +1671,31 @@ export default function App() {
           transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1], delay },
         };
 
-  const miniToolbar = (list, total) => (
+  // Every register gets a way to cut its list. A Brooklyn crew handed 400 cards
+  // across four boroughs with no filter is being handed a spreadsheet.
+  const miniToolbar = (list, total, { boroughs = false } = {}) => (
     <div className="toolbar">
+      <input
+        type="search"
+        className="search"
+        placeholder={boroughs ? 'Search address, agent, or ZIP…' : 'Search name, agency, or title…'}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        aria-label="Search this register"
+      />
+      {boroughs && (
+        <div className="chips" role="group" aria-label="Borough">
+          {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx'].map((b) => {
+            const n = b === 'all' ? total : (data[vertical]?.feed || []).filter((c) => c.borough === b).length;
+            if (b !== 'all' && !n) return null;
+            return (
+              <button key={b} className={'chip' + (boro === b ? ' on' : '')} aria-pressed={boro === b} onClick={() => setBoro(b)}>
+                {b === 'all' ? 'All' : b} <i>{n}</i>
+              </button>
+            );
+          })}
+        </div>
+      )}
       <button className={'chip-btn' + (onlyWatch ? ' on' : '')} aria-pressed={onlyWatch} onClick={() => setOnlyWatch((v) => !v)}>
         ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
       </button>
@@ -2129,6 +2197,42 @@ export default function App() {
         </div>
       </motion.div>
 
+        {justDismissed && justDismissed.k.startsWith(vertPrefix) && (
+          <motion.div
+            className="asked"
+            initial={reduce ? false : { opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="asked-k">Hidden. Why? Two of the same and we stop showing them</span>
+            {reasonsForFeed(vertPrefix, justDismissed.card, visibleForReasons)
+              .map((r) => (
+                <button
+                  key={r.k}
+                  className="asked-r"
+                  onClick={() => markReason(justDismissed.k, r.k, r.of(justDismissed.card) || NO_LESSON)}
+                >
+                  {r.label}
+                </button>
+              ))}
+            <button className="asked-x" onClick={() => setJustDismissed(null)} aria-label="Skip the question">
+              ×
+            </button>
+          </motion.div>
+        )}
+        {learnedRules.filter((r) => r.prefix === vertPrefix).length > 0 && (
+          <div className="taught">
+            <span className="taught-k">You taught this feed to skip</span>
+            {learnedRules
+              .filter((r) => r.prefix === vertPrefix)
+              .map((r) => (
+                <button key={r.id} className="taught-rule" onClick={() => unlearn(r.id)} title="Show these again">
+                  {r.text} <span aria-hidden="true">×</span>
+                </button>
+              ))}
+          </div>
+        )}
+
       {vertical === 'facades' && (
         <>
           {(() => {
@@ -2184,7 +2288,7 @@ export default function App() {
             />
             <select className="sel" value={sortMode} onChange={(e) => setSortMode(e.target.value)} aria-label="Sort">
               <option value="profile">Sort: for you</option>
-              <option value="deadline">Sort: deadline</option>
+              <option value="hearing">Sort: next hearing</option>
               <option value="money">Sort: penalties owed</option>
             </select>
             <div className="chips" role="group" aria-label="Borough">
@@ -2227,43 +2331,7 @@ export default function App() {
             </span>
           </div>
 
-          {justDismissed && justDismissed.k.startsWith(vertPrefix) && (
-            <motion.div
-              className="asked"
-              initial={reduce ? false : { opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <span className="asked-k">Hidden. Why? Two of the same and we stop showing them</span>
-              {reasonsFor(vertPrefix)
-                .filter((r) => r.k === 'other' || r.of(justDismissed.card))
-                .map((r) => (
-                  <button
-                    key={r.k}
-                    className="asked-r"
-                    onClick={() => markReason(justDismissed.k, r.k, r.of(justDismissed.card) || NO_LESSON)}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              <button className="asked-x" onClick={() => setJustDismissed(null)} aria-label="Skip the question">
-                ×
-              </button>
-            </motion.div>
-          )}
 
-          {learnedRules.filter((r) => r.prefix === vertPrefix).length > 0 && (
-            <div className="taught">
-              <span className="taught-k">You taught this feed to skip</span>
-              {learnedRules
-                .filter((r) => r.prefix === vertPrefix)
-                .map((r) => (
-                  <button key={r.id} className="taught-rule" onClick={() => unlearn(r.id)} title="Show these again">
-                    {r.text} <span aria-hidden="true">×</span>
-                  </button>
-                ))}
-            </div>
-          )}
 
           {filteredFeed.length === 0 && (
             <div className="empty">
@@ -2843,7 +2911,7 @@ export default function App() {
 
       {MANDATES[vertical] && (
         <>
-          {miniToolbar(mandateList, (data[vertical]?.feed || []).length)}
+          {miniToolbar(mandateList, (data[vertical]?.feed || []).length, { boroughs: true })}
           <SimpleFeed
             items={mandateList.slice(0, shown)}
             total={mandateList.length}
@@ -2880,6 +2948,7 @@ export default function App() {
             renderBody={(c) => {
               const m = MANDATES[vertical];
               const mine = profile.mandates?.[vertical];
+              const ct = contactOf(c, contacts[c.bin]);
               return (
                 <>
                   <div className="sig">
@@ -2920,13 +2989,35 @@ export default function App() {
                   <div className="na-cap">Next action</div>
                   <div className="call-block">
                     <div className="call-who">
-                      <b>{c.agent?.company ? title(c.agent.company) : title(c.address)}</b>
-                      <span>{c.agent ? c.agent.role : 'No managing agent on the HPD registration'}</span>
+                      <b>
+                        {c.agent?.company
+                          ? title(c.agent.company)
+                          : 'No managing agent named on the HPD registration'}
+                      </b>
+                      <span>
+                        {ct?.level ? `${c.agent.role} · ${ct.level}` : c.agent ? c.agent.role : 'The building registers itself'}
+                      </span>
                     </div>
                     <div className="call-actions">
-                      <button className="btn solid" onClick={() => copy(c.bin, m.opener(c))}>
-                        {copiedId === c.bin ? 'Copied' : 'Copy opener'}
-                      </button>
+                      {/* the same cascade the facade card uses: a number if we
+                          have one, an inbox if we do not, the text to paste if
+                          we have neither */}
+                      {ct?.phone ? (
+                        <a className="btn solid" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
+                          Call {ct.phone}
+                        </a>
+                      ) : ct?.email ? (
+                        <a
+                          className="btn solid"
+                          href={`mailto:${ct.email}?subject=${encodeURIComponent(title(c.address))}&body=${encodeURIComponent(m.opener(c))}`}
+                        >
+                          Email {ct.email}
+                        </a>
+                      ) : (
+                        <button className="btn solid" onClick={() => copy(c.bin, m.opener(c))}>
+                          {copiedId === c.bin ? 'Copied' : 'Copy opener'}
+                        </button>
+                      )}
                       <button className="btn ghost" onClick={() => copyLink(vertPrefix[0], c.bin)}>
                         {copiedLink === c.bin ? 'Copied' : 'Copy link'}
                       </button>

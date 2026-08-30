@@ -86,6 +86,23 @@ export const REASON_SETS = {
 
 export const reasonsFor = (prefix) => REASON_SETS[prefix] || [];
 
+// A reason is only worth offering if it can tell cards apart. Sub-cycle is the
+// same string on every card in a register — '10A' across all 400 facades, 'C'
+// across the gas feed — so two clicks of "deadline too far out" would erase the
+// whole register at once, which is exactly the silent filtering the rules above
+// exist to prevent. Offer a reason only when the visible feed disagrees about it.
+export function reasonsForFeed(prefix, card, feed) {
+  const set = reasonsFor(prefix);
+  if (!feed || feed.length < 2) return set.filter((r) => r.k === 'other' || r.of(card));
+  return set.filter((r) => {
+    if (r.k === 'other') return true;
+    const v = r.of(card);
+    if (!v) return false;
+    return feed.some((other) => r.of(other) !== v);
+  });
+}
+
+
 // "Just not a fit" is stored as 'once' and deliberately never reaches the
 // threshold: it hides the card and teaches nothing.
 export const NO_LESSON = 'once';
