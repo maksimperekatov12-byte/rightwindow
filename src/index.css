@@ -124,7 +124,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 .top {
   position: sticky; top: 10px; z-index: 30;
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 10px 16px; margin: 12px 0 6px;
+  padding: 10px 16px; margin: 12px 0 6px; min-width: 0;
   border-radius: var(--r);
   background: var(--glass-strong);
   backdrop-filter: blur(20px) saturate(1.6);
@@ -140,7 +140,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
   color: var(--ink-3); white-space: nowrap; padding-left: 9px; border-left: 1px solid var(--line-2);
 }
 .mark { color: var(--ink); flex: none; }
-.top-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.top-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; min-width: 0; max-width: 100%; }
 .profile-chip {
   font-family: var(--sans); font-size: 12.5px; font-weight: 700; padding: 8px 13px; min-height: 38px;
   border-radius: var(--r-sm); border: 1px solid rgba(20, 89, 74, 0.35); background: var(--brand-wash);
@@ -149,7 +149,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 }
 .profile-chip:hover { background: rgba(20, 89, 74, 0.17); }
 .profile-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-.pulled { font-family: var(--mono); font-size: 11.5px; color: var(--brand); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pulled {
+  font-family: var(--mono); font-size: 11.5px; color: var(--brand);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 3px 6px;
+  min-width: 0; max-width: 100%;
+}
+.pulled > span { white-space: nowrap; min-width: 0; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); }
 
 /* ---------- verticals ---------- */
@@ -823,4 +828,37 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .head-main { flex: 1 0 100%; }
   .head-side { width: 100%; flex-direction: row; justify-content: space-between; }
   .star { width: 40px; }
+}
+
+/* ---------- phones: overrides live last so they win over the base rules ---------- */
+@media (max-width: 640px) {
+  /* The floating glass panel let a sliver of the next card show above and beside
+     it while scrolling, which reads as a rendering fault on a phone. Edge to edge
+     and flush to the top, content passes cleanly underneath. */
+  .top {
+    top: 0; margin: 0 -20px 6px; border-radius: 0;
+    border-left: 0; border-right: 0; border-top: 0;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  }
+  .top-right { gap: 8px 10px; }
+  /* The status row is the panel's longest line and grows as the build ages
+     ("feed changed 9h 8m ago"), so give it the full width instead of a share. */
+  .pulled { flex: 1 0 100%; justify-content: flex-end; }
+  /* The clock wraps to its own line here, where a leading rule reads as a stray mark. */
+  .etclock { padding-left: 0; border-left: 0; }
+  /* Squeezed to a third of the row, the summary wrapped to three lines around the
+     link and read as collided text. Give the link its own line. */
+  .news { flex-wrap: wrap; align-items: flex-start; row-gap: 6px; }
+  /* Flex breaks lines on max-content, so the summary needs a zero base to stay
+     on the dot's line instead of being pushed below it. */
+  .news > span:not(.news-dot):not(.news-cta) { flex: 1 1 0; min-width: 0; }
+  .news-dot { margin-top: 6px; }
+  .news-cta { flex: 1 0 100%; margin-left: 0; text-align: right; }
+  /* Safari's bottom bar overlays the page, so the last row needs room to clear
+     both it and the floating Top button. */
+  .wrap { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+  .totop {
+    right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding: 11px 15px; font-size: 12.5px;
+  }
 }
