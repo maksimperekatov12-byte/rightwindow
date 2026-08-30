@@ -161,7 +161,7 @@ console.log('Fetching HPD registrations for top candidates...');
 const regByBin = new Map();
 for (let i = 0; i < top.length; i += 50) {
   const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
-  const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate' }, 1000);
+  const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate,zip' }, 1000);
   for (const r of rows) {
     const cur = regByBin.get(r.bin);
     if (!cur || (r.lastregistrationdate || '') > (cur.lastregistrationdate || '')) regByBin.set(r.bin, r);
@@ -479,6 +479,7 @@ for (const c of top) {
     freshHaz,
     nextHearing: ecb?.nextHearing ? ecb.nextHearing.toISOString().slice(0, 10) : null,
     urgencyScore,
+    zip: (reg?.zip || '').trim().slice(0, 5) || null,
     multifamily: Boolean(reg),
     agent: agent
       ? {

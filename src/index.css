@@ -786,3 +786,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 .cycle-head b { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
 .cycle-head strong { color: var(--warm); font-weight: 700; }
+
+/* The building's own postcode, next to the borough — a territory search is only
+   checkable if you can see what it matched. */
+.zip {
+  margin-left: 7px; font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3); letter-spacing: .02em;
+}
+.count-note { color: var(--brand); }

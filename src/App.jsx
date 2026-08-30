@@ -328,6 +328,11 @@ function StatusDot({ status, note }) {
   );
 }
 
+// "11215" is a territory, "11215 11217 11231" is the territory a crew actually
+// covers. Anything else in the box is a free-text search as before.
+const ZIP_QUERY = /^\s*\d{5}(?:\s*[,;\s]\s*\d{5})*\s*$/;
+const zipsIn = (q) => (ZIP_QUERY.test(q) ? q.match(/\d{5}/g) : null);
+
 const emphasize = (text) =>
   String(text)
     .split(/(\*[^*]+\*)/)
@@ -876,6 +881,7 @@ export default function App() {
   const deferredQuery = useDeferredValue(query);
   const filteredFeed = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
+    const zips = zipsIn(q);
     const base = facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
       if (hideBusy && c.occupied) return false;
@@ -884,9 +890,10 @@ export default function App() {
       if (boro !== 'all' && c.borough !== boro) return false;
       if (onlyNew && !(c.isNew || c.fresh?.length)) return false;
       if (!q) return true;
-      return [c.address, c.owner, c.priorQewi, c.agent?.company, c.agent?.name]
+      if (zips) return Boolean(c.zip) && zips.includes(c.zip);
+      return [c.address, c.owner, c.priorQewi, c.agent?.company, c.agent?.name, c.zip]
         .filter(Boolean)
-        .some((f) => f.toLowerCase().includes(q));
+        .some((f) => String(f).toLowerCase().includes(q));
     });
     const at = Date.now();
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > at ? 0 : 1);
@@ -1784,7 +1791,7 @@ export default function App() {
               ref={searchRef}
               type="search"
               className="search"
-              placeholder="Search address, owner, agent…  ( / )"
+              placeholder="Search address, owner, agent, or ZIP…  ( / )"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search buildings"
@@ -1824,7 +1831,14 @@ export default function App() {
               </button>
             )}
             <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
-            <span className="count">{filteredFeed.length} buildings</span>
+            <span className="count">
+              {filteredFeed.length} buildings
+              {(() => {
+                const z = zipsIn(query.trim());
+                if (!z) return null;
+                return <span className="count-note"> in {z.length === 1 ? z[0] : `${z.length} ZIPs`}</span>;
+              })()}
+            </span>
           </div>
 
           {filteredFeed.length === 0 && (
@@ -1870,7 +1884,10 @@ export default function App() {
                       />
                       <span className="head-main">
                         <span className="addr">{title(c.address)}</span>
-                        <span className="boro">{c.borough}</span>
+                        <span className="boro">
+                          {c.borough}
+                          {c.zip ? <span className="zip">{c.zip}</span> : null}
+                        </span>
                         {c.isNew && <span className="badge new">New</span>}
                         {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
                         {statusOf('b:' + c.bin) === 'personal' && (
