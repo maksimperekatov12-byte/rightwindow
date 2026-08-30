@@ -4,7 +4,7 @@
   "host": "data.cityofnewyork.us",
   "verdict": "ALLOWED",
   "license": "NYC Open Data — 'Open Data belongs to all New Yorkers. There are no restrictions on the use of Open Data' (portal FAQ).",
-  "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, contract awards, ACRIS index (monthly batch).",
+  "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, the City Record (solicitations, intents and awards), Local Law 152 gas-piping violations, ACRIS index (monthly batch).",
   "publisher": "NYC Open Data",
   "datasets": [
    [
@@ -50,10 +50,16 @@
     "acrisThrough"
    ],
    [
-    "Recent Contract Awards",
-    "qyyg-4tf5",
-    "City contract winners",
+    "City Record Online",
+    "dg92-zbpx",
+    "Open solicitations with a bid deadline and the agency officer named on the notice, sole-source intents, and awards",
     "awards"
+   ],
+   [
+    "DOB Safety Violations",
+    "855j-jady",
+    "Local Law 152 gas-piping non-filers, their sub-cycle and the next deadline",
+    "gas"
    ]
   ]
  },

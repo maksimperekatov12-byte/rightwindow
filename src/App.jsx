@@ -57,6 +57,7 @@ const GENERIC_FACADE = {
 
 const PROFILES = {
   qewi: {
+    gNeed: (c) => `${c.violations > 1 ? `${c.violations} open gas-piping violations` : 'An open gas-piping violation'} and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)} — the inspection has to be filed by a licensed master plumber.`,
     label: 'Facade engineer',
     tile: 'Facade engineering / inspections (QEWI)',
     facade: {
@@ -102,6 +103,7 @@ const PROFILES = {
     oNeed: null,
   },
   lender: {
+    gNeed: (c) => `Open gas-piping violations are a mandatory-capex item a lender sees before the borrower raises it.`,
     label: 'C-PACE / lender',
     tile: 'Financing (C-PACE, bridge, equipment)',
     facade: {
@@ -216,6 +218,7 @@ const PROFILES = {
     oNeed: null,
   },
   propmgmt: {
+    gNeed: (c) => `The building has been carrying this violation for ${Math.round((c.openDays || 0) / 30)} months and owes another filing by ${usDate(c.deadline)}.`,
     label: 'Property management',
     tile: 'Property management',
     facade: {
@@ -231,6 +234,7 @@ const PROFILES = {
     oNeed: null,
   },
   legal: {
+    gNeed: (c) => `An uncured LL152 violation is an OATH matter with a penalty attached, and a second deadline lands ${usDate(c.deadline)}.`,
     label: 'Code attorney / expeditor',
     tile: 'Code attorneys / expeditors',
     facade: {
@@ -312,6 +316,9 @@ const Storefronts = lazy(() => import('./Storefronts.jsx'));
 // element stands for.
 const HEROES = {
   facades: { Scene: Massing, cap: 'Sub-cycle 10A · nothing filed' },
+  // A block of buildings on a compliance clock is exactly what this register is
+  // too, so it reuses the facade hero rather than inventing a gas-pipe object.
+  gas: { Scene: Massing, cap: 'Sub-cycle C · gas piping unfiled' },
   contracts: { Scene: CivicWorks, cap: 'Bid window open · winner not named' },
   openings: { Scene: Storefronts, cap: 'Licence pending · vendors not chosen' },
 };
@@ -510,14 +517,14 @@ const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 // bill the same for a mandated facade scope, a subcontract off a city award and
 // a build-out. Used until the user tells us their own number.
 const TICKET = {
-  qewi: { facades: 12000, contracts: 9000 },
+  qewi: { facades: 12000, contracts: 9000, gas: 1800 },
   restoration: { facades: 180000, contracts: 120000 },
   equipment: { facades: 45000, contracts: 30000 },
   elevator: { facades: 25000 },
   insurance: { facades: 12000, contracts: 18000, openings: 9000 },
-  lender: { facades: 200000, contracts: 150000, openings: 120000 },
-  propmgmt: { facades: 50000 },
-  legal: { facades: 7500 },
+  lender: { facades: 200000, contracts: 150000, openings: 120000, gas: 90000 },
+  propmgmt: { facades: 50000, gas: 4000 },
+  legal: { facades: 7500, gas: 6000 },
   cre: { facades: 160000 },
   staffing: { contracts: 25000, openings: 18000 },
   pos: { openings: 4000 },
@@ -548,6 +555,7 @@ const BADGE = {
 
 const VERTICALS = [
   { key: 'facades', label: 'Building facades' },
+  { key: 'gas', label: 'Gas piping' },
   { key: 'contracts', label: 'City contracts' },
   { key: 'openings', label: 'New openings' },
 ];
@@ -692,7 +700,7 @@ export default function App() {
   const initialRoute = routeFromHash();
   const hashTrade = (location.hash.match(/^#t\/([a-z]+)$/) || [])[1] || null;
   const [route, setRoute] = useState(initialRoute);
-  const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|o)\//)));
+  const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|g|o)\//)));
   const [profileKey, setProfileKey] = useState(() =>
     hashTrade && PROFILES[hashTrade] ? hashTrade : loadLS('rw.profile', null),
   );
@@ -860,7 +868,7 @@ export default function App() {
       }
       // A card link pasted into an open tab must open that card, not just
       // change the address bar.
-      if (/^#(b|c|o)\//.test(location.hash)) {
+      if (/^#(b|c|g|o)\//.test(location.hash)) {
         deepLinkDone.current = false;
         setHashTick((n) => n + 1);
       }
@@ -996,12 +1004,13 @@ export default function App() {
 
   const forcedVert = useRef(null);
   if (forcedVert.current === null) {
-    const m = location.hash.match(/^#(b|c|o)\//);
+    const m = location.hash.match(/^#(b|c|g|o)\//);
     forcedVert.current = m ? { b: 'facades', c: 'contracts', o: 'openings' }[m[1]] : '';
   }
   const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
 
-  const vertPrefix = vertical === 'facades' ? 'b:' : vertical === 'contracts' ? 'c:' : 'o:';
+  const vertPrefix =
+    vertical === 'facades' ? 'b:' : vertical === 'gas' ? 'g:' : vertical === 'contracts' ? 'c:' : 'o:';
   const watchCount = Object.keys(watch).filter((k) => k.startsWith(vertPrefix)).length;
   const isWatched = (k) => Boolean(watch[k]);
   const toggleWatch = (k) => {
@@ -1093,6 +1102,17 @@ export default function App() {
       ),
     [contractsBase, onlyWatch, watch, fb, showHidden],
   );
+  const gasBase = useMemo(() => (data.gas?.feed || []).filter(profile.gFilter || (() => true)), [profileKey]);
+  const gasList = useMemo(
+    () =>
+      gasBase.filter(
+        (c) =>
+          showHidden === isDismissed('g:' + c.bin) &&
+          (showHidden || !taughtAway('g:', c)) &&
+          (!onlyWatch || isWatched('g:' + c.bin)),
+      ),
+    [gasBase, onlyWatch, watch, fb, showHidden],
+  );
   const openingsList = useMemo(
     () =>
       liveOpenings.filter(
@@ -1118,12 +1138,18 @@ export default function App() {
   // A register shows up only if this trade can act on it *and* there is enough
   // in it to be worth a page. Counted before the search box and the filters, so
   // typing never makes a tab vanish. A deep link always opens its own register.
-  const vertSize = { facades: facadeFeed.length, contracts: contractsBase.length, openings: liveOpenings.length };
+  const vertSize = {
+    facades: facadeFeed.length,
+    gas: gasList.length,
+    contracts: contractsBase.length,
+    openings: liveOpenings.length,
+  };
   const matchedVerts = VERTICALS.filter(
     (v) =>
       isExplore ||
       v.key === forcedVert.current ||
       (v.key === 'facades' && profile.facade) ||
+      (v.key === 'gas' && profile.gNeed) ||
       (v.key === 'contracts' && profile.cNeed) ||
       (v.key === 'openings' && profile.oNeed),
   );
@@ -1155,8 +1181,8 @@ export default function App() {
   const otherTrades = orderedTrades.slice(3);
 
   const hiddenCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && fb[k]?.s === 'dismissed').length;
-  const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
-  const hasNew = wn.buildings + wn.signals + wn.contracts + wn.openings > 0;
+  const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, gas: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
+  const hasNew = wn.buildings + wn.signals + (wn.gas || 0) + wn.contracts + wn.openings > 0;
   const pulled = new Date(data.generatedAt);
   const ago = (t) => {
     const m = Math.max(0, Math.round((now - t) / 60000));
@@ -1195,7 +1221,7 @@ export default function App() {
   const deepLinkDone = useRef(false);
   useEffect(() => {
     if (deepLinkDone.current) return;
-    const m = location.hash.match(/^#(b|c|o)\/(.+)$/);
+    const m = location.hash.match(/^#(b|c|g|o)\/(.+)$/);
     if (!m) return;
     const [, t, id] = m;
     const open = (vert, idx) => {
@@ -1224,6 +1250,13 @@ export default function App() {
       }
       const idx = [...data.facades.feed].sort(byUrgency).findIndex((c) => c.bin === id);
       if (idx >= 0) open('facades', idx);
+    } else if (t === 'g') {
+      const idx = (data.gas?.feed || []).findIndex((c) => c.bin === id);
+      if (idx >= 0) {
+        setShowHidden(isDismissed('g:' + id));
+        setOnlyWatch(false);
+        open('gas', idx);
+      }
     } else if (t === 'c') {
       const idx = (live?.contracts || data.contracts).findIndex((c) => c.id === id);
       if (idx >= 0) open('contracts', idx);
@@ -1353,6 +1386,20 @@ export default function App() {
           `${location.origin}/#b/${c.bin}`,
         ]),
       );
+    } else if (vertical === 'gas') {
+      downloadCsv(
+        'right-window-gas-piping.csv',
+        ['Address', 'Borough', 'ZIP', 'BIN', 'Community district', 'Sub-cycle', 'Deadline', 'Months left', 'Open violations', 'Cited on', 'Months open', 'Why now', 'Managing agent', 'Agent address', 'Suggested opener', 'Link'],
+        gasList.map((c) => [
+          title(c.address), c.borough, c.zip || '', c.bin, c.cd, c.subCycle, c.deadline, c.monthsLeft,
+          c.violations, c.issued || '', c.openDays ? Math.round(c.openDays / 30) : '',
+          profile.gNeed?.(c) || 'Licensed master plumber for the inspection, management, violation cure.',
+          c.agent?.company ? title(c.agent.company) : '',
+          c.agent?.address ? title(c.agent.address) : '',
+          `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}.`,
+          `${location.origin}/#g/${c.bin}`,
+        ]),
+      );
     } else if (vertical === 'contracts') {
       downloadCsv(
         'right-window-contracts.csv',
@@ -1396,10 +1443,12 @@ export default function App() {
       return filteredFeed.filter(
         (c) => !isDismissed('b:' + c.bin) && !c.occupied && statusOf('b:' + c.bin) !== 'taken',
       ).length;
+    if (vertical === 'gas')
+      return gasList.filter((c) => !isDismissed('g:' + c.bin) && statusOf('g:' + c.bin) !== 'taken').length;
     if (vertical === 'contracts')
       return contractsList.filter((c) => !isDismissed('c:' + c.id) && statusOf('c:' + c.id) !== 'taken').length;
     return openingsList.filter((o) => !isDismissed('o:' + o.id) && statusOf('o:' + o.id) !== 'taken').length;
-  }, [vertical, filteredFeed, contractsList, openingsList, claims, mine, now, fb]);
+  }, [vertical, filteredFeed, gasList, contractsList, openingsList, claims, mine, now, fb]);
 
   const myPipeline = useMemo(() => {
     const n = openCount;
@@ -1416,16 +1465,20 @@ export default function App() {
   const heroText =
     vertical === 'facades'
       ? fv.hero
-      : vertical === 'contracts'
-        ? 'City work you can still *bid on today*'
-        : 'Venues that will open their doors *in a few months*';
+      : vertical === 'gas'
+        ? 'Buildings already cited — *with another deadline closing*'
+        : vertical === 'contracts'
+          ? 'City work you can still *bid on today*'
+          : 'Venues that will open their doors *in a few months*';
 
   const heroSub =
     vertical === 'facades'
       ? "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
-      : vertical === 'contracts'
-        ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
-        : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
+      : vertical === 'gas'
+        ? 'Local Law 152 puts every gas-piped building on a four-year clock by community district. These are the ones DOB has already cited and whose next filing is due — mostly outside Manhattan, where the facade register is not.'
+        : vertical === 'contracts'
+          ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
+          : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
   const deadlineIso = '2027-02-21';
@@ -1831,7 +1884,8 @@ export default function App() {
                 {myPipeline.n} open{' '}
                 {vertical === 'contracts'
                   ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
-                  : (vertical === 'openings' ? 'opening' : 'signal') + (myPipeline.n === 1 ? '' : 's')}{' '}
+                  : (vertical === 'openings' ? 'opening' : vertical === 'gas' ? 'building' : 'signal') +
+                    (myPipeline.n === 1 ? '' : 's')}{' '}
                 ·{' '}
                 {fmtMoney(myPipeline.avg)} avg contract ·{' '}
                 {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
@@ -1895,6 +1949,7 @@ export default function App() {
                 {[
                   wn.buildings && `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`,
                   wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
+                  wn.gas && `${wn.gas} gas-piping building${wn.gas > 1 ? 's' : ''}`,
                   wn.contracts && `${wn.contracts} contract${wn.contracts > 1 ? 's' : ''}`,
                   wn.openings && `${wn.openings} venue filing${wn.openings > 1 ? 's' : ''}`,
                 ]
@@ -2648,6 +2703,141 @@ export default function App() {
               </>
             )}
             idOf={(c) => c.id}
+          />
+        </>
+      )}
+
+      {vertical === 'gas' && (
+        <>
+          {miniToolbar(gasList, (data.gas?.feed || []).length)}
+          <SimpleFeed
+            items={gasList.slice(0, shown)}
+            total={gasList.length}
+            shown={shown}
+            onMore={() => setShown((n) => n + 7)}
+            openId={openId}
+            toggle={toggleCard}
+            hashType="g"
+            reduce={reduce}
+            isWatched={(c) => isWatched('g:' + c.bin)}
+            onWatch={(c) => toggleWatch('g:' + c.bin)}
+            statusOf={statusOf}
+            idOf={(c) => c.bin}
+            renderHead={(c) => (
+              <>
+                <span className="head-main">
+                  <span className="addr">{title(c.address)}</span>
+                  <span className="boro">
+                    {c.borough} {c.zip && <span className="zip">{c.zip}</span>}
+                  </span>
+                  {c.isNew && <span className="badge new">New</span>}
+                  {fbOf('g:' + c.bin) && fbOf('g:' + c.bin) !== 'dismissed' && (
+                    <span className={'badge st ' + fbOf('g:' + c.bin)}>{fbOf('g:' + c.bin)}</span>
+                  )}
+                  <span className="badge">
+                    {c.violations > 1 ? `${c.violations} open violations` : 'Open violation'}
+                  </span>
+                </span>
+                <span className="head-side">
+                  <span className={'clock' + (c.monthsLeft <= 6 ? ' tight' : '')}>{c.monthsLeft} mo left</span>
+                </span>
+              </>
+            )}
+            renderBody={(c) => (
+              <>
+                <div className="sig">
+                  <div className="sig-k">
+                    Why now
+                    <span className="score" title="Urgency score">{c.urgencyScore}</span>
+                  </div>
+                  <div className="sig-v">
+                    DOB cited this building for failing to file its gas-piping inspection
+                    {c.issued ? ` on ${usDate(c.issued)}` : ''}
+                    {c.openDays ? ` — ${Math.round(c.openDays / 30)} months ago` : ''}, and it is still open. Sub-cycle{' '}
+                    {c.subCycle} runs out {usDate(c.deadline)}, so the next filing is due before the first one has been
+                    cured.
+                  </div>
+                </div>
+                <div className="sig match">
+                  <div className="sig-k">{profile.gNeed ? 'Why it matches you' : 'Who wins this window'}</div>
+                  <div className="sig-v">
+                    {profile.gNeed?.(c) ||
+                      'Licensed master plumber for the inspection · management · violation cure · the capex behind it.'}
+                  </div>
+                </div>
+                <div className="facts">
+                  <div className="fact">
+                    <div className="k">Deadline</div>
+                    <div className="v">
+                      {usDate(c.deadline)} — sub-cycle {c.subCycle}, Community District {c.cd}
+                    </div>
+                  </div>
+                  <div className="fact">
+                    <div className="k">Violation open since</div>
+                    <div className="v">{c.issued ? usDate(c.issued) : 'unknown'}</div>
+                  </div>
+                  {c.agent && (
+                    <div className="fact">
+                      <div className="k">Managing agent</div>
+                      <div className="v">
+                        {c.agent.company ? title(c.agent.company) : c.agent.role}
+                        {c.agent.address ? ` — ${title(c.agent.address)}` : ''}
+                      </div>
+                    </div>
+                  )}
+                  <div className="fact">
+                    <div className="k source">Source</div>
+                    <div className="v">
+                      DOB Safety Violations (Local Law 152), as of {data.sources?.gas || 'today'} ·{' '}
+                      <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="na-cap">Next action</div>
+                <div className="call-block">
+                  <div className="call-who">
+                    <b>{c.agent?.company ? title(c.agent.company) : title(c.address)}</b>
+                    <span>{c.agent ? c.agent.role : 'No managing agent on the HPD registration'}</span>
+                  </div>
+                  <div className="call-actions">
+                    <button
+                      className="btn solid"
+                      onClick={() =>
+                        copy(
+                          c.bin,
+                          `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}. We can get the inspection filed before it lapses again.`,
+                        )
+                      }
+                    >
+                      {copiedId === c.bin ? 'Copied' : 'Copy opener'}
+                    </button>
+                    <button className="btn ghost" onClick={() => copyLink('g', c.bin)}>
+                      {copiedLink === c.bin ? 'Copied' : 'Copy link'}
+                    </button>
+                    <a className="btn ghost" href={mapsUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
+                      Map ↗
+                    </a>
+                    <a
+                      className="btn ghost"
+                      href={findUrl(`${c.agent?.company || c.address} ${c.borough} phone`)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Find contact ↗
+                    </a>
+                    <a
+                      className="btn ghost"
+                      href="https://data.cityofnewyork.us/Housing-Development/DOB-Safety-Violations/855j-jady"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Source data ↗
+                    </a>
+                  </div>
+                </div>
+                <FeedbackRow k={'g:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
+              </>
+            )}
           />
         </>
       )}

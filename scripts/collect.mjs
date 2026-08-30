@@ -190,40 +190,63 @@ function balancedByBorough(rows, total) {
 // HPD join: registrations by BIN for the top slice, then agents by registrationid.
 // Balanced here too, not only at the feed cut: contacts and violations are only
 // fetched for this shortlist, so a borough missing from it can never appear.
+// Who to call for a list of buildings: the current HPD registration, then the
+// managing agent on it. Two registers need this now, so it lives in one place.
+async function hpdJoin(binList) {
+  const regByBin = new Map();
+  for (let i = 0; i < binList.length; i += 50) {
+    const bins = binList.slice(i, i + 50).map((b) => `'${b}'`).join(',');
+    const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate,zip' }, 1000);
+    for (const r of rows) {
+      const cur = regByBin.get(r.bin);
+      if (!cur || (r.lastregistrationdate || '') > (cur.lastregistrationdate || '')) regByBin.set(r.bin, r);
+    }
+  }
+  const regIds = [...new Set([...regByBin.values()].map((r) => r.registrationid))];
+  const agentByReg = new Map();
+  const headByReg = new Map();
+  for (let i = 0; i < regIds.length; i += 50) {
+    const ids = regIds.slice(i, i + 50).map((x) => `'${x}'`).join(',');
+    const rows = await fetchAll(
+      'feu5-w2e2',
+      { $where: `registrationid in(${ids}) and type in('Agent','SiteManager','HeadOfficer')`, $select: 'registrationid,type,corporationname,firstname,lastname,businesshousenumber,businessstreetname,businessapartment,businesscity,businessstate,businesszip' },
+      2000,
+    );
+    for (const r of rows) {
+      if (r.type === 'HeadOfficer') {
+        const who = [r.firstname, r.lastname].filter(Boolean).join(' ').trim();
+        if (who) headByReg.set(r.registrationid, who.toUpperCase());
+        continue;
+      }
+      const cur = agentByReg.get(r.registrationid);
+      if (!cur || (r.type === 'Agent' && cur.type !== 'Agent')) agentByReg.set(r.registrationid, r);
+    }
+  }
+  return { regByBin, agentByReg, headByReg };
+}
+
+// The shape a card renders a contact against, built from an HPD agent row.
+const agentCard = (agent, reg, headByReg) =>
+  agent
+    ? {
+        company: agent.corporationname || null,
+        name: [agent.firstname, agent.lastname].filter(Boolean).join(' ') || null,
+        role: agent.type === 'Agent' ? 'Managing agent (HPD registration)' : 'Site manager (HPD registration)',
+        headOfficer: (reg && headByReg.get(reg.registrationid)) || null,
+        address: [
+          [agent.businesshousenumber, agent.businessstreetname].filter(Boolean).join(' '),
+          agent.businessapartment,
+          [agent.businesscity, agent.businessstate, agent.businesszip].filter(Boolean).join(' '),
+        ]
+          .filter(Boolean)
+          .join(', ') || null,
+      }
+    : null;
+
 const top = balancedByBorough(candidates, 600);
 console.log('Fetching HPD registrations for top candidates...');
-const regByBin = new Map();
-for (let i = 0; i < top.length; i += 50) {
-  const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
-  const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate,zip' }, 1000);
-  for (const r of rows) {
-    const cur = regByBin.get(r.bin);
-    if (!cur || (r.lastregistrationdate || '') > (cur.lastregistrationdate || '')) regByBin.set(r.bin, r);
-  }
-}
-console.log(`HPD-registered (multifamily): ${regByBin.size}`);
-
-const regIds = [...new Set([...regByBin.values()].map((r) => r.registrationid))];
-const agentByReg = new Map();
-const headByReg = new Map();
-for (let i = 0; i < regIds.length; i += 50) {
-  const ids = regIds.slice(i, i + 50).map((x) => `'${x}'`).join(',');
-  const rows = await fetchAll(
-    'feu5-w2e2',
-    { $where: `registrationid in(${ids}) and type in('Agent','SiteManager','HeadOfficer')`, $select: 'registrationid,type,corporationname,firstname,lastname,businesshousenumber,businessstreetname,businessapartment,businesscity,businessstate,businesszip' },
-    2000,
-  );
-  for (const r of rows) {
-    if (r.type === 'HeadOfficer') {
-      const who = [r.firstname, r.lastname].filter(Boolean).join(' ').trim();
-      if (who) headByReg.set(r.registrationid, who.toUpperCase());
-      continue;
-    }
-    const cur = agentByReg.get(r.registrationid);
-    if (!cur || (r.type === 'Agent' && cur.type !== 'Agent')) agentByReg.set(r.registrationid, r);
-  }
-}
-console.log(`Agents resolved: ${agentByReg.size}`);
+const { regByBin, agentByReg, headByReg } = await hpdJoin(top.map((c) => c.bin));
+console.log(`HPD-registered (multifamily): ${regByBin.size}, agents resolved: ${agentByReg.size}`);
 
 // Business days to a date, so a hearing three weeks out scores like the
 // deadline it is rather than like a calendar distance.
@@ -541,21 +564,7 @@ for (const c of top) {
     urgencyScore,
     zip: (reg?.zip || '').trim().slice(0, 5) || null,
     multifamily: Boolean(reg),
-    agent: agent
-      ? {
-          company: agent.corporationname || null,
-          name: [agent.firstname, agent.lastname].filter(Boolean).join(' ') || null,
-          role: agent.type === 'Agent' ? 'Managing agent (HPD registration)' : 'Site manager (HPD registration)',
-          headOfficer: (reg && headByReg.get(reg.registrationid)) || null,
-          address: [
-            [agent.businesshousenumber, agent.businessstreetname].filter(Boolean).join(' '),
-            agent.businessapartment,
-            [agent.businesscity, agent.businessstate, agent.businesszip].filter(Boolean).join(' '),
-          ]
-            .filter(Boolean)
-            .join(', ') || null,
-        }
-      : null,
+    agent: agentCard(agent, reg, headByReg),
   });
 }
 
@@ -778,13 +787,124 @@ openings = slaRaw.slice(0, 40).map((o) => ({
 
 // "What's new": monotonic memory of everything the engine has ever surfaced.
 // First run writes a baseline (nothing is marked new); later runs stamp first-seen
+// ---- Vertical 4: Local Law 152 gas piping ----
+//
+// The second periodic mandate, and the closest structural twin to the facade
+// law: a four-year cycle, a filing, and a public record of who did not make it.
+// It differs in two ways that matter. It is keyed on community district rather
+// than tax block, and it covers every gas-piped building rather than only those
+// over six storeys — which is why it lands on 26,000 buildings in Brooklyn,
+// Queens and the Bronx where the facade register is mostly Manhattan. Only 6%
+// of the facade feed overlaps it, so this is a different population, not more
+// rows about the same one.
+//
+// The sub-cycle mapping is not assumed: the dataset states it in its own
+// remarks ("Cycle 1, Sub-cycle C (premises is in Community District 4)") and
+// grouping every active row confirms it exactly.
+const LL152_SUBCYCLE = {
+  A: [1, 3, 10],
+  B: [2, 5, 7, 13, 18],
+  C: [4, 6, 8, 9, 16],
+  D: [11, 12, 14, 15, 17],
+};
+// Cycle 2 closes on these dates; when one passes the next is four years on, so
+// this keeps working without being edited.
+const LL152_CYCLE2 = { A: '2024-12-31', B: '2025-12-31', C: '2026-12-31', D: '2027-12-31' };
+const ll152Today = TODAY.toISOString().slice(0, 10);
+const nextLL152 = (sub) => {
+  let d = LL152_CYCLE2[sub];
+  while (d && d < ll152Today) d = `${Number(d.slice(0, 4)) + 4}${d.slice(4)}`;
+  return d;
+};
+// Only the sub-cycles whose next deadline is close enough to sell. A window
+// two years out is a calendar, and a calendar is not a signal.
+const LL152_LIVE = Object.keys(LL152_SUBCYCLE).filter((k) => monthsUntil(nextLL152(k)) <= 18);
+
+console.log(`Fetching LL152 gas piping (open sub-cycles: ${LL152_LIVE.join(', ') || 'none'})...`);
+let gas = [];
+let gasTotals = { cited: 0, open: 0, subCycles: LL152_LIVE.join('') };
+try {
+  if (LL152_LIVE.length) {
+    const gasRaw = await fetchAll(
+      '855j-jady',
+      {
+        $where:
+          `device_type='Gas Piping - LL152' and violation_status='Active' and (` +
+          LL152_LIVE.map((k) => `violation_remarks like '%Sub-cycle ${k}%'`).join(' or ') +
+          ')',
+        $select:
+          'bin,violation_number,violation_issue_date,violation_remarks,borough,block,lot,house_number,street,zip,community_board',
+      },
+      60000,
+    );
+    const subOf = (remarks) => (String(remarks || '').match(/Sub-cycle\s+([A-D])/) || [])[1] || null;
+    const byBin = new Map();
+    for (const r of gasRaw) {
+      if (!r.bin || r.bin === '0') continue;
+      const sub = subOf(r.violation_remarks);
+      if (!sub || !LL152_LIVE.includes(sub)) continue;
+      const cur = byBin.get(r.bin);
+      const issued = (r.violation_issue_date || '').slice(0, 10);
+      if (!cur) {
+        byBin.set(r.bin, {
+          bin: r.bin,
+          address: [r.house_number, r.street].filter(Boolean).join(' ').trim(),
+          borough: (r.borough || '').trim(),
+          zip: (r.zip || '').trim().slice(0, 5) || null,
+          cd: Number(r.community_board) % 100 || null,
+          subCycle: sub,
+          issued,
+          violations: 1,
+        });
+      } else {
+        cur.violations++;
+        if (issued && (!cur.issued || issued < cur.issued)) cur.issued = issued;
+      }
+    }
+    gasTotals.cited = byBin.size;
+    const pool = [...byBin.values()].filter((c) => ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'].includes(c.borough));
+    // Contacts are only fetched for the shortlist, so it is balanced here as
+    // well as at the cut — a borough missing from it could never come back.
+    const shortlist = balancedByBorough(pool, 1400);
+    const { regByBin: gReg, agentByReg: gAgent, headByReg: gHead } = await hpdJoin(shortlist.map((c) => c.bin));
+    for (const c of shortlist) {
+      const reg = gReg.get(c.bin);
+      const agent = reg ? gAgent.get(reg.registrationid) : null;
+      c.deadline = nextLL152(c.subCycle);
+      c.monthsLeft = monthsUntil(c.deadline);
+      c.openDays = c.issued ? Math.max(0, Math.round((TODAY - new Date(c.issued)) / 86400000)) : null;
+      c.multifamily = Boolean(reg);
+      c.agent = agentCard(agent, reg, gHead);
+      if (reg?.zip && !c.zip) c.zip = String(reg.zip).trim().slice(0, 5);
+      // A closing window first, then how long they have already ignored it,
+      // then whether there is anyone to call.
+      c.urgencyScore =
+        (c.monthsLeft <= 6 ? 10 : c.monthsLeft <= 12 ? 5 : 2) +
+        Math.min(6, Math.floor((c.openDays || 0) / 120)) +
+        (c.violations > 1 ? 3 : 0) +
+        (c.agent ? 2 : 0);
+    }
+    const eligible = shortlist.filter((c) => c.address && c.agent);
+    gas = balancedByBorough(eligible, 400);
+    gas.sort((a, b) => b.urgencyScore - a.urgencyScore);
+    gasTotals.open = gas.length;
+    const boro = {};
+    for (const c of gas) boro[c.borough] = (boro[c.borough] || 0) + 1;
+    console.log(`LL152: ${gasTotals.cited} cited buildings, feed ${gas.length}`, boro);
+  }
+} catch (e) {
+  console.log(`LL152 unavailable (${e.message}) — keeping previous data`);
+  gas = prevFeed()?.gas?.feed || [];
+}
+
 // timestamps, so the feed can honestly say what appeared in the last 48 hours.
 const NEW_WINDOW_MS = 48 * 3600 * 1000;
 const seenPath = new URL('../data/seen.json', import.meta.url);
 let seen = null;
 try { if (existsSync(seenPath)) seen = JSON.parse(readFileSync(seenPath, 'utf8')); } catch {}
 const baselineDone = Boolean(seen);
-if (!seen) seen = { bins: {}, contracts: {}, openings: {} };
+if (!seen) seen = { bins: {}, contracts: {}, openings: {}, gas: {} };
+seen.gas ||= {};
 const nowIso = TODAY.toISOString();
 const stamp = () => (baselineDone ? nowIso : 'baseline');
 const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
@@ -803,6 +923,10 @@ for (const o of openings) {
   seen.openings[o.id] ||= stamp();
   o.isNew = isFreshTs(seen.openings[o.id]);
 }
+for (const g of gas) {
+  seen.gas[g.bin] ||= stamp();
+  g.isNew = isFreshTs(seen.gas[g.bin]);
+}
 writeFileSync(seenPath, JSON.stringify(seen, null, 1));
 const whatsNew = {
   windowHours: 48,
@@ -810,6 +934,7 @@ const whatsNew = {
   signals: feed.reduce((n, c) => n + (c.fresh?.length || 0), 0),
   contracts: contracts.filter((c) => c.isNew).length,
   openings: openings.filter((o) => o.isNew).length,
+  gas: gas.filter((g) => g.isNew).length,
 };
 console.log("What's new (48h):", whatsNew);
 
@@ -832,6 +957,7 @@ const sources = {
   jobs: await sourceMeta('w9ak-ipjd'),
   awards: await sourceMeta(CROL),
   sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
+  gas: await sourceMeta('855j-jady'),
   acrisThrough,
 };
 console.log('Source freshness:', sources);
@@ -851,6 +977,7 @@ const out = {
   },
   contracts,
   openings,
+  gas: { totals: gasTotals, feed: gas },
 };
 // feed.json is committed hourly to a PUBLIC repo. Provider-licensed phones and
 // emails must not ride along in it: the card keeps the contact's name, company
@@ -872,7 +999,11 @@ const PUBLISH_CONTACTS = process.env.PUBLISH_CONTACTS === '1';
 if (!PUBLISH_CONTACTS) {
   let contacts = 0;
   let names = 0;
-  for (const c of out.facades.feed) {
+  // Every register that carries an agent, not just the first one written. The
+  // last time a register was added this loop was left pointing at facades and
+  // 399 people's names went into the public repo.
+  const withAgents = [out.facades.feed, out.gas.feed].flat();
+  for (const c of withAgents) {
     if (!c.agent) continue;
     if (c.agent.phone || c.agent.email) contacts++;
     if (c.agent.name) names++;

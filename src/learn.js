@@ -40,6 +40,17 @@ export const REASON_SETS = {
     { k: 'far', label: 'Deadline too far out', of: (c) => c.subCycle || null, says: (v) => `sub-cycle ${v}` },
     { k: 'other', label: 'Just not a fit', of: () => null, says: () => '' },
   ],
+  'g:': [
+    { k: 'area', label: 'Wrong area', of: (c) => c.borough || null, says: (v) => `${v} buildings` },
+    {
+      k: 'nocall',
+      label: 'No one to call',
+      of: (c) => (c.agent?.contactKnown ? null : 'nocontact'),
+      says: () => 'buildings with no published contact',
+    },
+    { k: 'far', label: 'Deadline too far out', of: (c) => c.subCycle || null, says: (v) => `sub-cycle ${v}` },
+    { k: 'other', label: 'Just not a fit', of: () => null, says: () => '' },
+  ],
   'c:': [
     { k: 'agency', label: 'Wrong agency', of: (c) => c.agency || null, says: (v) => `awards from ${title(v)}` },
     { k: 'category', label: 'Wrong kind of work', of: (c) => c.category || null, says: (v) => `${title(v)} awards` },
