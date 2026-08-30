@@ -113,8 +113,8 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
 
       <h2>How contacts are obtained</h2>
       <p className="lead sm">
-        Every contact carries one of four labels, and the label is never upgraded by guesswork. Each names where the
-        number came from, because a number is only worth what its source is worth.
+        Every contact carries a label naming where it came from, and the label is never upgraded by guesswork —
+        a number is only worth what its source is worth.
       </p>
       <ul className="dlist tiers">
         <li>
@@ -130,6 +130,14 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
           contact anywhere, and this number reaches the firm that actually runs the building — named on a city filing or
           on the building's own site. The label always says whose line it is, so nobody opens a call asking for a company
           that will not be there.
+        </li>
+        <li>
+          <span className="conf mid">office inbox · company site</span> No direct line, but an inbox the company
+          published for exactly this. A shared mailbox is a slower door than a number, and the label says so.
+        </li>
+        <li>
+          <span className="conf mid">number held privately</span> A contact exists but is not in the public build —
+          contact values never travel through the public repository, only through the private store.
         </li>
         <li>
           <span className="conf low">no direct line on file</span> We have the company and the role, not a number. No

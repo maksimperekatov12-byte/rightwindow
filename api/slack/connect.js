@@ -9,6 +9,11 @@ const readBody = (req) =>
   });
 
 export default async function handler(req, res) {
+  // The UI asks before promising Claim buttons it cannot deliver.
+  if (req.method === 'GET') {
+    res.setHeader('Cache-Control', 's-maxage=600');
+    return res.json({ interactive: Boolean(process.env.SLACK_SIGNING_SECRET) });
+  }
   if (req.method !== 'POST') return res.status(405).end();
   const b = await readBody(req);
   const uid = String(b?.uid || '');
@@ -37,7 +42,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         text: 'Right Window is connected. New matching windows will land here.',
         blocks: [
-          { type: 'section', text: { type: 'mrkdwn', text: ":white_check_mark: *Right Window is connected.*\nNew windows matched to your trade will land in this channel — with Claim buttons so nobody double-calls." } },
+          { type: 'section', text: { type: 'mrkdwn', text: `:white_check_mark: *Right Window is connected.*\nNew windows matched to your trade will land in this channel${process.env.SLACK_SIGNING_SECRET ? ' — with Claim buttons so nobody double-calls' : ''}.` } },
         ],
       }),
     })

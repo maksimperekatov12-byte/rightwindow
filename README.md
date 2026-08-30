@@ -26,7 +26,7 @@ It is not a list of leads. It is a list of **windows** — with the clock showin
 
 ## What it does
 
-**Pick what you sell.** Fifteen trades: facade engineering, restoration, elevator service,
+**Pick what you sell.** Fourteen trades: facade engineering, restoration, elevator service,
 insurance and bonding, C-PACE lending, equipment rental, property management, code attorneys,
 CRE brokerage, staffing, POS, food and beverage, marketing, signage.
 
@@ -48,7 +48,12 @@ three **personal** signals — exclusive for 48 hours, pinned to the top of the 
 they rotate to someone else.
 
 **Track what happens.** Contacted, won, lost, dismissed. Watchlist, CSV export, deep links to a
-single card, an optional daily email digest, and a self-updating Apple Wallet pass.
+single card, and an optional daily email digest.
+
+Two integrations ship in the code but need credentials before they do anything, and the app checks
+rather than pretends: Slack **Claim** buttons need `SLACK_SIGNING_SECRET` (without it the cards go out
+with a link only), and the Apple Wallet pass needs a developer certificate (without it `/api/pass`
+returns 503 and the button is hidden).
 
 ---
 
@@ -65,13 +70,14 @@ the product: a scraper sees a row; the chain knows what the row means and when i
 | Fresh violation | DOB/ECB violation issued in the last 120 days | certified correction, often with a hearing date |
 | Just sold | deed recorded in ACRIS | new owner rebuilds every vendor relationship |
 | Management changed | HPD registration flipped | same reset, days after it happens |
-| Elevator tests due | active devices with no CAT1 this year, or CAT5 overdue | tests must be filed by December 31 |
+| Elevator tests due | active devices with no CAT1 this year, or a CAT5 inside six months of its five-year mark | CAT1 filings close December 31 |
 | Contract awarded / venue filing | city award or liquor-license application | mobilization and build-out purchasing |
 
 Amplifiers: unpaid ECB balances, scheduled OATH hearings, expiring sidewalk-shed permits.
 
-Current coverage: **12,352** buildings off the compliance calendar across Manhattan, Brooklyn,
-Queens and the Bronx — of which **4,791** are unfiled for sub-cycle 10A with six months left.
+Current coverage is whatever the last collection found — the site shows it live in the header stats.
+At the time of writing: 12,323 buildings off the compliance calendar across four boroughs, of which 4,779
+are unfiled for sub-cycle 10A.
 
 ---
 
@@ -139,8 +145,9 @@ companies: **buildings, not people.**
 ## How it runs
 
 ```
-every 10 min   fast lane      contract awards + liquor filings, heartbeat, personal-signal rotation
-every hour     full collect   all eight chains, HPD contact join, what's-new memory
+every 5 min    fast lane      contract awards + liquor filings, proof-of-life pulse
+hourly lane    full collect   all eight chains, HPD contact join, personal-signal rotation,
+               (best effort)  what's-new memory. GitHub cron is best-effort and drifts.
 every morning  digest         personalized email, only when something new matches you
 ```
 

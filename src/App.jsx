@@ -74,7 +74,12 @@ const PROFILES = {
       hint: 'Open SWARMP and UNSAFE conditions — mandatory scopes, before they go out to bid.',
       sort: (a, b) =>
         rank(b, 'SWARMP_CARRYOVER') + rank(b, 'UNSAFE_PRIOR') - rank(a, 'SWARMP_CARRYOVER') - rank(a, 'UNSAFE_PRIOR') || byUrgency(a, b),
-      why: () => 'Mandatory scope, no contractor attached yet.',
+      why: (c) =>
+        c.occupied
+          ? `${c.filing?.who ? title(c.filing.who) : 'Someone'} is already on this scope — call only if you can take work over.`
+          : c.filing
+            ? `Filed ${usShort(c.filing.filed)} and still unpermitted — the scope is defined but nobody is building it.`
+            : 'Mandatory scope, no contractor attached yet.',
       opener: (c) =>
         has(c, 'SWARMP_CARRYOVER')
           ? `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`
@@ -108,7 +113,7 @@ const PROFILES = {
     tile: 'Elevator service / modernization',
     facade: {
       hero: 'Elevators with a legal test due — *and no one booked*',
-      hint: `Buildings whose devices have no ${YEAR} CAT1 test or an overdue 5-year CAT5 — the deadline is Dec 31.`,
+      hint: `Buildings whose devices have no ${YEAR} CAT1 test, or a five-year CAT5 coming due — CAT1 filings close Dec 31.`,
       sort: (a, b) =>
         (b.elevator?.cat1Missing || 0) + (b.elevator?.cat5Due || 0) - (a.elevator?.cat1Missing || 0) - (a.elevator?.cat5Due || 0) ||
         byUrgency(a, b),
@@ -119,7 +124,7 @@ const PROFILES = {
       opener: (c) =>
         c.elevator?.cat1Missing
           ? `Re: ${title(c.address)} — DOB shows ${c.elevator.cat1Missing} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`
-          : `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat5Due || 'several'} elevator device(s) overdue for the five-year CAT5. We can test and file before the December 31 deadline.`,
+          : `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat5Due || 'several'} elevator device(s) with a five-year CAT5 coming due. We can test and file before the December 31 deadline.`,
       fFilter: (c) => Boolean(c.elevator),
     },
     cNeed: null,
@@ -136,7 +141,9 @@ const PROFILES = {
       why: (c) =>
         c.ownerChange || c.mgmtChange
           ? 'New ownership re-shops every policy in year one.'
-          : 'Open violations change the liability picture before renewal.',
+          : c.freshHaz || (c.ecbBalance || 0) > 0
+            ? 'Open violations change the liability picture before renewal.'
+            : 'Mandated facade work ahead — the scope needs builder\u2019s risk before it starts.',
       opener: (c) => {
         const violations = Boolean(c.freshHaz || (c.ecbBalance || 0) > 0);
         return `Re: ${title(c.address)} — city records show mandated facade work${violations ? ' and open violations' : ''}${
@@ -381,7 +388,7 @@ const PIPE = {
   restoration: (t) => ({ v: t.swarmpCarryover * 100000, n: `${t.swarmpCarryover.toLocaleString('en-US')} open SWARMP scopes × ~$100K per mandated repair` }),
   elevator: (t, f) => {
     const d = f.reduce((s, c) => s + (c.elevator ? c.elevator.cat1Missing + c.elevator.cat5Due : 0), 0);
-    return { v: d * 650, n: `${d} overdue devices on this feed × ~$650 per test` };
+    return { v: d * 650, n: `${d} devices due on this feed × ~$650 per test` };
   },
   insurance: (t, f) => ({ v: f.length * 12000, n: `${f.length} buildings × ~$12K annual premium` }),
   lender: (t, f) => ({ v: f.length * 200000, n: `${f.length} buildings × ~$200K financeable scope` }),
@@ -601,6 +608,7 @@ export default function App() {
   const [onlyWatch, setOnlyWatch] = useState(false);
   const [watch, setWatch] = useState(() => loadLS('rw.watch', {}));
   const [walletReady, setWalletReady] = useState(false);
+  const [slackInteractive, setSlackInteractive] = useState(false);
   const [email, setEmail] = useState(() => loadLS('rw.email', ''));
   const [theme, setTheme] = useState(() => loadLS('rw.theme', null));
   const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -785,8 +793,6 @@ export default function App() {
           secret: secret.current,
           data: {
             profile: profileKey,
-            ticket,
-            closeRate,
             boro,
             watch: Object.keys(watch),
             feedback: fb,
@@ -811,6 +817,10 @@ export default function App() {
     fetch('/api/pass/status')
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => setWalletReady(Boolean(j?.configured)))
+      .catch(() => {});
+    fetch('/api/slack/connect')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => setSlackInteractive(Boolean(j?.interactive)))
       .catch(() => {});
   }, []);
 
@@ -980,15 +990,17 @@ export default function App() {
   const feedStale = now - new Date(data.generatedAt).getTime() > 3 * 3600000;
   const lastChangeAt = live?.changedAt || pulled.getTime();
   const lastChangeLabel = ago(lastChangeAt);
+  // Each changeLog entry records a tick on which the published feed differed
+  // from the one before it. It does NOT record how many items arrived — the
+  // counts it carries are the standing 48-hour-fresh population, so summing
+  // them counts the same building on every tick it is still fresh.
   const recentDays = useMemo(() => {
     const days = [];
     const log = live?.changeLog || [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now - i * 86400000);
       const key = d.toISOString().slice(0, 10);
-      const n = log
-        .filter((c) => new Date(c.at).toISOString().slice(0, 10) === key)
-        .reduce((s2, c) => s2 + (c.contracts || 0) + (c.openings || 0), 0);
+      const n = log.filter((c) => new Date(c.at).toISOString().slice(0, 10) === key).length;
       days.push({ day: key.slice(5), n });
     }
     return days;
@@ -1152,7 +1164,12 @@ export default function App() {
           c.finesOwed || 0, c.ecbBalance || 0, c.nextHearing || '',
           c.ownerChange ? `${c.ownerChange.recorded}${c.ownerChange.amount ? ' ' + money(Math.round(c.ownerChange.amount)) : ''}` : '',
           c.elevator ? `${c.elevator.cat1Missing} no CAT1 / ${c.elevator.cat5Due} CAT5 due` : '',
-          title(c.agent?.company || ''), title(c.agent?.name || ''), title(c.agent?.address || ''),
+          title(c.agent?.company || ''),
+          (() => {
+            const ct = contactOf(c, contacts[c.bin]);
+            return ct?.phone || ct?.email || '';
+          })(),
+          title(c.agent?.address || ''),
           fv.opener(c),
           `https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=${c.bin}`,
           `${location.origin}/#b/${c.bin}`,
@@ -1493,7 +1510,7 @@ export default function App() {
                 <button className="modal-close" onClick={() => setPortfolioOpen(false)}>Done</button>
               </div>
               {portfolioText.trim() && (
-                <p className="pf-miss">Not in the feed — likely no open window right now.</p>
+                <p className="pf-miss">Not among the 400 buildings we rank today — the register is far bigger.</p>
               )}
             </motion.div>
           </motion.div>
@@ -1719,11 +1736,11 @@ export default function App() {
         </button>
         <div className="pulseline">
           <span title="Every check writes a timestamp, whether the city published anything or not">
-            {checksToday >= 24
-              ? `${checksToday} checks in the last 24h`
-              : checkedAt && now - checkedAt < 15 * 60000
-                ? 'checking every 5 minutes'
-                : 'checks paused'}
+            {!checkedAt || now - checkedAt > 15 * 60000
+              ? 'checks paused'
+              : checksToday >= 24
+                ? `${checksToday} checks in the last 24h`
+                : 'checking every 5 minutes'}
           </span>
           {checkedAt && now - checkedAt > 40 * 60000 && (
             <>
@@ -1734,9 +1751,14 @@ export default function App() {
           <span aria-hidden="true">·</span>
           <span>last new signal {lastChangeLabel}</span>
           {recentDays.some((d) => d.n > 0) && (
-            <span className="spark" aria-label="new signals per day, last 7 days">
+            <span className="spark" aria-label="days the feed changed, last 7 days">
               {recentDays.map((d) => (
-                <i key={d.day} className={d.n ? 'on' : ''} style={{ height: Math.min(18, 4 + Math.min(14, d.n * 3)) }} title={`${d.day}: ${d.n} new`} />
+                <i
+                  key={d.day}
+                  className={d.n ? 'on' : ''}
+                  style={{ height: Math.min(18, 4 + Math.min(14, d.n * 3)) }}
+                  title={`${d.day}: feed changed ${d.n} ${d.n === 1 ? 'time' : 'times'}`}
+                />
               ))}
             </span>
           )}
@@ -1846,7 +1868,19 @@ export default function App() {
               <b>Nothing matches</b>
               No buildings fit the current search and filters.
               <div>
-                <button onClick={() => { setQuery(''); setBoro('all'); setOnlyNew(false); setOnlyWatch(false); }}>Clear all filters</button>
+                <button
+                  onClick={() => {
+                    setQuery('');
+                    setBoro('all');
+                    setOnlyNew(false);
+                    setOnlyWatch(false);
+                    setHideBusy(false);
+                    setOnlyPortfolio(false);
+                    setShowHidden(false);
+                  }}
+                >
+                  Clear all filters
+                </button>
               </div>
             </div>
           )}
@@ -1955,8 +1989,10 @@ export default function App() {
                             <div className="sig busy">
                               <div className="sig-k">Already worked</div>
                               <div className="sig-v">
-                                {c.filing?.who ? `${title(c.filing.who)} pulled a permit` : 'A permit is already pulled'}
-                                {c.filing?.filed ? ` after filing ${usShort(c.filing.filed)}` : ''}. Ranked low on purpose — call only if you
+                                {c.filing?.permitted
+                                  ? `${c.filing?.who ? title(c.filing.who) : 'A contractor'} pulled a permit`
+                                  : `${c.filing?.who ? title(c.filing.who) : 'A contractor'} has a filing open and a shed up`}
+                                {c.filing?.filed ? `, filed ${usShort(c.filing.filed)}` : ''}. Ranked low on purpose — call only if you
                                 want the next cycle.
                               </div>
                             </div>
@@ -2503,7 +2539,11 @@ export default function App() {
               {slackState === 'saving' ? 'Connecting…' : slackState === 'ok' ? 'Connected' : slackState === 'error' ? 'Try again' : slackHook ? 'Update Slack' : 'Send to Slack'}
             </button>
             <span className="digest-note">
-              {slackState === 'error' ? 'That URL was rejected — check it in Slack.' : 'Cards with Claim buttons'}
+              {slackState === 'error'
+                ? 'That URL was rejected — check it in Slack.'
+                : slackInteractive
+                  ? 'Cards with Claim buttons'
+                  : 'Signal cards, linked back to the feed'}
             </span>
           </form>
         </div>
@@ -2550,6 +2590,9 @@ export default function App() {
           }}
         >
           A page for every trade
+        </button>
+        <button className="foot-toggle" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources}>
+          {showSources ? 'Hide source dates' : 'Source dates'}
         </button>
         {showSources && (
           <p className="foot-detail">

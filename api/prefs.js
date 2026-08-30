@@ -1,4 +1,8 @@
-// Per-user preferences: profile, ticket, boroughs, watchlist, channels.
+// Per-user preferences: profile, boroughs, watchlist, channels.
+//
+// Deliberately NOT the average ticket or close rate. The onboarding tells the
+// user "both numbers stay on this device", and they were being shipped here
+// anyway while nothing on this side ever read them back.
 // One document keyed by uid — see lib/store.mjs for why.
 //
 // This endpoint is unauthenticated and the uid is client-chosen, so the body is
@@ -25,10 +29,6 @@ function clean(data) {
   const out = {};
   if (PROFILES.has(data.profile)) out.profile = data.profile;
   if (BOROS.has(data.boro)) out.boro = data.boro;
-  const t = num(Number(data.ticket), 0, 1e9);
-  if (t !== undefined) out.ticket = t;
-  const r = num(Number(data.closeRate), 0.01, 1);
-  if (r !== undefined) out.closeRate = r;
   const w = keyList(data.watch, 500);
   if (w) out.watch = w;
   const pf = keyList(data.portfolio, 500);

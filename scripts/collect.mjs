@@ -268,6 +268,8 @@ for (let i = 0; i < top.length; i += 50) {
     if (y && y < TODAY.getFullYear()) agg.cat1Missing += 1;
     if (y && y < TODAY.getFullYear() - 1) agg.cat1Overdue += 1;
     const c5 = parseYmd(r.cat5_latest_report_filed);
+    // Six months of lead time before the five-year mark: the useful moment to
+    // call is before it lapses, not after. Named "due", never "overdue".
     if (c5 && TODAY - c5 > 4.5 * 365.25 * 24 * 3600 * 1000) agg.cat5Due += 1;
     elevByBin.set(r.bin, agg);
   }
@@ -746,6 +748,9 @@ if (!PUBLISH_CONTACTS) {
     delete c.agent.phone;
     delete c.agent.email;
     delete c.agent.name;
+    // Used by the affiliate pass above, which has already run. It is a person's
+    // name on a city filing and has no business in a public repo.
+    delete c.agent.headOfficer;
   }
   console.log(
     `Public feed redacted: ${contacts} contacts and ${names} personal names withheld ` +
