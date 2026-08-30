@@ -743,8 +743,9 @@ export default function App() {
     secret.current = sec;
   }
 
+  const [justDismissed, setJustDismissed] = useState(null);
   const mine_ = useRef(loadLS('rw.mine', {}));
-  const mark = (k, st) => {
+  const mark = (k, st, card = null) => {
     // Toggling the status back off releases the claim this device made, so a
     // misclick does not lock a building amber for everyone, forever.
     if (fb[k]?.s === st && mine_.current[k]) {
@@ -783,9 +784,13 @@ export default function App() {
     }
     setFb((f) => {
       const n = { ...f };
-      if (n[k]?.s === st) delete n[k];
+      const undoing = n[k]?.s === st;
+      if (undoing) delete n[k];
       else n[k] = { s: st, t: Date.now() };
       saveLS('rw.fb', n);
+      // A dismissed card leaves the list at once, so the only place left to ask
+      // why is a strip above the feed.
+      if (st === 'dismissed') setJustDismissed(undoing || !card ? null : { k, card });
       return n;
     });
   };
@@ -795,6 +800,7 @@ export default function App() {
   // The reason rides on the dismissal that already exists, so answering "why"
   // is optional: skip it and the card is still hidden, just silently.
   const markReason = (k, reasonKey, value) => {
+    setJustDismissed((d) => (d?.k === k ? null : d));
     setFb((f) => {
       if (f[k]?.s !== 'dismissed') return f;
       const n = { ...f, [k]: { ...f[k], r: reasonKey, v: value || null } };
@@ -2001,6 +2007,31 @@ export default function App() {
             </span>
           </div>
 
+          {justDismissed && justDismissed.k.startsWith(vertPrefix) && (
+            <motion.div
+              className="asked"
+              initial={reduce ? false : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span className="asked-k">Hidden. Why? Two of the same and we stop showing them</span>
+              {reasonsFor(vertPrefix)
+                .filter((r) => r.k === 'other' || r.of(justDismissed.card))
+                .map((r) => (
+                  <button
+                    key={r.k}
+                    className="asked-r"
+                    onClick={() => markReason(justDismissed.k, r.k, r.of(justDismissed.card) || NO_LESSON)}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              <button className="asked-x" onClick={() => setJustDismissed(null)} aria-label="Skip the question">
+                ×
+              </button>
+            </motion.div>
+          )}
+
           {learnedRules.filter((r) => r.prefix === vertPrefix).length > 0 && (
             <div className="taught">
               <span className="taught-k">You taught this feed to skip</span>
@@ -2891,7 +2922,7 @@ function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason }) {
             {l}
           </button>
         ))}
-        <button className={'fb dismiss' + (cur === 'dismissed' ? ' on' : '')} onClick={() => mark(k, 'dismissed')}>
+        <button className={'fb dismiss' + (cur === 'dismissed' ? ' on' : '')} onClick={() => mark(k, 'dismissed', card)}>
           {cur === 'dismissed' ? 'Restore' : 'Dismiss'}
         </button>
       </div>

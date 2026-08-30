@@ -893,3 +893,25 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   border: 1px dashed var(--line-2); background: none;
 }
 .taught-rule:hover { color: var(--brand); border-color: var(--brand); border-style: solid; }
+
+/* ---------- asked at the moment of a dismissal ---------- */
+.asked {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin: 10px 0 0;
+  border-radius: var(--r-sm); padding: 9px 12px;
+  background: var(--warm-wash); border: 1px solid rgba(138, 100, 16, 0.3);
+}
+.asked-k {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--warm); margin-right: 2px;
+}
+.asked-r {
+  font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--ink-2); cursor: pointer;
+  padding: 5px 10px; min-height: 28px; border-radius: var(--r-sm);
+  border: 1px solid var(--line-2); background: var(--panel-2);
+}
+.asked-r:hover { color: var(--brand); border-color: var(--brand); }
+.asked-x {
+  margin-left: auto; background: none; border: 0; cursor: pointer;
+  color: var(--ink-3); font-size: 17px; line-height: 1; padding: 4px 6px; min-height: 28px; min-width: 28px;
+}
+.asked-x:hover { color: var(--ink); }
