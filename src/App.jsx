@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Su
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 import DataPage from './Data.jsx';
+import { NO_LESSON, reasonsFor, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
 import TradesPage from './Trades.jsx';
 
 const YEAR = new Date().getFullYear();
@@ -314,6 +315,107 @@ const STATUS_MARK = {
   taken: { glyph: 'lock', label: 'Taken — someone is already on it' },
   personal: { glyph: 'star', label: 'Reserved for you' },
 };
+// What the city says about one building, asked at the moment a card is opened.
+//
+// A card is a photograph of the record at build time; the hourly rebuild drifts,
+// so by the afternoon it can be describing the morning. Nothing usually moves.
+// The exceptions are the ones that matter: the owner filed the report overnight,
+// or a contractor took the job. Both turn a good call into an embarrassing one,
+// and both are visible in DOB NOW within a day.
+//
+// Answers are memoised per building for the life of the page, so opening the
+// same card twice costs one request.
+const verifyCache = new Map();
+
+function materialChanges(card, live, builtOn) {
+  const out = [];
+
+  if (card.lastCycle !== '10' && live.lastCycle === '10') {
+    out.push(
+      `A Cycle 10 report has been filed${live.lastFiling ? ` on ${usShort(live.lastFiling)}` : ''}` +
+        `${live.qewi ? ` by ${title(live.qewi)}` : ''}. This building is no longer a non-filer.`,
+    );
+  } else if (live.lastCycle === card.lastCycle && live.lastStatus && live.lastStatus !== card.lastStatus) {
+    out.push(`The filing status changed from ${card.lastStatus || 'none'} to ${live.lastStatus}.`);
+  }
+
+  const hadFiling = Boolean(card.filing?.filed);
+  if (live.filing && !hadFiling) {
+    out.push(
+      `${live.filing.who ? title(live.filing.who) : 'A contractor'} filed for this facade` +
+        `${live.filing.filed ? ` on ${usShort(live.filing.filed)}` : ''}. Someone is already on it.`,
+    );
+  } else if (live.filing && hadFiling && live.filing.permitted && !card.filing?.permitted) {
+    out.push(
+      `${live.filing.who ? title(live.filing.who) : 'The filed contractor'} has since pulled the permit.`,
+    );
+  }
+
+  // Only a shed that went up after this card was built is news. Renewals of a
+  // shed the card already describes are not, and they are the common case.
+  if (live.permit && !card.shed && builtOn && live.permit.issued > builtOn.slice(0, 10)) {
+    out.push(
+      `A ${live.permit.type.toLowerCase()} went up on ${usShort(live.permit.issued)}` +
+        `${live.permit.who ? `, permit pulled by ${title(live.permit.who)}` : ''}.`,
+    );
+  }
+
+  return out;
+}
+
+function Recheck({ card, builtOn, reduce }) {
+  const [state, setState] = useState(() => verifyCache.get(card.bin) || null);
+
+  useEffect(() => {
+    if (state) return;
+    let live = true;
+    fetch(`/api/verify?bin=${encodeURIComponent(card.bin)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((j) => {
+        const next = { ok: true, changes: materialChanges(card, j, builtOn), at: j.checkedAt };
+        verifyCache.set(card.bin, next);
+        if (live) setState(next);
+      })
+      .catch(() => {
+        // Silence beats a false "verified": if we could not reach the city, the
+        // card simply stays what it was and says nothing new.
+        const next = { ok: false };
+        verifyCache.set(card.bin, next);
+        if (live) setState(next);
+      });
+    return () => {
+      live = false;
+    };
+  }, [card.bin, state, builtOn]);
+
+  if (!state || !state.ok) return null;
+
+  if (!state.changes.length) {
+    return (
+      <p className="recheck ok">
+        Checked against DOB just now — the record still reads as described.
+      </p>
+    );
+  }
+
+  return (
+    <motion.div
+      className="recheck changed"
+      initial={reduce ? false : { opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      role="status"
+    >
+      <div className="recheck-k">Changed since this card was built</div>
+      <ul>
+        {state.changes.map((t) => (
+          <li key={t}>{t}</li>
+        ))}
+      </ul>
+    </motion.div>
+  );
+}
+
 function StatusDot({ status, note, legend }) {
   const mark = STATUS_MARK[status] || STATUS_MARK.open;
   return (
@@ -689,6 +791,35 @@ export default function App() {
   };
   const fbOf = (k) => fb[k]?.s || null;
   const isDismissed = (k) => fbOf(k) === 'dismissed';
+  const reasonOf = (k) => fb[k]?.r || null;
+  // The reason rides on the dismissal that already exists, so answering "why"
+  // is optional: skip it and the card is still hidden, just silently.
+  const markReason = (k, reasonKey, value) => {
+    setFb((f) => {
+      if (f[k]?.s !== 'dismissed') return f;
+      const n = { ...f, [k]: { ...f[k], r: reasonKey, v: value || null } };
+      saveLS('rw.fb', n);
+      return n;
+    });
+  };
+  // A rule is a (reason, value) pair somebody has now rejected twice.
+  const learned = useMemo(() => rulesFrom(fb), [fb]);
+  const taughtAway = (prefix, card) => taughtBy(learned, prefix, card);
+  const learnedRules = useMemo(() => describeRules(learned), [learned]);
+  // Undo strips the reason from the dismissals behind one rule. The buildings
+  // stay dismissed — only the lesson drawn from them is withdrawn.
+  const unlearn = (id) => {
+    setFb((f) => {
+      const n = { ...f };
+      for (const [k, v] of Object.entries(n)) {
+        if (v?.s === 'dismissed' && v.r && v.v && `${k.slice(0, 2)}${v.r}|${v.v}` === id) {
+          n[k] = { s: v.s, t: v.t };
+        }
+      }
+      saveLS('rw.fb', n);
+      return n;
+    });
+  };
   const statusOf = (k) => (claims[k] ? 'taken' : mine[k] && mine[k] > now ? 'personal' : 'open');
   const hoursLeft = (k) => Math.max(1, Math.round((mine[k] - now) / 3600000));
 
@@ -902,6 +1033,7 @@ export default function App() {
     const zips = zipsIn(q);
     const base = facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
+      if (!showHidden && taughtAway('b:', c)) return false;
       if (hideBusy && c.occupied) return false;
       if (onlyPortfolio && !portfolio.includes(c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
@@ -926,11 +1058,23 @@ export default function App() {
   const liveOpenings = live?.openings || data.openings;
   const contractsBase = useMemo(() => liveContracts.filter(profile.cFilter || (() => true)), [profileKey, liveContracts]);
   const contractsList = useMemo(
-    () => contractsBase.filter((c) => showHidden === isDismissed('c:' + c.id) && (!onlyWatch || isWatched('c:' + c.id))),
+    () =>
+      contractsBase.filter(
+        (c) =>
+          showHidden === isDismissed('c:' + c.id) &&
+          (showHidden || !taughtAway('c:', c)) &&
+          (!onlyWatch || isWatched('c:' + c.id)),
+      ),
     [contractsBase, onlyWatch, watch, fb, showHidden],
   );
   const openingsList = useMemo(
-    () => liveOpenings.filter((o) => showHidden === isDismissed('o:' + o.id) && (!onlyWatch || isWatched('o:' + o.id))),
+    () =>
+      liveOpenings.filter(
+        (o) =>
+          showHidden === isDismissed('o:' + o.id) &&
+          (showHidden || !taughtAway('o:', o)) &&
+          (!onlyWatch || isWatched('o:' + o.id)),
+      ),
     [liveOpenings, onlyWatch, watch, fb, showHidden],
   );
   const keepShown = useRef(0);
@@ -1857,6 +2001,19 @@ export default function App() {
             </span>
           </div>
 
+          {learnedRules.filter((r) => r.prefix === vertPrefix).length > 0 && (
+            <div className="taught">
+              <span className="taught-k">You taught this feed to skip</span>
+              {learnedRules
+                .filter((r) => r.prefix === vertPrefix)
+                .map((r) => (
+                  <button key={r.id} className="taught-rule" onClick={() => unlearn(r.id)} title="Show these again">
+                    {r.text} <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+            </div>
+          )}
+
           {filteredFeed.length === 0 && (
             <div className="empty">
               <b>Nothing matches</b>
@@ -1973,6 +2130,7 @@ export default function App() {
                         style={{ overflow: 'hidden' }}
                       >
                         <div className="card-body">
+                          <Recheck card={c} builtOn={data.generatedAt} reduce={reduce} />
                           <div className="sig">
                             <div className="sig-k">
                               Why now
@@ -2224,7 +2382,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <FeedbackRow k={'b:' + c.bin} fbOf={fbOf} mark={mark} />
+                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
                         </div>
                       </motion.div>
                     )}
@@ -2346,7 +2504,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'c:' + c.id} fbOf={fbOf} mark={mark} />
+                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
               </>
             )}
             idOf={(c) => c.id}
@@ -2446,6 +2604,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
+                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
               </>
             )}
             idOf={(c) => c.id}
@@ -2713,25 +2872,40 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
   );
 }
 
-function FeedbackRow({ k, fbOf, mark }) {
+function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason }) {
   const cur = fbOf(k);
   const opts = [
     ['contacted', 'Contacted'],
     ['won', 'Won'],
     ['lost', 'Lost'],
   ];
+  const prefix = k.slice(0, 2);
+  // Only worth asking about reasons the card can actually be judged on.
+  const reasons = cur === 'dismissed' && !reasonOf(k) && card ? reasonsFor(prefix).filter((r) => r.k === 'other' || r.of(card)) : [];
   return (
-    <div className="fb-row">
-      <span className="fb-cap">Track it:</span>
-      {opts.map(([v, l]) => (
-        <button key={v} className={'fb' + (cur === v ? ' on ' + v : '')} onClick={() => mark(k, v)}>
-          {l}
+    <>
+      <div className="fb-row">
+        <span className="fb-cap">Track it:</span>
+        {opts.map(([v, l]) => (
+          <button key={v} className={'fb' + (cur === v ? ' on ' + v : '')} onClick={() => mark(k, v)}>
+            {l}
+          </button>
+        ))}
+        <button className={'fb dismiss' + (cur === 'dismissed' ? ' on' : '')} onClick={() => mark(k, 'dismissed')}>
+          {cur === 'dismissed' ? 'Restore' : 'Dismiss'}
         </button>
-      ))}
-      <button className={'fb dismiss' + (cur === 'dismissed' ? ' on' : '')} onClick={() => mark(k, 'dismissed')}>
-        {cur === 'dismissed' ? 'Restore' : 'Dismiss'}
-      </button>
-    </div>
+      </div>
+      {reasons.length > 0 && (
+        <div className="fb-row why">
+          <span className="fb-cap">Why? Two of the same and we stop showing them:</span>
+          {reasons.map((r) => (
+            <button key={r.k} className="fb why" onClick={() => markReason(k, r.k, r.of(card) || NO_LESSON)}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -2796,13 +2970,3 @@ function subOpens(sub) {
   return sub === '10A' ? '2025-02-21' : sub === '10B' ? '2026-02-21' : '2027-02-21';
 }
 
-function title(s) {
-  if (!s) return s;
-  return s
-    .toLowerCase()
-    .replace(/\b[a-z]/g, (m) => m.toUpperCase())
-    .replace(/\bLlc\b/g, 'LLC')
-    .replace(/\bHdfc\b/g, 'HDFC')
-    .replace(/\bIi\b/g, 'II')
-    .replace(/\bIii\b/g, 'III');
-}

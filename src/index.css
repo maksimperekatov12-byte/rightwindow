@@ -862,3 +862,34 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
     padding: 11px 15px; font-size: 12.5px;
   }
 }
+
+/* ---------- live re-check on an opened card ---------- */
+.recheck { margin: 0 0 14px; font-size: 12.5px; }
+.recheck.ok { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-bottom: 12px; }
+.recheck.changed {
+  border-radius: var(--r-sm); padding: 11px 13px;
+  background: var(--warm-wash); border: 1px solid rgba(138, 100, 16, 0.3); color: var(--ink-2);
+}
+.recheck-k {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--warm); margin-bottom: 6px;
+}
+.recheck.changed ul { margin: 0; padding-left: 17px; }
+.recheck.changed li { margin: 3px 0; line-height: 1.5; }
+
+/* ---------- what a dismissal taught the feed ---------- */
+.fb-row.why { margin-top: 6px; }
+.fb-row.why .fb-cap { color: var(--warm); }
+.fb.why { border-color: rgba(138, 100, 16, 0.32); color: var(--warm); }
+.fb.why:hover { background: var(--warm-wash); }
+.taught {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin: 10px 0 0;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+}
+.taught-k { letter-spacing: .06em; text-transform: uppercase; }
+.taught-rule {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2); cursor: pointer;
+  padding: 4px 9px; min-height: 26px; border-radius: 999px;
+  border: 1px dashed var(--line-2); background: none;
+}
+.taught-rule:hover { color: var(--brand); border-color: var(--brand); border-style: solid; }
