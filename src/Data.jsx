@@ -145,9 +145,12 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
         </li>
       </ul>
       <p className="fine">
-        Measured on 50 randomly drawn managing agents from the live feed: 36 had a findable phone, 3 more a published
-        inbox. The gap is structural — a building owned through a single-purpose LLC has no business presence to find,
-        which is what the fourth label is for.
+        Measured, not estimated. Across the four building registers, 694 of 1,600 cards currently reach a contact. The
+        most recent sweep took the 39 managing agents covering the most cards and resolved 36 of them — 28 read off the
+        company's own site. Coverage by register is uneven for a reason: 77% on the carbon feed, which is large
+        buildings with professional management, against 11% on gas piping, where 246 of 400 buildings register an
+        individual rather than a company and there is no business to look up. That gap is structural, and it is what
+        the last two labels are for.
       </p>
       {noCall.map((p) => (
         <p className="fine" key={p.id}>

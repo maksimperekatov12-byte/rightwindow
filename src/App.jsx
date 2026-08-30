@@ -1998,10 +1998,10 @@ export default function App() {
               animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
-            <span title={`Contract awards and license filings are re-checked every 5 minutes; the full building sweep runs hourly. Last build: ${pulled.toLocaleString('en-US')}`}>
+            <span title={`We check every 5 minutes and sweep the buildings hourly; the second figure is when a city department last published something new, which is their cadence and not ours. Last build: ${pulled.toLocaleString('en-US')}`}>
               {checkedAt || live?.checkedAt
-                ? `checked ≤${ago(live?.checkedAt || checkedAt)} · feed changed ${agoLabel}`
-                : `feed changed ${agoLabel}`}
+                ? `checked ≤${ago(live?.checkedAt || checkedAt)} · city published ${agoLabel}`
+                : `city published ${agoLabel}`}
             </span>
             <span className="etclock" title="New York time">
               {new Date(now).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET
@@ -2187,13 +2187,13 @@ export default function App() {
           <span aria-hidden="true">·</span>
           <span>last new signal {lastChangeLabel}</span>
           {recentDays.some((d) => d.n > 0) && (
-            <span className="spark" aria-label="days the feed changed, last 7 days">
+            <span className="spark" aria-label="days the city published something, last 7 days">
               {recentDays.map((d) => (
                 <i
                   key={d.day}
                   className={d.n ? 'on' : ''}
                   style={{ height: Math.min(18, 4 + Math.min(14, d.n * 3)) }}
-                  title={`${d.day}: feed changed ${d.n} ${d.n === 1 ? 'time' : 'times'}`}
+                  title={`${d.day}: the city published ${d.n} ${d.n === 1 ? 'time' : 'times'}`}
                 />
               ))}
             </span>
