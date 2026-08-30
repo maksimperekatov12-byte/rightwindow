@@ -1284,7 +1284,10 @@ export default function App() {
       const f = p.facade ? data.facades.feed.filter(p.facade.fFilter || (() => true)).length : 0;
       const c = p.cNeed ? liveContracts.filter(p.cFilter || (() => true)).length : 0;
       const o = p.oNeed ? liveOpenings.length : 0;
-      m[k] = { facades: f, contracts: c, openings: o, total: k === 'explore' ? -1 : f + c + o };
+      // The building registers count too, or the picker ranks a trade by the
+      // one register it happens to share with everyone else.
+      const mand = mandateKeys.reduce((n, key) => n + (p.mandates?.[key] ? (data[key]?.feed || []).length : 0), 0);
+      m[k] = { facades: f, contracts: c, openings: o, mandates: mand, total: k === 'explore' ? -1 : f + c + o + mand };
     }
     return m;
   }, [liveContracts, liveOpenings]);

@@ -609,25 +609,8 @@ for (const c of top) {
   const viaHpd = resolveAffiliates(cards);
   console.log(`Affiliates resolved from HPD head officers: ${viaHpd}`);
 
-  // Whatever the automatic passes could not reach becomes the queue for the
-  // next deliberate sweep. New buildings arrive every hour with agents nobody
-  // has looked up yet; without this the gap is invisible until someone opens a
-  // card and finds no way to call.
-  const unresolved = new Map();
-  for (const c of cards.slice(0, 400)) {
-    const a = c.agent;
-    if (!a?.company || a.phone || a.email) continue;
-    const k = a.company.toUpperCase().trim();
-    const cur = unresolved.get(k) || { company: a.company, addr: a.address || '', headOfficer: a.headOfficer || null, cards: 0 };
-    cur.cards++;
-    unresolved.set(k, cur);
-  }
-  const queue = [...unresolved.values()].sort((x, y) => y.cards - x.cards);
-  writeFileSync(new URL('../data/unresolved-contacts.json', import.meta.url), JSON.stringify(queue, null, 1));
-  console.log(
-    `Contacts still unresolved: ${queue.length} companies covering ${queue.reduce((n, x) => n + x.cards, 0)} cards ` +
-      '(queued in data/unresolved-contacts.json)',
-  );
+  // The queue that used to be written here now covers every register and is
+  // built once they all exist, further down.
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
       const { writeJson } = await import('../lib/store.mjs');
@@ -1021,6 +1004,53 @@ try {
   console.log(`Elevator CAT1 unavailable (${e.message}) — keeping previous data`);
   registers.elevators = prevFeed()?.elevators || { totals: { cited: 0, open: 0 }, feed: [] };
 }
+// The contact cache the facade pass filled is the same cache these registers
+// need, and a firm that manages a facade building usually manages a boiler and
+// a lift in it too. Reading it here costs nothing and is the difference between
+// a card that names an agent and one you can ring. Cache only: new companies are
+// resolved by a deliberate measured sweep, not by a rebuild spending lookups.
+{
+  let reached = 0;
+  for (const reg of Object.values(registers)) {
+    for (const c of reg.feed) {
+      if (!c.agent?.company) continue;
+      const e = await enrichContact({ company: c.agent.company, address: c.agent.address, cacheOnly: true });
+      if (e.confidence === 'none') continue;
+      c.agent.phone = e.phone;
+      c.agent.email = e.email;
+      c.agent.confidence = e.confidence;
+      c.agent.contactSource = e.source;
+      if (e.via) c.agent.via = e.via;
+      reached++;
+    }
+    const viaHpd = resolveAffiliates(reg.feed);
+    reached += viaHpd;
+  }
+  console.log(`Contacts carried into the other registers from the cache: ${reached}`);
+
+  // One queue for every register, so the next sweep sees the whole gap and can
+  // spend its lookups where they cover the most cards.
+  const gap = new Map();
+  const add = (c, where) => {
+    const a = c.agent;
+    if (!a?.company || a.phone || a.email) return;
+    const k = a.company.toUpperCase().trim();
+    const cur = gap.get(k) || { company: a.company, addr: a.address || '', headOfficer: a.headOfficer || null, cards: 0, registers: [] };
+    cur.cards++;
+    if (!cur.registers.includes(where)) cur.registers.push(where);
+    gap.set(k, cur);
+  };
+  for (const c of feed) add(c, 'facades');
+  for (const [key, reg] of Object.entries(registers)) for (const c of reg.feed) add(c, key);
+  const queue = [...gap.values()].sort((x, y) => y.cards - x.cards);
+  writeFileSync(new URL('../data/unresolved-contacts.json', import.meta.url), JSON.stringify(queue, null, 1));
+  console.log(
+    `Contacts still unresolved across all registers: ${queue.length} companies covering ` +
+      `${queue.reduce((n, x) => n + x.cards, 0)} cards; the top 10 alone cover ` +
+      `${queue.slice(0, 10).reduce((n, x) => n + x.cards, 0)}`,
+  );
+}
+
 // timestamps, so the feed can honestly say what appeared in the last 48 hours.
 const NEW_WINDOW_MS = 48 * 3600 * 1000;
 const seenPath = new URL('../data/seen.json', import.meta.url);
