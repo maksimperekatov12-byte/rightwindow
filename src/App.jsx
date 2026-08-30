@@ -57,7 +57,7 @@ const GENERIC_FACADE = {
 
 const PROFILES = {
   qewi: {
-    cohorts: ['stalled', 'owes', 'callable'],
+    cohorts: ['notReengaged', 'stalled', 'owes', 'callable'],
     mandates: {
       gas: (c) =>
         `${c.violations > 1 ? `${c.violations} open gas-piping violations` : 'An open gas-piping violation'} and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)} — the inspection has to be filed by a licensed master plumber.`,
@@ -288,7 +288,11 @@ const PROFILES = {
     oNeed: null,
   },
   cre: {
-    cohorts: ['owes', 'sold', 'callable'],
+    mandates: {
+      gas: (c) => `An open gas-piping violation on a building you already farm — a reason to call that is not "are you selling?".`,
+      carbon: () => `A named Local Law 97 violation is a capital bill the owner has not budgeted for, which is the polite version of motivated.`,
+    },
+    cohorts: ['wholeBuilding', 'owes', 'sold'],
     label: 'CRE broker / investor',
     tile: 'CRE brokerage / investment',
     facade: {
@@ -637,11 +641,22 @@ const COHORTS = {
   stalled: { label: 'Approved, no permit', of: (c) => Boolean(c.filing && c.filing.status === 'Approved' && !c.filing.permitted) },
   shedEnd: { label: 'Shed expires <60d', of: (c) => { const d = days(c.shed?.until); return d != null && d > 0 && d < 60; } },
   priced: { label: 'Cost declared', of: (c) => Boolean(c.filing?.cost > 0) },
-  owes: { label: 'Owes money', of: (c) => (c.ecbBalance || 0) + (c.finesOwed || 0) > 0 },
+  owes: { label: 'Unpaid at OATH', of: (c) => (c.ecbBalance || 0) > 0 },
   sold: { label: 'Just sold', of: (c) => Boolean(c.ownerChange) },
   hearing: { label: 'Hearing <30d', of: (c) => { const d = days(c.nextHearing); return d != null && d >= 0 && d < 30; } },
   lifts: { label: 'Lift cycle skipped', of: (c) => (c.elevator?.cat1Overdue || 0) > 0 },
   callable: { label: 'Has a contact', of: (c) => Boolean(c.agent?.contactKnown) },
+  // The engineer who filed Cycle 9 and has not been brought back. It is the
+  // warmest call this trade can make and it was only reachable by typing a
+  // competitor's name into the search box and knowing to try.
+  notReengaged: { label: 'Prior engineer, not re-engaged', of: (c) => Boolean(c.priorQewi && !c.filing) },
+  // A co-op or a condominium cannot be bought whole, so for a buyer it is not a
+  // building at all. Offered as a filter rather than removed, because hiding
+  // rows without saying so is the one thing this product does not do.
+  wholeBuilding: {
+    label: 'Whole building only',
+    of: (c) => !/\b(HDFC|CONDO|CONDOMINIUM|OWNERS CORP|TENANTS CORP|CO-?OP)\b/i.test(c.owner || ''),
+  },
 };
 
 const DEFAULT_CLOSE_RATE = 0.03;
@@ -660,7 +675,7 @@ const TICKET = {
   lender: { facades: 200000, contracts: 150000, openings: 120000, gas: 90000, carbon: 350000 },
   propmgmt: { facades: 50000, gas: 4000, elevators: 6500, carbon: 12000 },
   legal: { facades: 7500, gas: 6000, elevators: 5000, carbon: 15000 },
-  cre: { facades: 160000 },
+  cre: { facades: 160000, gas: 120000, carbon: 220000 },
   staffing: { contracts: 25000, openings: 18000 },
   pos: { openings: 4000 },
   fnb: { openings: 60000 },
@@ -878,6 +893,7 @@ export default function App() {
   const [menuFor, setMenuFor] = useState(null);
   const [ticket, setTicket] = useState(() => loadLS('rw.ticket', 0));
   const [cohort, setCohort] = useState(null);
+  const [onlyWorking, setOnlyWorking] = useState(false);
   const [closeRate, setCloseRate] = useState(() => {
     const v = Number(loadLS('rw.closeRate', DEFAULT_CLOSE_RATE));
     return Number.isFinite(v) && v > 0 ? clampRate(v) : DEFAULT_CLOSE_RATE;
@@ -980,6 +996,19 @@ export default function App() {
   const fbOf = (k) => fb[k]?.s || null;
   const isDismissed = (k) => fbOf(k) === 'dismissed';
   const reasonOf = (k) => fb[k]?.r || null;
+  const noteOf = (k) => fb[k]?.n || '';
+  // Marking a card Contacted recorded that it happened and nothing about it.
+  // The note rides on the same entry, so it survives a reload and travels with
+  // the status rather than living in a second store.
+  const markNote = (k, text) => {
+    setFb((f) => {
+      const cur = f[k];
+      if (!cur) return f;
+      const n = { ...f, [k]: { ...cur, n: text.slice(0, 400) || undefined } };
+      saveLS('rw.fb', n);
+      return n;
+    });
+  };
   // The reason rides on the dismissal that already exists, so answering "why"
   // is optional: skip it and the card is still hidden, just silently.
   const markReason = (k, reasonKey, value) => {
@@ -1160,7 +1189,7 @@ export default function App() {
   const forcedVert = useRef(null);
   if (forcedVert.current === null) {
     const m = location.hash.match(/^#(b|c|g|e|k|o)\//);
-    forcedVert.current = m ? { b: 'facades', c: 'contracts', o: 'openings' }[m[1]] : '';
+    forcedVert.current = m ? { b: 'facades', g: 'gas', e: 'elevators', k: 'carbon', c: 'contracts', o: 'openings' }[m[1]] : '';
   }
   const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
 
@@ -1216,8 +1245,49 @@ export default function App() {
   // monthsLeft is the same number on every card in a register — they share one
   // sub-cycle — so sorting by it was a no-op that silently fell through to
   // urgency. A hearing date is the one date that actually differs.
+  // Every register can now be ordered, and only on fields it actually varies on.
+  // A sort offered where the value is constant is worse than no sort: it looks
+  // like it did something.
+  const REG_SORTS = {
+    facades: [
+      ['profile', 'for you'],
+      ['hearing', 'next hearing'],
+      ['money', 'penalties owed'],
+      ['cost', 'declared job cost'],
+      ['callable', 'contact first'],
+    ],
+    gas: [
+      ['profile', 'for you'],
+      ['open', 'longest open'],
+      ['callable', 'contact first'],
+    ],
+    elevators: [
+      ['profile', 'for you'],
+      ['devices', 'most lifts'],
+      ['behind', 'years behind'],
+      ['callable', 'contact first'],
+    ],
+    // LL97 was cited citywide in one summer, so age and count barely separate
+    // four hundred cards. Whether there is anyone to ring is the real order.
+    carbon: [
+      ['profile', 'for you'],
+      ['callable', 'contact first'],
+      ['open', 'most violations'],
+    ],
+  };
+  const MANDATE_SORTS = {
+    profile: (a, b) => b.urgencyScore - a.urgencyScore,
+    open: (a, b) => (b.openDays || 0) - (a.openDays || 0) || b.violations - a.violations,
+    devices: (a, b) => (b.devices || 0) - (a.devices || 0) || b.urgencyScore - a.urgencyScore,
+    behind: (a, b) => (b.yearsBehind ?? 99) - (a.yearsBehind ?? 99) || b.urgencyScore - a.urgencyScore,
+    callable: (a, b) =>
+      Number(Boolean(b.agent?.contactKnown)) - Number(Boolean(a.agent?.contactKnown)) || b.urgencyScore - a.urgencyScore,
+  };
   const SORTS = {
     profile: fv.sort,
+    cost: (a, b) => (b.filing?.cost || 0) - (a.filing?.cost || 0) || byUrgency(a, b),
+    callable: (a, b) =>
+      Number(Boolean(b.agent?.contactKnown)) - Number(Boolean(a.agent?.contactKnown)) || byUrgency(a, b),
     hearing: (a, b) =>
       (a.nextHearing ? Date.parse(a.nextHearing) : Infinity) - (b.nextHearing ? Date.parse(b.nextHearing) : Infinity) ||
       byUrgency(a, b),
@@ -1236,6 +1306,7 @@ export default function App() {
       if (!showHidden && taughtAway('b:', c)) return false;
       if (hideBusy && c.occupied) return false;
       if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
+      if (onlyWorking && !['contacted', 'won'].includes(fb['b:' + c.bin]?.s)) return false;
       if (onlyPortfolio && !portfolio.includes(c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
@@ -1249,7 +1320,7 @@ export default function App() {
     const at = Date.now();
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > at ? 0 : 1);
     return base.sort((a, b) => isMine(a) - isMine(b));
-  }, [facadeFeed, deferredQuery, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, onlyPortfolio, portfolio, hideBusy, cohort]);
+  }, [facadeFeed, deferredQuery, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, onlyPortfolio, portfolio, hideBusy, cohort, onlyWorking]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
@@ -1282,6 +1353,7 @@ export default function App() {
         if (showHidden !== isDismissed(pre + c.bin)) return false;
         if (!showHidden && taughtAway(pre, c)) return false;
         if (onlyWatch && !isWatched(pre + c.bin)) return false;
+        if (onlyWorking && !['contacted', 'won'].includes(fb[pre + c.bin]?.s)) return false;
         if (boro !== 'all' && c.borough !== boro) return false;
         if (!q) return true;
         if (zips) return Boolean(c.zip) && zips.includes(c.zip);
@@ -1289,9 +1361,18 @@ export default function App() {
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       });
+      const cmp = MANDATE_SORTS[sortMode] || MANDATE_SORTS.profile;
+      out[key] = [...out[key]].sort(cmp);
     }
     return out;
-  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro]);
+  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking]);
+  // A sort that does not exist on the register you just switched to would leave
+  // the control showing nothing while the list quietly reordered itself.
+  useEffect(() => {
+    const allowed = (REG_SORTS[vertical] || []).map(([v]) => v);
+    if (allowed.length && !allowed.includes(sortMode)) setSortMode('profile');
+  }, [vertical]);
+
   const mandateList = mandateLists[vertical] || [];
   const openingsList = useMemo(
     () =>
@@ -1347,8 +1428,16 @@ export default function App() {
   );
   const bigEnough = matchedVerts.filter((v) => v.key === forcedVert.current || vertSize[v.key] >= MIN_LIST);
   const visibleVerts = bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1);
+  const pickedVert = useRef(false);
   useEffect(() => {
-    if (!visibleVerts.some((v) => v.key === vertical)) setVertical(visibleVerts[0].key);
+    const here = visibleVerts.some((v) => v.key === vertical);
+    // A deep link, or a tab this visitor chose, always wins.
+    if (here && (pickedVert.current || forcedVert.current)) return;
+    // Otherwise open where the work is. Property management matched on facades
+    // and landed on seven cards while its twelve hundred sat two tabs away.
+    const best = [...visibleVerts].sort((a, b) => (vertSize[b.key] || 0) - (vertSize[a.key] || 0))[0];
+    const next = (best || visibleVerts[0]).key;
+    if (next !== vertical) setVertical(next);
   }, [profileKey, visibleVerts.map((v) => v.key).join()]);
 
   // How much work each trade can act on right now: facade rows that pass its own
@@ -1376,6 +1465,10 @@ export default function App() {
   const otherTrades = orderedTrades.slice(3);
 
   const hiddenCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && fb[k]?.s === 'dismissed').length;
+  // What this device has already picked up. Without it, a follow-up list means
+  // scrolling four hundred rows looking for amber dots.
+  const isWorking = (k) => ['contacted', 'won'].includes(fb[k]?.s);
+  const workingCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && isWorking(k)).length;
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, gas: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
   const hasNew =
     wn.buildings + wn.signals + wn.contracts + wn.openings + mandateKeys.reduce((n, k) => n + (wn[k] || 0), 0) > 0;
@@ -1563,7 +1656,7 @@ export default function App() {
     if (vertical === 'facades') {
       downloadCsv(
         'right-window-buildings.csv',
-        ['Address', 'Borough', 'BIN', 'Signals', 'Sub-cycle', 'Deadline', 'Months left', 'Why now', 'Penalties owed', 'ECB balance', 'Next hearing', 'Sold', 'Elevators due', 'Managing agent', 'Agent contact', 'Agent address', 'Suggested opener', 'DOB record', 'Link'],
+        ['Address', 'Borough', 'BIN', 'Signals', 'Sub-cycle', 'Deadline', 'Months left', 'Why now', 'DOB facade penalties', 'Unpaid at OATH', 'Next hearing', 'Sold', 'Elevators due', 'Managing agent', 'Agent contact', 'Agent address', 'Suggested opener', 'DOB record', 'Link'],
         filteredFeed.map((c) => [
           title(c.address), c.borough, c.bin,
           c.signals.map((s) => BADGE[s.kind]).join('; '),
@@ -1707,6 +1800,15 @@ export default function App() {
   // across four boroughs with no filter is being handed a spreadsheet.
   const miniToolbar = (list, total, { boroughs = false } = {}) => (
     <div className="toolbar">
+      {(REG_SORTS[vertical] || []).length > 0 && (
+        <select className="sel" value={sortMode} onChange={(e) => setSortMode(e.target.value)} aria-label="Sort">
+          {REG_SORTS[vertical].map(([v, l]) => (
+            <option key={v} value={v}>
+              Sort: {l}
+            </option>
+          ))}
+        </select>
+      )}
       <input
         type="search"
         className="search"
@@ -1727,6 +1829,16 @@ export default function App() {
             );
           })}
         </div>
+      )}
+      {workingCount > 0 && (
+        <button
+          className={'chip-btn' + (onlyWorking ? ' on' : '')}
+          aria-pressed={onlyWorking}
+          onClick={() => setOnlyWorking((v) => !v)}
+          title="Everything you have marked Contacted or Won on this device"
+        >
+          Working ({workingCount})
+        </button>
       )}
       <button className={'chip-btn' + (onlyWatch ? ' on' : '')} aria-pressed={onlyWatch} onClick={() => setOnlyWatch((v) => !v)}>
         ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
@@ -2053,6 +2165,7 @@ export default function App() {
                 e.preventDefault();
                 const i = visibleVerts.findIndex((x) => x.key === vertical);
                 const next = visibleVerts[(i + d + visibleVerts.length) % visibleVerts.length];
+                pickedVert.current = true;
                 setVertical(next.key);
                 setOpenId(null);
                 setShown(7);
@@ -2061,6 +2174,7 @@ export default function App() {
                 ]?.focus();
               }}
               onClick={() => {
+                pickedVert.current = true;
                 setVertical(v.key);
                 setOpenId(null);
                 setShown(7);
@@ -2319,9 +2433,11 @@ export default function App() {
               aria-label="Search buildings"
             />
             <select className="sel" value={sortMode} onChange={(e) => setSortMode(e.target.value)} aria-label="Sort">
-              <option value="profile">Sort: for you</option>
-              <option value="hearing">Sort: next hearing</option>
-              <option value="money">Sort: penalties owed</option>
+              {REG_SORTS.facades.map(([v, l]) => (
+                <option key={v} value={v}>
+                  Sort: {l}
+                </option>
+              ))}
             </select>
             <div className="chips" role="group" aria-label="Borough">
               {[
@@ -2342,7 +2458,7 @@ export default function App() {
               const def = COHORTS[k];
               if (!def) return null;
               const n = facadeFeed.filter(def.of).length;
-              if (!n) return null;
+              if (!n || n === facadeFeed.length) return null;
               return (
                 <button
                   key={k}
@@ -2354,6 +2470,16 @@ export default function App() {
                 </button>
               );
             })}
+            {workingCount > 0 && (
+              <button
+                className={'chip-btn' + (onlyWorking ? ' on' : '')}
+                aria-pressed={onlyWorking}
+                onClick={() => setOnlyWorking((v) => !v)}
+                title="Everything you have marked Contacted or Won on this device"
+              >
+                Working ({workingCount})
+              </button>
+            )}
             <button className={'chip-btn' + (onlyWatch ? ' on' : '')} aria-pressed={onlyWatch} onClick={() => setOnlyWatch((v) => !v)}>
               ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
             </button>
@@ -2592,8 +2718,8 @@ export default function App() {
                                 ecb: () =>
                                   c.ecbBalance > 0 && (
                                     <>
-                                      <div className="k">Open ECB balance</div>
-                                      <div className="v fine">{money(c.ecbBalance)} unpaid</div>
+                                      <div className="k">Unpaid at OATH</div>
+                                      <div className="v fine">{money(c.ecbBalance)} across open ECB violations</div>
                                     </>
                                   ),
                                 hearing: () =>
@@ -2633,9 +2759,11 @@ export default function App() {
                                   ),
                                 penalty: () => (
                                   <>
-                                    <div className="k">Penalty meter</div>
+                                    <div className="k">DOB facade penalties</div>
                                     <div className={'v' + (c.finesOwed > 0 ? ' fine' : '')}>
-                                      {c.finesOwed > 0 ? `${money(c.finesOwed)} already owed` : '$1,000/mo after a missed deadline'}
+                                      {c.finesOwed > 0
+                                        ? `${money(c.finesOwed)} assessed on the Cycle 9 filing`
+                                        : '$1,000/mo once the sub-cycle deadline passes'}
                                     </div>
                                   </>
                                 ),
@@ -2759,7 +2887,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
+                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
                         </div>
                       </motion.div>
                     )}
@@ -2959,7 +3087,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
+                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
               </>
             )}
             idOf={(c) => c.id}
@@ -3095,7 +3223,7 @@ export default function App() {
                       </a>
                     </div>
                   </div>
-                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
+                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
                 </>
               );
             }}
@@ -3195,7 +3323,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
+                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
               </>
             )}
             idOf={(c) => c.id}
@@ -3463,7 +3591,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
   );
 }
 
-function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason }) {
+function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNote }) {
   const cur = fbOf(k);
   const opts = [
     ['contacted', 'Contacted'],
@@ -3486,6 +3614,22 @@ function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason }) {
           {cur === 'dismissed' ? 'Restore' : 'Dismiss'}
         </button>
       </div>
+      {/* Once a card is picked up, what happened to it is the only thing worth
+          writing down, and there was nowhere to write it. */}
+      {['contacted', 'won', 'lost'].includes(cur) && (
+        <div className="fb-row note">
+          <span className="fb-cap">Note:</span>
+          <input
+            className="fb-note"
+            type="text"
+            defaultValue={noteOf?.(k) || ''}
+            placeholder="Who you spoke to, what they said, when to call back"
+            aria-label="Note on this card"
+            onBlur={(e) => markNote?.(k, e.target.value.trim())}
+            onChange={(e) => markNote?.(k, e.target.value.trim())}
+          />
+        </div>
+      )}
       {reasons.length > 0 && (
         <div className="fb-row why">
           <span className="fb-cap">Why? Two of the same and we stop showing them:</span>
