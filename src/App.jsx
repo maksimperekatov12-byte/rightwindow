@@ -57,7 +57,12 @@ const GENERIC_FACADE = {
 
 const PROFILES = {
   qewi: {
-    gNeed: (c) => `${c.violations > 1 ? `${c.violations} open gas-piping violations` : 'An open gas-piping violation'} and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)} — the inspection has to be filed by a licensed master plumber.`,
+    mandates: {
+      gas: (c) =>
+        `${c.violations > 1 ? `${c.violations} open gas-piping violations` : 'An open gas-piping violation'} and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)} — the inspection has to be filed by a licensed master plumber.`,
+      elevators: (c) =>
+        `A skipped CAT1 cycle usually travels with the rest of a building's filings — the same owner is behind on more than the lift.`,
+    },
     label: 'Facade engineer',
     tile: 'Facade engineering / inspections (QEWI)',
     facade: {
@@ -103,7 +108,11 @@ const PROFILES = {
     oNeed: null,
   },
   lender: {
-    gNeed: (c) => `Open gas-piping violations are a mandatory-capex item a lender sees before the borrower raises it.`,
+    mandates: {
+      gas: () => `Open gas-piping violations are a mandatory-capex item a lender sees before the borrower raises it.`,
+      carbon: (c) =>
+        `A named Local Law 97 violation is forced capital work with a public record attached — the clearest reason a building needs money before it asks for it.`,
+    },
     label: 'C-PACE / lender',
     tile: 'Financing (C-PACE, bridge, equipment)',
     facade: {
@@ -124,20 +133,26 @@ const PROFILES = {
     label: 'Elevator services',
     tile: 'Elevator service / modernization',
     facade: {
-      hero: 'Elevators with a legal test due — *and no one booked*',
-      hint: `Buildings whose devices have no ${YEAR} CAT1 test, or a five-year CAT5 coming due — CAT1 filings close Dec 31.`,
+      hero: 'Elevators that missed a test — *not the ones running late*',
+      hint: 'Buildings whose devices skipped a CAT1 cycle outright, or are due a five-year CAT5. Not filing yet this year is the calendar; skipping a year is the signal.',
       sort: (a, b) =>
-        (b.elevator?.cat1Missing || 0) + (b.elevator?.cat5Due || 0) - (a.elevator?.cat1Missing || 0) - (a.elevator?.cat5Due || 0) ||
+        (b.elevator?.cat1Overdue || 0) + (b.elevator?.cat5Due || 0) - (a.elevator?.cat1Overdue || 0) - (a.elevator?.cat5Due || 0) ||
         byUrgency(a, b),
       why: (c) =>
         c.elevator
-          ? `${c.elevator.cat1Missing ? `${c.elevator.cat1Missing}/${c.elevator.devices} without a ${YEAR} CAT1` : ''}${c.elevator.cat1Missing && c.elevator.cat5Due ? ', ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} due for CAT5` : ''} — filing closes December 31.`
+          ? `${c.elevator.cat1Overdue ? `${c.elevator.cat1Overdue}/${c.elevator.devices} skipped a CAT1 cycle` : ''}${c.elevator.cat1Overdue && c.elevator.cat5Due ? ', ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} due for CAT5` : ''} — this year's filing still closes December 31.`
           : 'Forced-work windows usually bundle elevator capex.',
       opener: (c) =>
-        c.elevator?.cat1Missing
-          ? `Re: ${title(c.address)} — DOB shows ${c.elevator.cat1Missing} elevator device(s) without a ${YEAR} CAT1 filing. We can test and file before the December 31 deadline.`
+        c.elevator?.cat1Overdue
+          ? `Re: ${title(c.address)} — DOB shows ${c.elevator.cat1Overdue} elevator device(s) that skipped a CAT1 cycle entirely. We can test and file both the missed one and this year's before December 31.`
           : `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat5Due || 'several'} elevator device(s) with a five-year CAT5 coming due. We can test and file before the December 31 deadline.`,
-      fFilter: (c) => Boolean(c.elevator),
+      // A device that simply has not been tested yet this year is half the city
+      // in August. Only a skipped cycle or a due CAT5 earns a card.
+      fFilter: (c) => Boolean(c.elevator && (c.elevator.cat1Overdue > 0 || c.elevator.cat5Due > 0)),
+    },
+    mandates: {
+      elevators: (c) =>
+        `${c.devices === 1 ? 'One device' : `${c.devices} devices`} that last filed for ${c.lastCat1 || 'no year on record'} — a skipped cycle, so the backlog and this year's test are one visit.`,
     },
     cNeed: null,
     oNeed: null,
@@ -218,7 +233,11 @@ const PROFILES = {
     oNeed: null,
   },
   propmgmt: {
-    gNeed: (c) => `The building has been carrying this violation for ${Math.round((c.openDays || 0) / 30)} months and owes another filing by ${usDate(c.deadline)}.`,
+    mandates: {
+      gas: (c) => `The building has been carrying this violation for ${Math.round((c.openDays || 0) / 30)} months and owes another filing by ${usDate(c.deadline)}.`,
+      elevators: (c) => `${c.devices === 1 ? 'The lift' : 'The lifts'} here skipped a test cycle outright, which is a management gap rather than a scheduling one.`,
+      carbon: () => `An emissions report is the managing agent's filing, and this one is late enough that DOB has written it down.`,
+    },
     label: 'Property management',
     tile: 'Property management',
     facade: {
@@ -234,7 +253,11 @@ const PROFILES = {
     oNeed: null,
   },
   legal: {
-    gNeed: (c) => `An uncured LL152 violation is an OATH matter with a penalty attached, and a second deadline lands ${usDate(c.deadline)}.`,
+    mandates: {
+      gas: (c) => `An uncured LL152 violation is an OATH matter with a penalty attached, and a second deadline lands ${usDate(c.deadline)}.`,
+      elevators: () => `A skipped CAT1 cycle is what an elevator violation is written from — this is the stage before the hearing.`,
+      carbon: () => `Local Law 97 penalties are assessed per tonne over the cap, and the unfiled report is the first thing to answer.`,
+    },
     label: 'Code attorney / expeditor',
     tile: 'Code attorneys / expeditors',
     facade: {
@@ -314,11 +337,93 @@ const Storefronts = lazy(() => import('./Storefronts.jsx'));
 // Each register gets its own object and its own line under it. The caption is
 // the object's job: it says which fact of the register the brand-coloured
 // element stands for.
+// The building registers other than facades all read the same way — a public
+// record of a missed obligation, a building, and someone to call — so one
+// description each is enough and the card is rendered once.
+const MANDATES = {
+  gas: {
+    label: 'Gas piping',
+    prefix: 'g:',
+    source: 'DOB Safety Violations (Local Law 152)',
+    sourceKey: 'mandates',
+    dataset: 'https://data.cityofnewyork.us/Housing-Development/DOB-Safety-Violations/855j-jady',
+    badge: (c) => (c.violations > 1 ? `${c.violations} open violations` : 'Open violation'),
+    clock: (c) => `${c.monthsLeft} mo left`,
+    tight: (c) => c.monthsLeft <= 6,
+    why: (c) =>
+      `DOB cited this building for failing to file its gas-piping inspection${c.issued ? ` on ${usDate(c.issued)}` : ''}` +
+      `${c.openDays ? ` — ${Math.round(c.openDays / 30)} months ago` : ''}, and it is still open. Sub-cycle ${c.subCycle} runs out ` +
+      `${usDate(c.deadline)}, so the next filing is due before the first has been cured.`,
+    whoWins: 'Licensed master plumber for the inspection · management · violation cure · the capex behind it.',
+    facts: (c) => [
+      ['Deadline', `${usDate(c.deadline)} — sub-cycle ${c.subCycle}, Community District ${c.cd}`],
+      ['Violation open since', c.issued ? usDate(c.issued) : 'unknown'],
+    ],
+    opener: (c) =>
+      `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}. We can get the inspection filed before it lapses again.`,
+  },
+  elevators: {
+    label: 'Elevators',
+    prefix: 'e:',
+    source: 'DOB NOW Elevator Compliance',
+    sourceKey: 'elevatorCompliance',
+    dataset: 'https://data.cityofnewyork.us/Housing-Development/Elevator-Compliance/e5aq-a4j2',
+    badge: (c) =>
+      c.yearsBehind == null ? 'Never filed' : `${c.yearsBehind} ${c.yearsBehind === 1 ? 'year' : 'years'} behind`,
+    clock: (c) => `${c.monthsLeft} mo left`,
+    tight: (c) => c.monthsLeft <= 4,
+    why: (c) =>
+      `${c.devices === 1 ? 'The elevator here' : `${c.devices} elevators here`} last filed a CAT1 test ` +
+      `${c.lastCat1 ? `for ${c.lastCat1}` : 'with no year on record'}, so at least one annual cycle was skipped outright — ` +
+      `not simply left late. This year's filing still closes ${usDate(c.deadline)}, which is the window to catch both up in.`,
+    whoWins: 'Elevator testing and filing · modernization · management · the violation that follows a missed cycle.',
+    facts: (c) => [
+      ['Filing closes', `${usDate(c.deadline)} — the annual CAT1 deadline`],
+      [
+        'Last CAT1 filed',
+        c.lastCat1
+          ? `for ${c.lastCat1}${c.lastCat1On ? `, submitted ${usDate(c.lastCat1On)}` : ''}`
+          : 'no filing on record',
+      ],
+      ['Devices', `${c.devices} active`],
+      ...(c.lastCat5 ? [['Last CAT5 filed', usDate(c.lastCat5)]] : []),
+    ],
+    opener: (c) =>
+      `Re: ${title(c.address)} — DOB shows the elevator${c.devices > 1 ? 's' : ''} here last filed a CAT1 test ${c.lastCat1 ? `for ${c.lastCat1}` : 'with no year on record'}, so a cycle was missed. We can test and file the backlog and this year's before ${usDate(c.deadline)}.`,
+  },
+  carbon: {
+    label: 'Carbon',
+    prefix: 'k:',
+    source: 'DOB Safety Violations (Local Law 97)',
+    sourceKey: 'mandates',
+    dataset: 'https://data.cityofnewyork.us/Housing-Development/DOB-Safety-Violations/855j-jady',
+    badge: (c) => (c.violations > 1 ? `${c.violations} open violations` : 'Emissions report owed'),
+    // There is no window in this record, so the card counts up from the citation
+    // rather than down to a date it would have to invent.
+    clock: (c) => (c.openDays != null ? `cited ${c.openDays}d ago` : 'cited'),
+    tight: (c) => (c.openDays || 0) <= 45,
+    why: (c) =>
+      `DOB cited this building under Local Law 97 for not filing its emissions report` +
+      `${c.issued ? ` on ${usDate(c.issued)}` : ''}, and it is still open. About four thousand buildings citywide have been ` +
+      `cited against tens of thousands covered, so this is not a building that is merely late — it is one that has been named.`,
+    whoWins: 'Energy consulting and the report itself · the retrofit behind it · financing · the violation to cure.',
+    facts: (c) => [
+      ['Cited', c.issued ? `${usDate(c.issued)}${c.openDays ? ` — ${c.openDays} days ago` : ''}` : 'unknown'],
+      ['Open violations', String(c.violations)],
+    ],
+    opener: (c) =>
+      `Re: ${title(c.address)} — DOB has an open Local Law 97 violation on this building for an unfiled emissions report. We can get the report filed and scope what it takes to get under the cap.`,
+  },
+};
+const mandateKeys = Object.keys(MANDATES);
+
 const HEROES = {
   facades: { Scene: Massing, cap: 'Sub-cycle 10A · nothing filed' },
-  // A block of buildings on a compliance clock is exactly what this register is
-  // too, so it reuses the facade hero rather than inventing a gas-pipe object.
+  // A block of buildings on a compliance clock is what every one of these is,
+  // so they reuse the facade hero rather than inventing an object per statute.
   gas: { Scene: Massing, cap: 'Sub-cycle C · gas piping unfiled' },
+  elevators: { Scene: Massing, cap: 'CAT1 cycle skipped · Dec 31 still open' },
+  carbon: { Scene: Massing, cap: 'Emissions report owed · cited this summer' },
   contracts: { Scene: CivicWorks, cap: 'Bid window open · winner not named' },
   openings: { Scene: Storefronts, cap: 'Licence pending · vendors not chosen' },
 };
@@ -517,14 +622,14 @@ const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 // bill the same for a mandated facade scope, a subcontract off a city award and
 // a build-out. Used until the user tells us their own number.
 const TICKET = {
-  qewi: { facades: 12000, contracts: 9000, gas: 1800 },
+  qewi: { facades: 12000, contracts: 9000, gas: 1800, elevators: 2600 },
   restoration: { facades: 180000, contracts: 120000 },
   equipment: { facades: 45000, contracts: 30000 },
-  elevator: { facades: 25000 },
+  elevator: { facades: 25000, elevators: 9000 },
   insurance: { facades: 12000, contracts: 18000, openings: 9000 },
-  lender: { facades: 200000, contracts: 150000, openings: 120000, gas: 90000 },
-  propmgmt: { facades: 50000, gas: 4000 },
-  legal: { facades: 7500, gas: 6000 },
+  lender: { facades: 200000, contracts: 150000, openings: 120000, gas: 90000, carbon: 350000 },
+  propmgmt: { facades: 50000, gas: 4000, elevators: 6500, carbon: 12000 },
+  legal: { facades: 7500, gas: 6000, elevators: 5000, carbon: 15000 },
   cre: { facades: 160000 },
   staffing: { contracts: 25000, openings: 18000 },
   pos: { openings: 4000 },
@@ -556,6 +661,8 @@ const BADGE = {
 const VERTICALS = [
   { key: 'facades', label: 'Building facades' },
   { key: 'gas', label: 'Gas piping' },
+  { key: 'elevators', label: 'Elevators' },
+  { key: 'carbon', label: 'Carbon' },
   { key: 'contracts', label: 'City contracts' },
   { key: 'openings', label: 'New openings' },
 ];
@@ -700,7 +807,7 @@ export default function App() {
   const initialRoute = routeFromHash();
   const hashTrade = (location.hash.match(/^#t\/([a-z]+)$/) || [])[1] || null;
   const [route, setRoute] = useState(initialRoute);
-  const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|g|o)\//)));
+  const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|g|e|k|o)\//)));
   const [profileKey, setProfileKey] = useState(() =>
     hashTrade && PROFILES[hashTrade] ? hashTrade : loadLS('rw.profile', null),
   );
@@ -868,7 +975,7 @@ export default function App() {
       }
       // A card link pasted into an open tab must open that card, not just
       // change the address bar.
-      if (/^#(b|c|g|o)\//.test(location.hash)) {
+      if (/^#(b|c|g|e|k|o)\//.test(location.hash)) {
         deepLinkDone.current = false;
         setHashTick((n) => n + 1);
       }
@@ -1004,13 +1111,18 @@ export default function App() {
 
   const forcedVert = useRef(null);
   if (forcedVert.current === null) {
-    const m = location.hash.match(/^#(b|c|g|o)\//);
+    const m = location.hash.match(/^#(b|c|g|e|k|o)\//);
     forcedVert.current = m ? { b: 'facades', c: 'contracts', o: 'openings' }[m[1]] : '';
   }
   const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
 
-  const vertPrefix =
-    vertical === 'facades' ? 'b:' : vertical === 'gas' ? 'g:' : vertical === 'contracts' ? 'c:' : 'o:';
+  const vertPrefix = MANDATES[vertical]
+    ? MANDATES[vertical].prefix
+    : vertical === 'facades'
+      ? 'b:'
+      : vertical === 'contracts'
+        ? 'c:'
+        : 'o:';
   const watchCount = Object.keys(watch).filter((k) => k.startsWith(vertPrefix)).length;
   const isWatched = (k) => Boolean(watch[k]);
   const toggleWatch = (k) => {
@@ -1102,17 +1214,20 @@ export default function App() {
       ),
     [contractsBase, onlyWatch, watch, fb, showHidden],
   );
-  const gasBase = useMemo(() => (data.gas?.feed || []).filter(profile.gFilter || (() => true)), [profileKey]);
-  const gasList = useMemo(
-    () =>
-      gasBase.filter(
+  const mandateLists = useMemo(() => {
+    const out = {};
+    for (const key of mandateKeys) {
+      const pre = MANDATES[key].prefix;
+      out[key] = (data[key]?.feed || []).filter(
         (c) =>
-          showHidden === isDismissed('g:' + c.bin) &&
-          (showHidden || !taughtAway('g:', c)) &&
-          (!onlyWatch || isWatched('g:' + c.bin)),
-      ),
-    [gasBase, onlyWatch, watch, fb, showHidden],
-  );
+          showHidden === isDismissed(pre + c.bin) &&
+          (showHidden || !taughtAway(pre, c)) &&
+          (!onlyWatch || isWatched(pre + c.bin)),
+      );
+    }
+    return out;
+  }, [onlyWatch, watch, fb, showHidden]);
+  const mandateList = mandateLists[vertical] || [];
   const openingsList = useMemo(
     () =>
       liveOpenings.filter(
@@ -1140,7 +1255,7 @@ export default function App() {
   // typing never makes a tab vanish. A deep link always opens its own register.
   const vertSize = {
     facades: facadeFeed.length,
-    gas: gasList.length,
+    ...Object.fromEntries(mandateKeys.map((k) => [k, mandateLists[k].length])),
     contracts: contractsBase.length,
     openings: liveOpenings.length,
   };
@@ -1149,7 +1264,7 @@ export default function App() {
       isExplore ||
       v.key === forcedVert.current ||
       (v.key === 'facades' && profile.facade) ||
-      (v.key === 'gas' && profile.gNeed) ||
+      (MANDATES[v.key] && profile.mandates?.[v.key]) ||
       (v.key === 'contracts' && profile.cNeed) ||
       (v.key === 'openings' && profile.oNeed),
   );
@@ -1182,7 +1297,8 @@ export default function App() {
 
   const hiddenCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && fb[k]?.s === 'dismissed').length;
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, gas: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
-  const hasNew = wn.buildings + wn.signals + (wn.gas || 0) + wn.contracts + wn.openings > 0;
+  const hasNew =
+    wn.buildings + wn.signals + wn.contracts + wn.openings + mandateKeys.reduce((n, k) => n + (wn[k] || 0), 0) > 0;
   const pulled = new Date(data.generatedAt);
   const ago = (t) => {
     const m = Math.max(0, Math.round((now - t) / 60000));
@@ -1221,7 +1337,7 @@ export default function App() {
   const deepLinkDone = useRef(false);
   useEffect(() => {
     if (deepLinkDone.current) return;
-    const m = location.hash.match(/^#(b|c|g|o)\/(.+)$/);
+    const m = location.hash.match(/^#(b|c|g|e|k|o)\/(.+)$/);
     if (!m) return;
     const [, t, id] = m;
     const open = (vert, idx) => {
@@ -1250,12 +1366,13 @@ export default function App() {
       }
       const idx = [...data.facades.feed].sort(byUrgency).findIndex((c) => c.bin === id);
       if (idx >= 0) open('facades', idx);
-    } else if (t === 'g') {
-      const idx = (data.gas?.feed || []).findIndex((c) => c.bin === id);
+    } else if (mandateKeys.some((k) => MANDATES[k].prefix[0] === t)) {
+      const key = mandateKeys.find((k) => MANDATES[k].prefix[0] === t);
+      const idx = (data[key]?.feed || []).findIndex((c) => c.bin === id);
       if (idx >= 0) {
-        setShowHidden(isDismissed('g:' + id));
+        setShowHidden(isDismissed(MANDATES[key].prefix + id));
         setOnlyWatch(false);
-        open('gas', idx);
+        open(key, idx);
       }
     } else if (t === 'c') {
       const idx = (live?.contracts || data.contracts).findIndex((c) => c.id === id);
@@ -1386,18 +1503,20 @@ export default function App() {
           `${location.origin}/#b/${c.bin}`,
         ]),
       );
-    } else if (vertical === 'gas') {
+    } else if (MANDATES[vertical]) {
+      const m = MANDATES[vertical];
+      const factKeys = mandateList.length ? m.facts(mandateList[0]).map(([k]) => k) : [];
       downloadCsv(
-        'right-window-gas-piping.csv',
-        ['Address', 'Borough', 'ZIP', 'BIN', 'Community district', 'Sub-cycle', 'Deadline', 'Months left', 'Open violations', 'Cited on', 'Months open', 'Why now', 'Managing agent', 'Agent address', 'Suggested opener', 'Link'],
-        gasList.map((c) => [
-          title(c.address), c.borough, c.zip || '', c.bin, c.cd, c.subCycle, c.deadline, c.monthsLeft,
-          c.violations, c.issued || '', c.openDays ? Math.round(c.openDays / 30) : '',
-          profile.gNeed?.(c) || 'Licensed master plumber for the inspection, management, violation cure.',
+        `right-window-${vertical}.csv`,
+        ['Address', 'Borough', 'ZIP', 'BIN', ...factKeys, 'Why now', 'Managing agent', 'Agent address', 'Suggested opener', 'Link'],
+        mandateList.map((c) => [
+          title(c.address), c.borough, c.zip || '', c.bin,
+          ...m.facts(c).map(([, v]) => v),
+          profile.mandates?.[vertical]?.(c) || m.whoWins,
           c.agent?.company ? title(c.agent.company) : '',
           c.agent?.address ? title(c.agent.address) : '',
-          `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}.`,
-          `${location.origin}/#g/${c.bin}`,
+          m.opener(c),
+          `${location.origin}/#${m.prefix[0]}/${c.bin}`,
         ]),
       );
     } else if (vertical === 'contracts') {
@@ -1443,12 +1562,14 @@ export default function App() {
       return filteredFeed.filter(
         (c) => !isDismissed('b:' + c.bin) && !c.occupied && statusOf('b:' + c.bin) !== 'taken',
       ).length;
-    if (vertical === 'gas')
-      return gasList.filter((c) => !isDismissed('g:' + c.bin) && statusOf('g:' + c.bin) !== 'taken').length;
+    if (MANDATES[vertical])
+      return mandateList.filter(
+        (c) => !isDismissed(vertPrefix + c.bin) && statusOf(vertPrefix + c.bin) !== 'taken',
+      ).length;
     if (vertical === 'contracts')
       return contractsList.filter((c) => !isDismissed('c:' + c.id) && statusOf('c:' + c.id) !== 'taken').length;
     return openingsList.filter((o) => !isDismissed('o:' + o.id) && statusOf('o:' + o.id) !== 'taken').length;
-  }, [vertical, filteredFeed, gasList, contractsList, openingsList, claims, mine, now, fb]);
+  }, [vertical, filteredFeed, mandateList, vertPrefix, contractsList, openingsList, claims, mine, now, fb]);
 
   const myPipeline = useMemo(() => {
     const n = openCount;
@@ -1467,6 +1588,10 @@ export default function App() {
       ? fv.hero
       : vertical === 'gas'
         ? 'Buildings already cited — *with another deadline closing*'
+        : vertical === 'elevators'
+          ? 'Lifts that skipped a test — *not the ones running late*'
+          : vertical === 'carbon'
+            ? 'Buildings the city has *named on carbon*'
         : vertical === 'contracts'
           ? 'City work you can still *bid on today*'
           : 'Venues that will open their doors *in a few months*';
@@ -1476,6 +1601,10 @@ export default function App() {
       ? "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
       : vertical === 'gas'
         ? 'Local Law 152 puts every gas-piped building on a four-year clock by community district. These are the ones DOB has already cited and whose next filing is due — mostly outside Manhattan, where the facade register is not.'
+        : vertical === 'elevators'
+          ? 'Half the city has not filed this year\u2019s CAT1 test yet, which is the calendar, not a signal. These are the buildings that skipped a whole cycle — and still have until December 31 to put both right.'
+          : vertical === 'carbon'
+            ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand of them for not filing an emissions report. Being named is the exception, and every one of these citations was written this summer.'
         : vertical === 'contracts'
           ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
           : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
@@ -1884,7 +2013,7 @@ export default function App() {
                 {myPipeline.n} open{' '}
                 {vertical === 'contracts'
                   ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
-                  : (vertical === 'openings' ? 'opening' : vertical === 'gas' ? 'building' : 'signal') +
+                  : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
                     (myPipeline.n === 1 ? '' : 's')}{' '}
                 ·{' '}
                 {fmtMoney(myPipeline.avg)} avg contract ·{' '}
@@ -1949,7 +2078,9 @@ export default function App() {
                 {[
                   wn.buildings && `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`,
                   wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
-                  wn.gas && `${wn.gas} gas-piping building${wn.gas > 1 ? 's' : ''}`,
+                  ...mandateKeys.map(
+                    (k) => wn[k] && `${wn[k]} ${MANDATES[k].label.toLowerCase()} building${wn[k] > 1 ? 's' : ''}`,
+                  ),
                   wn.contracts && `${wn.contracts} contract${wn.contracts > 1 ? 's' : ''}`,
                   wn.openings && `${wn.openings} venue filing${wn.openings > 1 ? 's' : ''}`,
                 ]
@@ -2707,137 +2838,115 @@ export default function App() {
         </>
       )}
 
-      {vertical === 'gas' && (
+      {MANDATES[vertical] && (
         <>
-          {miniToolbar(gasList, (data.gas?.feed || []).length)}
+          {miniToolbar(mandateList, (data[vertical]?.feed || []).length)}
           <SimpleFeed
-            items={gasList.slice(0, shown)}
-            total={gasList.length}
+            items={mandateList.slice(0, shown)}
+            total={mandateList.length}
             shown={shown}
             onMore={() => setShown((n) => n + 7)}
             openId={openId}
             toggle={toggleCard}
-            hashType="g"
+            hashType={vertPrefix[0]}
             reduce={reduce}
-            isWatched={(c) => isWatched('g:' + c.bin)}
-            onWatch={(c) => toggleWatch('g:' + c.bin)}
+            isWatched={(c) => isWatched(vertPrefix + c.bin)}
+            onWatch={(c) => toggleWatch(vertPrefix + c.bin)}
             statusOf={statusOf}
             idOf={(c) => c.bin}
-            renderHead={(c) => (
-              <>
-                <span className="head-main">
-                  <span className="addr">{title(c.address)}</span>
-                  <span className="boro">
-                    {c.borough} {c.zip && <span className="zip">{c.zip}</span>}
+            renderHead={(c) => {
+              const m = MANDATES[vertical];
+              const k = vertPrefix + c.bin;
+              return (
+                <>
+                  <span className="head-main">
+                    <span className="addr">{title(c.address)}</span>
+                    <span className="boro">
+                      {c.borough} {c.zip && <span className="zip">{c.zip}</span>}
+                    </span>
+                    {c.isNew && <span className="badge new">New</span>}
+                    {fbOf(k) && fbOf(k) !== 'dismissed' && <span className={'badge st ' + fbOf(k)}>{fbOf(k)}</span>}
+                    <span className="badge">{m.badge(c)}</span>
                   </span>
-                  {c.isNew && <span className="badge new">New</span>}
-                  {fbOf('g:' + c.bin) && fbOf('g:' + c.bin) !== 'dismissed' && (
-                    <span className={'badge st ' + fbOf('g:' + c.bin)}>{fbOf('g:' + c.bin)}</span>
-                  )}
-                  <span className="badge">
-                    {c.violations > 1 ? `${c.violations} open violations` : 'Open violation'}
+                  <span className="head-side">
+                    <span className={'clock' + (m.tight(c) ? ' tight' : '')}>{m.clock(c)}</span>
                   </span>
-                </span>
-                <span className="head-side">
-                  <span className={'clock' + (c.monthsLeft <= 6 ? ' tight' : '')}>{c.monthsLeft} mo left</span>
-                </span>
-              </>
-            )}
-            renderBody={(c) => (
-              <>
-                <div className="sig">
-                  <div className="sig-k">
-                    Why now
-                    <span className="score" title="Urgency score">{c.urgencyScore}</span>
-                  </div>
-                  <div className="sig-v">
-                    DOB cited this building for failing to file its gas-piping inspection
-                    {c.issued ? ` on ${usDate(c.issued)}` : ''}
-                    {c.openDays ? ` — ${Math.round(c.openDays / 30)} months ago` : ''}, and it is still open. Sub-cycle{' '}
-                    {c.subCycle} runs out {usDate(c.deadline)}, so the next filing is due before the first one has been
-                    cured.
-                  </div>
-                </div>
-                <div className="sig match">
-                  <div className="sig-k">{profile.gNeed ? 'Why it matches you' : 'Who wins this window'}</div>
-                  <div className="sig-v">
-                    {profile.gNeed?.(c) ||
-                      'Licensed master plumber for the inspection · management · violation cure · the capex behind it.'}
-                  </div>
-                </div>
-                <div className="facts">
-                  <div className="fact">
-                    <div className="k">Deadline</div>
-                    <div className="v">
-                      {usDate(c.deadline)} — sub-cycle {c.subCycle}, Community District {c.cd}
+                </>
+              );
+            }}
+            renderBody={(c) => {
+              const m = MANDATES[vertical];
+              const mine = profile.mandates?.[vertical];
+              return (
+                <>
+                  <div className="sig">
+                    <div className="sig-k">
+                      Why now
+                      <span className="score" title="Urgency score">{c.urgencyScore}</span>
                     </div>
+                    <div className="sig-v">{m.why(c)}</div>
                   </div>
-                  <div className="fact">
-                    <div className="k">Violation open since</div>
-                    <div className="v">{c.issued ? usDate(c.issued) : 'unknown'}</div>
+                  <div className="sig match">
+                    <div className="sig-k">{mine ? 'Why it matches you' : 'Who wins this window'}</div>
+                    <div className="sig-v">{mine ? mine(c) : m.whoWins}</div>
                   </div>
-                  {c.agent && (
+                  <div className="facts">
+                    {m.facts(c).map(([k, v]) => (
+                      <div className="fact" key={k}>
+                        <div className="k">{k}</div>
+                        <div className="v">{v}</div>
+                      </div>
+                    ))}
+                    {c.agent && (
+                      <div className="fact">
+                        <div className="k">Managing agent</div>
+                        <div className="v">
+                          {c.agent.company ? title(c.agent.company) : c.agent.role}
+                          {c.agent.address ? ` — ${title(c.agent.address)}` : ''}
+                        </div>
+                      </div>
+                    )}
                     <div className="fact">
-                      <div className="k">Managing agent</div>
+                      <div className="k source">Source</div>
                       <div className="v">
-                        {c.agent.company ? title(c.agent.company) : c.agent.role}
-                        {c.agent.address ? ` — ${title(c.agent.address)}` : ''}
+                        {m.source}, as of {data.sources?.[m.sourceKey] || 'today'} ·{' '}
+                        <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                       </div>
                     </div>
-                  )}
-                  <div className="fact">
-                    <div className="k source">Source</div>
-                    <div className="v">
-                      DOB Safety Violations (Local Law 152), as of {data.sources?.gas || 'today'} ·{' '}
-                      <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
+                  </div>
+                  <div className="na-cap">Next action</div>
+                  <div className="call-block">
+                    <div className="call-who">
+                      <b>{c.agent?.company ? title(c.agent.company) : title(c.address)}</b>
+                      <span>{c.agent ? c.agent.role : 'No managing agent on the HPD registration'}</span>
+                    </div>
+                    <div className="call-actions">
+                      <button className="btn solid" onClick={() => copy(c.bin, m.opener(c))}>
+                        {copiedId === c.bin ? 'Copied' : 'Copy opener'}
+                      </button>
+                      <button className="btn ghost" onClick={() => copyLink(vertPrefix[0], c.bin)}>
+                        {copiedLink === c.bin ? 'Copied' : 'Copy link'}
+                      </button>
+                      <a className="btn ghost" href={mapsUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
+                        Map ↗
+                      </a>
+                      <a
+                        className="btn ghost"
+                        href={findUrl(`${c.agent?.company || c.address} ${c.borough} phone`)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Find contact ↗
+                      </a>
+                      <a className="btn ghost" href={m.dataset} target="_blank" rel="noreferrer">
+                        Source data ↗
+                      </a>
                     </div>
                   </div>
-                </div>
-                <div className="na-cap">Next action</div>
-                <div className="call-block">
-                  <div className="call-who">
-                    <b>{c.agent?.company ? title(c.agent.company) : title(c.address)}</b>
-                    <span>{c.agent ? c.agent.role : 'No managing agent on the HPD registration'}</span>
-                  </div>
-                  <div className="call-actions">
-                    <button
-                      className="btn solid"
-                      onClick={() =>
-                        copy(
-                          c.bin,
-                          `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}. We can get the inspection filed before it lapses again.`,
-                        )
-                      }
-                    >
-                      {copiedId === c.bin ? 'Copied' : 'Copy opener'}
-                    </button>
-                    <button className="btn ghost" onClick={() => copyLink('g', c.bin)}>
-                      {copiedLink === c.bin ? 'Copied' : 'Copy link'}
-                    </button>
-                    <a className="btn ghost" href={mapsUrl(c.address, c.borough)} target="_blank" rel="noreferrer">
-                      Map ↗
-                    </a>
-                    <a
-                      className="btn ghost"
-                      href={findUrl(`${c.agent?.company || c.address} ${c.borough} phone`)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Find contact ↗
-                    </a>
-                    <a
-                      className="btn ghost"
-                      href="https://data.cityofnewyork.us/Housing-Development/DOB-Safety-Violations/855j-jady"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Source data ↗
-                    </a>
-                  </div>
-                </div>
-                <FeedbackRow k={'g:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
-              </>
-            )}
+                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} />
+                </>
+              );
+            }}
           />
         </>
       )}

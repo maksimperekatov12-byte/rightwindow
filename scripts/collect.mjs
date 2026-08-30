@@ -340,6 +340,8 @@ for (let i = 0; i < top.length; i += 50) {
     const agg = elevByBin.get(r.bin) || { devices: 0, cat1Missing: 0, cat1Overdue: 0, cat5Due: 0 };
     agg.devices += 1;
     const y = parseInt(r.cat1_report_year || '0', 10);
+    // "No filing yet this year" is the calendar, not a lapse: cat1Missing is
+    // kept for context but nothing should rank or sell on it.
     if (y && y < TODAY.getFullYear()) agg.cat1Missing += 1;
     if (y && y < TODAY.getFullYear() - 1) agg.cat1Overdue += 1;
     const c5 = parseYmd(r.cat5_latest_report_filed);
@@ -787,28 +789,100 @@ openings = slaRaw.slice(0, 40).map((o) => ({
 
 // "What's new": monotonic memory of everything the engine has ever surfaced.
 // First run writes a baseline (nothing is marked new); later runs stamp first-seen
-// ---- Vertical 4: Local Law 152 gas piping ----
+// ---- Building registers built on the periodic mandates ----
 //
-// The second periodic mandate, and the closest structural twin to the facade
-// law: a four-year cycle, a filing, and a public record of who did not make it.
-// It differs in two ways that matter. It is keyed on community district rather
-// than tax block, and it covers every gas-piped building rather than only those
-// over six storeys — which is why it lands on 26,000 buildings in Brooklyn,
-// Queens and the Bronx where the facade register is mostly Manhattan. Only 6%
-// of the facade feed overlaps it, so this is a different population, not more
-// rows about the same one.
+// The facade law is not the only obligation the city puts on a cycle and then
+// publishes non-compliance for. 855j-jady carries every one of them keyed by
+// BIN, so one shape serves several registers: pick a device type, group the
+// active violations by building, join the HPD registration for someone to call,
+// and rank.
 //
-// The sub-cycle mapping is not assumed: the dataset states it in its own
+// What differs between them is whether a deadline exists at all. Gas piping and
+// parking structures sit in a window that has not closed yet, and the card can
+// count down to it. Elevators, boilers and carbon reports do not: every open
+// violation belongs to a cycle that already ended, and the honest card says how
+// long it has been ignored rather than inventing a countdown. A register whose
+// deadline has to be implied is not a register worth having, so `deadlineFor`
+// is allowed to return nothing and the copy adapts.
+const MANDATE_SELECT =
+  'bin,violation_number,violation_issue_date,violation_remarks,cycle_end_date,borough,block,lot,house_number,street,zip,community_board';
+const BOROUGHS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'];
+
+async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000, deadlineFor, cap = 400 }) {
+  const where =
+    `device_type='${deviceType}' and violation_status='Active'` + (extraWhere ? ` and (${extraWhere})` : '');
+  const raw = await fetchAll(
+    '855j-jady',
+    { $where: where, $select: MANDATE_SELECT, $order: 'violation_issue_date DESC' },
+    fetchCap,
+  );
+  const byBin = new Map();
+  for (const r of raw) {
+    if (!r.bin || r.bin === '0') continue;
+    const issued = (r.violation_issue_date || '').slice(0, 10);
+    const cur = byBin.get(r.bin);
+    if (!cur) {
+      byBin.set(r.bin, {
+        bin: r.bin,
+        address: [r.house_number, r.street].filter(Boolean).join(' ').trim(),
+        borough: (r.borough || '').trim(),
+        zip: (r.zip || '').trim().slice(0, 5) || null,
+        cd: Number(r.community_board) % 100 || null,
+        remarks: r.violation_remarks || null,
+        cycleEnd: (r.cycle_end_date || '').slice(0, 10) || null,
+        issued,
+        latest: issued,
+        violations: 1,
+      });
+    } else {
+      cur.violations++;
+      if (issued && (!cur.issued || issued < cur.issued)) cur.issued = issued;
+      if (issued && issued > (cur.latest || '')) cur.latest = issued;
+      if (!cur.cycleEnd && r.cycle_end_date) cur.cycleEnd = r.cycle_end_date.slice(0, 10);
+      if (!cur.remarks && r.violation_remarks) cur.remarks = r.violation_remarks;
+    }
+  }
+  const cited = byBin.size;
+  const pool = [...byBin.values()].filter((c) => BOROUGHS.includes(c.borough) && c.address);
+  // Contacts are only fetched for the shortlist, so it is balanced here as well
+  // as at the cut — a borough missing from it could never come back. Roughly
+  // half of these buildings turn out to have an HPD registration, so the
+  // shortlist is sized for the survivors rather than for the target.
+  const shortlist = balancedByBorough(pool, cap * 3.5);
+  const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
+  for (const c of shortlist) {
+    const reg = regByBin.get(c.bin);
+    const agent = reg ? agentByReg.get(reg.registrationid) : null;
+    const due = deadlineFor ? deadlineFor(c) : null;
+    c.deadline = due || null;
+    c.monthsLeft = due ? monthsUntil(due) : null;
+    c.openDays = c.issued ? Math.max(0, Math.round((TODAY - new Date(c.issued)) / 86400000)) : null;
+    c.cycleYear = c.cycleEnd ? Number(c.cycleEnd.slice(0, 4)) : null;
+    c.multifamily = Boolean(reg);
+    c.agent = agentCard(agent, reg, headByReg);
+    if (reg?.zip && !c.zip) c.zip = String(reg.zip).trim().slice(0, 5);
+    delete c.remarks;
+    // A closing window counts for most where there is one; where there is not,
+    // the years a building has spent ignoring the citation carry the ranking.
+    c.urgencyScore =
+      (c.monthsLeft == null ? 0 : c.monthsLeft <= 6 ? 10 : c.monthsLeft <= 12 ? 5 : 2) +
+      Math.min(8, Math.floor((c.openDays || 0) / 120)) +
+      Math.min(4, c.violations - 1) +
+      (c.agent ? 2 : 0);
+  }
+  const eligible = shortlist.filter((c) => c.agent);
+  const feed = balancedByBorough(eligible, cap);
+  feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
+  const boro = {};
+  for (const c of feed) boro[c.borough] = (boro[c.borough] || 0) + 1;
+  console.log(`${label}: ${cited} cited buildings, feed ${feed.length}`, boro);
+  return { totals: { cited, open: feed.length }, feed };
+}
+
+// Local Law 152, gas piping. Four-year cycle, sub-cycles keyed on community
+// district. The mapping is not assumed: the dataset states it in its own
 // remarks ("Cycle 1, Sub-cycle C (premises is in Community District 4)") and
 // grouping every active row confirms it exactly.
-const LL152_SUBCYCLE = {
-  A: [1, 3, 10],
-  B: [2, 5, 7, 13, 18],
-  C: [4, 6, 8, 9, 16],
-  D: [11, 12, 14, 15, 17],
-};
-// Cycle 2 closes on these dates; when one passes the next is four years on, so
-// this keeps working without being edited.
 const LL152_CYCLE2 = { A: '2024-12-31', B: '2025-12-31', C: '2026-12-31', D: '2027-12-31' };
 const ll152Today = TODAY.toISOString().slice(0, 10);
 const nextLL152 = (sub) => {
@@ -816,95 +890,144 @@ const nextLL152 = (sub) => {
   while (d && d < ll152Today) d = `${Number(d.slice(0, 4)) + 4}${d.slice(4)}`;
   return d;
 };
-// Only the sub-cycles whose next deadline is close enough to sell. A window
-// two years out is a calendar, and a calendar is not a signal.
-const LL152_LIVE = Object.keys(LL152_SUBCYCLE).filter((k) => monthsUntil(nextLL152(k)) <= 18);
+// Only the sub-cycles whose next deadline is close enough to sell. A window two
+// years out is a calendar, and a calendar is not a signal.
+const LL152_LIVE = Object.keys(LL152_CYCLE2).filter((k) => monthsUntil(nextLL152(k)) <= 18);
+const subOf = (remarks) => (String(remarks || '').match(/Sub-cycle\s+([A-D])/) || [])[1] || null;
 
-console.log(`Fetching LL152 gas piping (open sub-cycles: ${LL152_LIVE.join(', ') || 'none'})...`);
-let gas = [];
-let gasTotals = { cited: 0, open: 0, subCycles: LL152_LIVE.join('') };
-try {
-  if (LL152_LIVE.length) {
-    const gasRaw = await fetchAll(
-      '855j-jady',
-      {
-        $where:
-          `device_type='Gas Piping - LL152' and violation_status='Active' and (` +
-          LL152_LIVE.map((k) => `violation_remarks like '%Sub-cycle ${k}%'`).join(' or ') +
-          ')',
-        $select:
-          'bin,violation_number,violation_issue_date,violation_remarks,borough,block,lot,house_number,street,zip,community_board',
-      },
-      60000,
-    );
-    const subOf = (remarks) => (String(remarks || '').match(/Sub-cycle\s+([A-D])/) || [])[1] || null;
-    const byBin = new Map();
-    for (const r of gasRaw) {
-      if (!r.bin || r.bin === '0') continue;
-      const sub = subOf(r.violation_remarks);
-      if (!sub || !LL152_LIVE.includes(sub)) continue;
-      const cur = byBin.get(r.bin);
-      const issued = (r.violation_issue_date || '').slice(0, 10);
-      if (!cur) {
-        byBin.set(r.bin, {
-          bin: r.bin,
-          address: [r.house_number, r.street].filter(Boolean).join(' ').trim(),
-          borough: (r.borough || '').trim(),
-          zip: (r.zip || '').trim().slice(0, 5) || null,
-          cd: Number(r.community_board) % 100 || null,
-          subCycle: sub,
-          issued,
-          violations: 1,
-        });
-      } else {
-        cur.violations++;
-        if (issued && (!cur.issued || issued < cur.issued)) cur.issued = issued;
+// Elevators, read from the compliance table rather than the violations one.
+// 855j-jady has 158,405 active elevator violations and not one belongs to a
+// cycle that is still open — it records failures long past. The compliance
+// table records state: every active device carries the year of its last CAT1
+// test.
+//
+// The obvious filter is wrong and worth naming. "No CAT1 filed for the current
+// year" is true of 25,042 buildings in August, because most of the city files
+// in the autumn and the deadline is 31 December — that is the calendar, and the
+// calendar is not a signal. A building that last filed two years ago has SKIPPED
+// a cycle, which is 4,710 buildings and a real deviation. It also still has this
+// year's window to put it right, so the card has both halves: a proven lapse
+// and a date that has not passed.
+async function elevatorRegister({ cap = 400 } = {}) {
+  const year = TODAY.getFullYear();
+  const deadline = `${year}-12-31`;
+  const rows = await fetchAll(
+    'e5aq-a4j2',
+    {
+      $where: `device_status='Active' and (cat1_report_year IS NULL or cat1_report_year <= '${year - 2}')`,
+      $select:
+        'bin,device_number,device_type,cat1_report_year,cat1_latest_report_filed,cat5_latest_report_filed,borough,house_number,street_name,zip_code,communitydistrict',
+      $order: 'bin',
+    },
+    60000,
+  );
+  const byBin = new Map();
+  for (const r of rows) {
+    if (!r.bin || r.bin === '0') continue;
+    const y = r.cat1_report_year ? Number(r.cat1_report_year) : null;
+    const cur = byBin.get(r.bin);
+    if (!cur) {
+      byBin.set(r.bin, {
+        bin: r.bin,
+        address: [r.house_number, r.street_name].filter(Boolean).join(' ').trim(),
+        borough: (r.borough || '').trim(),
+        zip: (r.zip_code || '').trim().slice(0, 5) || null,
+        cd: Number(r.communitydistrict) % 100 || null,
+        devices: 1,
+        lastCat1: y,
+        lastCat1On: (r.cat1_latest_report_filed || '').slice(0, 10) || null,
+        lastCat5: (r.cat5_latest_report_filed || '').slice(0, 10) || null,
+      });
+    } else {
+      cur.devices++;
+      // The worst device on the building is the one worth calling about, and
+      // its filing date has to travel with its year or the card pairs one
+      // device's year with another device's date.
+      if (y == null || (cur.lastCat1 != null && y < cur.lastCat1)) {
+        cur.lastCat1 = y;
+        cur.lastCat1On = (r.cat1_latest_report_filed || '').slice(0, 10) || null;
       }
     }
-    gasTotals.cited = byBin.size;
-    const pool = [...byBin.values()].filter((c) => ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'].includes(c.borough));
-    // Contacts are only fetched for the shortlist, so it is balanced here as
-    // well as at the cut — a borough missing from it could never come back.
-    const shortlist = balancedByBorough(pool, 1400);
-    const { regByBin: gReg, agentByReg: gAgent, headByReg: gHead } = await hpdJoin(shortlist.map((c) => c.bin));
-    for (const c of shortlist) {
-      const reg = gReg.get(c.bin);
-      const agent = reg ? gAgent.get(reg.registrationid) : null;
-      c.deadline = nextLL152(c.subCycle);
-      c.monthsLeft = monthsUntil(c.deadline);
-      c.openDays = c.issued ? Math.max(0, Math.round((TODAY - new Date(c.issued)) / 86400000)) : null;
-      c.multifamily = Boolean(reg);
-      c.agent = agentCard(agent, reg, gHead);
-      if (reg?.zip && !c.zip) c.zip = String(reg.zip).trim().slice(0, 5);
-      // A closing window first, then how long they have already ignored it,
-      // then whether there is anyone to call.
-      c.urgencyScore =
-        (c.monthsLeft <= 6 ? 10 : c.monthsLeft <= 12 ? 5 : 2) +
-        Math.min(6, Math.floor((c.openDays || 0) / 120)) +
-        (c.violations > 1 ? 3 : 0) +
-        (c.agent ? 2 : 0);
-    }
-    const eligible = shortlist.filter((c) => c.address && c.agent);
-    gas = balancedByBorough(eligible, 400);
-    gas.sort((a, b) => b.urgencyScore - a.urgencyScore);
-    gasTotals.open = gas.length;
-    const boro = {};
-    for (const c of gas) boro[c.borough] = (boro[c.borough] || 0) + 1;
-    console.log(`LL152: ${gasTotals.cited} cited buildings, feed ${gas.length}`, boro);
   }
-} catch (e) {
-  console.log(`LL152 unavailable (${e.message}) — keeping previous data`);
-  gas = prevFeed()?.gas?.feed || [];
+  const cited = byBin.size;
+  const pool = [...byBin.values()].filter((c) => BOROUGHS.includes(c.borough) && c.address);
+  const shortlist = balancedByBorough(pool, cap * 3.5);
+  const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
+  for (const c of shortlist) {
+    const reg = regByBin.get(c.bin);
+    const agent = reg ? agentByReg.get(reg.registrationid) : null;
+    c.deadline = deadline;
+    c.monthsLeft = monthsUntil(deadline);
+    // Years behind, counted from the current filing year: 1 means they simply
+    // have not got to this year's test yet, 3 means nobody has looked since.
+    c.yearsBehind = c.lastCat1 == null ? null : year - c.lastCat1;
+    c.multifamily = Boolean(reg);
+    c.agent = agentCard(agent, reg, headByReg);
+    if (reg?.zip && !c.zip) c.zip = String(reg.zip).trim().slice(0, 5);
+    // Everyone here shares one deadline, so the ranking is how far behind they
+    // are and how many devices are waiting on the same visit.
+    c.urgencyScore =
+      (c.lastCat1 == null ? 9 : Math.min(9, (year - c.lastCat1 - 1) * 3)) +
+      Math.min(5, c.devices) +
+      (c.agent ? 2 : 0);
+  }
+  const eligible = shortlist.filter((c) => c.agent);
+  const feed = balancedByBorough(eligible, cap);
+  feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
+  const boro = {};
+  for (const c of feed) boro[c.borough] = (boro[c.borough] || 0) + 1;
+  console.log(`Elevator CAT1: ${cited} buildings that skipped a cycle, feed ${feed.length}`, boro);
+  return { totals: { cited, open: feed.length, deadline }, feed };
 }
 
+const REGISTERS = [
+  {
+    key: 'gas',
+    label: 'LL152 gas piping',
+    deviceType: 'Gas Piping - LL152',
+    extraWhere: LL152_LIVE.map((k) => `violation_remarks like '%Sub-cycle ${k}%'`).join(' or ') || null,
+    fetchCap: 60000,
+    deadlineFor: (c) => {
+      const sub = subOf(c.remarks);
+      if (!sub) return null;
+      c.subCycle = sub;
+      return nextLL152(sub);
+    },
+  },
+  {
+    key: 'carbon',
+    label: 'LL97 emissions',
+    deviceType: 'GHG Emissions - LL97',
+    fetchCap: 8000,
+    deadlineFor: () => null,
+  },
+];
+
+const registers = {};
+for (const spec of REGISTERS) {
+  console.log(`Fetching ${spec.label}...`);
+  try {
+    registers[spec.key] = await mandateRegister(spec);
+  } catch (e) {
+    console.log(`${spec.label} unavailable (${e.message}) — keeping previous data`);
+    const prev = prevFeed()?.[spec.key];
+    registers[spec.key] = prev || { totals: { cited: 0, open: 0 }, feed: [] };
+  }
+}
+console.log('Fetching elevator CAT1 compliance...');
+try {
+  registers.elevators = await elevatorRegister();
+} catch (e) {
+  console.log(`Elevator CAT1 unavailable (${e.message}) — keeping previous data`);
+  registers.elevators = prevFeed()?.elevators || { totals: { cited: 0, open: 0 }, feed: [] };
+}
 // timestamps, so the feed can honestly say what appeared in the last 48 hours.
 const NEW_WINDOW_MS = 48 * 3600 * 1000;
 const seenPath = new URL('../data/seen.json', import.meta.url);
 let seen = null;
 try { if (existsSync(seenPath)) seen = JSON.parse(readFileSync(seenPath, 'utf8')); } catch {}
 const baselineDone = Boolean(seen);
-if (!seen) seen = { bins: {}, contracts: {}, openings: {}, gas: {} };
-seen.gas ||= {};
+if (!seen) seen = { bins: {}, contracts: {}, openings: {} };
 const nowIso = TODAY.toISOString();
 const stamp = () => (baselineDone ? nowIso : 'baseline');
 const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
@@ -923,9 +1046,12 @@ for (const o of openings) {
   seen.openings[o.id] ||= stamp();
   o.isNew = isFreshTs(seen.openings[o.id]);
 }
-for (const g of gas) {
-  seen.gas[g.bin] ||= stamp();
-  g.isNew = isFreshTs(seen.gas[g.bin]);
+for (const [key, reg] of Object.entries(registers)) {
+  seen[key] ||= {};
+  for (const g of reg.feed) {
+    seen[key][g.bin] ||= stamp();
+    g.isNew = isFreshTs(seen[key][g.bin]);
+  }
 }
 writeFileSync(seenPath, JSON.stringify(seen, null, 1));
 const whatsNew = {
@@ -934,7 +1060,7 @@ const whatsNew = {
   signals: feed.reduce((n, c) => n + (c.fresh?.length || 0), 0),
   contracts: contracts.filter((c) => c.isNew).length,
   openings: openings.filter((o) => o.isNew).length,
-  gas: gas.filter((g) => g.isNew).length,
+  ...Object.fromEntries(Object.entries(registers).map(([k, r]) => [k, r.feed.filter((g) => g.isNew).length])),
 };
 console.log("What's new (48h):", whatsNew);
 
@@ -957,7 +1083,8 @@ const sources = {
   jobs: await sourceMeta('w9ak-ipjd'),
   awards: await sourceMeta(CROL),
   sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
-  gas: await sourceMeta('855j-jady'),
+  mandates: await sourceMeta('855j-jady'),
+  elevatorCompliance: await sourceMeta('e5aq-a4j2'),
   acrisThrough,
 };
 console.log('Source freshness:', sources);
@@ -977,7 +1104,7 @@ const out = {
   },
   contracts,
   openings,
-  gas: { totals: gasTotals, feed: gas },
+  ...registers,
 };
 // feed.json is committed hourly to a PUBLIC repo. Provider-licensed phones and
 // emails must not ride along in it: the card keeps the contact's name, company
@@ -1002,7 +1129,7 @@ if (!PUBLISH_CONTACTS) {
   // Every register that carries an agent, not just the first one written. The
   // last time a register was added this loop was left pointing at facades and
   // 399 people's names went into the public repo.
-  const withAgents = [out.facades.feed, out.gas.feed].flat();
+  const withAgents = [out.facades.feed, ...Object.keys(registers).map((k) => out[k].feed)].flat();
   for (const c of withAgents) {
     if (!c.agent) continue;
     if (c.agent.phone || c.agent.email) contacts++;
@@ -1029,4 +1156,9 @@ writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(
 // changes permanently, because the "previous" state has already passed them.
 writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 1));
 writeFileSync(mgmtLogPath, JSON.stringify(mgmtLog, null, 1));
-console.log(`Written: facades ${feed.length}, contracts ${contracts.length}, openings ${openings.length}. Totals:`, out.facades.totals);
+console.log(
+  `Written: facades ${feed.length}, ` +
+    Object.entries(registers).map(([k, r]) => `${k} ${r.feed.length}`).join(', ') +
+    `, contracts ${contracts.length}, openings ${openings.length}. Totals:`,
+  out.facades.totals,
+);
