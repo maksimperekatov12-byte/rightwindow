@@ -140,6 +140,12 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
           contact values never travel through the public repository, only through the private store.
         </li>
         <li>
+          <span className="conf alt">from the food permit at this address</span> A venue applying for a liquour licence
+          usually holds a food permit too, and that record prints a number. The premises address alone is not enough —
+          the previous tenant sat at the same storefront — so the names have to corroborate as well. The label always
+          says which record the number came from.
+        </li>
+        <li>
           <span className="conf ok">published on the permit</span> A record the city publishes with the number on it —
           a Health Department food permit, or the officer named on a City Record notice. No lookup, no provider, no
           guesswork: it is printed where the city printed it, for exactly this purpose.

@@ -841,6 +841,83 @@ try {
   openings = [...openings, ...(prevFeed()?.openings || []).filter((o) => o.src === 'dohmh')];
 }
 
+// A liquour-licence card carries no contact of any kind. Most of those venues
+// also hold a food permit, and that record prints a number — so the gap closes
+// for free, from the same file, with no lookup.
+//
+// The premises address alone is not evidence: the previous tenant sat at the
+// same storefront, and handing someone the old occupant's number is exactly the
+// call this product exists to prevent. The names have to corroborate too, and
+// the twelve that survive that test are worth more than the twenty-nine that
+// would not.
+const NAME_STOP = new Set([
+  'INC', 'LLC', 'CORP', 'CORPORATION', 'LTD', 'CO', 'COMPANY', 'THE', 'AND', 'OF', 'NY', 'NYC', 'NEW', 'YORK',
+  'DELI', 'GROCERY', 'STORE', 'RESTAURANT', 'CAFE', 'BAR', 'GRILL', 'PIZZA', 'FOOD', 'MARKET', 'KITCHEN', 'GROUP',
+  'HOLDINGS',
+]);
+const nameTokens = (v) =>
+  new Set(
+    String(v || '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9 ]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !NAME_STOP.has(w)),
+  );
+const streetKey = (v) =>
+  String(v || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]/g, ' ')
+    .replace(/\b(STREET|ST|AVENUE|AVE|ROAD|RD|BOULEVARD|BLVD|PLACE|PL|DRIVE|DR|LANE|LN|PARKWAY|PKWY|COURT|CT|TERRACE|SQUARE|SQ)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+const tenDigits = (v) => {
+  const d = String(v || '').replace(/[^\d]/g, '');
+  return d.length === 10 ? d : null;
+};
+
+{
+  let joined = 0;
+  let refused = 0;
+  for (const o of openings) {
+    if (o.phone) continue;
+    const first = String(o.address || '').split(',')[0].trim();
+    const m = first.match(/^(\d+[A-Z]?(?:-\d+)?)\s+(.+)$/i);
+    if (!m) continue;
+    const num = m[1].toUpperCase();
+    const key = (streetKey(m[2]).split(/\s+/)[0] || '').slice(0, 20);
+    if (!key) continue;
+    let rows = [];
+    try {
+      rows = await fetchAll(
+        '43nn-pn8j',
+        {
+          $where: `building='${num.replace(/'/g, "''")}' and upper(street) like '%${key.replace(/'/g, "''")}%' and phone IS NOT NULL`,
+          $select: 'dba,building,street,phone',
+        },
+        20,
+      );
+    } catch {
+      continue;
+    }
+    if (!rows.length) continue;
+    const want = nameTokens(`${o.name} ${o.legal}`);
+    const hit = rows.find((r) => {
+      if (streetKey(r.street).split(/\s+/)[0] !== key) return false;
+      if (!tenDigits(r.phone)) return false;
+      for (const t of want) if (nameTokens(r.dba).has(t)) return true;
+      return false;
+    });
+    if (hit) {
+      o.phone = tenDigits(hit.phone);
+      o.phoneVia = hit.dba.trim();
+      joined++;
+    } else {
+      refused++;
+    }
+  }
+  console.log(`Openings joined to a food permit by name and address: ${joined} (${refused} refused, address matched but the name did not)`);
+}
+
 // "What's new": monotonic memory of everything the engine has ever surfaced.
 // First run writes a baseline (nothing is marked new); later runs stamp first-seen
 // ---- Building registers built on the periodic mandates ----

@@ -3336,9 +3336,11 @@ export default function App() {
                   <div className="call-who">
                     <b>{c.name}</b>
                     <span>
-                      {c.phone
-                        ? 'Number published on the Health Department permit'
-                        : `Opener written for ${profile.oNeed ? profile.label : 'this window'}`}
+                      {c.phoneVia
+                        ? `From the food permit for ${title(c.phoneVia)} at this address`
+                        : c.phone
+                          ? 'Number published on the Health Department permit'
+                          : `Opener written for ${profile.oNeed ? profile.label : 'this window'}`}
                     </span>
                   </div>
                   <div className="call-actions">
