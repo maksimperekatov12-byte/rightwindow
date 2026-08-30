@@ -1382,7 +1382,7 @@ export default function App() {
         if (onlyWatch && !isWatched('o:' + o.id)) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
-        return [o.name, o.legal, o.address, o.county, o.kind]
+        return [o.name, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }),
@@ -1780,7 +1780,7 @@ export default function App() {
             ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand of them for not filing an emissions report. Being named is the exception, and every one of these citations was written this summer.'
         : vertical === 'contracts'
           ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
-          : 'A liquor-license filing means a venue opens in two to four months — and is choosing its vendors right now.';
+          : 'Two records, both public. A liquour licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
   const deadlineIso = '2027-02-21';
@@ -3254,11 +3254,18 @@ export default function App() {
                   {fbOf('o:' + c.id) && fbOf('o:' + c.id) !== 'dismissed' && (
                     <span className={'badge st ' + fbOf('o:' + c.id)}>{fbOf('o:' + c.id)}</span>
                   )}
-                  <span className="boro">{c.county}</span>
-                  <span className="badge">{c.kind} · opening soon</span>
+                  <span className="boro">
+                    {c.county} {c.zip && <span className="zip">{c.zip}</span>}
+                  </span>
+                  <span className="badge">
+                    {c.src === 'dohmh' ? 'Permitted, not yet inspected' : `${c.kind} · licence pending`}
+                  </span>
+                  {c.phone && <span className="badge">Phone on file</span>}
                 </span>
                 <span className="head-side">
-                  <span className="clock">{c.daysAgo != null ? `filed ${c.daysAgo}d ago` : '~2–4 mo'}</span>
+                  <span className="clock">
+                    {c.src === 'dohmh' ? 'not open yet' : c.daysAgo != null ? `filed ${c.daysAgo}d ago` : '~2–4 mo'}
+                  </span>
                 </span>
               </>
             )}
@@ -3267,7 +3274,18 @@ export default function App() {
                 <div className="sig">
                   <div className="sig-k">Why now</div>
                   <div className="sig-v">
-                    {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — opens in 2–4 months, choosing vendors now.
+                    {c.src === 'dohmh' ? (
+                      <>
+                        The Health Department has permitted this address for food service and has never inspected it —
+                        which means it has not opened, or has only just opened. It is not on a grade card, not in a
+                        review, and not on anyone's supplier list yet.
+                      </>
+                    ) : (
+                      <>
+                        {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — opens in 2–4 months,
+                        choosing vendors now.
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="sig match">
@@ -3281,20 +3299,34 @@ export default function App() {
                     <div className="k">Premises</div>
                     <div className="v">{c.address}</div>
                   </div>
-                  <div className="fact">
-                    <div className="k">Legal name</div>
-                    <div className="v">{c.legal}</div>
-                  </div>
+                  {c.legal && c.legal !== c.name && (
+                    <div className="fact">
+                      <div className="k">Legal name</div>
+                      <div className="v">{c.legal}</div>
+                    </div>
+                  )}
                   {c.received && (
                     <div className="fact">
                       <div className="k">Application received</div>
                       <div className="v">{usDate(c.received)} · under review</div>
                     </div>
                   )}
+                  {c.src === 'dohmh' && (
+                    <div className="fact">
+                      <div className="k">Permit</div>
+                      <div className="v">
+                        Issued, never inspected. Health Department permit numbers run in order, so this one was granted
+                        inside the last year — the newest are at the top of the list.
+                      </div>
+                    </div>
+                  )}
                   <div className="fact">
                     <div className="k source">Source</div>
                     <div className="v">
-                      NY State Liquor Authority — pending licenses, as of {data.sources?.sla || 'today'} ·{' '}
+                      {c.src === 'dohmh'
+                        ? `NYC Health Department — food service permits, as of ${data.sources?.dohmh || 'today'}`
+                        : `NY State Liquor Authority — pending licenses, as of ${data.sources?.sla || 'today'}`}{' '}
+                      ·{' '}
                       <button className="linkish" onClick={() => { history.pushState(null, '', '#data'); setRoute('data'); window.scrollTo({ top: 0 }); }}>how we source this</button>
                     </div>
                   </div>
@@ -3303,10 +3335,21 @@ export default function App() {
                 <div className="call-block">
                   <div className="call-who">
                     <b>{c.name}</b>
-                    <span>Opener written for {profile.oNeed ? profile.label : 'this window'}</span>
+                    <span>
+                      {c.phone
+                        ? 'Number published on the Health Department permit'
+                        : `Opener written for ${profile.oNeed ? profile.label : 'this window'}`}
+                    </span>
                   </div>
                   <div className="call-actions">
-                    <button className="btn solid" onClick={() => copy(c.id, (profile.oOpener || defaultOOpener)(c))}>
+                    {/* the permit record carries the establishment's own line, so
+                        this register can be dialled rather than searched */}
+                    {c.phone ? (
+                      <a className="btn solid" href={`tel:${c.phone}`}>
+                        Call {c.phone.replace(/^(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3')}
+                      </a>
+                    ) : null}
+                    <button className={'btn ' + (c.phone ? 'ghost' : 'solid')} onClick={() => copy(c.id, (profile.oOpener || defaultOOpener)(c))}>
                       {copiedId === c.id ? 'Copied' : 'Copy opener'}
                     </button>
                     <button className="btn ghost" onClick={() => copyLink('o', c.id)}>
@@ -3652,7 +3695,9 @@ const defaultCOpener = (c) => {
   return `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`;
 };
 const defaultOOpener = (c) =>
-  `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
+  c.src === 'dohmh'
+    ? `Re: ${c.name} at ${c.address} — saw the new Health Department permit. The weeks before you open are the busiest you'll ever have; if you're still picking a POS, coverage or suppliers, we can set you up before the doors open.`
+    : `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
 
 // US conveniences: dates the way Americans read them, an ET clock, map links a
 // field crew can actually use, and calendar files for anything with a date.

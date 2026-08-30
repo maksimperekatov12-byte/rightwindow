@@ -765,9 +765,80 @@ openings = slaRaw.slice(0, 40).map((o) => ({
   received: o.received_date?.slice(0, 10),
   daysAgo: o.received_date ? Math.max(0, Math.round((TODAY - new Date(o.received_date)) / 86400000)) : null,
 }));
+openings = openings.map((o) => ({ ...o, src: 'sla' }));
 } catch (e) {
   console.log(`SLA unavailable (${e.message}) — keeping previous data`);
-  openings = prevFeed()?.openings || [];
+  openings = (prevFeed()?.openings || []).filter((o) => o.src === 'sla');
+}
+
+// ---- Second source for the same register: newly permitted food service ----
+//
+// A liquour licence only catches venues that pour, which is a minority of the
+// places that open, and it arrives 40 rows at a time. Every food business needs
+// a DOHMH permit, and the inspection file marks an establishment that has been
+// permitted but never inspected with a 1900-01-01 sentinel — which is precisely
+// a venue that has not opened, or has only just opened.
+//
+// The file carries no permit date, so the cohort is dated from the CAMIS, which
+// DOHMH issues sequentially. Checked rather than assumed: among venues that HAVE
+// been inspected, the earliest first inspection in the band above 50,180,000 is
+// 2025-12-22, and above 50,185,000 it is 2026-04-29. So a never-inspected
+// establishment above that floor was permitted within roughly the last year, and
+// the CAMIS itself orders them newest first.
+//
+// Below the floor sits a real backlog — 383 places DOHMH permitted years ago and
+// never reached. Those are not openings and are left out.
+const NEVER_INSPECTED = "inspection_date='1900-01-01T00:00:00.000'";
+const CAMIS_FLOOR = '50180000';
+console.log('Fetching newly permitted food service (DOHMH, never inspected)...');
+try {
+  const rows = await fetchAll(
+    '43nn-pn8j',
+    {
+      $where: `${NEVER_INSPECTED} and camis > '${CAMIS_FLOOR}' and boro in('Manhattan','Brooklyn','Queens','Bronx')`,
+      $select: 'camis,dba,boro,building,street,zipcode,phone,bin,bbl',
+      $order: 'camis DESC',
+    },
+    6000,
+  );
+  const byCamis = new Map();
+  for (const r of rows) {
+    if (!r.camis || byCamis.has(r.camis)) continue;
+    const addr = `${(r.building || '').trim()} ${(r.street || '').trim()}`.replace(/\s+/g, ' ').trim();
+    if (!addr || !r.dba) continue;
+    byCamis.set(r.camis, {
+      id: `dohmh-${r.camis}`,
+      src: 'dohmh',
+      name: r.dba.trim(),
+      legal: r.dba.trim(),
+      kind: 'Food service',
+      address: addr,
+      county: r.boro,
+      zip: (r.zipcode || '').trim().slice(0, 5) || null,
+      bin: r.bin || null,
+      camis: r.camis,
+      // Published by DOHMH on the permit record as the establishment's own line.
+      phone: (r.phone || '').replace(/[^\d]/g, '').length === 10 ? r.phone.replace(/[^\d]/g, '') : null,
+      received: null,
+      daysAgo: null,
+    });
+  }
+  const pool = [...byCamis.values()];
+  // Same balance rule as the building registers: a borough missing from the cut
+  // can never come back.
+  const picked = balancedByBorough(
+    pool.map((o) => ({ ...o, borough: o.county })),
+    360,
+  ).map(({ borough, ...o }) => o);
+  // Newest permit first, which the CAMIS order gives directly.
+  picked.sort((a, b) => Number(b.camis) - Number(a.camis));
+  openings = [...openings, ...picked];
+  const boro = {};
+  for (const o of picked) boro[o.county] = (boro[o.county] || 0) + 1;
+  console.log(`DOHMH: ${pool.length} newly permitted, feed ${picked.length}, with a phone ${picked.filter((o) => o.phone).length}`, boro);
+} catch (e) {
+  console.log(`DOHMH unavailable (${e.message}) — keeping previous data`);
+  openings = [...openings, ...(prevFeed()?.openings || []).filter((o) => o.src === 'dohmh')];
 }
 
 // "What's new": monotonic memory of everything the engine has ever surfaced.
@@ -1113,6 +1184,7 @@ const sources = {
   jobs: await sourceMeta('w9ak-ipjd'),
   awards: await sourceMeta(CROL),
   sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
+  dohmh: await sourceMeta('43nn-pn8j'),
   mandates: await sourceMeta('855j-jady'),
   elevatorCompliance: await sourceMeta('e5aq-a4j2'),
   acrisThrough,

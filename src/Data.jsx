@@ -140,6 +140,11 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
           contact values never travel through the public repository, only through the private store.
         </li>
         <li>
+          <span className="conf ok">published on the permit</span> A record the city publishes with the number on it —
+          a Health Department food permit, or the officer named on a City Record notice. No lookup, no provider, no
+          guesswork: it is printed where the city printed it, for exactly this purpose.
+        </li>
+        <li>
           <span className="conf low">no direct line on file</span> We have the company and the role, not a number. No
           number is shown. Searching the web for one stays a link, under the menu, named as a web search.
         </li>

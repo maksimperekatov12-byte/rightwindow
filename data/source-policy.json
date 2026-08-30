@@ -4,7 +4,7 @@
   "host": "data.cityofnewyork.us",
   "verdict": "ALLOWED",
   "license": "NYC Open Data — 'Open Data belongs to all New Yorkers. There are no restrictions on the use of Open Data' (portal FAQ).",
-  "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, the City Record (solicitations, intents and awards), Local Law 152 gas-piping violations, ACRIS index (monthly batch).",
+  "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, the City Record (solicitations, intents and awards), Local Law 152 gas-piping violations, newly permitted food service, ACRIS index (monthly batch).",
   "publisher": "NYC Open Data",
   "datasets": [
    [
@@ -60,6 +60,12 @@
     "855j-jady",
     "Local Law 152 gas-piping and Local Law 97 emissions non-filers, their sub-cycle and the next deadline",
     "mandates"
+   ],
+   [
+    "DOHMH Restaurant Inspection Results",
+    "43nn-pn8j",
+    "Food service permitted but never inspected: venues that have not opened yet, with the number on the permit",
+    "dohmh"
    ]
   ]
  },
