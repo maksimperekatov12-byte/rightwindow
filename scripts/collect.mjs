@@ -870,8 +870,11 @@ const streetKey = (v) =>
     .replace(/\b(STREET|ST|AVENUE|AVE|ROAD|RD|BOULEVARD|BLVD|PLACE|PL|DRIVE|DR|LANE|LN|PARKWAY|PKWY|COURT|CT|TERRACE|SQUARE|SQ)\b/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+// The permit file writes bare digits; the contact cache writes +1-XXX-XXX-XXXX.
+// Both have to survive, and anything that is not a US ten-digit number is
+// dropped rather than shown as a number that will not dial.
 const tenDigits = (v) => {
-  const d = String(v || '').replace(/[^\d]/g, '');
+  const d = String(v || '').replace(/[^\d]/g, '').replace(/^1(?=\d{10}$)/, '');
   return d.length === 10 ? d : null;
 };
 
@@ -916,6 +919,23 @@ const tenDigits = (v) => {
     }
   }
   console.log(`Openings joined to a food permit by name and address: ${joined} (${refused} refused, address matched but the name did not)`);
+
+  // Whatever the join could not reach falls back to the same contact cache the
+  // building registers use, so a venue somebody measured by hand is not
+  // measured again on the next run.
+  let fromCache = 0;
+  for (const o of openings) {
+    if (o.phone) continue;
+    const e = await enrichContact({ company: o.name, address: o.address, cacheOnly: true });
+    if (e.confidence === 'none' || !(e.phone || e.email)) continue;
+    o.phone = tenDigits(e.phone) || null;
+    o.email = e.email || null;
+    o.contactLevel = e.confidence;
+    o.contactSource = e.source || null;
+    if (e.via) o.phoneVia = e.via;
+    if (o.phone || o.email) fromCache++;
+  }
+  console.log(`Openings resolved from the contact cache: ${fromCache}`);
 }
 
 // "What's new": monotonic memory of everything the engine has ever surfaced.

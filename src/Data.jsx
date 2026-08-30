@@ -156,7 +156,8 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
         </li>
       </ul>
       <p className="fine">
-        Measured, not estimated. Across the four building registers, 694 of 1,600 cards currently reach a contact. The
+        Measured, not estimated. New openings reaches 391 of 400 — the city prints the number on a food permit, so that
+        register barely needs looking anything up. Across the four building registers it is 694 of 1,600. The
         most recent sweep took the 39 managing agents covering the most cards and resolved 36 of them — 28 read off the
         company's own site. Coverage by register is uneven for a reason: 77% on the carbon feed, which is large
         buildings with professional management, against 11% on gas piping, where 246 of 400 buildings register an
