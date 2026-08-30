@@ -21,6 +21,8 @@
   --field: rgba(255, 255, 255, 0.65);
   --modal-bg: rgba(255, 255, 255, 0.82);
   --pill: #0C3E33;
+  --cta: #0C3E33;
+  --on-cta: #FFFFFF;
   --glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 0 rgba(15, 30, 26, 0.04);
   --shadow: 0 1px 2px rgba(15, 30, 26, 0.04), 0 12px 32px -18px rgba(15, 30, 26, 0.22);
   --shadow-lift: 0 2px 4px rgba(15, 30, 26, 0.05), 0 18px 44px -18px rgba(15, 30, 26, 0.3);
@@ -61,6 +63,8 @@
   --field: rgba(0, 0, 0, 0.28);
   --modal-bg: rgba(26, 37, 33, 0.94);
   --pill: #0E4237;
+  --cta: #10352D;
+  --on-cta: #EAF3EF;
   }
 }
 :root[data-theme="dark"] {
@@ -89,6 +93,8 @@
   --field: rgba(0, 0, 0, 0.28);
   --modal-bg: rgba(26, 37, 33, 0.94);
   --pill: #0E4237;
+  --cta: #10352D;
+  --on-cta: #EAF3EF;
 }
 
 * { box-sizing: border-box; }
@@ -217,7 +223,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 
 /* ---------- toolbar ---------- */
 .toolbar {
-  position: sticky; top: 72px; z-index: 20;
+  position: sticky; top: calc(var(--top-h, 62px) + 12px); z-index: 20;
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
   margin: 0 0 16px; padding: 9px 11px; border-radius: 12px;
   background: var(--glass-strong);
@@ -291,6 +297,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
   font: 600 10.5px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase;
   padding: 4px 8px; border-radius: 5px; white-space: nowrap;
   background: var(--brand-wash); color: var(--brand);
+  /* The row can get narrower than the badge; let it give way rather than paint
+     over the deadline clock beside it. */
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
 .badge.more { background: var(--panel); color: var(--ink-3); border: 1px solid var(--line); }
 .badge.urgent { background: var(--warm-wash); color: var(--warm); }
@@ -379,20 +388,20 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 .pilot {
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   margin: 34px 0 0; padding: 20px 22px; border-radius: var(--r);
-  background: var(--brand-2); color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), var(--shadow-lift);
+  background: var(--cta); color: var(--on-cta);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-cta) 18%, transparent), var(--shadow-lift);
 }
-.pilot b { font-family: var(--display); font-weight: 400; font-size: 24px; letter-spacing: -0.005em; display: block; }
+.pilot b { font-family: var(--display); font-weight: 400; font-size: 24px; letter-spacing: -0.005em; display: block; color: var(--on-cta); }
 .pilot span { font-size: 13.5px; opacity: 0.85; }
 .pilot .pilot-actions a,
 .pilot > a {
   flex: none; font-family: var(--sans); font-size: 14px; font-weight: 700; text-decoration: none;
-  padding: 12px 22px; border-radius: var(--r-sm); background: #fff; color: #0C3E33;
+  padding: 12px 22px; border-radius: var(--r-sm); background: var(--on-cta); color: var(--cta);
   transition: transform 0.15s ease;
 }
 .pilot .pilot-actions a:hover,
 .pilot > a:hover { transform: translateY(-1px); }
-.pilot a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: var(--r-sm); }
+.pilot a:focus-visible { outline: 2px solid var(--on-cta); outline-offset: 2px; border-radius: var(--r-sm); }
 
 /* ---------- modal ---------- */
 .modal-back {
@@ -528,12 +537,12 @@ footer a { color: var(--brand); }
 .digest-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1 1 320px; }
 .digest-form input {
   flex: 1 1 180px; min-width: 160px; min-height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.35); border-radius: var(--r-sm); padding: 10px 16px;
-  font: inherit; font-size: 14px; color: #fff; background: rgba(255, 255, 255, 0.14);
+  border: 1px solid color-mix(in srgb, var(--on-cta) 38%, transparent); border-radius: var(--r-sm); padding: 10px 16px;
+  font: inherit; font-size: 14px; color: var(--on-cta); background: color-mix(in srgb, var(--on-cta) 15%, transparent);
 }
 .digest-form input::placeholder { color: rgba(255, 255, 255, 0.55); }
-.digest-form input:focus { outline: 2px solid #fff; outline-offset: -1px; }
-.digest-form .btn.solid { background: #fff; color: #0C3E33; border-color: #fff; }
+.digest-form input:focus { outline: 2px solid var(--on-cta); outline-offset: -1px; }
+.digest-form .btn.solid { background: var(--on-cta); color: var(--cta); border-color: var(--on-cta); }
 .digest-note { font-size: 12px; color: rgba(255, 255, 255, 0.75); }
 
 .theme-btn {
@@ -616,7 +625,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 .pilot-contact span { opacity: .85; }
 .pilot-contact a {
-  background: none; padding: 0; color: #fff; font-weight: 700;
+  background: none; padding: 0; color: var(--on-cta); font-weight: 700;
   text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px;
 }
 .pilot-contact a:hover { text-decoration-thickness: 2px; }
@@ -699,7 +708,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dtable .mono { font-family: var(--mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
 .deny { border-left: 3px solid var(--warm); background: var(--warm-wash); border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 14px 16px; }
 .deny-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.denied { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; background: var(--warm); color: #fff; padding: 3px 8px; border-radius: 5px; }
+.denied {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+  background: var(--warm-wash); color: var(--warm); border: 1px solid var(--warm);
+  padding: 3px 8px; border-radius: 5px;
+}
 .deny p { margin: 0 0 8px; font-size: 14px; max-width: 72ch; }
 .deny p:last-child { margin-bottom: 0; }
 .dlist { padding-left: 20px; max-width: 74ch; }
@@ -714,7 +727,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .call-who .from { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-top: 4px; }
 .verdict { font-family: var(--mono); font-size: 10px; letter-spacing: .07em; padding: 3px 7px; border-radius: 5px; }
 .verdict.ok { background: var(--brand-wash); color: var(--brand); }
-.verdict.denied { background: var(--warm); color: #fff; }
+.verdict.denied { background: var(--warm-wash); color: var(--warm); border: 1px solid var(--warm); }
 .dtable .did { display: block; font-size: 11px; color: var(--ink-3); margin-top: 3px; }
 .datapage .lead.sm { font-size: 14.5px; }
 .dlist.tiers li { margin-bottom: 12px; }
@@ -802,3 +815,12 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 .legend .found.legend-dot svg { width: 10px; height: 10px; }
 .legend .found.legend-dot .sr-only { display: none; }
+
+/* Below 400px the address, badges and the clock cannot share one row. Give the
+   head its own line so nothing has to overlap to fit. */
+@media (max-width: 400px) {
+  .card-head { flex-wrap: wrap; row-gap: 8px; }
+  .head-main { flex: 1 0 100%; }
+  .head-side { width: 100%; flex-direction: row; justify-content: space-between; }
+  .star { width: 40px; }
+}

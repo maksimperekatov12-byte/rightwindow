@@ -731,6 +731,19 @@ export default function App() {
     setThemeColors(readThemeColors());
   }, [theme, systemDark]);
 
+  // The sticky toolbar has to clear the sticky header, and the header grows a
+  // row or two whenever its right-hand strip stops fitting. Measure it rather
+  // than assuming one line.
+  useEffect(() => {
+    const el = document.querySelector('.top');
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const set = () => document.documentElement.style.setProperty('--top-h', `${Math.round(el.getBoundingClientRect().height)}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 980px)');
     const on = (e) => setWide(e.matches);
