@@ -57,6 +57,7 @@ const GENERIC_FACADE = {
 
 const PROFILES = {
   qewi: {
+    cohorts: ['stalled', 'owes', 'callable'],
     mandates: {
       gas: (c) =>
         `${c.violations > 1 ? `${c.violations} open gas-piping violations` : 'An open gas-piping violation'} and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)} — the inspection has to be filed by a licensed master plumber.`,
@@ -83,6 +84,7 @@ const PROFILES = {
     oNeed: null,
   },
   restoration: {
+    cohorts: ['paying', 'stalled', 'priced', 'shedEnd'],
     label: 'Restoration contractor',
     tile: 'Facade restoration / exterior repair',
     facade: {
@@ -108,6 +110,7 @@ const PROFILES = {
     oNeed: null,
   },
   lender: {
+    cohorts: ['priced', 'stalled', 'owes', 'sold'],
     mandates: {
       gas: () => `Open gas-piping violations are a mandatory-capex item a lender sees before the borrower raises it.`,
       carbon: (c) =>
@@ -130,6 +133,7 @@ const PROFILES = {
     oNeed: () => `Build-outs run on borrowed money — kitchen equipment and fit-out financing get arranged in exactly this window.`,
   },
   elevator: {
+    cohorts: ['lifts', 'callable'],
     label: 'Elevator services',
     tile: 'Elevator service / modernization',
     facade: {
@@ -158,6 +162,7 @@ const PROFILES = {
     oNeed: null,
   },
   insurance: {
+    cohorts: ['sold', 'shedEnd', 'priced'],
     label: 'Insurance / bonding',
     tile: 'Insurance / surety bonds',
     facade: {
@@ -212,6 +217,7 @@ const PROFILES = {
     oOpener: (c) => `Re: ${c.name} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
   },
   equipment: {
+    cohorts: ['shedEnd', 'stalled', 'paying'],
     label: 'Equipment / access',
     tile: 'Equipment rental / scaffolding',
     facade: {
@@ -233,6 +239,7 @@ const PROFILES = {
     oNeed: null,
   },
   propmgmt: {
+    cohorts: ['sold', 'owes', 'callable'],
     mandates: {
       gas: (c) => `The building has been carrying this violation for ${Math.round((c.openDays || 0) / 30)} months and owes another filing by ${usDate(c.deadline)}.`,
       elevators: (c) => `${c.devices === 1 ? 'The lift' : 'The lifts'} here skipped a test cycle outright, which is a management gap rather than a scheduling one.`,
@@ -253,6 +260,7 @@ const PROFILES = {
     oNeed: null,
   },
   legal: {
+    cohorts: ['hearing', 'owes', 'callable'],
     mandates: {
       gas: (c) => `An uncured LL152 violation is an OATH matter with a penalty attached, and a second deadline lands ${usDate(c.deadline)}.`,
       elevators: () => `A skipped CAT1 cycle is what an elevator violation is written from — this is the stage before the hearing.`,
@@ -280,6 +288,7 @@ const PROFILES = {
     oNeed: null,
   },
   cre: {
+    cohorts: ['owes', 'sold', 'callable'],
     label: 'CRE broker / investor',
     tile: 'CRE brokerage / investment',
     facade: {
@@ -618,6 +627,23 @@ const FACTS = {
 };
 const factsFor = (k) => FACTS[k] || ALL_FACTS;
 
+// The cohort each trade actually works. Every one of these facts is already on
+// the card and none of them could be asked for: four separate walkthroughs
+// reached the same wall, an estimator scrolling 400 rows looking for the 25
+// buildings that are paying shed rent for nothing.
+const days = (iso) => (iso ? (new Date(iso) - Date.now()) / 86400000 : null);
+const COHORTS = {
+  paying: { label: 'Paying for nothing', of: (c) => Boolean(c.payingForNothing) },
+  stalled: { label: 'Approved, no permit', of: (c) => Boolean(c.filing && c.filing.status === 'Approved' && !c.filing.permitted) },
+  shedEnd: { label: 'Shed expires <60d', of: (c) => { const d = days(c.shed?.until); return d != null && d > 0 && d < 60; } },
+  priced: { label: 'Cost declared', of: (c) => Boolean(c.filing?.cost > 0) },
+  owes: { label: 'Owes money', of: (c) => (c.ecbBalance || 0) + (c.finesOwed || 0) > 0 },
+  sold: { label: 'Just sold', of: (c) => Boolean(c.ownerChange) },
+  hearing: { label: 'Hearing <30d', of: (c) => { const d = days(c.nextHearing); return d != null && d >= 0 && d < 30; } },
+  lifts: { label: 'Lift cycle skipped', of: (c) => (c.elevator?.cat1Overdue || 0) > 0 },
+  callable: { label: 'Has a contact', of: (c) => Boolean(c.agent?.contactKnown) },
+};
+
 const DEFAULT_CLOSE_RATE = 0.03;
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 
@@ -851,6 +877,7 @@ export default function App() {
   const [showOther, setShowOther] = useState(false);
   const [menuFor, setMenuFor] = useState(null);
   const [ticket, setTicket] = useState(() => loadLS('rw.ticket', 0));
+  const [cohort, setCohort] = useState(null);
   const [closeRate, setCloseRate] = useState(() => {
     const v = Number(loadLS('rw.closeRate', DEFAULT_CLOSE_RATE));
     return Number.isFinite(v) && v > 0 ? clampRate(v) : DEFAULT_CLOSE_RATE;
@@ -1208,6 +1235,7 @@ export default function App() {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
       if (!showHidden && taughtAway('b:', c)) return false;
       if (hideBusy && c.occupied) return false;
+      if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
       if (onlyPortfolio && !portfolio.includes(c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
       if (boro !== 'all' && c.borough !== boro) return false;
@@ -1221,7 +1249,7 @@ export default function App() {
     const at = Date.now();
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > at ? 0 : 1);
     return base.sort((a, b) => isMine(a) - isMine(b));
-  }, [facadeFeed, deferredQuery, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, onlyPortfolio, portfolio, hideBusy]);
+  }, [facadeFeed, deferredQuery, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, onlyPortfolio, portfolio, hideBusy, cohort]);
   const boroCounts = useMemo(() => {
     const m = {};
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
@@ -2310,6 +2338,22 @@ export default function App() {
                 </button>
               ))}
             </div>
+            {(profile.cohorts || []).map((k) => {
+              const def = COHORTS[k];
+              if (!def) return null;
+              const n = facadeFeed.filter(def.of).length;
+              if (!n) return null;
+              return (
+                <button
+                  key={k}
+                  className={'chip-btn' + (cohort === k ? ' on' : '')}
+                  aria-pressed={cohort === k}
+                  onClick={() => setCohort(cohort === k ? null : k)}
+                >
+                  {def.label} ({n})
+                </button>
+              );
+            })}
             <button className={'chip-btn' + (onlyWatch ? ' on' : '')} aria-pressed={onlyWatch} onClick={() => setOnlyWatch((v) => !v)}>
               ★ Watchlist{watchCount ? ` (${watchCount})` : ''}
             </button>
