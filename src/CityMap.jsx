@@ -94,32 +94,41 @@ const soon = (iso, days) => {
   return d >= 0 && d <= days;
 };
 
+// Two geometries per card, because the two layers want different ones: a
+// circle layer renders POINTS only (a polygon in its source is silently
+// skipped — the far-out view was empty for exactly that reason), while
+// fill-extrusion wants the polygon footprint.
 function toGeoJSON(rows) {
   const scores = rows.map((r) => r.card.urgencyScore ?? 1);
   const lo = Math.min(...scores);
   const span = Math.max(...scores) - lo || 1;
+  const pts = [];
+  const polys = [];
+  rows.forEach((r, i) => {
+    const [lat, lon] = r.card.ll;
+    const t = ((r.card.urgencyScore ?? 1) - lo) / span;
+    const hot = soon(r.card.nextHearing, 30) || soon(r.card.shed?.until, 60) ? 1 : 0;
+    const props = { i, t, hot, height: 60 + t * 240 };
+    pts.push({ type: 'Feature', id: i, properties: props, geometry: { type: 'Point', coordinates: [lon, lat] } });
+    polys.push({
+      type: 'Feature',
+      id: i,
+      properties: props,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [lon - HALF, lat - HALF],
+          [lon + HALF, lat - HALF],
+          [lon + HALF, lat + HALF],
+          [lon - HALF, lat + HALF],
+          [lon - HALF, lat - HALF],
+        ]],
+      },
+    });
+  });
   return {
-    type: 'FeatureCollection',
-    features: rows.map((r, i) => {
-      const [lat, lon] = r.card.ll;
-      const t = ((r.card.urgencyScore ?? 1) - lo) / span;
-      const hot = soon(r.card.nextHearing, 30) || soon(r.card.shed?.until, 60);
-      return {
-        type: 'Feature',
-        id: i,
-        properties: { i, t, hot: hot ? 1 : 0, height: 60 + t * 240 },
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[
-            [lon - HALF, lat - HALF],
-            [lon + HALF, lat - HALF],
-            [lon + HALF, lat + HALF],
-            [lon - HALF, lat + HALF],
-            [lon - HALF, lat - HALF],
-          ]],
-        },
-      };
-    }),
+    pts: { type: 'FeatureCollection', features: pts },
+    polys: { type: 'FeatureCollection', features: polys },
   };
 }
 
@@ -204,13 +213,14 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     });
 
     map.on('load', () => {
-      map.addSource('cards', { type: 'geojson', data });
+      map.addSource('cards-pts', { type: 'geojson', data: data.pts });
+      map.addSource('cards', { type: 'geojson', data: data.polys });
       // Far out, a dot; close in, the extruded column. The crossover leaves no
       // zoom where the register is invisible.
       map.addLayer({
         id: 'cards-dot',
         type: 'circle',
-        source: 'cards',
+        source: 'cards-pts',
         maxzoom: 13.5,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 2.2, 13.5, 5],
@@ -278,8 +288,8 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     const map = mapRef.current;
     if (!map) return;
     const apply = () => {
-      const src = map.getSource('cards');
-      if (src) src.setData(data);
+      map.getSource('cards-pts')?.setData(data.pts);
+      map.getSource('cards')?.setData(data.polys);
       if (located.length) map.fitBounds(boundsOf(located), { padding: 48, maxZoom: 15, duration: 700 });
     };
     if (map.isStyleLoaded()) apply();
