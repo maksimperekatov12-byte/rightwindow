@@ -190,6 +190,15 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     map.on('idle', () => {
       el.dataset.mapIdle = '1';
     });
+    // Diagnostics reach the instance through the DOM; nothing ships state here.
+    el._map = map;
+    // The container is often mid-layout at construction, so the first fit can
+    // be computed against a placeholder size and leave the camera a borough too
+    // far out. One refit once everything has settled.
+    map.once('idle', () => {
+      map.resize();
+      if (located.length) map.fitBounds(boundsOf(located), { padding: 48, maxZoom: 15, duration: 0 });
+    });
     map.on('movestart', () => {
       delete el.dataset.mapIdle;
     });
