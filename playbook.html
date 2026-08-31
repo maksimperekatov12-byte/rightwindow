@@ -1,0 +1,648 @@
+<title>Ninety Days to Sign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #F1EFE9;
+    --grid: rgba(18, 26, 22, 0.05);
+    --paper: #FBFAF6;
+    --paper-2: #FFFEFB;
+    --ink: #101613;
+    --ink-2: #3E4B46;
+    --ink-3: #5F6F69;
+    --line: rgba(15, 30, 26, 0.09);
+    --line-2: rgba(15, 30, 26, 0.18);
+    --brand: #14594A;
+    --brand-2: #0C3E33;
+    --brand-wash: rgba(20, 89, 74, 0.10);
+    --warm: #77550A;
+    --warm-wash: rgba(186, 141, 33, 0.14);
+    --shadow: 0 1px 2px rgba(15, 30, 26, 0.04), 0 12px 32px -18px rgba(15, 30, 26, 0.22);
+    --sans: 'Public Sans', -apple-system, 'Segoe UI', sans-serif;
+    --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --r: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1211;
+      --grid: rgba(255, 255, 255, 0.038);
+      --paper: #151B19;
+      --paper-2: #1A211E;
+      --ink: #E5ECE9;
+      --ink-2: #A6B5AF;
+      --ink-3: #93A29C;
+      --line: rgba(255, 255, 255, 0.10);
+      --line-2: rgba(255, 255, 255, 0.20);
+      --brand: #5CE08A;
+      --brand-2: #8FEDAE;
+      --brand-wash: rgba(92, 224, 138, 0.12);
+      --warm: #D9AE4A;
+      --warm-wash: rgba(217, 174, 74, 0.14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1211;
+    --grid: rgba(255, 255, 255, 0.038);
+    --paper: #151B19;
+    --paper-2: #1A211E;
+    --ink: #E5ECE9;
+    --ink-2: #A6B5AF;
+    --ink-3: #93A29C;
+    --line: rgba(255, 255, 255, 0.10);
+    --line-2: rgba(255, 255, 255, 0.20);
+    --brand: #5CE08A;
+    --brand-2: #8FEDAE;
+    --brand-wash: rgba(92, 224, 138, 0.12);
+    --warm: #D9AE4A;
+    --warm-wash: rgba(217, 174, 74, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 68px 68px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 56px 22px 96px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(38px, 6.4vw, 62px);
+    line-height: 1.04;
+    letter-spacing: -0.012em;
+    margin: 0 0 20px;
+    text-wrap: balance;
+  }
+  h1 em { font-style: italic; color: var(--brand); }
+  h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(25px, 3.4vw, 33px);
+    line-height: 1.16;
+    margin: 64px 0 14px;
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    margin: 0 0 6px;
+  }
+  p { margin: 0 0 15px; max-width: 66ch; }
+  .lead { font-size: 18.5px; color: var(--ink-2); max-width: 62ch; }
+  .fine { font-size: 13.5px; color: var(--ink-3); max-width: 68ch; }
+  strong { font-weight: 700; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* The thesis panel: two dates and the gap between them, which is the argument. */
+  .thesis {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 18px;
+    align-items: center;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 26px 24px;
+    margin: 30px 0 8px;
+    box-shadow: var(--shadow);
+  }
+  .thesis .cell { text-align: center; }
+  .thesis .n {
+    font-family: var(--mono);
+    font-size: clamp(30px, 5vw, 42px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    display: block;
+    line-height: 1;
+  }
+  .thesis .cell.real .n { color: var(--brand); }
+  .thesis .k {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: block;
+    margin-top: 10px;
+  }
+  .thesis .sep { font-size: 22px; color: var(--ink-3); }
+  @media (max-width: 560px) {
+    .thesis { grid-template-columns: 1fr; gap: 20px; }
+    .thesis .sep { transform: rotate(90deg); }
+  }
+
+  /* The spine: every phase is anchored to a real date. */
+  .spine { margin: 26px 0 0; border-left: 2px solid var(--line-2); padding-left: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    gap: 26px;
+    padding: 26px 0 26px 24px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .step:last-child { border-bottom: 0; }
+  .step::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 34px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--line-2);
+  }
+  .step.now::before { background: var(--brand); border-color: var(--brand); }
+  .step .when { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; }
+  .step .when b { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  /* Each line of the rail on its own row: a bare span is inline, so the date and
+     the days remaining ran together as "Tue 1 Sep173 days left". */
+  .step .when span { display: block; color: var(--ink-3); }
+  .step .when span + span { margin-top: 3px; }
+  .step .what > p:last-child { margin-bottom: 0; }
+  @media (max-width: 620px) {
+    .step { grid-template-columns: 1fr; gap: 8px; padding-left: 20px; }
+    .step .when b,
+    .step .when span { display: inline; margin: 0; }
+    .step .when span::before { content: ' · '; color: var(--line-2); }
+  }
+
+  /* A quoted opener, the way it would be said on the phone. */
+  .script {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brand);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+  .script b { color: var(--ink); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .twrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); margin: 20px 0; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  td.n { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.trig { font-weight: 600; white-space: nowrap; }
+  td .sub { display: block; font-size: 12px; color: var(--ink-3); margin-top: 3px; font-weight: 400; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 18px 20px;
+    margin: 18px 0;
+    box-shadow: var(--shadow);
+  }
+  .card .addr { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+  .card .meta { font-size: 12.5px; color: var(--ink-3); font-family: var(--mono); margin-top: 3px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--brand-wash);
+    color: var(--brand);
+    white-space: nowrap;
+  }
+  .badge.warm { background: var(--warm-wash); color: var(--warm); }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 22px 0; }
+  .stat { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; }
+  .stat .n { font-family: var(--mono); font-size: 25px; font-weight: 500; letter-spacing: -0.02em; display: block; }
+  .stat .k { font-size: 12.5px; color: var(--ink-3); margin-top: 5px; display: block; line-height: 1.45; }
+
+  ul { padding-left: 20px; margin: 0 0 15px; max-width: 66ch; }
+  li { margin-bottom: 7px; }
+
+  hr { border: 0; border-top: 1px solid var(--line); margin: 60px 0 0; }
+  .foot { font-size: 13px; color: var(--ink-3); margin-top: 26px; }
+  .foot code { font-family: var(--mono); font-size: 12px; }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Right Window · How a contract actually gets signed</p>
+  <h1>The deadline is 21 February.<br>Your window shuts <em>29 November</em>.</h1>
+
+  <p class="lead">
+    Every facade contractor in New York knows the Local Law 11 date. Almost none of them work backwards
+    from it. This is what the ninety days before that date look like, day by day, for one contractor
+    working one borough — with the real buildings, the real triggers and the real arithmetic from the
+    build dated 31 August 2026.
+  </p>
+
+  <div class="thesis">
+    <div class="cell">
+      <span class="n">174</span>
+      <span class="k">days to the filing deadline</span>
+    </div>
+    <div class="sep">→</div>
+    <div class="cell real">
+      <span class="n">90</span>
+      <span class="k">days to sell it</span>
+    </div>
+  </div>
+  <p class="fine">
+    A facade report is not a form. Engagement, then rope access or a scaffold drop, then the report
+    itself, then the DOB NOW filing — call it six weeks of inspection and six weeks of paperwork, and
+    both are conservative. An owner who has not signed by roughly 29 November cannot file by
+    21 February. That is the window, and it is the product: not who needs the work, but who has to
+    decide about it this quarter.
+  </p>
+
+  <h2>Who is holding the phone</h2>
+  <p>
+    A facade engineering firm in Brooklyn. Two licensed inspectors, an average report at
+    <span class="mono">$12,000</span>, and a close rate they put at three per cent because that is what
+    their own cold calling has returned. They cover four ZIP codes: 11215, 11217, 11231. They have
+    never bought a lead list and do not intend to.
+  </p>
+
+  <h2>The ninety days</h2>
+
+  <div class="spine">
+
+    <div class="step now">
+      <div class="when"><b>Day 0</b><span>Mon 31 Aug</span></div>
+      <div class="what">
+        <h3>Ten minutes, no account</h3>
+        <p>
+          They open the site. It asks one question — what do you do — and they pick Facade engineering.
+          Two optional numbers follow: average contract and close rate. Both stay on the device.
+        </p>
+        <p>
+          The header rewrites itself. <strong>800 buildings citywide, 200 in Brooklyn.</strong> Under the
+          headline, one line of arithmetic they can check:
+          <span class="mono">$13.5M open → ~$404K expected by 21 Feb 2027</span>, footnoted
+          <span class="mono">800 shown + 322 more by then at this week's rate</span>. Not a promise —
+          the register's own arrival rate, measured over the last seven days, carried across the
+          twenty-five weeks that remain.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Day 1, morning</b><span>Tue 1 Sep</span><span>173 days left</span></div>
+      <div class="what">
+        <h3>Cut 800 down to a day's work</h3>
+        <p>
+          They type their three ZIPs into the search box — <span class="mono">11215 11217 11231</span> —
+          and the whole page answers. The list becomes their territory. The pipeline figure moves with
+          it, which is the moment most people stop treating it as marketing.
+        </p>
+        <p>
+          Then the filter chips, each carrying a live count. In Brooklyn: <strong>61 buildings are
+          paying for a sidewalk shed with no repair filed</strong>, 84 owe money at OATH, 18 have a
+          hearing inside thirty days, 29 have a shed permit expiring inside sixty. These overlap.
+          The intersection is the morning's call list.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Day 1, 10:40</b><span>The first call</span></div>
+      <div class="what">
+        <h3>Open on their money, not on your service</h3>
+        <p>
+          The card is expanded. It names the managing agent, the firm's own phone number and where that
+          number was read from. It names the penalty already assessed and the hearing already scheduled.
+          Nothing here is a guess; every line links back to the city record it came from.
+        </p>
+        <div class="script">
+          <b>“I'm looking at 330 West 56th. You've had a sidewalk shed up for eight and a half years
+          and there's no repair filed against it. DOB has $6,000 on the Cycle 9 report, and there's
+          $41,250 open at OATH with a hearing on the 10th. The 10A filing is due 21 February and you
+          haven't started. I can have a QEWI on the wall in three weeks.”</b>
+        </div>
+        <p class="fine">
+          That is four public facts and one offer. The contractor did not research any of them; the
+          card assembled them from five separate city datasets before the phone was picked up.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Day 1, afternoon</b><span>The second list</span></div>
+      <div class="what">
+        <h3>Sort by who answers, not by who is worst</h3>
+        <p>
+          Half the Brooklyn cards carry a phone number that resolves immediately — <strong>105 of
+          200</strong>. Sorting by <em>contact first</em> puts those at the top, because a perfect lead
+          you cannot reach is worth less than a good one you can. The rest carry a company and a role
+          and a one-click web search.
+        </p>
+        <p>
+          Every call gets marked: <em>Contacted</em>, <em>Won</em>, <em>Lost</em>, or dismissed with a
+          reason. Marking one <em>Contacted</em> also claims it in a shared pool, so nobody else on the
+          product is working the same building.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Day 2</b><span>Wed 2 Sep</span><span>172 days left</span></div>
+      <div class="what">
+        <h3>The eighteen with a hearing this month</h3>
+        <p>
+          A different conversation, and a much shorter one. An owner walking into OATH in eight days
+          with an open facade violation wants to arrive holding a signed engagement letter — it is the
+          single most useful thing they can show. Citywide there are <strong>59 of these inside thirty
+          days</strong>; in Brooklyn, 18.
+        </p>
+        <div class="script">
+          <b>“Your hearing on 1199 East 53rd is Wednesday. You're going in with $33,750 open and
+          nothing filed. If you engage today I can put the inspection on the calendar and you walk in
+          with a signed scope instead of a promise.”</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Days 3–5</b><span>Thu–Sat</span></div>
+      <div class="what">
+        <h3>Call the landlord, not the building</h3>
+        <p>
+          The card names how many buildings that managing agent runs across the whole product. It is
+          rarely one. <strong>AKAM Associates holds 38, Wavecrest 37, New Bedford 34, FirstService
+          Residential 33.</strong> Within a single borough the clusters are still large — Douglas
+          Elliman runs 13 in Queens, Wavecrest 10 in Brooklyn.
+        </p>
+        <p>
+          That changes what is being sold. Not one report at $12,000 but a portfolio at a rate, to a
+          firm with one compliance officer and one deadline for all of them. One call, thirteen
+          addresses, and the buyer has the same problem thirteen times.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Week 2</b><span>8–12 Sep</span><span>~166 days left</span></div>
+      <div class="what">
+        <h3>Proposals, and a list that refilled itself</h3>
+        <p>
+          Twenty-odd conversations produce three or four proposals. Meanwhile the register moved:
+          <strong>15 new buildings and 97 new signals this week</strong> — a shed that just went up, a
+          violation just written, an ownership change just recorded. The freshness strip counts only
+          what the city itself published inside the window, so the number is small and true rather than
+          large and meaningless.
+        </p>
+        <p>
+          The cards they dismissed taught the list something. Ask twice for the same reason — wrong
+          borough, already has a contractor, nobody to call — and it stops offering that kind. Every
+          rule it learned is listed with a one-click undo.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Weeks 3–6</b><span>15 Sep – 10 Oct</span></div>
+      <div class="what">
+        <h3>Close, and the reason the close is easy</h3>
+        <p>
+          The objection in this trade is never price; it is timing. “We'll look at it after the new
+          year.” The answer is arithmetic, and it is on the card:
+        </p>
+        <div class="script">
+          <b>“After the new year is seven weeks before the filing date. You need six for the inspection
+          and six for the report. If we start in January you file late, and late is $1,000 a month per
+          building until you're not.”</b>
+        </div>
+        <p>
+          Across the 800 facade cards the city has already assessed <strong class="mono">$57.6M</strong>
+          in facade penalties, and <strong class="mono">$6.0M</strong> sits unpaid at OATH. The meter is
+          not hypothetical; for most of these buildings it is already running.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>29 Nov</b><span>The last useful day</span><span>90 days out</span></div>
+      <div class="what">
+        <h3>After this, you are selling next cycle</h3>
+        <p>
+          Anyone who has not signed by roughly here cannot file on time. The conversation changes from
+          <em>“let's get you compliant”</em> to <em>“let's minimise what you pay while you're not”</em> —
+          still a sale, a different one, and worth less. This is the date the product exists to put in
+          front of somebody in August.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="when"><b>Every morning</b><span>from Day 2 on</span></div>
+      <div class="what">
+        <h3>The rhythm afterwards</h3>
+        <p>
+          One email each morning with what the city published overnight for their trade and their
+          borough, and nothing at all on a quiet day. That is the whole retention mechanism: the
+          register keeps producing, and the contractor stops maintaining a list.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>The four triggers, and what each is worth</h2>
+  <p>
+    Not every card is a call today. Four of the signals carry their own clock, and the clock is what
+    decides the order. Counts are from the 31 August build.
+  </p>
+
+  <div class="twrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Trigger</th>
+          <th>Why it makes them answer</th>
+          <th>Brooklyn</th>
+          <th>Citywide</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="trig">Hearing &lt; 30 days</td>
+          <td>They are about to stand in front of OATH with nothing filed. Shortest window, highest intent.<span class="sub">Call the same week.</span></td>
+          <td class="n">18</td>
+          <td class="n">59</td>
+        </tr>
+        <tr>
+          <td class="trig">Paying for nothing</td>
+          <td>A sidewalk shed is up and no repair has been filed against it. They are renting steel to avoid a decision.<span class="sub">The rental cost is the argument.</span></td>
+          <td class="n">61</td>
+          <td class="n">289</td>
+        </tr>
+        <tr>
+          <td class="trig">Shed permit expiring</td>
+          <td>Under sixty days to renewal. Renewing costs money and re-starts nothing; repairing ends it.<span class="sub">A dated forcing event.</span></td>
+          <td class="n">29</td>
+          <td class="n">151</td>
+        </tr>
+        <tr>
+          <td class="trig">Unpaid at OATH</td>
+          <td>Money already owed to the city, separate from the penalty meter. Signals a building that has stopped managing this.<span class="sub">Slower, but it converts.</span></td>
+          <td class="n">84</td>
+          <td class="n">365</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What a real card looks like when it is worth calling</h2>
+
+  <div class="card">
+    <div class="addr">330 West 56 Street</div>
+    <div class="meta">Manhattan 10019 · FirstService Residential · 33 buildings across the registers</div>
+    <div class="badges">
+      <span class="badge">Shed up, no repair filed</span>
+      <span class="badge">Open SWARMP from Cycle 9</span>
+      <span class="badge">Elevator test due</span>
+      <span class="badge warm">Violation 26d ago</span>
+      <span class="badge warm">Hearing 10 Sep</span>
+    </div>
+    <p class="fine" style="margin:0">
+      Shed up 101 months. $6,000 assessed on the Cycle 9 filing, $41,250 open at OATH, hearing on
+      10 September, six months to the 10A deadline. Highest-urgency card in the register at the time of
+      the build. The number for FirstService is on the card, read off their own contact page.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="addr">3535 Kings College Place</div>
+    <div class="meta">Bronx 10467 · DAVID ASSOCIATES · 3 buildings</div>
+    <div class="badges">
+      <span class="badge">UNSAFE on file</span>
+      <span class="badge">Shed up, no repair filed</span>
+      <span class="badge warm">$197,200 assessed</span>
+      <span class="badge warm">Hearing 2 Oct</span>
+    </div>
+    <p class="fine" style="margin:0">
+      An UNSAFE declaration legally obliges the owner to shed and repair. They have done the first and
+      not the second for forty-four months, and the penalty is approaching two hundred thousand dollars.
+      This is not a lead that needs warming up.
+    </p>
+  </div>
+
+  <h2>What one week actually returns</h2>
+
+  <div class="grid2">
+    <div class="stat"><span class="n">200</span><span class="k">cards in their three ZIPs and borough</span></div>
+    <div class="stat"><span class="n">105</span><span class="k">reachable on the first attempt</span></div>
+    <div class="stat"><span class="n">~40</span><span class="k">calls a two-person firm makes in a week</span></div>
+    <div class="stat"><span class="n">1–2</span><span class="k">signed at a 3% close rate, ≈$12–24K</span></div>
+  </div>
+  <p class="fine">
+    That is the unglamorous version and it is the one worth quoting. The interesting number is not the
+    week; it is that the same list is still producing in November, and that the contractor spent no time
+    building it. Over the twenty-five weeks to the deadline the arithmetic the site shows them is
+    <span class="mono">$404K expected</span> — 800 buildings now plus 322 arriving at the rate the city
+    has actually been publishing.
+  </p>
+
+  <h2>The other trades run the same play on a different clock</h2>
+
+  <div class="twrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Register</th>
+          <th>Deadline</th>
+          <th>Days</th>
+          <th>Who calls, and when</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="trig">Building facades</td>
+          <td class="mono">21 Feb 2027</td>
+          <td class="n">174</td>
+          <td>Engineers and restoration contractors. Selling window shuts ~29 Nov.</td>
+        </tr>
+        <tr>
+          <td class="trig">Gas piping (LL152)</td>
+          <td class="mono">31 Dec 2026</td>
+          <td class="n">122</td>
+          <td>Licensed plumbers. Every card is sub-cycle C, so the whole register shares one date — call by October.</td>
+        </tr>
+        <tr>
+          <td class="trig">Elevators (CAT1)</td>
+          <td class="mono">31 Dec 2026</td>
+          <td class="n">122</td>
+          <td>Lift contractors. 404 of 557 have never filed at all. Multi-device buildings first: one visit, several tests.</td>
+        </tr>
+        <tr>
+          <td class="trig">City contracts</td>
+          <td class="mono">each notice</td>
+          <td class="n">0–20</td>
+          <td>Subcontractors and suppliers. 120 open bids; the officer is printed on the notice. Days, not months.</td>
+        </tr>
+        <tr>
+          <td class="trig">New openings</td>
+          <td class="mono">opening day</td>
+          <td class="n">60–120</td>
+          <td>POS, insurance, signage, staffing, suppliers. 400 venues that have not opened. Everything gets chosen now.</td>
+        </tr>
+        <tr>
+          <td class="trig">Carbon (LL97)</td>
+          <td class="mono">already cited</td>
+          <td class="n">—</td>
+          <td>Energy consultants and lenders. No countdown: the violation is written. The weakest of the six to sell against.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What this does not do</h2>
+  <ul>
+    <li>It does not dial, email or text anyone. The calls are the contractor's, and so are the TCPA and Do-Not-Call obligations that come with them.</li>
+    <li>It does not know who is already in conversation with a competitor. It knows who has filed nothing, which is not the same thing.</li>
+    <li>Roughly <strong>42%</strong> of building cards carry a number that resolves immediately. The rest name a firm and a role, and a web search is one click away — but somebody still has to do it.</li>
+    <li>The carbon register has no deadline to sell against, and the gas register is legally uniform: one sub-cycle, one date, one issue sweep. Both are honest and neither is as strong as facades.</li>
+    <li>Nobody has paid for any of this yet. Every figure above is about the offer, not about demand.</li>
+  </ul>
+
+  <hr>
+  <p class="foot">
+    Every count is read from the build dated <span class="mono">31 August 2026</span> and can be checked
+    against the city record each card links to. Sources, licences and a list of the four times this
+    product corrected its own arithmetic are on the <code>#data</code> page.
+  </p>
+
+</div>
