@@ -1484,8 +1484,12 @@ export default function App() {
     () => Object.keys(PROFILES).sort((a, b) => tradeVolume[b].total - tradeVolume[a].total),
     [tradeVolume],
   );
-  const primaryTrades = orderedTrades.slice(0, 3);
-  const otherTrades = orderedTrades.slice(3);
+  // "Just exploring" is offered as its own row below rather than buried at the
+  // end of fifteen tiles, so a visitor who does not want to classify themselves
+  // can see a way in without expanding anything.
+  const pickable = orderedTrades.filter((k) => k !== 'explore');
+  const primaryTrades = pickable.slice(0, 6);
+  const otherTrades = pickable.slice(6);
 
   const hiddenCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && fb[k]?.s === 'dismissed').length;
   // What this device has already picked up. Without it, a follow-up list means
@@ -1953,7 +1957,10 @@ export default function App() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               <h2>What do you do?</h2>
-              <p>Facade compliance is what we do best. Pick your side of it and we'll show who needs you this week.</p>
+              <p>
+                Six registers of New York City public records where somebody has a legal deadline — and the firm to
+                call about it. Pick your trade and we will show the ones that are yours this week.
+              </p>
               <div className="tiles">
                 {primaryTrades.map((k) => (
                   <button key={k} className={'tile' + (profileKey === k ? ' on' : '')} aria-pressed={profileKey === k} onClick={() => pickProfile(k)}>
@@ -1965,6 +1972,9 @@ export default function App() {
                 <div className="more-row-inline">
                   <button className="more-trades" onClick={() => setShowOther(true)}>
                     Other trades ({otherTrades.length})
+                  </button>
+                  <button className="more-trades" onClick={() => pickProfile('explore')}>
+                    Just show me everything
                   </button>
                   <button
                     className="more-trades"
