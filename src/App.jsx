@@ -857,11 +857,19 @@ function Rolling({ value, format }) {
     // true value is through an animation then sits there showing the previous
     // one — which is not a missing flourish, it is a wrong number on the screen.
     el.textContent = format(value);
-    if (reduce || from == null || from === value) return;
+    // Writing the true value first is not enough on its own: the animation
+    // starts by emitting the FROM value synchronously, and in a tab that never
+    // runs the rest of the tween that first frame is the last one — the figure
+    // then sits showing the previous register's number. So a hidden document
+    // does not animate at all, and the opening frame is ignored.
+    if (reduce || from == null || from === value || document.hidden) return;
+    let moved = false;
     const ctrl = animate(from, value, {
       duration: 0.5,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (v) => {
+        if (!moved && v === from) return;
+        moved = true;
         el.textContent = format(v);
       },
       onComplete: () => {
@@ -2045,16 +2053,54 @@ export default function App() {
     const expected = gross * rate;
     if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
 
-    // The latest deadline the visible rows actually carry: every one of them has
-    // to be won by then, so it is the honest end of the window.
+    // The EARLIEST deadline the visible rows carry, not the latest. Facades hold
+    // two sub-cycles at once — 722 cards due Feb 2027 and 78 due Feb 2028 — and
+    // taking the latest put the horizon 77 weeks out, which is both the wrong
+    // date to work toward and far too long to carry one week's arrival rate.
+    // The first deadline that closes is the one a contractor is racing.
     const rows = visibleForReasons || [];
+    const todayIso = new Date(now).toISOString().slice(0, 10);
     let horizon = null;
     for (const c of rows) {
       const d = c?.deadline;
-      if (typeof d === 'string' && d.length === 10 && (!horizon || d > horizon)) horizon = d;
+      if (typeof d === 'string' && d.length === 10 && d >= todayIso && (!horizon || d < horizon)) horizon = d;
     }
-    return { n, avg, rate, gross, expected, horizon };
-  }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons]);
+
+    // What is on the list today is not what there is to win by the deadline: the
+    // register keeps filling. The rate is measured, not guessed — whatsNew counts
+    // what the city published inside a seven-day window, and this extends that
+    // one rate over the weeks left. It is scaled to the share of the register the
+    // filters have left on screen, so a Brooklyn-only view is credited with
+    // Brooklyn's share of the arrivals and not the city's.
+    //
+    // A register that reports no arrivals adds nothing, which is the right
+    // answer for the ones issued in sweeps: LL152 and LL97 have published
+    // nothing new in a week and the figure should not pretend otherwise.
+    const weeks = horizon ? Math.max(0, (new Date(horizon) - now) / (7 * 86400000)) : 0;
+    const perWeek = vertical === 'facades' ? wn.buildings || 0 : vertical === 'contracts' ? wn.contracts || 0 : vertical === 'openings' ? wn.openings || 0 : wn[vertical] || 0;
+    const registerSize = vertSize[vertical] || n;
+    const share = registerSize > 0 ? Math.min(1, n / registerSize) : 1;
+    const arriving = Math.round(perWeek * weeks * share);
+    // Both figures on one basis. Leaving the gross on today's list while the
+    // expected counted arrivals put the two sides of the arrow on different
+    // populations, which is exactly the kind of arithmetic nobody can follow.
+    const total = n + arriving;
+    const grossByDeadline = total * avg;
+    const expectedByDeadline = grossByDeadline * rate;
+    if (!Number.isFinite(expectedByDeadline) || expectedByDeadline <= 0)
+      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon };
+
+    return {
+      n,
+      avg,
+      rate,
+      gross: grossByDeadline,
+      expected: expectedByDeadline,
+      arriving,
+      weeks: Math.round(weeks),
+      horizon,
+    };
+  }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons, now, wn, vertSize]);
 
   const heroText =
     vertical === 'facades'
@@ -2559,20 +2605,30 @@ export default function App() {
               </span>
               <span className="arrow" aria-hidden="true">→</span>
               <b
-                title={`${myPipeline.n} shown × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`}
+                title={
+                  myPipeline.arriving
+                    ? `(${myPipeline.n} shown + ${myPipeline.arriving} arriving over ${myPipeline.weeks} weeks at the measured rate) × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% = ${fmtMoney(myPipeline.expected)}`
+                    : `${myPipeline.n} shown × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`
+                }
               >
                 ~<Rolling value={myPipeline.expected} format={fmtMoney} /> expected{' '}
-                <em>{myPipeline.horizon ? `by ${usShort(myPipeline.horizon)}` : 'per year'}</em>
+                <em>
+                  {myPipeline.horizon
+                    ? `by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
+                    : 'per year'}
+                </em>
               </b>
               <span className="pipe-note">
                 {/* "shown", not "open": the figure is the filtered view, and
-                    saying so is what makes it move credibly when you filter. */}
+                    saying so is what makes it move credibly when you filter.
+                    The arrivals term is the measured weekly rate carried to the
+                    deadline — named, so the larger number can be checked. */}
                 {myPipeline.n.toLocaleString('en-US')}{' '}
                 {vertical === 'contracts'
                   ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
                   : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
                     (myPipeline.n === 1 ? '' : 's')}{' '}
-                shown ·{' '}
+                shown{myPipeline.arriving ? ` + ${myPipeline.arriving.toLocaleString('en-US')} more by then at this week's rate` : ''} ·{' '}
                 {fmtMoney(myPipeline.avg)} avg contract ·{' '}
                 {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>

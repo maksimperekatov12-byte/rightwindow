@@ -1438,13 +1438,13 @@ for (const [key, reg] of Object.entries(registers)) {
   const was = { ...seen[key] };
   for (const g of reg.feed) {
     seen[key][g.bin] ||= stamp(was);
-    // Elevators are the exception: the compliance table records the year of the
-    // last CAT1 filed, never a date on which the city said something new. Those
-    // cards carry no `latest` or `issued` at all, so testing them meant no
-    // elevator building could ever be marked new. First-seen stands alone here,
-    // as it does for the health-department openings and for the same reason.
-    g.isNew =
-      isFreshTs(seen[key][g.bin]) && (key === 'elevators' ? true : cityDated(g.latest, g.issued));
+    // Elevators cannot report novelty at all, and saying so is the only honest
+    // option. The compliance table records the year of the last CAT1 filed and
+    // no event date whatsoever, so there is nothing the city stamped to test
+    // against. Falling back to first-seen was tried and is worse: it announced
+    // 277 of 557 buildings as new when what had actually changed was our own
+    // shortlist. A register that cannot tell reports nothing.
+    g.isNew = key === 'elevators' ? false : isFreshTs(seen[key][g.bin]) && cityDated(g.latest, g.issued);
   }
 }
 writeFileSync(seenPath, JSON.stringify(seen, null, 1));
