@@ -94,11 +94,16 @@ function Columns({ rows, colors, onPick, onHover }) {
       TMP.scale.set(1, p.h, 1);
       TMP.updateMatrix();
       mesh.setMatrixAt(i, TMP.matrix);
-      // Amber for the cards with a dated forcing event — a hearing or an
-      // expiring shed — the same semantics the badges use; brand for the rest,
-      // darkened toward ink as urgency falls so the floor of the list reads
-      // quiet rather than loud.
-      const hot = p.card.nextHearing || p.card.shed?.until;
+      // Amber for a dated forcing event that is actually close — a hearing
+      // inside thirty days or a shed permit expiring inside sixty — matching
+      // the caption exactly. Any shed at all painted 573 of 800 columns amber,
+      // which made the colour mean nothing.
+      const soon = (iso, days) => {
+        if (!iso) return false;
+        const d = (new Date(iso) - Date.now()) / 86400000;
+        return d >= 0 && d <= days;
+      };
+      const hot = soon(p.card.nextHearing, 30) || soon(p.card.shed?.until, 60);
       TMPC.copy(hot ? warm : brand).lerp(ink, hot ? 0 : (1 - p.t) * 0.45);
       mesh.setColorAt(i, TMPC);
     });
