@@ -1042,3 +1042,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 
 /* The qualifier on the pipeline: this is one firm's number, as of now. */
 .pipe-note .pipe-asof { font-style: normal; font-weight: 600; color: var(--ink-2); }
+
+/* The rolling counter renders a bare span inside the big figure; the generic
+   .pipe span rule was shrinking exactly the number the block exists to show. */
+.pipe b span { font-size: inherit; color: inherit; font-family: inherit; }
