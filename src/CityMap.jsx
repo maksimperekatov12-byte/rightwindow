@@ -19,6 +19,58 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // reading dense neighbourhoods.
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
+// The base style, recoloured into the product's own palette before the map is
+// built. Positron ships neutral grey; this walks its layers and repaints them
+// with the same tokens the rest of the interface uses — paper ground, green
+// wash for parks, ink-toned labels — so the map reads as part of the page
+// rather than an embedded third-party widget. Matching is by layer id and
+// type, which is coarse on purpose: a layer the patterns miss simply keeps
+// Positron's quiet grey.
+let stylePromise = null;
+function themedStyle(colors) {
+  if (!stylePromise) stylePromise = fetch(STYLE_URL).then((r) => r.json());
+  return stylePromise.then((base) => {
+    const style = JSON.parse(JSON.stringify(base));
+    const P = {
+      land: colors.bg || '#F1EFE9',
+      water: colors.waterTone || '#DCE3DE',
+      green: colors.brandWash || 'rgba(20,89,74,0.12)',
+      building: 'rgba(15,30,26,0.055)',
+      roadMinor: 'rgba(255,255,255,0.9)',
+      roadMajor: '#FFFFFF',
+      roadCase: 'rgba(15,30,26,0.14)',
+      label: colors.ink2 || '#3E4B46',
+      labelFaint: colors.ink3 || '#5F6F69',
+      halo: colors.paper || '#FBFAF6',
+      boundary: 'rgba(15,30,26,0.25)',
+    };
+    for (const l of style.layers) {
+      const id = l.id.toLowerCase();
+      l.paint = l.paint || {};
+      if (l.type === 'background') l.paint['background-color'] = P.land;
+      else if (l.type === 'fill') {
+        if (/water|ocean|river/.test(id)) l.paint['fill-color'] = P.water;
+        else if (/park|green|wood|grass|cemetery|pitch|garden|landcover|vegetation/.test(id)) {
+          l.paint['fill-color'] = P.green;
+          delete l.paint['fill-pattern'];
+        } else if (/building/.test(id)) l.paint['fill-color'] = P.building;
+        else if (/landuse|residential|industrial|sand|aeroway/.test(id)) l.paint['fill-color'] = P.land;
+      } else if (l.type === 'line') {
+        if (/water|river/.test(id)) l.paint['line-color'] = P.water;
+        else if (/boundary|admin/.test(id)) l.paint['line-color'] = P.boundary;
+        else if (/casing|_case/.test(id)) l.paint['line-color'] = P.roadCase;
+        else if (/motorway|trunk|primary|highway/.test(id)) l.paint['line-color'] = P.roadMajor;
+        else if (/road|street|minor|service|path|rail|bridge|tunnel|link|secondary|tertiary/.test(id))
+          l.paint['line-color'] = P.roadMinor;
+      } else if (l.type === 'symbol') {
+        l.paint['text-color'] = /place|city|town|suburb|neighbourhood|borough/.test(id) ? P.label : P.labelFaint;
+        l.paint['text-halo-color'] = P.halo;
+      }
+    }
+    return style;
+  });
+}
+
 const NYC_BOUNDS = [
   [-74.28, 40.48],
   [-73.68, 40.93],
@@ -96,9 +148,23 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
   useEffect(() => {
     const el = host.current;
     if (!el || mapRef.current) return;
+    let dead = false;
+    let map = null;
+    let ro = null;
+    // The themed style is fetched BEFORE the map is built: swapping styles on a
+    // live map wipes the card layers the load handler adds, and rebuilding them
+    // across a swap is more machinery than waiting ~100ms for a 25KB JSON.
+    themedStyle(colors)
+      .catch(() => STYLE_URL)
+      .then((style) => {
+        if (dead || !host.current) return;
+        map = buildMap(style);
+      });
+
+    const buildMap = (style) => {
     const map = new GLMap({
       container: el,
-      style: STYLE_URL,
+      style,
       bounds: located.length ? boundsOf(located) : NYC_BOUNDS,
       fitBoundsOptions: { padding: 48, maxZoom: 15 },
       maxBounds: [
@@ -112,6 +178,13 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     // the controls are explicit rather than wheel-only.
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.touchZoomRotate.enableRotation();
+    // The flag integration tests read: flipped on every idle, cleared on move.
+    map.on('idle', () => {
+      el.dataset.mapIdle = '1';
+    });
+    map.on('movestart', () => {
+      delete el.dataset.mapIdle;
+    });
 
     map.on('load', () => {
       map.addSource('cards', { type: 'geojson', data });
@@ -168,12 +241,16 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     // The container is laid out by CSS that can land a frame after
     // construction — the map read 463x300 once and stayed there. Track the
     // element, not the window.
-    const ro = new ResizeObserver(() => map.resize());
+    ro = new ResizeObserver(() => map.resize());
     ro.observe(el);
+    return map;
+    };
+
     return () => {
-      ro.disconnect();
+      dead = true;
+      ro?.disconnect();
       mapRef.current = null;
-      map.remove();
+      map?.remove();
     };
     // Initial mount only; data and camera follow in the effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
