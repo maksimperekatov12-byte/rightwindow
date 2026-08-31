@@ -521,6 +521,15 @@ function Recheck({ card, builtOn, reduce }) {
     fetch(`/api/verify?bin=${encodeURIComponent(card.bin)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((j) => {
+        // An empty answer is not the same as "nothing changed": if the city has
+        // no record for this building at all, the card must not claim it was
+        // confirmed.
+        if (!j || (!j.lastCycle && !j.filing && !j.permit)) {
+          const none = { ok: false };
+          verifyCache.set(card.bin, none);
+          if (live) setState(none);
+          return;
+        }
         const next = { ok: true, changes: materialChanges(card, j, builtOn), at: j.checkedAt };
         verifyCache.set(card.bin, next);
         if (live) setState(next);
@@ -827,9 +836,11 @@ function contactOf(c, resolved) {
       tone: 'mid',
     };
   // A redacted public build ships the flag without the value: the card should
-  // say a number exists rather than claim there is none.
+  // say a number exists rather than claim there is none. It must not say
+  // "connecting" either — nothing is in progress, and a promise that never
+  // resolves is worse than a plain statement of where the number is.
   if (a.contactKnown)
-    return { ...base, phone: null, email: null, level: 'number held privately — connecting', tone: 'mid' };
+    return { ...base, phone: null, email: null, level: 'number on file · not in the public build', tone: 'mid' };
   return { ...base, phone: null, email: null, level: 'no direct line on file', tone: 'low' };
 }
 

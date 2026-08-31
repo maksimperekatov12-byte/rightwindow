@@ -136,8 +136,9 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
           published for exactly this. A shared mailbox is a slower door than a number, and the label says so.
         </li>
         <li>
-          <span className="conf mid">number held privately</span> A contact exists but is not in the public build —
-          contact values never travel through the public repository, only through the private store.
+          <span className="conf mid">number on file · not in the public build</span> A contact has been resolved but
+          is not in the copy of the data you are looking at: contact values never travel through the public
+          repository, only through the private store. The card says so rather than pretending there is no number.
         </li>
         <li>
           <span className="conf alt">from the food permit at this address</span> A venue applying for a liquour licence
