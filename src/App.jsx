@@ -982,7 +982,7 @@ export default function App() {
       fetch('/api/claims', {
         method: 'DELETE',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ uid: uid.current, key: k }),
+        body: JSON.stringify({ uid: uid.current, key: k, secret: secret.current }),
       }).catch(() => {});
     }
     if ((st === 'contacted' || st === 'won') && !claims[k]) {
@@ -992,7 +992,7 @@ export default function App() {
       fetch('/api/claims', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ uid: uid.current, key: k }),
+        body: JSON.stringify({ uid: uid.current, key: k, secret: secret.current }),
       })
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => {
@@ -1319,8 +1319,26 @@ export default function App() {
       Number(Boolean(b.contact?.phone || b.contact?.email)) - Number(Boolean(a.contact?.phone || a.contact?.email)) ||
       (a.daysLeft ?? 9e9) - (b.daysLeft ?? 9e9),
   };
+  // The liquour file dates its applications and the health file does not, so
+  // there is no single number both sources can be ordered by: comparing them
+  // directly put all 350 undated rows below all 39 dated ones and called it
+  // "newest permit". Each source is ranked within itself instead — days since
+  // application for one, the sequentially-issued permit number for the other —
+  // and the two are interleaved by relative position, so the newest of each
+  // sits at the top.
+  const openingRank = useMemo(() => {
+    const rank = new Map();
+    for (const [rows, key] of [
+      [liveOpenings.filter((o) => o.daysAgo != null), (o) => o.daysAgo],
+      [liveOpenings.filter((o) => o.daysAgo == null), (o) => -Number(o.camis || 0)],
+    ]) {
+      const sorted = [...rows].sort((a, b) => key(a) - key(b));
+      sorted.forEach((o, i) => rank.set(o.id, sorted.length > 1 ? i / (sorted.length - 1) : 0));
+    }
+    return (o) => rank.get(o.id) ?? 1;
+  }, [liveOpenings]);
   const OPENING_SORTS = {
-    recent: (a, b) => (a.daysAgo ?? 9e9) - (b.daysAgo ?? 9e9) || Number(b.camis || 0) - Number(a.camis || 0),
+    recent: (a, b) => openingRank(a) - openingRank(b),
     callable: (a, b) => Number(Boolean(b.phone)) - Number(Boolean(a.phone)) || Number(b.camis || 0) - Number(a.camis || 0),
     borough: (a, b) => String(a.county || '').localeCompare(String(b.county || '')) || Number(b.camis || 0) - Number(a.camis || 0),
   };
@@ -1333,7 +1351,7 @@ export default function App() {
       ['reachable', 'has a named officer'],
     ],
     openings: [
-      ['recent', 'newest permit'],
+      ['recent', 'newest first'],
       ['callable', 'has a number'],
       ['borough', 'by borough'],
     ],
@@ -1919,11 +1937,11 @@ export default function App() {
     vertical === 'facades'
       ? "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
       : vertical === 'gas'
-        ? 'Local Law 152 puts every gas-piped building on a four-year clock by community district. These are the ones DOB has already cited and whose next filing is due — mostly outside Manhattan, where the facade register is not.'
+        ? 'Local Law 152 puts every gas-piped building on a four-year clock by community district. These are the ones DOB has already cited and whose next filing is due. Every one is in sub-cycle C, so they share a deadline: 31 December 2026.'
         : vertical === 'elevators'
           ? 'Half the city has not filed this year\u2019s CAT1 test yet, which is the calendar, not a signal. These are the buildings that skipped a whole cycle — and still have until December 31 to put both right.'
           : vertical === 'carbon'
-            ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand of them for not filing an emissions report. Being named is the exception, and every one of these citations was written this summer.'
+            ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand of them for not filing an emissions report. Being named is the exception: most of these citations were written this summer, the rest since December.'
         : vertical === 'contracts'
           ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
           : 'Two records, both public. A liquor licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
@@ -3103,7 +3121,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
+                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
                         </div>
                       </motion.div>
                     )}
@@ -3303,7 +3321,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
+                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
               </>
             )}
             idOf={(c) => c.id}
@@ -3461,7 +3479,7 @@ export default function App() {
                       </a>
                     </div>
                   </div>
-                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
+                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
                 </>
               );
             }}
@@ -3615,7 +3633,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} />
+                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
               </>
             )}
             idOf={(c) => c.id}
@@ -3893,7 +3911,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
   );
 }
 
-function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNote }) {
+function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNote, feedForReasons }) {
   const cur = fbOf(k);
   const opts = [
     ['contacted', 'Contacted'],
@@ -3902,7 +3920,12 @@ function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNo
   ];
   const prefix = k.slice(0, 2);
   // Only worth asking about reasons the card can actually be judged on.
-  const reasons = cur === 'dismissed' && !reasonOf(k) && card ? reasonsFor(prefix).filter((r) => r.k === 'other' || r.of(card)) : [];
+  // reasonsForFeed, not reasonsFor: a reason the whole visible register agrees
+  // about teaches nothing — offering "wrong borough" on a list that is entirely
+  // one borough just hides the register. The dismissal strip above the feed
+  // already used the filtered helper; this path did not.
+  const reasons =
+    cur === 'dismissed' && !reasonOf(k) && card ? reasonsForFeed(prefix, card, feedForReasons || []) : [];
   return (
     <>
       <div className="fb-row">

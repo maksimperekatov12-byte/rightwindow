@@ -715,7 +715,7 @@ const awards = [...keptAwards.values()]
     vendorAddress: a.vendor_address || null,
     agency: a.agency_name,
     amount: Number(a.contract_amount),
-    title: a.short_title,
+    title: plain(a.short_title),
     category: a.category_description,
     method: a.selection_method_description,
     date: a.start_date?.slice(0, 10),
@@ -741,7 +741,7 @@ const openNotice = async (type, kind, limit) => {
       id: r.request_id,
       kind,
       agency: r.agency_name,
-      title: r.short_title,
+      title: plain(r.short_title),
       category: r.category_description,
       method: r.selection_method_description,
       date: r.start_date?.slice(0, 10),
@@ -794,6 +794,7 @@ openings = slaRaw.slice(0, 40).map((o) => ({
   kind: o.description,
   address: `${o.actual_address_of_premises || ''}, ${o.city || ''}`.trim(),
   county: o.premises_county,
+  zip: String(o.zip_code || '').trim().slice(0, 5) || null,
   received: o.received_date?.slice(0, 10),
   daysAgo: o.received_date ? Math.max(0, Math.round((TODAY - new Date(o.received_date)) / 86400000)) : null,
 }));
@@ -1355,7 +1356,13 @@ for (const [key, reg] of Object.entries(registers)) {
   const was = { ...seen[key] };
   for (const g of reg.feed) {
     seen[key][g.bin] ||= stamp(was);
-    g.isNew = isFreshTs(seen[key][g.bin]) && cityDated(g.latest, g.issued);
+    // Elevators are the exception: the compliance table records the year of the
+    // last CAT1 filed, never a date on which the city said something new. Those
+    // cards carry no `latest` or `issued` at all, so testing them meant no
+    // elevator building could ever be marked new. First-seen stands alone here,
+    // as it does for the health-department openings and for the same reason.
+    g.isNew =
+      isFreshTs(seen[key][g.bin]) && (key === 'elevators' ? true : cityDated(g.latest, g.issued));
   }
 }
 writeFileSync(seenPath, JSON.stringify(seen, null, 1));

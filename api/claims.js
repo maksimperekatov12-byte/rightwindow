@@ -35,12 +35,13 @@ export default async function handler(req, res) {
     const body = await readBody(req);
     const uid = String(body?.uid || '');
     const key = String(body?.key || '');
+    const secret = typeof body?.secret === 'string' && /^[\w-]{20,80}$/.test(body.secret) ? body.secret : null;
     if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bcgeko]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
     let taken = null;
     try {
       await updateDoc(CLAIMS, (doc) => {
         if (doc[key]) { taken = doc[key]; return null; }
-        doc[key] = { uid, at: Date.now() };
+        doc[key] = { uid, at: Date.now(), ...(secret ? { secret } : {}) };
         return doc;
       });
     } catch {
@@ -55,11 +56,17 @@ export default async function handler(req, res) {
     const body = await readBody(req);
     const uid = String(body?.uid || '');
     const key = String(body?.key || '');
+    const secret = typeof body?.secret === 'string' ? body.secret : null;
     if (!/^[0-9a-f-]{36}$/.test(uid) || !/^[bcgeko]:[\w-]{1,40}$/.test(key)) return res.status(400).json({ error: 'bad request' });
     let released = false;
     try {
       await updateDoc(CLAIMS, (doc) => {
+        // The uid travels as a query parameter to /api/live and leaks through
+        // Referer headers and shared links, so it identifies and does not
+        // authorise — the same argument api/prefs.js makes for its writes. A
+        // release has to present the secret the claim was taken with.
         if (doc[key]?.uid !== uid) return null;
+        if (doc[key]?.secret && doc[key].secret !== secret) return null;
         delete doc[key];
         released = true;
         return doc;

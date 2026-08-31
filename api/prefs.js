@@ -42,13 +42,19 @@ function clean(data) {
     }
     out.feedback = fb;
   }
+  // Only the channels this request actually names are touched. The block used to
+  // rebuild the object from scratch, so the digest form — which posts nothing but
+  // an email address — silently disconnected a Slack webhook the same user had
+  // connected through a different flow. A key that is absent means "leave it";
+  // an explicit null means "disconnect it".
   if (data.channels && typeof data.channels === 'object') {
     const ch = {};
-    ch.slack = SLACK_HOOK.test(data.channels.slack || '') ? data.channels.slack : null;
-    ch.email = EMAIL.test(data.channels.email || '') ? data.channels.email : null;
+    if ('slack' in data.channels)
+      ch.slack = SLACK_HOOK.test(data.channels.slack || '') ? data.channels.slack : null;
+    if ('email' in data.channels) ch.email = EMAIL.test(data.channels.email || '') ? data.channels.email : null;
     if (typeof data.channels.walletSerial === 'string' && /^[\w-]{1,64}$/.test(data.channels.walletSerial))
       ch.walletSerial = data.channels.walletSerial;
-    out.channels = ch;
+    if (Object.keys(ch).length) out.channels = ch;
   }
   return out;
 }
@@ -82,7 +88,11 @@ export default async function handler(req, res) {
         denied = true;
         return null;
       }
-      doc[uid] = { ...(prev || {}), ...clean(body.data), uid, secret, savedAt: Date.now() };
+      const next = clean(body.data);
+      // One level deeper for channels, so a partial update adds to what is
+      // stored instead of replacing the whole set.
+      if (next.channels) next.channels = { ...(prev?.channels || {}), ...next.channels };
+      doc[uid] = { ...(prev || {}), ...next, uid, secret, savedAt: Date.now() };
       return doc;
     });
     if (denied) return res.status(403).json({ error: 'not yours' });

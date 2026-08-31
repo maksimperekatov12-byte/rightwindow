@@ -28,7 +28,13 @@ const held = {};
 
 // Every register that carries an agent, not just the first one written — the
 // same mistake the redaction loop made when the second register was added.
-const withAgents = [feed.facades.feed, ...['gas', 'elevators', 'carbon'].map((k) => feed[k]?.feed || [])].flat();
+// Derived, not listed. The redaction loop in collect.mjs made exactly this
+// mistake once — it was left pointing at one register when a second was added,
+// and 399 people's names went into the public repo. A hard-coded list here would
+// silently stop publishing contacts for the next register somebody adds.
+const REGISTER_KEYS = Object.keys(feed).filter((k) => Array.isArray(feed[k]?.feed));
+const withAgents = REGISTER_KEYS.map((k) => feed[k].feed).flat();
+console.log(`push-contacts: registers found in the feed — ${REGISTER_KEYS.join(', ')}`);
 for (const c of withAgents) {
   if (!c.agent?.company) continue;
   const e = await enrichContact({ company: c.agent.company, address: c.agent.address });
