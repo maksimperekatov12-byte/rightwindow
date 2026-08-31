@@ -1046,3 +1046,16 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 /* The rolling counter renders a bare span inside the big figure; the generic
    .pipe span rule was shrinking exactly the number the block exists to show. */
 .pipe b span { font-size: inherit; color: inherit; font-family: inherit; }
+
+/* The live map inside the hero slot: fills the stage the built scenes used,
+   its own caption sitting where the massing caption sat. */
+.massing-slot .citymap-wrap { position: absolute; inset: 0; margin: 0; display: block; }
+.massing-slot .citymap {
+  position: absolute;
+  inset: 0 0 26px 0;
+  height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.massing-slot .citymap-cap { position: absolute; left: 2px; bottom: 0; margin: 0; }

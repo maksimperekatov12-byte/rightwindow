@@ -183,7 +183,7 @@ function Rig({ target }) {
 
 // ---- the panel --------------------------------------------------------------
 
-export default function CityMap({ rows, colors, reduced, onPick, describe }) {
+export default function CityMap({ rows, colors, reduced, onPick, describe, compact = false }) {
   const [tip, setTip] = useState(null);
   const host = useRef(null);
 
@@ -240,9 +240,9 @@ export default function CityMap({ rows, colors, reduced, onPick, describe }) {
         </div>
       )}
       <span className="citymap-cap">
-        {located.length.toLocaleString('en-US')} of {rows.length.toLocaleString('en-US')} shown cards located ·
-        colour and height are urgency · amber has a dated hearing or an expiring shed · drag to turn, click a
-        column to open its card
+        {compact
+          ? `${located.length.toLocaleString('en-US')} cards on the map · your filters move it · drag to turn, click a column to open`
+          : `${located.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} shown cards located · colour and height are urgency · amber has a dated hearing or an expiring shed · drag to turn, click a column to open its card`}
       </span>
     </div>
   );

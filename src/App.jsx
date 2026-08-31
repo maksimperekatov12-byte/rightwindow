@@ -2756,17 +2756,33 @@ export default function App() {
         </section>
         {HEROES[vertical] && (
           <div className="massing-slot">
-            {sceneReady && (
-              <Suspense fallback={null}>
-                {React.createElement(HEROES[vertical].Scene, {
-                  colors: themeColors,
-                  reduced: reduce,
-                  className: 'massing',
-                  ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
-                })}
-              </Suspense>
-            )}
-            <span className="massing-cap">{HEROES[vertical].cap}</span>
+            {/* Registers with coordinates put the register ITSELF in the hero:
+                the live map of the filtered list, not an illustration of the
+                kind of thing the list contains. Contracts keep their built
+                scene — a solicitation has no address to stand on. */}
+            {sceneReady &&
+              (vertical !== 'contracts' ? (
+                <Suspense fallback={null}>
+                  <CityMap
+                    compact
+                    rows={(visibleForReasons || []).map((card) => ({ card }))}
+                    colors={themeColors}
+                    reduced={reduce}
+                    onPick={mapPick}
+                    describe={mapDescribe}
+                  />
+                </Suspense>
+              ) : (
+                <Suspense fallback={null}>
+                  {React.createElement(HEROES[vertical].Scene, {
+                    colors: themeColors,
+                    reduced: reduce,
+                    className: 'massing',
+                    ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
+                  })}
+                </Suspense>
+              ))}
+            {vertical === 'contracts' && <span className="massing-cap">{HEROES[vertical].cap}</span>}
           </div>
         )}
       </div>
