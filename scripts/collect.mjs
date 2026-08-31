@@ -1195,6 +1195,8 @@ try {
     reached += viaHpd;
   }
   console.log(`Contacts carried into the other registers from the cache: ${reached}`);
+  const contactsSeen =
+    reached + feed.filter((c) => c.agent?.phone || c.agent?.email).length + openings.filter((o) => o.phone || o.email).length;
 
   // One queue for every register, so the next sweep sees the whole gap and can
   // spend its lookups where they cover the most cards.
@@ -1210,8 +1212,21 @@ try {
   };
   for (const c of feed) add(c, 'facades');
   for (const [key, reg] of Object.entries(registers)) for (const c of reg.feed) add(c, key);
-  const queue = [...gap.values()].sort((x, y) => y.cards - x.cards);
-  writeFileSync(new URL('../data/unresolved-contacts.json', import.meta.url), JSON.stringify(queue, null, 1));
+  const queue = [...gap.values()]
+    // HPD writes "N/a" and "NONE" where a registration names no company. They
+    // are not firms and they burn a slot in the next sweep.
+    .filter((e) => !/^(n\/?a|none|unknown|n\/a\.)$/i.test(e.company.trim()))
+    .sort((x, y) => y.cards - x.cards);
+  // CI has no contact cache on disk — it lives in the private store — so a run
+  // there sees every company as unresolved and would overwrite this file with a
+  // gap that is not real. The last honest version is better than a fresh wrong
+  // one, so only a run that actually had contacts rewrites it.
+  const haveContacts = [...gap.values()].length === 0 || contactsSeen > 0;
+  if (haveContacts) {
+    writeFileSync(new URL('../data/unresolved-contacts.json', import.meta.url), JSON.stringify(queue, null, 1));
+  } else {
+    console.log('Contact cache was empty this run, so the unresolved queue is left as it was.');
+  }
   console.log(
     `Contacts still unresolved across all registers: ${queue.length} companies covering ` +
       `${queue.reduce((n, x) => n + x.cards, 0)} cards; the top 10 alone cover ` +
