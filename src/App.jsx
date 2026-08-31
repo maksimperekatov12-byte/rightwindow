@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Suspense } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
 import DataPage from './Data.jsx';
@@ -916,6 +916,7 @@ export default function App() {
   const [slackState, setSlackState] = useState('idle');
   const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
   const [portfolioOpen, setPortfolioOpen] = useState(false);
+  const [showAllVerts, setShowAllVerts] = useState(false);
   const [portfolioText, setPortfolioText] = useState('');
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [hideBusy, setHideBusy] = useState(false);
@@ -1278,7 +1279,51 @@ export default function App() {
   // Every register can now be ordered, and only on fields it actually varies on.
   // A sort offered where the value is constant is worse than no sort: it looks
   // like it did something.
+  // A firm that runs eleven buildings is one call worth eleven jobs. The count is
+  // stamped by the collector; where those buildings sit is read off the feed, so
+  // the card can say which other registers hold the rest.
+  const agentSpread = useCallback(
+    (company) => {
+      if (!company) return [];
+      const key = company.toUpperCase().trim();
+      return [['facades', 'facades'], ...mandateKeys.map((k) => [k, MANDATES[k].label.toLowerCase()])]
+        .map(([k, label]) => [k, label, (data[k]?.feed || []).filter((c) => (c.agent?.company || '').toUpperCase().trim() === key).length])
+        .filter(([, , n]) => n > 0);
+    },
+    [data],
+  );
+
+  // Contracts and openings order themselves. An open solicitation always sits
+  // above a closed one, and an award above neither — the deadline is the point.
+  const CONTRACT_SORTS = {
+    closing: (a, b) => {
+      const live = (c) => (c.daysLeft == null ? 2 : c.daysLeft < 0 ? 1 : 0);
+      return live(a) - live(b) || (a.daysLeft ?? 9e9) - (b.daysLeft ?? 9e9);
+    },
+    posted: (a, b) => String(b.date || '').localeCompare(String(a.date || '')),
+    value: (a, b) => (b.amount || 0) - (a.amount || 0) || String(b.date || '').localeCompare(String(a.date || '')),
+    reachable: (a, b) =>
+      Number(Boolean(b.contact?.phone || b.contact?.email)) - Number(Boolean(a.contact?.phone || a.contact?.email)) ||
+      (a.daysLeft ?? 9e9) - (b.daysLeft ?? 9e9),
+  };
+  const OPENING_SORTS = {
+    recent: (a, b) => (a.daysAgo ?? 9e9) - (b.daysAgo ?? 9e9) || Number(b.camis || 0) - Number(a.camis || 0),
+    callable: (a, b) => Number(Boolean(b.phone)) - Number(Boolean(a.phone)) || Number(b.camis || 0) - Number(a.camis || 0),
+    borough: (a, b) => String(a.county || '').localeCompare(String(b.county || '')) || Number(b.camis || 0) - Number(a.camis || 0),
+  };
+
   const REG_SORTS = {
+    contracts: [
+      ['closing', 'closing soonest'],
+      ['posted', 'newest first'],
+      ['value', 'largest award'],
+      ['reachable', 'has a named officer'],
+    ],
+    openings: [
+      ['recent', 'newest permit'],
+      ['callable', 'has a number'],
+      ['borough', 'by borough'],
+    ],
     facades: [
       ['profile', 'for you'],
       ['hearing', 'next hearing'],
@@ -1288,11 +1333,13 @@ export default function App() {
     ],
     gas: [
       ['profile', 'for you'],
+      ['holdings', 'biggest landlord'],
       ['open', 'longest open'],
       ['callable', 'contact first'],
     ],
     elevators: [
       ['profile', 'for you'],
+      ['holdings', 'biggest landlord'],
       ['devices', 'most lifts'],
       ['behind', 'years behind'],
       ['callable', 'contact first'],
@@ -1301,6 +1348,7 @@ export default function App() {
     // four hundred cards. Whether there is anyone to ring is the real order.
     carbon: [
       ['profile', 'for you'],
+      ['holdings', 'biggest landlord'],
       ['callable', 'contact first'],
       ['open', 'most violations'],
     ],
@@ -1308,6 +1356,7 @@ export default function App() {
   const MANDATE_SORTS = {
     profile: (a, b) => b.urgencyScore - a.urgencyScore,
     open: (a, b) => (b.openDays || 0) - (a.openDays || 0) || b.violations - a.violations,
+    holdings: (a, b) => (b.agent?.portfolio || 0) - (a.agent?.portfolio || 0) || b.urgencyScore - a.urgencyScore,
     devices: (a, b) => (b.devices || 0) - (a.devices || 0) || b.urgencyScore - a.urgencyScore,
     behind: (a, b) => (b.yearsBehind ?? 99) - (a.yearsBehind ?? 99) || b.urgencyScore - a.urgencyScore,
     callable: (a, b) =>
@@ -1387,8 +1436,8 @@ export default function App() {
         return [c.vendor, c.agency, c.title, c.category, c.contact?.name, c.epin]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
-      }),
-    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
+      }).sort(CONTRACT_SORTS[sortMode] || CONTRACT_SORTS.closing),
+    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode],
   );
   const mandateLists = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
@@ -1418,7 +1467,7 @@ export default function App() {
   // the control showing nothing while the list quietly reordered itself.
   useEffect(() => {
     const allowed = (REG_SORTS[vertical] || []).map(([v]) => v);
-    if (allowed.length && !allowed.includes(sortMode)) setSortMode('profile');
+    if (allowed.length && !allowed.includes(sortMode)) setSortMode(allowed[0]);
     const chips = vertical === 'facades' ? profile.cohorts || [] : REG_COHORTS[vertical] || [];
     if (cohort && !chips.includes(cohort)) setCohort(null);
   }, [vertical]);
@@ -1431,14 +1480,34 @@ export default function App() {
         if (!showHidden && taughtAway('o:', o)) return false;
         if (onlyWatch && !isWatched('o:' + o.id)) return false;
         if (cohort && !(COHORTS[cohort]?.of(o) ?? true)) return false;
+        if (boro !== 'all' && o.county !== boro) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
         return [o.name, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
-      }),
-    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
+      }).sort(OPENING_SORTS[sortMode] || OPENING_SORTS.recent),
+    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode, boro],
   );
+  // How common each signal is across the rows on screen, so a card can lead with
+  // what makes it different.
+  // A bare urgency score means nothing to someone reading their first card. What
+  // they can act on is where it sits against the rest of the register.
+  const urgencyRank = useMemo(() => {
+    const scores = facadeFeed.map((c) => c.urgencyScore).sort((a, b) => b - a);
+    return (score) => {
+      const above = scores.filter((x) => x > score).length;
+      const pct = Math.max(1, Math.round((100 * (above + 1)) / (scores.length || 1)));
+      return pct <= 25 ? `top ${pct}%` : `${pct}th percentile`;
+    };
+  }, [facadeFeed]);
+
+  const signalFreq = useMemo(() => {
+    const m = {};
+    for (const c of filteredFeed) for (const sg of c.signals) m[sg.kind] = (m[sg.kind] || 0) + 1;
+    return m;
+  }, [filteredFeed]);
+
   const visibleForReasons =
     vertical === 'facades'
       ? filteredFeed
@@ -1480,7 +1549,14 @@ export default function App() {
       (v.key === 'openings' && profile.oNeed),
   );
   const bigEnough = matchedVerts.filter((v) => v.key === forcedVert.current || vertSize[v.key] >= MIN_LIST);
-  const visibleVerts = bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1);
+  const matchedVertKeys = (bigEnough.length ? bigEnough : matchedVerts).map((v) => v.key);
+  // Hiding the registers a trade cannot act on keeps the strip honest, but it
+  // also hides that they exist. The trailing button opens the rest without
+  // discarding the trade, and folds them away again.
+  const restVerts = VERTICALS.filter((v) => !matchedVertKeys.includes(v.key) && vertSize[v.key] >= MIN_LIST);
+  const visibleVerts = (
+    bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1)
+  ).concat(showAllVerts ? restVerts : []);
   const pickedVert = useRef(false);
   useEffect(() => {
     const here = visibleVerts.some((v) => v.key === vertical);
@@ -1876,8 +1952,9 @@ export default function App() {
       />
       {boroughs && (
         <div className="chips" role="group" aria-label="Borough">
-          {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx'].map((b) => {
-            const n = b === 'all' ? total : (data[vertical]?.feed || []).filter((c) => c.borough === b).length;
+          {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'].map((b) => {
+            const pool = data[vertical]?.feed || (Array.isArray(data[vertical]) ? data[vertical] : []);
+            const n = b === 'all' ? total : pool.filter((c) => (c.borough || c.county) === b).length;
             if (b !== 'all' && !n) return null;
             return (
               <button key={b} className={'chip' + (boro === b ? ' on' : '')} aria-pressed={boro === b} onClick={() => setBoro(b)}>
@@ -2267,6 +2344,11 @@ export default function App() {
               <span className="tlabel">{v.label}</span>
             </button>
           ))}
+          {restVerts.length > 0 && (
+            <button className="vmore" onClick={() => setShowAllVerts((v) => !v)}>
+              {showAllVerts ? 'Fewer' : `+${restVerts.length} more`}
+            </button>
+          )}
         </div>
       </LayoutGroup>
 
@@ -2286,17 +2368,22 @@ export default function App() {
           ) : (
             <div className="eyebrow">New York City · public records, read hourly</div>
           )}
-          <AnimatePresence initial={false} mode="popLayout">
-            <motion.h1
-              key={vertical + profileKey}
-              initial={reduce ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? {} : { opacity: 0, y: -8 }}
-              transition={{ duration: 0.28, ease: 'easeOut' }}
-            >
-              {emphasize(heroText)}
-            </motion.h1>
-          </AnimatePresence>
+          {/* No AnimatePresence here on purpose. The crossfade leaves the old
+              headline mounted until its exit transition finishes, and a tab that
+              is in the background does not run transitions — so switching
+              register while hidden left the previous register's headline on
+              screen at full opacity and the real one at zero. The headline names
+              what you are looking at; it must never be able to lag behind it. */}
+          <motion.h1
+            key={vertical + profileKey}
+            // Rises, never fades. An element whose only visible state is the end
+            // of an animation is invisible if that animation does not run.
+            initial={reduce ? false : { y: 10 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
+          >
+            {emphasize(heroText)}
+          </motion.h1>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
           {myPipeline ? (
             <motion.div className="pipe" {...fade(0.1)}>
@@ -2623,7 +2710,14 @@ export default function App() {
             {filteredFeed.slice(0, shown).map((c, i) => {
               const open = openId === c.bin;
               const wkey = 'b:' + c.bin;
-              const topSignal = [...c.signals].sort((a, b) => b.urgency - a.urgency)[0];
+              // The highest-urgency signal is often the one the whole register
+              // shares — seven rows reading SHED UP, NO REPAIR FILED say nothing
+              // about any of them. Lead with the signal that is rare in the list
+              // you are actually looking at, and fall back to urgency to break
+              // ties.
+              const topSignal = [...c.signals].sort(
+                (a, b) => (signalFreq[a.kind] || 0) - (signalFreq[b.kind] || 0) || b.urgency - a.urgency,
+              )[0];
               return (
                 <motion.article
                   layout={reduce ? false : true}
@@ -2655,6 +2749,7 @@ export default function App() {
                         <span className="boro">
                           {c.borough}
                           {c.zip ? <span className="zip">{c.zip}</span> : null}
+                          {c.agent?.company && <span className="who">{title(c.agent.company)}</span>}
                         </span>
                         {c.isNew && <span className="badge new">New</span>}
                         {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
@@ -2717,7 +2812,9 @@ export default function App() {
                           <div className="sig">
                             <div className="sig-k">
                               Why now
-                              <span className="score" title="Urgency score">{c.urgencyScore}</span>
+                              <span className="score" title={`Urgency ${c.urgencyScore}, ranked against the other ${facadeFeed.length} buildings in this register`}>
+                                {urgencyRank(c.urgencyScore)}
+                              </span>
                             </div>
                             <div className="sig-v">{signalStory(c)}</div>
                           </div>
@@ -2908,6 +3005,21 @@ export default function App() {
                                       href={`mailto:${ct.email}?subject=${encodeURIComponent(emailSubject(c))}&body=${encodeURIComponent(openerFor(c, fv, ct))}`}
                                     >
                                       Email {ct.email}
+                                    </a>
+                                  );
+                                // We know this firm has a line and cannot serve
+                                // it here. The next step is finding it, so make
+                                // that the button rather than burying it in the
+                                // overflow menu behind an opener they cannot send.
+                                if (c.agent?.company)
+                                  return (
+                                    <a
+                                      className="btn solid big"
+                                      href={findUrl(`"${c.agent.company}" ${c.agent.address ? c.agent.address.split(',')[1] || 'New York' : 'New York'} phone`)}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      Find the number
                                     </a>
                                   );
                                 return (
@@ -3251,6 +3363,19 @@ export default function App() {
                         <div className="v">
                           {c.agent.company ? title(c.agent.company) : c.agent.role}
                           {c.agent.address ? ` — ${title(c.agent.address)}` : ''}
+                          {c.agent.portfolio > 1 && (
+                            <>
+                              {' · '}
+                              <button className="linkish" onClick={() => setQuery(c.agent.company)}>
+                                runs {c.agent.portfolio} buildings we track
+                              </button>
+                              <span className="spread">
+                                {agentSpread(c.agent.company)
+                                  .map(([, label, n]) => `${n} on ${label}`)
+                                  .join(', ')}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
@@ -3289,6 +3414,15 @@ export default function App() {
                         >
                           Email {ct.email}
                         </a>
+                      ) : c.agent?.company ? (
+                        <a
+                          className="btn solid"
+                          href={findUrl(`"${c.agent.company}" New York phone`)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Find the number
+                        </a>
                       ) : (
                         <button className="btn solid" onClick={() => copy(c.bin, m.opener(c))}>
                           {copiedId === c.bin ? 'Copied' : 'Copy opener'}
@@ -3323,7 +3457,7 @@ export default function App() {
 
       {vertical === 'openings' && (
         <>
-          {miniToolbar(openingsList, data.openings.length)}
+          {miniToolbar(openingsList, data.openings.length, { boroughs: true })}
           <SimpleFeed
             items={openingsList.slice(0, shown)}
             total={openingsList.length}

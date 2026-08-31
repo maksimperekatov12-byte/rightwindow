@@ -934,3 +934,51 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 .crash b { display: block; font-family: var(--display); font-size: 26px; font-weight: 400; margin-bottom: 10px; }
 .crash p { color: var(--ink-2); font-size: 15px; margin: 0 0 18px; }
+
+/* Where else the same managing agent turns up. Sits under the count, quiet. */
+.fact .spread {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--dim);
+  font-family: var(--mono);
+  letter-spacing: 0.01em;
+}
+
+/* The registers this trade does not match. Present, but clearly secondary. */
+.verticals .vmore {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  background: none;
+  border: 0;
+  padding: 0 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.verticals .vmore:hover { color: var(--ink); }
+
+/* The firm on the row. Quiet, but it is the thing you ring. */
+.head-main .boro .who {
+  display: inline-block;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+  color: var(--dim);
+  max-width: 26ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+@media (max-width: 640px) {
+  .head-main .boro .who { display: none; }
+}
+
+/* Coverage by register on the data page. Wide content scrolls inside its own
+   box rather than pushing the page sideways on a phone. */
+.dtable.cover { min-width: 380px; }
+.dtable.cover td.n,
+.dtable.cover th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
+.dtable.cover td.name { white-space: nowrap; }

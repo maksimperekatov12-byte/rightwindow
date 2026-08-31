@@ -13,13 +13,24 @@ export const REASON_MIN = 2;
 
 export function title(s) {
   if (!s) return s;
-  return s
-    .toLowerCase()
-    .replace(/\b[a-z]/g, (m) => m.toUpperCase())
-    .replace(/\bLlc\b/g, 'LLC')
-    .replace(/\bHdfc\b/g, 'HDFC')
-    .replace(/\bIi\b/g, 'II')
-    .replace(/\bIii\b/g, 'III');
+  return (
+    String(s)
+      .split(/(\s+)/)
+      // A word the source already typed in mixed case is how the firm spells its
+      // own name - FirstService, McKinsey, LaSalle. Lower-casing it first and
+      // capitalising the front destroys exactly the names people recognise.
+      .map((w) => (/[a-z]/.test(w) && /[A-Z]/.test(w.slice(1)) ? w : w.toLowerCase()))
+      .join('')
+      .replace(/\b[a-z]/g, (m) => m.toUpperCase())
+      .replace(/\bLlc\b/g, 'LLC')
+      .replace(/\bLlp\b/g, 'LLP')
+      .replace(/\bHdfc\b/g, 'HDFC')
+      .replace(/\bHpd\b/g, 'HPD')
+      .replace(/\bDob\b/g, 'DOB')
+      .replace(/\bNyc\b/g, 'NYC')
+      .replace(/\bIi\b/g, 'II')
+      .replace(/\bIii\b/g, 'III')
+  );
 }
 
 export const REASON_SETS = {

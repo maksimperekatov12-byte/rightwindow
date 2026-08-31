@@ -12,6 +12,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCache } from '../lib/enrich.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 import { resolveAffiliates } from '../lib/affiliate.mjs';
+import { dropPrivateIndividuals } from '../lib/personal.mjs';
 
 // Source gate (same rule as Signal): a source without an ALLOWED verdict in
 // data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
@@ -872,6 +873,29 @@ try {
   openings = [...openings, ...(prevFeed()?.openings || []).filter((o) => o.src === 'dohmh')];
 }
 
+// The two sources name the same place differently: the liquour file prints the
+// legal county (Kings, New York, Richmond) and the health file prints the
+// borough. One list showing both is the register contradicting itself.
+const BOROUGH_OF = {
+  Kings: 'Brooklyn',
+  'New York': 'Manhattan',
+  Richmond: 'Staten Island',
+  Bronx: 'Bronx',
+  Queens: 'Queens',
+  Brooklyn: 'Brooklyn',
+  Manhattan: 'Manhattan',
+};
+for (const o of openings) o.county = BOROUGH_OF[o.county] || o.county;
+
+// The register says it shows businesses, so it has to. A sole proprietor who
+// permits under their own name is a private individual, and the card would pair
+// that name with their mobile number.
+{
+  const before = openings.length;
+  openings = dropPrivateIndividuals(openings);
+  console.log(`Private individuals dropped from openings: ${before - openings.length}`);
+}
+
 // A liquour-licence card carries no contact of any kind. Most of those venues
 // also hold a food permit, and that record prints a number — so the gap closes
 // for free, from the same file, with no lookup.
@@ -1345,6 +1369,27 @@ const sources = {
   acrisThrough,
 };
 console.log('Source freshness:', sources);
+
+// A managing agent rarely runs one building. Counting how many buildings across
+// every register sit with the same firm turns four separate lists into one
+// commercial fact: this call reaches fourteen addresses, not one. It is also the
+// only field that differs between two gas cards, where the legal facts —
+// deadline, sub-cycle, issue date — are identical for the whole register by law.
+{
+  const portfolio = new Map();
+  const cards = [...feed, ...Object.values(registers).flatMap((r) => r.feed)];
+  for (const c of cards) {
+    const co = c.agent?.company;
+    if (!co) continue;
+    (portfolio.get(co) || portfolio.set(co, new Set()).get(co)).add(c.bin);
+  }
+  for (const c of cards) {
+    const co = c.agent?.company;
+    if (co) c.agent.portfolio = portfolio.get(co).size;
+  }
+  const big = [...portfolio.values()].filter((s) => s.size >= 3).length;
+  console.log(`Managing agents: ${portfolio.size} firms, ${big} of them holding three or more buildings`);
+}
 
 const out = {
   generatedAt: TODAY.toISOString(),

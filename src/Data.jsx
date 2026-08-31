@@ -178,8 +178,8 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
       <p className="fine">
         Measured, not estimated, and counted from the build you are looking at rather than typed in by hand.
       </p>
-      <div className="twrap">
-        <table>
+      <div className="scrollx">
+        <table className="dtable cover">
           <thead>
             <tr><th>Register</th><th>Cards</th><th>Reach a contact</th><th></th></tr>
           </thead>
@@ -196,10 +196,11 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
         </table>
       </div>
       <p className="fine">
-        Coverage is uneven for a reason. New openings is highest because the city prints the number on the food permit
-        itself. The building registers depend on who the managing agent is: a firm has an office and a switchboard, and
-        a building registered to an individual has nothing to look up. Every card in those registers names a firm, and
-        what is left is the firms nobody has measured yet.
+        Coverage is uneven for a reason. New openings sits highest because the city prints the number on the food permit
+        itself — nothing is looked up at all. Every card in the building registers names a firm rather than a person,
+        which is a condition of appearing at all; what separates them is whether that firm publishes a line we can read
+        off its own site. Small management companies often do not, and those are the cards still showing a company and a
+        role with no number against them.
       </p>
       {noCall.map((p) => (
         <p className="fine" key={p.id}>
