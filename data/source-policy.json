@@ -148,5 +148,15 @@
   "checked": "2026-08-31",
   "notes": "Used only to geocode the ~40 State Liquor Authority venues per build, because the SLA file carries an address and no coordinates. One request per venue, cached in the feed.",
   "datasets": []
+ },
+ {
+  "id": "openfreemap",
+  "host": "tiles.openfreemap.org",
+  "publisher": "OpenFreeMap (OpenStreetMap data)",
+  "verdict": "ALLOWED",
+  "license": "Open-source map hosting of OpenStreetMap data (ODbL). Free for any use, no key, no request limit; attribution to OpenStreetMap contributors is required and is rendered by the map control itself.",
+  "checked": "2026-08-31",
+  "notes": "Vector tiles and the Positron style for the register map. Loaded by the visitor's browser, not by the collector.",
+  "datasets": []
  }
 ]

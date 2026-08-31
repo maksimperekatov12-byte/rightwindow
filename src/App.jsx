@@ -1106,9 +1106,10 @@ export default function App() {
   const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [showAllVerts, setShowAllVerts] = useState(false);
-  // ?map=1 opens the map straight away — a shareable view of the register on
-  // the city, and the only way a screenshot rig can reach it.
-  const [showMap, setShowMap] = useState(() => new URLSearchParams(location.search).get('map') === '1');
+  // ?map=1 opens the map straight away; ?map=big opens it across the whole
+  // window — a shareable view of the register on the city.
+  const mapParam = useRef(new URLSearchParams(location.search).get('map')).current;
+  const [showMap, setShowMap] = useState(() => mapParam === '1' || mapParam === 'big');
   const [portfolioText, setPortfolioText] = useState('');
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [hideBusy, setHideBusy] = useState(false);
@@ -2243,6 +2244,7 @@ export default function App() {
           reduced={reduce}
           onPick={mapPick}
           describe={mapDescribe}
+          startBig={mapParam === 'big'}
         />
       </Suspense>
     ) : null;
