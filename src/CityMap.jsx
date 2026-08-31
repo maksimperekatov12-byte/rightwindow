@@ -1,6 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Map as GLMap, NavigationControl } from 'maplibre-gl';
+import { Map as GLMap, NavigationControl, setWorkerUrl } from 'maplibre-gl';
+// Vite bundles the main module but does not emit the worker file its
+// `new URL('./maplibre-gl-worker.mjs', import.meta.url)` points at, so
+// production served a 404 and the map hung silently before its first tile
+// request. `?url` makes Vite emit the worker as a real asset and hand back its
+// hashed path, which MapLibre is told to use outright.
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
+
+setWorkerUrl(workerUrl);
 
 // The register, on a real map of New York.
 //
