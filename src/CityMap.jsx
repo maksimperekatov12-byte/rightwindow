@@ -165,7 +165,13 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
       });
     });
     mapRef.current = map;
+    // The container is laid out by CSS that can land a frame after
+    // construction — the map read 463x300 once and stayed there. Track the
+    // element, not the window.
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(el);
     return () => {
+      ro.disconnect();
       mapRef.current = null;
       map.remove();
     };
