@@ -6,6 +6,9 @@ on:
 
 permissions:
   contents: write
+  # Restarting the pinger is a workflow dispatch, which needs this scope. Without
+  # it the restart step failed silently and a dead pinger stayed dead.
+  actions: write
 
 concurrency:
   group: data-writes
@@ -35,7 +38,47 @@ jobs:
           npm i --no-save @vercel/blob > /dev/null 2>&1
           node scripts/assign.mjs || echo "assign failed (store down?) — feed commit continues"
           node scripts/migrate-blobs.mjs || echo "migrate failed — feed commit continues"
-          node scripts/push-contacts.mjs || echo "push-contacts failed — feed commit continues" 
+          DATA_DIR="$GITHUB_WORKSPACE/.data" node scripts/push-contacts.mjs || echo "push-contacts failed — feed commit continues"
+      # The public half of the contacts goes to the orphan `data` branch, which
+      # costs nothing to read, rather than to the metered store. The pinger
+      # force-pushes that branch every five minutes, so this step must carry its
+      # intraday.json forward or the pulse would reset on every hourly run.
+      - name: Publish contacts to the data branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATA_DIR="$GITHUB_WORKSPACE/.data"
+          [ -s "$DATA_DIR/contacts.json" ] || { echo "no contacts artefact — nothing to publish"; exit 0; }
+
+          # The pinger owns intraday.json; this job must carry it forward or the
+          # pulse the whole demo rests on resets every hour. Read it over git,
+          # not the CDN: raw.githubusercontent caches for about five minutes and
+          # ignores query strings, so a "fresh" read can be a stale one.
+          git fetch -q --depth 1 origin data 2>/dev/null || true
+          git show origin/data:intraday.json > "$DATA_DIR/intraday.json" 2>/dev/null || true
+
+          # This job must never be the one that creates the branch: a branch
+          # without a pulse permanently stops the pinger, which refuses to
+          # publish over a branch it cannot read.
+          if [ ! -s "$DATA_DIR/intraday.json" ]; then
+            echo "no pulse to carry forward — not publishing"
+            exit 0
+          fi
+          node -e 'JSON.parse(require("fs").readFileSync(process.argv[1]))' "$DATA_DIR/intraday.json" \
+            || { echo "the pulse on the branch is not valid JSON — refusing to publish over it"; exit 1; }
+
+          printf '{\n  "git": { "deploymentEnabled": false }\n}\n' > "$DATA_DIR/vercel.json"
+          rm -rf "$DATA_DIR/.git"
+          git -C "$DATA_DIR" init -q
+          # Named, not -A: the project .gitignore does not apply to a repository
+          # rooted at $DATA_DIR, so anything that ever lands there is published.
+          git -C "$DATA_DIR" add -- contacts.json intraday.json vercel.json
+          git -C "$DATA_DIR" -c user.email=actions@github.com -c user.name=right-window-refresh commit -q -m "data $(date -u +%FT%TZ)"
+          git -C "$DATA_DIR" push -q --force \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:data \
+            || { echo "publishing contacts failed"; exit 1; }
+          echo "contacts published: $(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1])).count)' "$DATA_DIR/contacts.json") rows"
       - name: Commit refreshed data
         if: always()
         run: |

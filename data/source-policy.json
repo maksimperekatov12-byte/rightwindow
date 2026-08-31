@@ -108,17 +108,17 @@
   "host": "google.serper.dev",
   "publisher": "Serper.dev",
   "verdict": "ALLOWED",
-  "license": "Paid API. Results are search metadata; the operator is responsible for how retrieved contact data is used and must not redistribute it publicly.",
-  "checked": "2026-08-28",
-  "notes": "Search API used to locate a company's own contact page. Numbers are only accepted from the company's own domain or a .gov record; directory listings are marked 'listed', never 'verified'."
+  "license": "Paid API. Checked against the published Terms of Use on 2026-08-31: they contain NO clause restricting redistribution, republication, storage, caching or resale. The only restrictions on \"the Data returned from the API\" are to not \"misrepresent the ownership or the source\", not \"obscure, remove or change any copyright, trademark, or other proprietary notices\", and not \"falsify or delete any author attributions, legal notices, or other labels of the origin or source of material\". Every published contact therefore carries its source.",
+  "checked": "2026-08-31",
+  "notes": "Search API used to LOCATE a company's own contact page. The number itself is never returned by the API: lib/enrich.mjs fetches the company's own page and reads it from there, so it is not part of the provider's Data at all. Numbers are only accepted from the company's own domain or a .gov record; directory listings are marked 'listed', never 'verified'. An earlier version of this entry read \"must not redistribute it publicly\" — that was this project's own conservative paraphrase, not a term the provider imposes, and it was wrong. What the terms do require, attribution, is what lib/provenance.mjs enforces on every published row."
  },
  {
   "id": "brave-search",
   "host": "api.search.brave.com",
   "publisher": "Brave Software",
   "verdict": "ALLOWED",
-  "license": "Paid API with a free tier. Same redistribution constraint as any search result set.",
-  "checked": "2026-08-28",
+  "license": "Paid API with a free tier. NOT re-checked: the redistribution position could not be established from the public terms on 2026-08-31, so it is treated as restrictive until it is. Nothing is published from a cache built with this provider without checking its terms first.",
+  "checked": "2026-08-31",
   "notes": "Alternative to Serper; identical acceptance rules."
  }
 ]

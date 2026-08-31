@@ -60,15 +60,29 @@ jobs:
               && git show origin/data:intraday.json > "$DATA_DIR/intraday.json" 2>/dev/null \
               && echo "seeded from git" || true
           fi
+          # contacts.json is written by the hourly refresh, not by this job, but
+          # this job force-pushes the whole branch every five minutes. Without
+          # carrying it forward, every publish of contacts would survive about
+          # one tick.
+          #
+          # Read over git, not over raw.githubusercontent: that CDN has a ~5
+          # minute TTL and ignores query strings (this repo measured it — see
+          # lib/live-source.mjs), which is precisely the tick interval, so a
+          # cached copy would keep resurrecting a contacts file that had just
+          # been replaced or deliberately removed.
+          git fetch -q --depth 1 origin data 2>/dev/null || true
+          git show origin/data:contacts.json > "$DATA_DIR/contacts.json" 2>/dev/null \
+            || { rm -f "$DATA_DIR/contacts.json"; echo "no contacts on the branch yet"; }
           if [ ! -s "$DATA_DIR/intraday.json" ]; then
             # Distinguish "no branch yet" from "could not reach GitHub". Publishing
             # on a blip would force-push a reset pulse and an empty change log over
             # the real history — the proof-of-life the demo rests on.
-            if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
-              echo "data branch exists but could not be read — refusing to publish over it"
-              exit 1
-            fi
-            echo "no data branch yet — first run"
+            git ls-remote --exit-code --heads origin data >/dev/null 2>&1
+            case $? in
+              0) echo "data branch exists but could not be read — refusing to publish over it"; exit 1 ;;
+              2) echo "no data branch yet — first run" ;;
+              *) echo "cannot tell whether the data branch exists — refusing to publish"; exit 1 ;;
+            esac
           else
             echo "seeded from data branch"
           fi
@@ -77,8 +91,12 @@ jobs:
       - name: Ping loop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Through the environment, not expanded into the script: a dispatch
+          # value containing a quote would otherwise run as shell in this job.
+          MINUTES_INPUT: ${{ inputs.minutes }}
         run: |
-          MINUTES="${{ inputs.minutes || '330' }}"
+          MINUTES="${MINUTES_INPUT:-330}"
+          case "$MINUTES" in ''|*[!0-9]*) MINUTES=330 ;; esac
           END=$(( $(date +%s) + MINUTES * 60 ))
           TICK=0
           REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
@@ -89,13 +107,30 @@ jobs:
 
             # Republish: one orphan commit each time, so the branch never grows
             # a history and the repo stays small.
+            # Re-read before republishing: the hourly job may have pushed a
+            # newer contacts.json since the last tick, and force-pushing a stale
+            # copy over it would undo that until the next hour. Over git, so the
+            # CDN's five-minute cache cannot resurrect a removed row — a
+            # takedown has to be able to take effect within one tick.
+            if git fetch -q --depth 1 origin data 2>/dev/null \
+               && git show origin/data:contacts.json > "$DATA_DIR/contacts.json.new" 2>/dev/null \
+               && node -e 'JSON.parse(require("fs").readFileSync(process.argv[1]))' "$DATA_DIR/contacts.json.new"; then
+              mv "$DATA_DIR/contacts.json.new" "$DATA_DIR/contacts.json"
+            else
+              rm -f "$DATA_DIR/contacts.json.new"
+            fi
+
             if [ -f "$DATA_DIR/intraday.json" ]; then
               # The branch carries its own vercel.json: Vercel reads config from
               # the commit it is asked to build, and this one says do not build.
               printf '{\n  "git": { "deploymentEnabled": false }\n}\n' > "$DATA_DIR/vercel.json"
               rm -rf "$DATA_DIR/.git"
               git -C "$DATA_DIR" init -q
-              git -C "$DATA_DIR" add -A
+              # Named, not -A: this repo's .gitignore does not apply inside a
+              # repository rooted at $DATA_DIR, so anything that ever lands
+              # there would be published.
+              git -C "$DATA_DIR" add -- intraday.json vercel.json
+              [ -s "$DATA_DIR/contacts.json" ] && git -C "$DATA_DIR" add -- contacts.json
               git -C "$DATA_DIR" commit -q -m "data $(date -u +%FT%TZ)"
               git -C "$DATA_DIR" push -q --force "$REMOTE" HEAD:data && echo "published" || echo "publish failed, continuing"
             fi

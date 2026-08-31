@@ -792,6 +792,15 @@ const openerFor = (c, fv, ct) => {
   return `${body}\n\n(Reaching you as the managing agent on record for ${title(c.address)}; the registration is held by ${title(ct.company || 'the owner')}.)`;
 };
 
+// Contacts arrive from a served document now, not from the bundle. An address
+// with a query string or a control character in it would rewrite the mail the
+// user believes they are sending, so nothing becomes a mailto: without passing
+// this first.
+const mailAddr = (e) => {
+  const s = String(e || '').trim();
+  return /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i.test(s) ? s : null;
+};
+
 function contactOf(c, resolved) {
   const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
@@ -836,12 +845,14 @@ function contactOf(c, resolved) {
       level: `${/^(info|contact|management|office|admin|hello|leasing|inquiries)@/i.test(a.email) ? 'office inbox' : 'email'} · ${a.contactSource || 'company site'}`,
       tone: 'mid',
     };
-  // A redacted public build ships the flag without the value: the card should
-  // say a number exists rather than claim there is none. It must not say
-  // "connecting" either — nothing is in progress, and a promise that never
-  // resolves is worse than a plain statement of where the number is.
+  // We resolved a number for this firm and are not showing it. That is now a
+  // deliberate, narrow case rather than a blanket redaction: the number's only
+  // evidence is a third-party listing, and the search provider's terms do not
+  // let us republish those. Saying so is more useful than "not in the public
+  // build", because it tells the caller the number exists and is findable —
+  // which is exactly what the button next to this offers to do.
   if (a.contactKnown)
-    return { ...base, phone: null, email: null, level: 'number on file · not in the public build', tone: 'mid' };
+    return { ...base, phone: null, email: null, level: 'on file · from a listing we cannot republish', tone: 'mid' };
   return { ...base, phone: null, email: null, level: 'no direct line on file', tone: 'low' };
 }
 
@@ -1151,7 +1162,9 @@ export default function App() {
           if (j.checkedAt) setCheckedAt(j.checkedAt);
           if (j.contracts) setLive(j);
           if (j.claims) setClaims(j.claims);
-          if (j.contacts) setContacts(j.contacts);
+          // An empty object is truthy, so a failed fetch used to replace a good
+          // map with nothing and every card lost its number until the next poll.
+          if (j.contacts && Object.keys(j.contacts).length) setContacts(j.contacts);
           if (j.mine) {
             const m = {};
             for (const it of j.mine) m[it.key] = it.until;
@@ -2999,11 +3012,11 @@ export default function App() {
                                   );
                                 // No line, but a published inbox: send the opener
                                 // there rather than making the user retype it.
-                                if (ct?.email)
+                                if (mailAddr(ct?.email))
                                   return (
                                     <a
                                       className="btn solid big"
-                                      href={`mailto:${ct.email}?subject=${encodeURIComponent(emailSubject(c))}&body=${encodeURIComponent(openerFor(c, fv, ct))}`}
+                                      href={`mailto:${mailAddr(ct.email)}?subject=${encodeURIComponent(emailSubject(c))}&body=${encodeURIComponent(openerFor(c, fv, ct))}`}
                                     >
                                       Email {ct.email}
                                     </a>
@@ -3408,10 +3421,10 @@ export default function App() {
                         <a className="btn solid" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
                           Call {ct.phone}
                         </a>
-                      ) : ct?.email ? (
+                      ) : mailAddr(ct?.email) ? (
                         <a
                           className="btn solid"
-                          href={`mailto:${ct.email}?subject=${encodeURIComponent(title(c.address))}&body=${encodeURIComponent(m.opener(c))}`}
+                          href={`mailto:${mailAddr(ct.email)}?subject=${encodeURIComponent(title(c.address))}&body=${encodeURIComponent(m.opener(c))}`}
                         >
                           Email {ct.email}
                         </a>
