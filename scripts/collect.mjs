@@ -1068,7 +1068,147 @@ const MANDATE_SELECT =
   'bin,violation_number,violation_issue_date,violation_remarks,cycle_end_date,borough,block,lot,house_number,street,zip,community_board,latitude,longitude';
 const BOROUGHS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'];
 
-async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000, deadlineFor, cap = CEILING }) {
+
+// ---- LL97: put a dollar and a date on the carbon register -------------------
+//
+// The register's weakness was recorded on the /data page: no deadline, urgency
+// 2-4 across 800 cards. What fixes it is the city's own LL84 benchmarking
+// (5zyy-y8am): 1,090 of the 4,162 cited buildings report their emissions there
+// — more than the register holds — so the register can be drawn from buildings
+// whose reported CO2e we can put next to an estimated cap.
+//
+// The cap is an ESTIMATE, and every consumer of these numbers must say so. Two
+// approximation layers, both named by the research that verified this join:
+// LL84's figure is EPA Portfolio Manager location-based CO2e, not the official
+// LL97/BEAM calculation; and mapping Portfolio Manager property types onto the
+// building-code occupancy groups of Admin Code §28-320.3.2 is approximate. The
+// coefficients below are the statutory 2024–2029 limits (tCO2e per sq ft); the
+// verified worked example — 250 Vesey St, Office, 2,025,102 ft² -> cap ~17,132t
+// against 17,491.8t reported = ~$96K/yr at $268/t — reproduces with this table.
+const LL97_COEFF = {
+  // §28-320.3.2, 2024–2029 period, by occupancy group.
+  A: 0.01074, B: 0.00846, E: 0.00758, F: 0.00574, H: 0.02381,
+  I1: 0.01138, I2: 0.02381, I3: 0.01138, I4: 0.00758,
+  M: 0.01181, R1: 0.00987, R2: 0.00675, S: 0.00426, U: 0.00426,
+};
+const ESPM_GROUP = {
+  'Multifamily Housing': 'R2', 'Residence Hall/Dormitory': 'R2',
+  Office: 'B', 'Medical Office': 'B', 'Bank Branch': 'B', Courthouse: 'B',
+  'College/University': 'B', Laboratory: 'B', 'Urgent Care/Clinic/Other Outpatient': 'B',
+  Hotel: 'R1',
+  'K-12 School': 'E', 'Pre-school/Daycare': 'E',
+  'Retail Store': 'M', 'Strip Mall': 'M', 'Supermarket/Grocery Store': 'M',
+  'Wholesale Club/Supercenter': 'M', 'Enclosed Mall': 'M', 'Automobile Dealership': 'M',
+  'Senior Living Community': 'I1', 'Residential Care Facility': 'I1',
+  'Hospital (General Medical & Surgical)': 'I2',
+  'Worship Facility': 'A', 'Performing Arts': 'A', 'Movie Theater': 'A',
+  'Social/Meeting Hall': 'A', 'Fitness Center/Health Club/Gym': 'A', Museum: 'A',
+  Restaurant: 'A', 'Bar/Nightclub': 'A',
+  'Distribution Center': 'S', 'Non-Refrigerated Warehouse': 'S', 'Refrigerated Warehouse': 'S',
+  'Self-Storage Facility': 'S', 'Vehicle Repair Services': 'S',
+  'Manufacturing/Industrial Plant': 'F',
+  'Parking': 'U',
+};
+
+async function ll84ByBin() {
+  // One CY2024 slice per run: ~39,000 rows, six fields. Multi-building
+  // properties report jointly and list their BINs semicolon-separated, so the
+  // map is exploded — sister buildings inherit the property's joint figure,
+  // which is the honest reading of a joint submission.
+  const rows = await fetchAll(
+    '5zyy-y8am',
+    {
+      $where: "report_year='2024'",
+      $select:
+        'nyc_building_identification,total_location_based_ghg,primary_property_type,property_gfa_calculated_1,property_gfa_self_reported',
+    },
+    50000,
+  );
+  const map = new Map();
+  for (const r of rows) {
+    const ghg = Number(r.total_location_based_ghg);
+    // 9,960 rows carry the literal text "Not Available"; Number() turns those
+    // NaN and they are simply not matches.
+    if (!Number.isFinite(ghg) || ghg <= 0) continue;
+    const gfa = Number(r.property_gfa_calculated_1) || Number(r.property_gfa_self_reported) || 0;
+    // Outlier guard: one cited building reports 1,925,440 tCO2e, which would
+    // print a $514M/yr card. An intensity beyond 0.15 t/ft² is thirty times the
+    // worst plausible building and is treated as a reporting error.
+    if (gfa > 0 && ghg / gfa > 0.15) continue;
+    for (const bin of String(r.nyc_building_identification || '').split(';')) {
+      const b = bin.trim();
+      if (/^\d{7}$/.test(b) && !map.has(b)) map.set(b, { ghg, gfa, type: (r.primary_property_type || '').trim() });
+    }
+  }
+  console.log(`LL84 CY2024: ${rows.length} rows, ${map.size} BINs with a usable emissions figure`);
+  return map;
+}
+
+function ll97Annotate(card, m) {
+  const group = ESPM_GROUP[m.type];
+  const coeff = group ? LL97_COEFF[group] : null;
+  const cap = coeff && m.gfa > 0 ? m.gfa * coeff : null;
+  const over = cap != null ? Math.max(0, m.ghg - cap) : null;
+  card.ghg = {
+    t: Math.round(m.ghg),
+    y: 2024,
+    type: m.type || null,
+    cap: cap != null ? Math.round(cap) : null,
+    over: over != null ? Math.round(over) : null,
+    // $268 per tCO2e over the cap, per year — the statutory rate. An estimate
+    // built on an estimate, and the card says "estimated exposure", never
+    // "fine".
+    usd: over != null ? Math.round(over * 268) : null,
+  };
+  if (m.gfa > 0) card.sqft = Math.round(m.gfa);
+}
+
+// ---- LL152: who already has a plumber on site -------------------------------
+//
+// The certification dataset the register really wants does not exist — verified
+// against the Socrata catalogue — so the best available discriminator is the
+// Limited Alteration Application file (xxbr-ypig): gas plumbing work filed by a
+// licensed plumber. About one building in twelve in the register has one, and
+// that splits an otherwise legally uniform register into two different calls:
+// "your owner already engaged a plumber" and "no gas work on record at all".
+async function laaGasJoin(cards) {
+  let hit = 0;
+  for (let i = 0; i < cards.length; i += 50) {
+    const chunk = cards.slice(i, i + 50);
+    try {
+      const rows = await getJson(
+        'https://data.cityofnewyork.us/resource/xxbr-ypig.json?' +
+          new URLSearchParams({
+            $select: 'location_bin,filing_date,filing_status_name,laasign_off_date',
+            $where:
+              `work_type_name='Gas Plumbing Work' and location_bin in(` +
+              chunk.map((c) => `'${c.bin}'`).join(',') +
+              ')',
+            $order: 'filing_date DESC',
+            $limit: '400',
+          }),
+      );
+      const seen = new Set();
+      for (const r of rows) {
+        if (seen.has(r.location_bin)) continue;
+        seen.add(r.location_bin);
+        const c = chunk.find((x) => x.bin === r.location_bin);
+        if (!c) continue;
+        c.laa = {
+          filed: (r.filing_date || '').slice(0, 10) || null,
+          status: r.filing_status_name || null,
+          signedOff: (r.laasign_off_date || '').slice(0, 10) || null,
+        };
+        hit++;
+      }
+    } catch {
+      // a missed batch costs a fact, not a card
+    }
+  }
+  console.log(`LAA gas work on record: ${hit} of ${cards.length} register buildings`);
+}
+
+async function mandateRegister({ key, label, deviceType, extraWhere, fetchCap = 30000, deadlineFor, cap = CEILING }) {
   const where =
     `device_type='${deviceType}' and violation_status='Active'` + (extraWhere ? ` and (${extraWhere})` : '');
   const raw = await fetchAll(
@@ -1115,11 +1255,36 @@ async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000
   // shortlist is taken off the head of this list, so its order decides which
   // two thousand buildings get a contact looked up at all. Soonest deadline
   // first, then longest open, then most citations.
-  pool.sort((a, b) => {
-    const da = deadlineFor ? deadlineFor(a) || '9999' : '9999';
-    const db = deadlineFor ? deadlineFor(b) || '9999' : '9999';
-    return da.localeCompare(db) || (b.violations || 0) - (a.violations || 0) || (a.issued || '').localeCompare(b.issued || '');
-  });
+  //
+  // Carbon ranks differently: 1,090 of the cited buildings report emissions in
+  // LL84 — more than the register holds — so the register is drawn from the
+  // buildings whose exposure can be priced, biggest first. A register that CAN
+  // carry a dollar number on every card should.
+  if (key === 'carbon') {
+    const ll84 = await ll84ByBin();
+    let matched = 0;
+    for (const c of pool) {
+      const m = ll84.get(c.bin);
+      if (m) {
+        ll97Annotate(c, m);
+        matched++;
+      }
+    }
+    console.log(`LL97 x LL84: ${matched} of ${pool.length} cited buildings carry a CY2024 emissions figure`);
+    pool.sort(
+      (a, b) =>
+        (b.ghg ? 1 : 0) - (a.ghg ? 1 : 0) ||
+        (b.ghg?.usd || 0) - (a.ghg?.usd || 0) ||
+        (b.ghg?.t || 0) - (a.ghg?.t || 0) ||
+        (a.issued || '').localeCompare(b.issued || ''),
+    );
+  } else {
+    pool.sort((a, b) => {
+      const da = deadlineFor ? deadlineFor(a) || '9999' : '9999';
+      const db = deadlineFor ? deadlineFor(b) || '9999' : '9999';
+      return da.localeCompare(db) || (b.violations || 0) - (a.violations || 0) || (a.issued || '').localeCompare(b.issued || '');
+    });
+  }
   const shortlist = balancedByBorough(pool, SHORTLIST);
   const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
   for (const c of shortlist) {
@@ -1140,7 +1305,9 @@ async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000
       (c.monthsLeft == null ? 0 : c.monthsLeft <= 6 ? 10 : c.monthsLeft <= 12 ? 5 : 2) +
       Math.min(8, Math.floor((c.openDays || 0) / 120)) +
       Math.min(4, c.violations - 1) +
-      (c.agent ? 2 : 0);
+      (c.agent ? 2 : 0) +
+      // Priced exposure is the strongest reason to call that this register has.
+      (c.ghg?.usd > 1000000 ? 12 : c.ghg?.usd > 250000 ? 9 : c.ghg?.usd > 50000 ? 6 : c.ghg?.usd > 0 ? 4 : c.ghg ? 1 : 0);
   }
   // A card whose registered agent is a person rather than a firm gives a
   // contractor nothing to pursue: no office, no switchboard, nothing to look up.
@@ -1580,6 +1747,10 @@ async function geocodeSla(rows) {
 }
 
 await plutoCoords(feed);
+// The gas register's one discriminator: which buildings already have a plumber
+// on record. Runs on the feed, not the pool — nine batched queries.
+if (registers.gas?.feed?.length) await laaGasJoin(registers.gas.feed);
+
 // Openings: the health-permit half arrived with coordinates; the licence half
 // needs the geocoder, and previous builds may already hold the answer.
 {

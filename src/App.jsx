@@ -377,9 +377,25 @@ const MANDATES = {
     facts: (c) => [
       ['Deadline', `${usDate(c.deadline)} — sub-cycle ${c.subCycle}, Community District ${c.cd}`],
       ['Violation open since', c.issued ? usDate(c.issued) : 'unknown'],
+      // The one thing that separates two cards in a legally uniform register:
+      // whether a licensed plumber has ever filed gas work here. An LAA is a
+      // repair filing, not the LL152 certification (which the city does not
+      // publish), and the copy is careful to say which.
+      c.laa
+        ? [
+            'Gas work on record',
+            c.laa.filed
+              ? `LAA filed ${usDate(c.laa.filed)}${c.laa.signedOff ? `, signed off ${usDate(c.laa.signedOff)}` : c.laa.status ? ` · ${c.laa.status.toLowerCase()}` : ''} — the owner has engaged a plumber before`
+              : // A pre-filing application has no date yet, and is the stronger
+                // fact: a plumber is engaged right now.
+                `LAA in ${(c.laa.status || 'pre-filing').toLowerCase()} — a plumber is engaged right now`,
+          ]
+        : ['Gas work on record', 'None in the city\u2019s LAA file — no plumber has filed here'],
     ],
     opener: (c) =>
-      `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}. We can get the inspection filed before it lapses again.`,
+      c.laa
+        ? `Re: ${title(c.address)} — DOB shows an open Local Law 152 violation with the sub-cycle ${c.subCycle} deadline on ${usDate(c.deadline)}. Your file shows gas work ${c.laa.filed ? `as recently as ${usDate(c.laa.filed)}` : 'in progress right now'}, but the inspection itself is still owed. We can close both out in one visit.`
+        : `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation, no gas work on record at all, and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)}. We can get the inspection filed before it lapses again.`,
   },
   elevators: {
     label: 'Elevators',
@@ -692,6 +708,12 @@ const factsFor = (k) => FACTS[k] || ALL_FACTS;
 // buildings that are paying shed rent for nothing.
 const days = (iso) => (iso ? (new Date(iso) - Date.now()) / 86400000 : null);
 const COHORTS = {
+  // Carbon: the cards whose exposure is priced, and the ones over their cap.
+  // (pricedGhg, because facades already use 'priced' for a declared job cost.)
+  pricedGhg: { label: 'Priced exposure', of: (c) => c.ghg?.usd > 0 },
+  overcap: { label: 'Over the cap', of: (c) => c.ghg?.over > 0 },
+  // Gas: the owner has engaged a plumber before — a different first call.
+  hasPlumber: { label: 'Plumber on record', of: (c) => Boolean(c.laa) },
   paying: { label: 'Paying for nothing', of: (c) => Boolean(c.payingForNothing) },
   stalled: { label: 'Approved, no permit', of: (c) => Boolean(c.filing && c.filing.status === 'Approved' && !c.filing.permitted) },
   shedEnd: { label: 'Shed expires <60d', of: (c) => { const d = days(c.shed?.until); return d != null && d > 0 && d < 60; } },
@@ -725,9 +747,9 @@ const COHORTS = {
 };
 // Which cohorts a register offers. The trade's own list wins on facades.
 const REG_COHORTS = {
-  gas: ['reachable', 'openLong', 'multi'],
+  gas: ['reachable', 'hasPlumber', 'openLong', 'multi'],
   elevators: ['reachable', 'behind2', 'manyLifts'],
-  carbon: ['reachable', 'multi'],
+  carbon: ['pricedGhg', 'overcap', 'reachable', 'multi'],
   contracts: ['openBid', 'buildWork', 'reachable'],
   openings: ['reachable', 'notOpenYet', 'pouring'],
 };
@@ -1488,6 +1510,7 @@ export default function App() {
     // four hundred cards. Whether there is anyone to ring is the real order.
     carbon: [
       ['profile', 'for you'],
+      ['exposure', 'dollar exposure'],
       ['holdings', 'biggest landlord'],
       ['callable', 'contact first'],
       ['open', 'most violations'],
@@ -1497,6 +1520,7 @@ export default function App() {
     profile: (a, b) => b.urgencyScore - a.urgencyScore,
     open: (a, b) => (b.openDays || 0) - (a.openDays || 0) || b.violations - a.violations,
     holdings: (a, b) => (b.agent?.portfolio || 0) - (a.agent?.portfolio || 0) || b.urgencyScore - a.urgencyScore,
+    exposure: (a, b) => (b.ghg?.usd || 0) - (a.ghg?.usd || 0) || (b.ghg?.t || 0) - (a.ghg?.t || 0) || b.urgencyScore - a.urgencyScore,
     devices: (a, b) => (b.devices || 0) - (a.devices || 0) || b.urgencyScore - a.urgencyScore,
     behind: (a, b) => (b.yearsBehind ?? 99) - (a.yearsBehind ?? 99) || b.urgencyScore - a.urgencyScore,
     callable: (a, b) =>
@@ -2125,7 +2149,7 @@ export default function App() {
         : vertical === 'elevators'
           ? 'Half the city has not filed this year\u2019s CAT1 test yet, which is the calendar, not a signal. These are the buildings that skipped a whole cycle — and still have until December 31 to put both right.'
           : vertical === 'carbon'
-            ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand of them for not filing an emissions report. Being named is the exception: most of these citations were written this summer, the rest since December.'
+            ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand for not filing an emissions report. These are the cited buildings whose own benchmarking lets us price the exposure — reported CO2e against an estimated cap, at \u0024268 a ton over.'
         : vertical === 'contracts'
           ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
           : 'Two records, both public. A liquor licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
@@ -2677,7 +2701,11 @@ export default function App() {
                     saying so is what makes it move credibly when you filter.
                     The arrivals term is the measured weekly rate carried to the
                     deadline — named, so the larger number can be checked. */}
-                {myPipeline.n.toLocaleString('en-US')}{' '}
+                {/* "for one crew, right now": the figure reads small if a
+                    visitor mistakes it for the service's market rather than one
+                    firm's own pipeline under the current filters. */}
+                <em className="pipe-asof">for one crew, on today's register — it refills as the city publishes</em>{' '}
+                · {myPipeline.n.toLocaleString('en-US')}{' '}
                 {vertical === 'contracts'
                   ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
                   : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
