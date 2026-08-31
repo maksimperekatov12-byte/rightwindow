@@ -1294,7 +1294,11 @@ try {
 }
 
 // timestamps, so the feed can honestly say what appeared in the last 48 hours.
-const NEW_WINDOW_MS = 48 * 3600 * 1000;
+// Seven days, not forty-eight hours. The city's own files land a day or two
+// behind — DOB NOW and ECB were both a day stale on the build that measured
+// this — so a two-day window from now can never catch anything and the counter
+// reads zero on a week where the city published plenty.
+const NEW_WINDOW_MS = 7 * 24 * 3600 * 1000;
 const seenPath = new URL('../data/seen.json', import.meta.url);
 let seen = null;
 try { if (existsSync(seenPath)) seen = JSON.parse(readFileSync(seenPath, 'utf8')); } catch {}
@@ -1308,34 +1312,55 @@ const nowIso = TODAY.toISOString();
 const stamp = (bucket) => (bucket && Object.keys(bucket).length ? nowIso : 'baseline');
 const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
 
+// "New" has to mean the city published something, not that our sampler first
+// looked at this building. The shortlist is 2,200 of 12,323 candidates and it
+// rotates, so first-seen was marking hundreds of buildings a day as fresh whose
+// violations were a month old — measured: of 457 so marked, not one had a
+// city-dated event inside the window, and the median violation age was 32 days.
+//
+// A record is new when the youngest date the city itself put on it falls inside
+// the window. Where a register carries no usable date, first-seen still stands
+// in, because there is nothing better to use.
+const withinWindow = (iso) => {
+  if (!iso) return false;
+  const t = new Date(iso).getTime();
+  return Number.isFinite(t) && TODAY - t <= NEW_WINDOW_MS && t <= TODAY.getTime() + 86400000;
+};
+const cityDated = (...dates) => dates.some((d) => withinWindow(d));
+const daysAgoWithin = (n) => Number.isFinite(n) && n * 86400000 <= NEW_WINDOW_MS;
+
 const binsSeen = { ...seen.bins };
 for (const c of cards) {
   const rec = (seen.bins[c.bin] ||= { first: stamp(binsSeen), kinds: {} });
   for (const sg of c.signals) rec.kinds[sg.kind] ||= stamp(binsSeen);
-  c.isNew = isFreshTs(rec.first);
-  c.fresh = c.isNew ? [] : c.signals.map((sg) => sg.kind).filter((k) => isFreshTs(rec.kinds[k]));
+  // First-seen still gates it — a building we have shown for a week is not news
+  // whatever its dates say — but the city has to have moved as well.
+  c.isNew =
+    isFreshTs(rec.first) &&
+    (daysAgoWithin(c.freshHaz?.daysAgo) || cityDated(c.filing?.filed, c.shed?.since, c.lastFiling));
+  c.fresh = isFreshTs(rec.first) ? [] : c.signals.map((sg) => sg.kind).filter((k) => isFreshTs(rec.kinds[k]));
 }
 const contractsSeen = { ...seen.contracts };
 for (const c of contracts) {
   seen.contracts[c.id] ||= stamp(contractsSeen);
-  c.isNew = isFreshTs(seen.contracts[c.id]);
+  c.isNew = isFreshTs(seen.contracts[c.id]) && cityDated(c.date);
 }
 const openingsSeen = { ...seen.openings };
 for (const o of openings) {
   seen.openings[o.id] ||= stamp(openingsSeen);
-  o.isNew = isFreshTs(seen.openings[o.id]);
+  o.isNew = isFreshTs(seen.openings[o.id]) && (o.received ? cityDated(o.received) : true);
 }
 for (const [key, reg] of Object.entries(registers)) {
   seen[key] ||= {};
   const was = { ...seen[key] };
   for (const g of reg.feed) {
     seen[key][g.bin] ||= stamp(was);
-    g.isNew = isFreshTs(seen[key][g.bin]);
+    g.isNew = isFreshTs(seen[key][g.bin]) && cityDated(g.latest, g.issued);
   }
 }
 writeFileSync(seenPath, JSON.stringify(seen, null, 1));
 const whatsNew = {
-  windowHours: 48,
+  windowHours: NEW_WINDOW_MS / 3600000,
   buildings: feed.filter((c) => c.isNew).length,
   signals: feed.reduce((n, c) => n + (c.fresh?.length || 0), 0),
   contracts: contracts.filter((c) => c.isNew).length,

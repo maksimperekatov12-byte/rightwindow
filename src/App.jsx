@@ -1612,7 +1612,7 @@ export default function App() {
   };
   const checksToday = (live?.pulse || []).filter((t) => now - t < 86400000).length;
   // The newness flags are baked at collection time; past a few hours the window
-  // they describe is no longer "the last 48 hours" from the reader's position.
+  // they describe is no longer "this week" from the reader's position.
   const feedStale = now - new Date(data.generatedAt).getTime() > 3 * 3600000;
   const lastChangeAt = live?.changedAt || pulled.getTime();
   const lastChangeLabel = ago(lastChangeAt);
@@ -2459,7 +2459,7 @@ export default function App() {
             {hasNew ? (
               <>
                 <b>
-                  {feedStale ? `New in the 48 hours to ${usShort(data.generatedAt.slice(0, 10))}:` : 'New in the last 48 hours:'}
+                  {feedStale ? `New in the week to ${usShort(data.generatedAt.slice(0, 10))}:` : 'New this week:'}
                 </b>{' '}
                 {[
                   wn.buildings && wn.buildings < data.facades.feed.length
@@ -2483,7 +2483,8 @@ export default function App() {
               </>
             ) : (
               <>
-                <b>No new windows in the last 48 hours.</b> The registers have been quiet — we keep checking.
+                <b>Nothing new this week.</b> These registers move in sweeps, so a quiet week is normal — the deadlines
+                below are still running. We keep checking.
               </>
             )}
           </span>
@@ -3657,14 +3658,14 @@ export default function App() {
               headers: { 'content-type': 'application/json' },
               body: JSON.stringify({ uid: uid.current, secret: secret.current, data: { channels: { email: v } } }),
             })
+              // A confirmation can time out; the way out of a failure must not.
+              // It used to clear itself after three seconds, taking the only
+              // route through with it.
               .then((r) => {
                 setEmailSaved(r.ok ? 'ok' : 'fail');
-                setTimeout(() => setEmailSaved(false), 3200);
+                if (r.ok) setTimeout(() => setEmailSaved(false), 3200);
               })
-              .catch(() => {
-                setEmailSaved('fail');
-                setTimeout(() => setEmailSaved(false), 3200);
-              });
+              .catch(() => setEmailSaved('fail'));
           }}
         >
           <input name="em" type="email" required placeholder="you@company.com" defaultValue={email} aria-label="Email for the daily digest" />
@@ -3681,8 +3682,15 @@ export default function App() {
           </button>
           {emailSaved === 'fail' ? (
             <span className="digest-note">
-              That did not save — the fault is at our end, not yours. Email{' '}
-              <a href={`mailto:${CONTACT.email}?subject=Daily%20digest`}>{CONTACT.email}</a> and we will add you by hand.
+              That did not save, and the fault is at our end. One click sends it instead —{' '}
+              <a
+                href={`mailto:${CONTACT.email}?subject=${encodeURIComponent('Daily digest')}&body=${encodeURIComponent(
+                  `Please add me to the daily digest.\n\nEmail: ${email || '(the address I just typed)'}\nTrade: ${profile.label || profileKey || 'not set'}\nBorough: ${boro}\n`,
+                )}`}
+              >
+                email it to us
+              </a>{' '}
+              and we will add you by hand.
             </span>
           ) : (
             email && !emailSaved && <span className="digest-note">Only when something new matches you</span>
