@@ -1013,7 +1013,10 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   }
 }
 .citymap-surface { position: absolute; inset: 0; }
-.citymap-gl { position: absolute; inset: 0; }
+/* MapLibre stamps its own class on this element and its stylesheet loads after
+   ours, flipping position back to relative — so the box is sized explicitly
+   rather than by inset alone, and holds either way. */
+.citymap-surface > .citymap-gl { position: absolute; inset: 0; width: 100%; height: 100%; }
 .citymap-gl canvas { display: block; outline: none; }
 .citymap-big {
   position: absolute;
