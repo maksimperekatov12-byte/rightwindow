@@ -1073,7 +1073,9 @@ export default function App() {
   const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [showAllVerts, setShowAllVerts] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  // ?map=1 opens the map straight away — a shareable view of the register on
+  // the city, and the only way a screenshot rig can reach it.
+  const [showMap, setShowMap] = useState(() => new URLSearchParams(location.search).get('map') === '1');
   const [portfolioText, setPortfolioText] = useState('');
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [hideBusy, setHideBusy] = useState(false);
