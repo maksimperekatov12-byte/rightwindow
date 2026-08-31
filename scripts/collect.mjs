@@ -164,6 +164,15 @@ candidates.sort((a, b) => b.score - a.score || a.monthsLeft - b.monthsLeft);
 // territory is sold per borough, so each borough needs enough depth to be worth
 // working. A borough that cannot fill its quota gives the remainder back to the
 // others, so nothing is wasted holding a seat empty.
+// There is no target number of cards. The registers are as big as the number of
+// buildings that pass the bar, which is why they no longer all come out at 400:
+// the pools behind them are 12,323 facade candidates and 57,932 cited for gas,
+// so a fixed cap was only ever hiding how much was left on the floor. The
+// ceiling is a page-weight limit, not a goal, and the shortlist is what the HPD
+// join can afford to look up.
+const SHORTLIST = 2200;
+const CEILING = 800;
+
 function balancedByBorough(rows, total) {
   const boroughs = [...new Set(rows.map((r) => r.borough))].filter(Boolean);
   if (!boroughs.length) return rows.slice(0, total);
@@ -243,7 +252,7 @@ const agentCard = (agent, reg, headByReg) =>
       }
     : null;
 
-const top = balancedByBorough(candidates, 600);
+const top = balancedByBorough(candidates, SHORTLIST);
 console.log('Fetching HPD registrations for top candidates...');
 const { regByBin, agentByReg, headByReg } = await hpdJoin(top.map((c) => c.bin));
 console.log(`HPD-registered (multifamily): ${regByBin.size}, agents resolved: ${agentByReg.size}`);
@@ -590,7 +599,7 @@ for (const c of top) {
   console.log(live ? `Enriching contacts via ${enrichmentProvider()}...` : 'Enrichment: reading cached contacts only');
   let hits = 0;
   const byLevel = { verified: 0, listed: 0 };
-  for (const c of cards.slice(0, 400)) {
+  for (const c of cards.slice(0, SHORTLIST)) {
     if (!c.agent?.company) continue;
     const e = await enrichContact({ company: c.agent.company, name: c.agent.name, address: c.agent.address });
     if (e.confidence !== 'none') {
@@ -625,11 +634,33 @@ for (const c of top) {
 
 // Demo feed: most urgent first (post-enrichment), multifamily with a resolved contact
 cards.sort((a, b) => b.urgencyScore - a.urgencyScore);
-const eligible = cards.filter((c) => c.multifamily && c.agent);
-const feed = balancedByBorough(eligible, 400);
+const eligible = cards.filter((c) => c.multifamily && c.agent?.company);
+const feed = balancedByBorough(eligible, CEILING);
 // Within the feed, urgency still decides the order — the quota governs who is on
 // the list, not who is at the top of it.
 feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
+
+// The enrichment above ran over the first 400 CANDIDATES, in the order they were
+// built. This cut takes a different 400 — sorted by urgency, then balanced by
+// borough — so the two sets only partly overlap and a resolved contact could sit
+// on a card that never shipped while a card that did ship showed none. Applying
+// the cache to the feed itself is what the other registers already do.
+{
+  let late = 0;
+  for (const c of feed) {
+    if (!c.agent?.company || c.agent.phone || c.agent.email) continue;
+    const e = await enrichContact({ company: c.agent.company, address: c.agent.address, cacheOnly: true });
+    if (e.confidence === 'none') continue;
+    c.agent.phone = e.phone;
+    c.agent.email = e.email;
+    c.agent.confidence = e.confidence;
+    c.agent.contactSource = e.source;
+    if (e.via) c.agent.via = e.via;
+    late++;
+  }
+  late += resolveAffiliates(feed);
+  console.log(`Contacts applied to the facade feed after the cut: ${late}`);
+}
 console.log('Chains in cards:', {
   ownerChange: cards.filter((c) => c.ownerChange).length,
   elevator: cards.filter((c) => c.elevator).length,
@@ -959,7 +990,7 @@ const MANDATE_SELECT =
   'bin,violation_number,violation_issue_date,violation_remarks,cycle_end_date,borough,block,lot,house_number,street,zip,community_board';
 const BOROUGHS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'];
 
-async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000, deadlineFor, cap = 400 }) {
+async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000, deadlineFor, cap = CEILING }) {
   const where =
     `device_type='${deviceType}' and violation_status='Active'` + (extraWhere ? ` and (${extraWhere})` : '');
   const raw = await fetchAll(
@@ -999,7 +1030,7 @@ async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000
   // as at the cut — a borough missing from it could never come back. Roughly
   // half of these buildings turn out to have an HPD registration, so the
   // shortlist is sized for the survivors rather than for the target.
-  const shortlist = balancedByBorough(pool, cap * 3.5);
+  const shortlist = balancedByBorough(pool, SHORTLIST);
   const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
   for (const c of shortlist) {
     const reg = regByBin.get(c.bin);
@@ -1021,7 +1052,11 @@ async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000
       Math.min(4, c.violations - 1) +
       (c.agent ? 2 : 0);
   }
-  const eligible = shortlist.filter((c) => c.agent);
+  // A card whose registered agent is a person rather than a firm gives a
+  // contractor nothing to pursue: no office, no switchboard, nothing to look up.
+  // Those are dropped rather than counted, which is why these registers are not
+  // all the same size any more.
+  const eligible = shortlist.filter((c) => c.agent?.company);
   const feed = balancedByBorough(eligible, cap);
   feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
   const boro = {};
@@ -1059,7 +1094,7 @@ const subOf = (remarks) => (String(remarks || '').match(/Sub-cycle\s+([A-D])/) |
 // a cycle, which is 4,710 buildings and a real deviation. It also still has this
 // year's window to put it right, so the card has both halves: a proven lapse
 // and a date that has not passed.
-async function elevatorRegister({ cap = 400 } = {}) {
+async function elevatorRegister({ cap = CEILING } = {}) {
   const year = TODAY.getFullYear();
   const deadline = `${year}-12-31`;
   const rows = await fetchAll(
@@ -1102,7 +1137,7 @@ async function elevatorRegister({ cap = 400 } = {}) {
   }
   const cited = byBin.size;
   const pool = [...byBin.values()].filter((c) => BOROUGHS.includes(c.borough) && c.address);
-  const shortlist = balancedByBorough(pool, cap * 3.5);
+  const shortlist = balancedByBorough(pool, SHORTLIST);
   const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
   for (const c of shortlist) {
     const reg = regByBin.get(c.bin);
@@ -1122,7 +1157,7 @@ async function elevatorRegister({ cap = 400 } = {}) {
       Math.min(5, c.devices) +
       (c.agent ? 2 : 0);
   }
-  const eligible = shortlist.filter((c) => c.agent);
+  const eligible = shortlist.filter((c) => c.agent?.company);
   const feed = balancedByBorough(eligible, cap);
   feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
   const boro = {};
