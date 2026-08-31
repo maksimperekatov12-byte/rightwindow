@@ -12,7 +12,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCache } from '../lib/enrich.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 import { resolveAffiliates } from '../lib/affiliate.mjs';
-import { dropPrivateIndividuals } from '../lib/personal.mjs';
+import { resolveIdentities } from '../lib/personal.mjs';
 
 // Source gate (same rule as Signal): a source without an ALLOWED verdict in
 // data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
@@ -874,6 +874,37 @@ try {
   openings = [...openings, ...(prevFeed()?.openings || []).filter((o) => o.src === 'dohmh')];
 }
 
+// The names DCWP has classed as Premises: the city's own record that a name
+// belongs to a business rather than a person. Used as positive evidence by the
+// openings identity test; an empty set simply means the other tests carry it.
+let _premisesNames = null;
+async function dcwpPremisesNames() {
+  if (_premisesNames) return _premisesNames;
+  const out = new Set();
+  try {
+    for (let off = 0; off < 120000; off += 50000) {
+      const rows = await getJson(
+        `https://data.cityofnewyork.us/resource/w7w3-xahh.json?$select=business_name` +
+          `&$where=license_type='Premises'&$limit=50000&$offset=${off}&$order=:id`,
+      );
+      for (const r of rows)
+        out.add(
+          String(r.business_name || '')
+            .toUpperCase()
+            .replace(/[^A-Z0-9 ]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim(),
+        );
+      if (rows.length < 50000) break;
+    }
+    console.log(`DCWP Premises names: ${out.size}`);
+  } catch (e) {
+    console.log(`DCWP premises names unavailable (${e.message}) — identity falls back to the other tests`);
+  }
+  _premisesNames = out;
+  return out;
+}
+
 // The two sources name the same place differently: the liquour file prints the
 // legal county (Kings, New York, Richmond) and the health file prints the
 // borough. One list showing both is the register contradicting itself.
@@ -888,13 +919,33 @@ const BOROUGH_OF = {
 };
 for (const o of openings) o.county = BOROUGH_OF[o.county] || o.county;
 
-// The register says it shows businesses, so it has to. A sole proprietor who
-// permits under their own name is a private individual, and the card would pair
-// that name with their mobile number.
+// The register says it shows businesses, so a name is printed only when
+// something says it is one. Detecting people and removing them has a floor it
+// cannot pass — measured recall is 84%, so one private individual in six still
+// gets through, and the ones that do are the names no public file happened to
+// hold. This asks the opposite question and prints a name only on evidence.
+//
+// Nothing is dropped: a new venue at a real address with a number the city
+// itself printed is worth showing. A card with no evidence is identified by its
+// address instead, and its name never leaves this process.
 {
-  const before = openings.length;
-  openings = dropPrivateIndividuals(openings);
-  console.log(`Private individuals dropped from openings: ${before - openings.length}`);
+  const premisesNames = await dcwpPremisesNames();
+  const { cost } = resolveIdentities(openings, { premisesNames });
+  for (const o of openings) {
+    if (o.nameShown) continue;
+    // Not merely unrendered — removed. A name left on the row is a name
+    // published, whatever the card chooses to draw.
+    delete o.name;
+    delete o.legal;
+  }
+  const vouched = Object.entries(cost.by)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `${k} ${v}`)
+    .join(', ');
+  console.log(
+    `Openings identity: ${cost.shown} of ${openings.length} keep a name (${vouched}); ` +
+      `${cost.total} shown by address because nothing vouched for the name`,
+  );
 }
 
 // A liquour-licence card carries no contact of any kind. Most of those venues
@@ -1055,6 +1106,15 @@ async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000
   // as at the cut — a borough missing from it could never come back. Roughly
   // half of these buildings turn out to have an HPD registration, so the
   // shortlist is sized for the survivors rather than for the target.
+  // Ranked before the cut for the same reason as the elevator register: the
+  // shortlist is taken off the head of this list, so its order decides which
+  // two thousand buildings get a contact looked up at all. Soonest deadline
+  // first, then longest open, then most citations.
+  pool.sort((a, b) => {
+    const da = deadlineFor ? deadlineFor(a) || '9999' : '9999';
+    const db = deadlineFor ? deadlineFor(b) || '9999' : '9999';
+    return da.localeCompare(db) || (b.violations || 0) - (a.violations || 0) || (a.issued || '').localeCompare(b.issued || '');
+  });
   const shortlist = balancedByBorough(pool, SHORTLIST);
   const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
   for (const c of shortlist) {
@@ -1162,6 +1222,20 @@ async function elevatorRegister({ cap = CEILING } = {}) {
   }
   const cited = byBin.size;
   const pool = [...byBin.values()].filter((c) => BOROUGHS.includes(c.borough) && c.address);
+  // Ordered before the cut, not after it. balancedByBorough takes each borough's
+  // rows in the order it is handed them, and this pool arrived in BIN order from
+  // the API — so the shortlist was a slice by building number and the ranking
+  // that ran later could only reorder whatever that slice happened to contain.
+  // Manhattan's cards ran 1000007 to 1028237 consecutively, which is the low end
+  // of the borough and nothing to do with urgency.
+  //
+  // The lapse is what ranks: never filed first, then the oldest test forward,
+  // and the number of devices waiting on the same visit breaks ties.
+  pool.sort(
+    (a, b) =>
+      (a.lastCat1 == null ? -1 : a.lastCat1) - (b.lastCat1 == null ? -1 : b.lastCat1) ||
+      b.devices - a.devices,
+  );
   const shortlist = balancedByBorough(pool, SHORTLIST);
   const { regByBin, agentByReg, headByReg } = await hpdJoin(shortlist.map((c) => c.bin));
   for (const c of shortlist) {
@@ -1182,12 +1256,20 @@ async function elevatorRegister({ cap = CEILING } = {}) {
       Math.min(5, c.devices) +
       (c.agent ? 2 : 0);
   }
-  const eligible = shortlist.filter((c) => c.agent?.company);
+  // Same discipline at the final cut: rank first, then take the borough quota
+  // from the ranked list, then present in rank order.
+  const eligible = shortlist
+    .filter((c) => c.agent?.company)
+    .sort((a, b) => b.urgencyScore - a.urgencyScore || b.devices - a.devices);
   const feed = balancedByBorough(eligible, cap);
-  feed.sort((a, b) => b.urgencyScore - a.urgencyScore);
+  feed.sort((a, b) => b.urgencyScore - a.urgencyScore || b.devices - a.devices);
   const boro = {};
   for (const c of feed) boro[c.borough] = (boro[c.borough] || 0) + 1;
-  console.log(`Elevator CAT1: ${cited} buildings that skipped a cycle, feed ${feed.length}`, boro);
+  const never = feed.filter((c) => c.lastCat1 == null).length;
+  console.log(
+    `Elevator CAT1: ${cited} buildings that skipped a cycle, feed ${feed.length} (${never} never filed)`,
+    boro,
+  );
   return { totals: { cited, open: feed.length, deadline }, feed };
 }
 

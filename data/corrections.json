@@ -1,0 +1,43 @@
+[
+ {
+  "id": "elevator-filter",
+  "date": "2026-08-29",
+  "register": "Elevators",
+  "wrong": "Buildings with no CAT1 test filed for the current year.",
+  "wrongCount": 25042,
+  "right": "Buildings that skipped a whole annual cycle.",
+  "rightCount": 4708,
+  "why": "In August the year is not over, so \"has not filed yet\" is the calendar rather than a lapse. Five buildings in six on that list were simply not due."
+ },
+ {
+  "id": "whats-new",
+  "date": "2026-08-31",
+  "register": "New this week",
+  "wrong": "Buildings the shortlist had not sampled before, counted as new.",
+  "wrongCount": 457,
+  "right": "Buildings with something the city itself published inside the window.",
+  "rightCount": 16,
+  "why": "Not one of the 457 had a city-dated event in the window and their violations were a median of 32 days old. The count was measuring our own sampling, which rotates 2,200 buildings out of 12,323 on every run."
+ },
+ {
+  "id": "contact-gate",
+  "date": "2026-08-31",
+  "register": "Published contacts",
+  "wrong": "A blocklist of 35 directory brands; anything unmatched was published.",
+  "wrongCount": 1211,
+  "right": "Positive evidence only: a government record, or a host tied to the firm.",
+  "rightCount": 1113,
+  "why": "967 of the 1,211 published for no better reason than failing to match a brand name, and cityrealty, nybits, local.yahoo, nextdoor and a rentmanager tenant portal all passed. A blocklist puts every directory nobody has thought of on the allow side."
+ },
+ {
+  "id": "openings-identity",
+  "date": "2026-08-31",
+  "register": "New openings",
+  "wrong": "Detect likely private individuals and drop those cards.",
+  "wrongCount": 84,
+  "right": "Print a name only where something vouches that it is a business; keep the card and identify it by address otherwise.",
+  "rightCount": 95,
+  "unit": "per cent of cards keeping a name",
+  "why": "Detection topped out at 84% recall, so roughly one private individual in six still reached the register — and the ones that got through were the names no public file happened to hold."
+ }
+]

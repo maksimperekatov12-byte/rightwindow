@@ -155,6 +155,46 @@ Collection runs in GitHub Actions and commits the rebuilt feed; Vercel deploys o
 The site polls a heartbeat endpoint, so the header shows two honest numbers — when we last
 checked, and when data last changed.
 
+### The data plane
+
+Documents that change between deploys — the five-minute pulse, the published contacts, the
+digest list — go through one adapter, `lib/artifacts.mjs`. Nothing that reads or writes them
+knows which backend is live.
+
+| `STORAGE_DRIVER` | Where documents live | Notes |
+|---|---|---|
+| `github-branch` *(default)* | an orphan `data` branch, read through GitHub's CDN | Free, and it is what runs today. The branch holds exactly one commit — every publish force-pushes a fresh orphan — and carries a `vercel.json` that blocks deploys from it. Writes are performed by the workflows, which hold the token. |
+| `r2` | Cloudflare R2 over the S3 API | Signed in-process with SigV4; no SDK. |
+
+An artefact declares whether it may be world-readable, and a backend that cannot honour that
+refuses the write. The `github-branch` driver publishes to a public branch, so it will not
+store the subscriber list at all — that is an error rather than a rule somebody has to
+remember.
+
+```
+STORAGE_DRIVER          github-branch | r2      (default github-branch)
+
+# r2 only
+R2_ACCOUNT_ID           Cloudflare account id
+R2_BUCKET               bucket name
+R2_ACCESS_KEY_ID        R2 API token key id
+R2_SECRET_ACCESS_KEY    R2 API token secret
+R2_PUBLIC_BASE_URL      optional; a public bucket domain, used for unsigned reads
+
+# github-branch only
+DATA_REPO               owner/repo        (default maksimperekatov12-byte/rightwindow)
+DATA_BRANCH             branch name       (default data)
+
+# the digest sign-up confirmation, read by api/subscribe.js
+RESEND_API_KEY          Resend key — must be set in the Vercel environment, not only
+                        as a GitHub secret, or the API route cannot send
+DIGEST_FROM             optional sender, e.g. "Right Window <digest@yourdomain.com>"
+```
+
+Storing sign-ups needs `STORAGE_DRIVER=r2` with credentials. Until then `/api/subscribe`
+reports that it cannot store, and the page offers the route that does work rather than
+pretending.
+
 ---
 
 ## Stack

@@ -1,5 +1,14 @@
 import React from 'react';
 import policy from '../data/source-policy.json';
+import corrections from '../data/corrections.json';
+
+// Local, because usShort lives in App.jsx and is not exported; a correction is
+// dated to the day it shipped.
+const onDate = (iso) => {
+  const d = new Date(String(iso).length <= 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 import data from './data/feed.json';
 
 // Generated from data/source-policy.json at build time. Nothing on this page is
@@ -207,6 +216,46 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
           <b>Current provider: {p.publisher}.</b> {p.license}
         </p>
       ))}
+
+      <h2>Corrections</h2>
+      <p className="lead sm">
+        Four times this product counted something the wrong way and shipped it. Each is recorded here with the figure it
+        produced and the figure that replaced it, because a number you can check against its own history is worth more
+        than one that has always been right.
+      </p>
+      <div className="scrollx">
+        <table className="dtable cover">
+          <thead>
+            <tr>
+              <th>Register</th>
+              <th>Was</th>
+              <th>Is</th>
+              <th>What was wrong</th>
+            </tr>
+          </thead>
+          <tbody>
+            {corrections.map((c) => (
+              <tr key={c.id}>
+                <td className="name">
+                  {c.register}
+                  <span className="did">{onDate(c.date)}</span>
+                </td>
+                <td className="n">
+                  {c.wrongCount.toLocaleString('en-US')}
+                  {c.unit ? '%' : ''}
+                  <span className="did">{c.wrong}</span>
+                </td>
+                <td className="n">
+                  {c.rightCount.toLocaleString('en-US')}
+                  {c.unit ? '%' : ''}
+                  <span className="did">{c.right}</span>
+                </td>
+                <td>{c.why}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <h2>Compliance</h2>
       <p className="lead sm">

@@ -982,3 +982,18 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dtable.cover td.n,
 .dtable.cover th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
 .dtable.cover td.name { white-space: nowrap; }
+
+/* The horizon on the expected figure: same line, clearly subordinate to it. */
+.pipe b em {
+  font-style: normal;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+
+/* Corrections: the was/is columns need room for the sentence under the number. */
+.dtable.cover td .did { display: block; margin-top: 4px; font-size: 11px; line-height: 1.45; color: var(--ink-3); font-family: var(--sans); white-space: normal; }
+.dtable.cover td.n .did { text-align: right; max-width: 22ch; }
+.dtable.cover td.name { white-space: nowrap; vertical-align: top; }

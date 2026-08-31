@@ -188,7 +188,7 @@ const PROFILES = {
       `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or COIs lined up before mobilization, we can quote it this week.`,
     oNeed: () => `A new venue needs general liability and liquor liability before the doors open — and underwriting takes weeks.`,
     oOpener: (c) =>
-      `Re: ${c.name} — saw the license application for ${c.address}. GL and liquor liability take a few weeks to bind; we can have you covered before opening day.`,
+      `Re: ${venueName(c)} — saw the license application for ${c.address}. GL and liquor liability take a few weeks to bind; we can have you covered before opening day.`,
   },
   pos: {
     label: 'POS / payments',
@@ -197,7 +197,7 @@ const PROFILES = {
     cNeed: null,
     oNeed: () => `POS and payments get chosen during build-out — before opening day, not after. This venue is deciding right now.`,
     oOpener: (c) =>
-      `Re: ${c.name} — saw the license application for ${c.address}. If you're still picking a POS, we can have you set up and trained before the doors open.`,
+      `Re: ${venueName(c)} — saw the license application for ${c.address}. If you're still picking a POS, we can have you set up and trained before the doors open.`,
   },
   fnb: {
     label: 'F&B supplier',
@@ -205,7 +205,7 @@ const PROFILES = {
     facade: null,
     cNeed: null,
     oNeed: () => `Opening menus are being costed right now — supplier lists lock in before the first delivery, not after.`,
-    oOpener: (c) => `Re: ${c.name} — saw the license application for ${c.address}. We supply venues like yours; happy to quote your opening order before the rush.`,
+    oOpener: (c) => `Re: ${venueName(c)} — saw the license application for ${c.address}. We supply venues like yours; happy to quote your opening order before the rush.`,
   },
   staffing: {
     label: 'Staffing',
@@ -214,7 +214,7 @@ const PROFILES = {
     cNeed: (c) => `${c.vendor} needs crews to deliver ${money(c.amount)} of new work — hiring happens in the first weeks after an award.`,
     cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted crews ready this month.`,
     oNeed: () => `A venue opening in 2–4 months hires its whole team in the last six weeks — the search starts now.`,
-    oOpener: (c) => `Re: ${c.name} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
+    oOpener: (c) => `Re: ${venueName(c)} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
   },
   equipment: {
     cohorts: ['shedEnd', 'stalled', 'paying'],
@@ -318,7 +318,7 @@ const PROFILES = {
     cNeed: null,
     oNeed: () => `Opening night happens once — launch campaigns, socials and local press get planned six to eight weeks out. This venue is picking who runs that right now.`,
     oOpener: (c) =>
-      `Re: ${c.name} — saw the filing for ${c.address}. Opening night only happens once; we build launch campaigns for new venues. Want the neighborhood talking before the doors open?`,
+      `Re: ${venueName(c)} — saw the filing for ${c.address}. Opening night only happens once; we build launch campaigns for new venues. Want the neighborhood talking before the doors open?`,
   },
   signage: {
     label: 'Signs / storefront',
@@ -327,7 +327,7 @@ const PROFILES = {
     cNeed: null,
     oNeed: () => `A storefront sign takes weeks: design, DOB sign permit, fabrication, install. It gets ordered during build-out — which is exactly where this venue is today.`,
     oOpener: (c) =>
-      `Re: ${c.name} — saw the filing for ${c.address}. Signage takes weeks to design, permit and fabricate; we can have your storefront ready before opening day.`,
+      `Re: ${venueName(c)} — saw the filing for ${c.address}. Signage takes weeks to design, permit and fabricate; we can have your storefront ready before opening day.`,
   },
   explore: {
     label: 'Just exploring',
@@ -434,6 +434,50 @@ const MANDATES = {
   },
 };
 const mandateKeys = Object.keys(MANDATES);
+
+// Nobody buys this for the three-dimensional block of buildings, so it must
+// never sit between opening the page and reaching the first card. Three gates
+// and a delay:
+//
+//   - a viewport under 980px never mounts it (the CSS hides the slot anyway)
+//   - prefers-reduced-motion never mounts it
+//   - a browser without a working WebGL context never mounts it
+//   - and even when all three pass, the import waits for the browser to go idle,
+//     so the feed is rendered and clickable before the WebGL chunk is asked for
+//
+// The slot keeps its height in every case, so nothing moves when the scene
+// arrives or when it never does.
+const webglOk = () => {
+  try {
+    const c = document.createElement('canvas');
+    return Boolean(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch {
+    return false;
+  }
+};
+
+function useSceneReady(enabled) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!enabled) {
+      setReady(false);
+      return;
+    }
+    if (!webglOk()) return;
+    // requestIdleCallback where it exists, a timeout everywhere else. Either way
+    // the first paint has happened and the list is interactive by now.
+    const start = () => setReady(true);
+    const id =
+      typeof requestIdleCallback === 'function'
+        ? requestIdleCallback(start, { timeout: 2000 })
+        : setTimeout(start, 600);
+    return () => {
+      if (typeof cancelIdleCallback === 'function' && typeof id === 'number') cancelIdleCallback(id);
+      clearTimeout(id);
+    };
+  }, [enabled]);
+  return ready;
+}
 
 const HEROES = {
   facades: { Scene: Massing, cap: 'Sub-cycle 10A · nothing filed' },
@@ -687,6 +731,11 @@ const REG_COHORTS = {
   openings: ['reachable', 'notOpenYet', 'pouring'],
 };
 
+// What a venue is called on screen and in an opener. Where nothing vouched for
+// the licensee's name it was never shipped, and the card is identified by its
+// address instead — see lib/personal.mjs for what counts as vouching.
+const venueName = (o) => o?.name || o?.identity || `New business at ${String(o?.address || '').split(',')[0]}`;
+
 const DEFAULT_CLOSE_RATE = 0.03;
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 
@@ -694,26 +743,53 @@ const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 // Typical contract size per trade *and per register* — the same firm does not
 // bill the same for a mandated facade scope, a subcontract off a city award and
 // a build-out. Used until the user tells us their own number.
+// Every figure a profile can be shown, keyed by profile and then by register.
+// Values marked ESTIMATED below were not measured against anything — they are
+// plausible New York numbers put in so the block has something to show, and they
+// are the first thing to correct once a real contractor gives their own. The
+// user's own override always wins and stays on their device.
 const TICKET = {
-  qewi: { facades: 12000, contracts: 9000, gas: 1800, elevators: 2600 },
-  restoration: { facades: 180000, contracts: 120000 },
-  equipment: { facades: 45000, contracts: 30000 },
-  elevator: { facades: 25000, elevators: 9000 },
+  qewi: { facades: 12000, contracts: 9000, gas: 1800, elevators: 2600, openings: 3500 /* ESTIMATED */ },
+  restoration: { facades: 180000, contracts: 120000, openings: 40000 /* ESTIMATED: a storefront scope */ },
+  equipment: { facades: 45000, contracts: 30000, openings: 20000 /* ESTIMATED */ },
+  elevator: { facades: 25000, elevators: 9000, contracts: 60000 /* ESTIMATED */, openings: 35000 /* ESTIMATED */ },
   insurance: { facades: 12000, contracts: 18000, openings: 9000 },
   lender: { facades: 200000, contracts: 150000, openings: 120000, gas: 90000, carbon: 350000 },
-  propmgmt: { facades: 50000, gas: 4000, elevators: 6500, carbon: 12000 },
-  legal: { facades: 7500, gas: 6000, elevators: 5000, carbon: 15000 },
-  cre: { facades: 160000, gas: 120000, carbon: 220000 },
+  propmgmt: {
+    facades: 50000,
+    gas: 4000,
+    elevators: 6500,
+    carbon: 12000,
+    contracts: 30000 /* ESTIMATED */,
+    openings: 9000 /* ESTIMATED */,
+  },
+  legal: {
+    facades: 7500,
+    gas: 6000,
+    elevators: 5000,
+    carbon: 15000,
+    contracts: 12000 /* ESTIMATED */,
+    openings: 4500 /* ESTIMATED */,
+  },
+  cre: { facades: 160000, gas: 120000, carbon: 220000, contracts: 90000 /* ESTIMATED */, openings: 70000 /* ESTIMATED */ },
   staffing: { contracts: 25000, openings: 18000 },
-  pos: { openings: 4000 },
-  fnb: { openings: 60000 },
-  marketing: { openings: 15000 },
-  signage: { openings: 20000 },
+  pos: { openings: 4000, contracts: 12000 /* ESTIMATED */ },
+  fnb: { openings: 60000, contracts: 45000 /* ESTIMATED */ },
+  marketing: { openings: 15000, contracts: 20000 /* ESTIMATED */ },
+  signage: { openings: 20000, contracts: 18000 /* ESTIMATED */ },
+  // Deliberately empty: somebody who has not said what they do has no pipeline
+  // we can honestly put a number on, so the block does not appear for them.
   explore: {},
 };
 const homeVertical = (k) =>
   PROFILES[k]?.facade ? 'facades' : PROFILES[k]?.cNeed ? 'contracts' : PROFILES[k]?.oNeed ? 'openings' : 'facades';
-const ticketFor = (k, v) => TICKET[k]?.[v] || TICKET[k]?.[homeVertical(k)] || 0;
+// Exact, with no fallback in either direction. Borrowing another profile's
+// number would put a restoration contractor's figure in front of an inspector;
+// borrowing the same profile's figure from another register is the same error
+// one step smaller — facade restoration is not gas-piping work and does not
+// bill like it. A pair with no number hides the pipeline block instead, because
+// a figure nobody can check is worse than no figure.
+const ticketFor = (k, v) => TICKET[k]?.[v] || 0;
 
 // A register holding almost nothing is worse than no register — it makes the
 // whole product read as empty. Below this, the tab does not appear at all.
@@ -759,6 +835,44 @@ function CountUp({ value, prefix = '' }) {
     });
     return () => ctrl.stop();
   }, [value, prefix, reduce]);
+  return <span ref={ref} />;
+}
+
+// CountUp always starts from zero, which is right the first time a figure
+// appears and wrong every time after: what makes the pipeline persuasive is
+// watching it MOVE when you type your own ZIPs into the search box, and a number
+// that restarts from zero on every keystroke reads as a reload, not a response.
+// This one animates from wherever it already was.
+function Rolling({ value, format }) {
+  const ref = useRef(null);
+  const prev = useRef(null);
+  const reduce = useReducedMotion();
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const from = prev.current;
+    prev.current = value;
+    // The correct figure is written FIRST, every time. A tab that is in the
+    // background does not run transitions, and a number whose only path to its
+    // true value is through an animation then sits there showing the previous
+    // one — which is not a missing flourish, it is a wrong number on the screen.
+    el.textContent = format(value);
+    if (reduce || from == null || from === value) return;
+    const ctrl = animate(from, value, {
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => {
+        el.textContent = format(v);
+      },
+      onComplete: () => {
+        el.textContent = format(value);
+      },
+    });
+    return () => {
+      ctrl.stop();
+      el.textContent = format(value);
+    };
+  }, [value, format, reduce]);
   return <span ref={ref} />;
 }
 
@@ -950,6 +1064,9 @@ export default function App() {
   const [themeColors, setThemeColors] = useState(readThemeColors);
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
   const reduce = useReducedMotion();
+  // Mounts the register's scene only once the page is idle, and never on a
+  // narrow viewport, under reduced motion, or without WebGL.
+  const sceneReady = useSceneReady(wide && !reduce);
   const uid = useRef(null);
   const secret = useRef(null);
   if (uid.current === null) {
@@ -1319,24 +1436,6 @@ export default function App() {
       Number(Boolean(b.contact?.phone || b.contact?.email)) - Number(Boolean(a.contact?.phone || a.contact?.email)) ||
       (a.daysLeft ?? 9e9) - (b.daysLeft ?? 9e9),
   };
-  // The liquour file dates its applications and the health file does not, so
-  // there is no single number both sources can be ordered by: comparing them
-  // directly put all 350 undated rows below all 39 dated ones and called it
-  // "newest permit". Each source is ranked within itself instead — days since
-  // application for one, the sequentially-issued permit number for the other —
-  // and the two are interleaved by relative position, so the newest of each
-  // sits at the top.
-  const openingRank = useMemo(() => {
-    const rank = new Map();
-    for (const [rows, key] of [
-      [liveOpenings.filter((o) => o.daysAgo != null), (o) => o.daysAgo],
-      [liveOpenings.filter((o) => o.daysAgo == null), (o) => -Number(o.camis || 0)],
-    ]) {
-      const sorted = [...rows].sort((a, b) => key(a) - key(b));
-      sorted.forEach((o, i) => rank.set(o.id, sorted.length > 1 ? i / (sorted.length - 1) : 0));
-    }
-    return (o) => rank.get(o.id) ?? 1;
-  }, [liveOpenings]);
   const OPENING_SORTS = {
     recent: (a, b) => openingRank(a) - openingRank(b),
     callable: (a, b) => Number(Boolean(b.phone)) - Number(Boolean(a.phone)) || Number(b.camis || 0) - Number(a.camis || 0),
@@ -1454,6 +1553,24 @@ export default function App() {
   };
   const liveContracts = useMemo(() => mergeLive(data.contracts, live?.contracts), [live]);
   const liveOpenings = useMemo(() => mergeLive(data.openings, live?.openings), [live]);
+  // The liquour file dates its applications and the health file does not, so
+  // there is no single number both sources can be ordered by: comparing them
+  // directly put all 350 undated rows below all 39 dated ones and called it
+  // "newest permit". Each source is ranked within itself instead — days since
+  // application for one, the sequentially-issued permit number for the other —
+  // and the two are interleaved by relative position, so the newest of each
+  // sits at the top.
+  const openingRank = useMemo(() => {
+    const rank = new Map();
+    for (const [rows, key] of [
+      [liveOpenings.filter((o) => o.daysAgo != null), (o) => o.daysAgo],
+      [liveOpenings.filter((o) => o.daysAgo == null), (o) => -Number(o.camis || 0)],
+    ]) {
+      const sorted = [...rows].sort((a, b) => key(a) - key(b));
+      sorted.forEach((o, i) => rank.set(o.id, sorted.length > 1 ? i / (sorted.length - 1) : 0));
+    }
+    return (o) => rank.get(o.id) ?? 1;
+  }, [liveOpenings]);
   const contractsBase = useMemo(() => liveContracts.filter(profile.cFilter || (() => true)), [profileKey, liveContracts]);
   const contractsList = useMemo(
     () =>
@@ -1514,7 +1631,7 @@ export default function App() {
         if (boro !== 'all' && o.county !== boro) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
-        return [o.name, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
+        return [o.name, o.identity, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }).sort(OPENING_SORTS[sortMode] || OPENING_SORTS.recent),
@@ -1879,7 +1996,7 @@ export default function App() {
         'right-window-openings.csv',
         ['Venue', 'Type', 'County', 'Premises', 'Legal name', 'Filed', 'Why you', 'Suggested opener', 'Link'],
         openingsList.map((o) => [
-          o.name, o.kind, o.county, o.address, o.legal, o.received || '',
+          venueName(o), o.kind, o.county, o.address, o.legal || '', o.received || '',
           profile.oNeed?.(o) || 'Opening in 2–4 months: POS, insurance, suppliers, furniture, marketing get chosen now.',
           (profile.oOpener || defaultOOpener)(o),
           `${location.origin}/#o/${o.id}`,
@@ -1908,6 +2025,16 @@ export default function App() {
     return openingsList.filter((o) => !isDismissed('o:' + o.id) && statusOf('o:' + o.id) !== 'taken').length;
   }, [vertical, filteredFeed, mandateList, vertPrefix, contractsList, openingsList, claims, mine, now, fb]);
 
+  // The base is the ACTIONABLE set, not the register: openCount counts the rows
+  // left after the trade profile, the register tab, the borough and cohort chips,
+  // the ZIP territory filter, the search box and everything hidden or taught
+  // away. It moves as the filters move, which is the point — a crew typing its
+  // own ZIPs should watch the figure answer.
+  //
+  // The horizon comes from the register's own deadline where the visible rows
+  // share one, because a sum with no period attached cannot be checked, and a
+  // number that cannot be checked is not believed. Where there is no deadline in
+  // the data, the figure is labelled per year rather than given a made-up date.
   const myPipeline = useMemo(() => {
     const n = openCount;
     if (!n) return null;
@@ -1917,8 +2044,17 @@ export default function App() {
     const gross = n * avg;
     const expected = gross * rate;
     if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
-    return { n, avg, rate, gross, expected };
-  }, [ticket, closeRate, openCount, profileKey, vertical]);
+
+    // The latest deadline the visible rows actually carry: every one of them has
+    // to be won by then, so it is the honest end of the window.
+    const rows = visibleForReasons || [];
+    let horizon = null;
+    for (const c of rows) {
+      const d = c?.deadline;
+      if (typeof d === 'string' && d.length === 10 && (!horizon || d > horizon)) horizon = d;
+    }
+    return { n, avg, rate, gross, expected, horizon };
+  }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons]);
 
   const heroText =
     vertical === 'facades'
@@ -2418,20 +2554,25 @@ export default function App() {
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
           {myPipeline ? (
             <motion.div className="pipe" {...fade(0.1)}>
-              <span className="gross">{fmtMoney(myPipeline.gross)} open</span>
+              <span className="gross">
+                <Rolling value={myPipeline.gross} format={fmtMoney} /> open
+              </span>
               <span className="arrow" aria-hidden="true">→</span>
               <b
-                title={`${myPipeline.n} open × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`}
+                title={`${myPipeline.n} shown × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`}
               >
-                ~{fmtMoney(myPipeline.expected)} expected
+                ~<Rolling value={myPipeline.expected} format={fmtMoney} /> expected{' '}
+                <em>{myPipeline.horizon ? `by ${usShort(myPipeline.horizon)}` : 'per year'}</em>
               </b>
               <span className="pipe-note">
-                {myPipeline.n} open{' '}
+                {/* "shown", not "open": the figure is the filtered view, and
+                    saying so is what makes it move credibly when you filter. */}
+                {myPipeline.n.toLocaleString('en-US')}{' '}
                 {vertical === 'contracts'
                   ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
                   : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
                     (myPipeline.n === 1 ? '' : 's')}{' '}
-                ·{' '}
+                shown ·{' '}
                 {fmtMoney(myPipeline.avg)} avg contract ·{' '}
                 {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
@@ -2442,7 +2583,7 @@ export default function App() {
         </section>
         {HEROES[vertical] && (
           <div className="massing-slot">
-            {wide && !reduce && (
+            {sceneReady && (
               <Suspense fallback={null}>
                 {React.createElement(HEROES[vertical].Scene, {
                   colors: themeColors,
@@ -3505,7 +3646,7 @@ export default function App() {
             renderHead={(c) => (
               <>
                 <span className="head-main">
-                  <span className="addr">{c.name}</span>
+                  <span className="addr">{venueName(c)}</span>
                   {c.isNew && <span className="badge new">New</span>}
                   {fbOf('o:' + c.id) && fbOf('o:' + c.id) !== 'dismissed' && (
                     <span className={'badge st ' + fbOf('o:' + c.id)}>{fbOf('o:' + c.id)}</span>
@@ -3590,7 +3731,7 @@ export default function App() {
                 <div className="na-cap">Next action</div>
                 <div className="call-block">
                   <div className="call-who">
-                    <b>{c.name}</b>
+                    <b>{venueName(c)}</b>
                     <span>
                       {c.phoneVia
                         ? `From the food permit for ${title(c.phoneVia)} at this address`
@@ -3684,34 +3825,51 @@ export default function App() {
             setEmail(v);
             saveLS('rw.email', v);
             setEmailSaved('saving');
+            // /api/subscribe owns the list; /api/prefs keeps carrying the address
+            // for this device so the trade and borough it already holds stay
+            // together with it.
+            fetch('/api/subscribe', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ email: v, profile: profileKey || null, boro }),
+            })
+              .then(async (r) => {
+                const j = await r.json().catch(() => ({}));
+                // Three outcomes, not two: stored, our store is not configured
+                // yet, or something else went wrong. Only the middle one should
+                // offer the way round, and it must not clear itself — the last
+                // version took the only route through with it after three
+                // seconds.
+                if (r.ok && j.ok) {
+                  setEmailSaved(j.confirmation ? 'ok' : 'ok-nomail');
+                  setTimeout(() => setEmailSaved(false), 4000);
+                } else setEmailSaved(j.canStore === false ? 'nostore' : 'fail');
+              })
+              .catch(() => setEmailSaved('fail'));
             fetch('/api/prefs', {
               method: 'POST',
               headers: { 'content-type': 'application/json' },
               body: JSON.stringify({ uid: uid.current, secret: secret.current, data: { channels: { email: v } } }),
-            })
-              // A confirmation can time out; the way out of a failure must not.
-              // It used to clear itself after three seconds, taking the only
-              // route through with it.
-              .then((r) => {
-                setEmailSaved(r.ok ? 'ok' : 'fail');
-                if (r.ok) setTimeout(() => setEmailSaved(false), 3200);
-              })
-              .catch(() => setEmailSaved('fail'));
+            }).catch(() => {});
           }}
         >
           <input name="em" type="email" required placeholder="you@company.com" defaultValue={email} aria-label="Email for the daily digest" />
           <button className="btn solid" type="submit">
             {emailSaved === 'saving'
-              ? 'Saving…'
-              : emailSaved === 'ok'
-                ? 'Saved'
-                : emailSaved === 'fail'
+              ? 'Signing you up…'
+              : emailSaved === 'ok' || emailSaved === 'ok-nomail'
+                ? "You're on the list"
+                : emailSaved === 'fail' || emailSaved === 'nostore'
                   ? 'Try again'
                   : email
                     ? 'Update digest email'
                     : 'Get the daily digest'}
           </button>
-          {emailSaved === 'fail' ? (
+          {emailSaved === 'ok' ? (
+            <span className="digest-note">Check your inbox — we sent a confirmation.</span>
+          ) : emailSaved === 'ok-nomail' ? (
+            <span className="digest-note">Saved. One email each morning, nothing on a quiet day.</span>
+          ) : emailSaved === 'fail' || emailSaved === 'nostore' ? (
             <span className="digest-note">
               That did not save, and the fault is at our end. One click sends it instead —{' '}
               <a
@@ -3978,8 +4136,8 @@ const defaultCOpener = (c) => {
 };
 const defaultOOpener = (c) =>
   c.src === 'dohmh'
-    ? `Re: ${c.name} at ${c.address} — saw the new Health Department permit. The weeks before you open are the busiest you'll ever have; if you're still picking a POS, coverage or suppliers, we can set you up before the doors open.`
-    : `Re: ${c.name} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
+    ? `Re: ${venueName(c)} at ${c.address} — saw the new Health Department permit. The weeks before you open are the busiest you'll ever have; if you're still picking a POS, coverage or suppliers, we can set you up before the doors open.`
+    : `Re: ${venueName(c)} — saw the license application for ${c.address}. Openings are the busiest weeks you'll ever have; if you're still picking a POS or coverage, we can set you up before the doors open.`;
 
 // US conveniences: dates the way Americans read them, an ET clock, map links a
 // field crew can actually use, and calendar files for anything with a date.
