@@ -926,3 +926,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 .fb-note::placeholder { color: var(--ink-3); }
 .fb-note:focus-visible { outline: 2px solid var(--brand); outline-offset: -1px; }
+
+/* the one screen that must never be blank */
+.crash {
+  max-width: 42ch; margin: 22vh auto; padding: 0 22px;
+  font-family: var(--sans); color: var(--ink); text-align: left;
+}
+.crash b { display: block; font-family: var(--display); font-size: 26px; font-weight: 400; margin-bottom: 10px; }
+.crash p { color: var(--ink-2); font-size: 15px; margin: 0 0 18px; }

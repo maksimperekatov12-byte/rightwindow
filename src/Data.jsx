@@ -9,6 +9,25 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
   const allowed = policy.filter((p) => p.verdict === 'ALLOWED' && p.datasets?.length);
   const denied = policy.filter((p) => p.verdict !== 'ALLOWED');
   const noCall = policy.filter((p) => p.verdict === 'ALLOWED' && !p.datasets?.length);
+  // Read off the shipped feed, so this cannot drift from what the cards show.
+  const REGS = [
+    ['facades', 'Building facades'],
+    ['carbon', 'Carbon (LL97)'],
+    ['elevators', 'Elevators'],
+    ['gas', 'Gas piping (LL152)'],
+  ];
+  const coverage = [
+    ...REGS.map(([key, label]) => {
+      const rows = data[key]?.feed || [];
+      return { key, label, cards: rows.length, reached: rows.filter((c) => c.agent?.contactKnown).length };
+    }),
+    {
+      key: 'openings',
+      label: 'New openings',
+      cards: (data.openings || []).length,
+      reached: (data.openings || []).filter((o) => o.phone || o.email).length,
+    },
+  ].sort((a, b) => b.reached / (b.cards || 1) - a.reached / (a.cards || 1));
 
   return (
     <div className="wrap datapage">
@@ -141,7 +160,7 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
           repository, only through the private store. The card says so rather than pretending there is no number.
         </li>
         <li>
-          <span className="conf alt">from the food permit at this address</span> A venue applying for a liquour licence
+          <span className="conf alt">from the food permit at this address</span> A venue applying for a liquor licence
           usually holds a food permit too, and that record prints a number. The premises address alone is not enough —
           the previous tenant sat at the same storefront — so the names have to corroborate as well. The label always
           says which record the number came from.
@@ -157,13 +176,30 @@ export default function DataPage({ live, onBack, isDark, onTheme }) {
         </li>
       </ul>
       <p className="fine">
-        Measured, not estimated. New openings reaches 391 of 400 — the city prints the number on a food permit, so that
-        register barely needs looking anything up. Across the four building registers it is 694 of 1,600. The
-        most recent sweep took the 39 managing agents covering the most cards and resolved 36 of them — 28 read off the
-        company's own site. Coverage by register is uneven for a reason: 77% on the carbon feed, which is large
-        buildings with professional management, against 11% on gas piping, where 246 of 400 buildings register an
-        individual rather than a company and there is no business to look up. That gap is structural, and it is what
-        the last two labels are for.
+        Measured, not estimated, and counted from the build you are looking at rather than typed in by hand.
+      </p>
+      <div className="twrap">
+        <table>
+          <thead>
+            <tr><th>Register</th><th>Cards</th><th>Reach a contact</th><th></th></tr>
+          </thead>
+          <tbody>
+            {coverage.map((r) => (
+              <tr key={r.key}>
+                <td className="name">{r.label}</td>
+                <td className="n">{r.cards.toLocaleString('en-US')}</td>
+                <td className="n">{r.reached.toLocaleString('en-US')}</td>
+                <td className="n">{r.cards ? Math.round((100 * r.reached) / r.cards) : 0}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="fine">
+        Coverage is uneven for a reason. New openings is highest because the city prints the number on the food permit
+        itself. The building registers depend on who the managing agent is: a firm has an office and a switchboard, and
+        a building registered to an individual has nothing to look up. Every card in those registers names a firm, and
+        what is left is the firms nobody has measured yet.
       </p>
       {noCall.map((p) => (
         <p className="fine" key={p.id}>

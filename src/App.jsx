@@ -343,9 +343,10 @@ const PROFILES = {
 // clause that carries the argument.
 // The block model is the heaviest thing on the page, so it is code-split and
 // only ever mounted on a wide screen with motion allowed.
-const Massing = lazy(() => import('./Massing.jsx'));
-const CivicWorks = lazy(() => import('./CivicWorks.jsx'));
-const Storefronts = lazy(() => import('./Storefronts.jsx'));
+const blank = { default: () => null };
+const Massing = lazy(() => import('./Massing.jsx').catch(() => blank));
+const CivicWorks = lazy(() => import('./CivicWorks.jsx').catch(() => blank));
+const Storefronts = lazy(() => import('./Storefronts.jsx').catch(() => blank));
 
 // Each register gets its own object and its own line under it. The caption is
 // the object's job: it says which fact of the register the brand-coloured
@@ -1355,8 +1356,24 @@ export default function App() {
     for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
   }, [facadeFeed]);
-  const liveContracts = live?.contracts || data.contracts;
-  const liveOpenings = live?.openings || data.openings;
+  // The five-minute lane re-checks a narrow slice — award notices and liquor
+  // licences — and publishes only what it saw. It must never REPLACE a register:
+  // it was still writing the old 29-award, 40-venue shape after the build moved
+  // to 156 City Record notices and 400 openings, so production was serving a
+  // third of the product and none of the open solicitations. Merge by id, keep
+  // the richer record, and let genuinely new rows through.
+  const mergeLive = (base, fresh) => {
+    if (!Array.isArray(fresh) || !fresh.length) return base;
+    const byId = new Map(base.map((r) => [r.id, r]));
+    for (const r of fresh) {
+      const had = byId.get(r.id);
+      // A fast-lane row carries fewer fields, so it may only refresh what it has.
+      byId.set(r.id, had ? { ...had, ...Object.fromEntries(Object.entries(r).filter(([, v]) => v != null)) } : r);
+    }
+    return [...byId.values()];
+  };
+  const liveContracts = useMemo(() => mergeLive(data.contracts, live?.contracts), [live]);
+  const liveOpenings = useMemo(() => mergeLive(data.openings, live?.openings), [live]);
   const contractsBase = useMemo(() => liveContracts.filter(profile.cFilter || (() => true)), [profileKey, liveContracts]);
   const contractsList = useMemo(
     () =>
@@ -1447,7 +1464,9 @@ export default function App() {
   // typing never makes a tab vanish. A deep link always opens its own register.
   const vertSize = {
     facades: facadeFeed.length,
-    ...Object.fromEntries(mandateKeys.map((k) => [k, mandateLists[k].length])),
+    // Counted from the whole register, not the filtered view: typing in the
+    // search box must never make a tab disappear.
+    ...Object.fromEntries(mandateKeys.map((k) => [k, (data[k]?.feed || []).length])),
     contracts: contractsBase.length,
     openings: liveOpenings.length,
   };
@@ -1586,10 +1605,10 @@ export default function App() {
         open(key, idx);
       }
     } else if (t === 'c') {
-      const idx = (live?.contracts || data.contracts).findIndex((c) => c.id === id);
+      const idx = liveContracts.findIndex((c) => c.id === id);
       if (idx >= 0) open('contracts', idx);
     } else {
-      const idx = (live?.openings || data.openings).findIndex((o) => o.id === id);
+      const idx = liveOpenings.findIndex((o) => o.id === id);
       if (idx >= 0) open('openings', idx);
     }
     // live arrives after mount; a row that only exists there resolves on retry.
@@ -1818,7 +1837,7 @@ export default function App() {
             ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand of them for not filing an emissions report. Being named is the exception, and every one of these citations was written this summer.'
         : vertical === 'contracts'
           ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
-          : 'Two records, both public. A liquour licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
+          : 'Two records, both public. A liquor licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
   const deadlineIso = '2027-02-21';
@@ -2267,7 +2286,7 @@ export default function App() {
           ) : (
             <div className="eyebrow">New York City · public records, read hourly</div>
           )}
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence initial={false} mode="popLayout">
             <motion.h1
               key={vertical + profileKey}
               initial={reduce ? false : { opacity: 0, y: 10 }}
@@ -2356,11 +2375,19 @@ export default function App() {
                   {feedStale ? `New in the 48 hours to ${usShort(data.generatedAt.slice(0, 10))}:` : 'New in the last 48 hours:'}
                 </b>{' '}
                 {[
-                  wn.buildings && `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`,
+                  wn.buildings && wn.buildings < data.facades.feed.length
+                    ? `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`
+                    : null,
                   wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
-                  ...mandateKeys.map(
-                    (k) => wn[k] && `${wn[k]} ${MANDATES[k].label.toLowerCase()} building${wn[k] > 1 ? 's' : ''}`,
-                  ),
+                  // A register cannot be a hundred per cent new in forty-eight
+                  // hours. If the count equals the register, it is a first build
+                  // being announced as news and is not shown.
+                  ...mandateKeys.map((k) => {
+                    const n = wn[k] || 0;
+                    const size = (data[k]?.feed || []).length;
+                    if (!n || n >= size) return null;
+                    return `${n} ${MANDATES[k].noun || 'building'}${n > 1 ? 's' : ''} on ${MANDATES[k].label.toLowerCase()}`;
+                  }),
                   wn.contracts && `${wn.contracts} contract${wn.contracts > 1 ? 's' : ''}`,
                   wn.openings && `${wn.openings} venue filing${wn.openings > 1 ? 's' : ''}`,
                 ]
@@ -3426,7 +3453,16 @@ export default function App() {
                     <a className="btn ghost" href={findUrl(`"${c.legal}" ${c.address} phone`)} target="_blank" rel="noreferrer">
                       Find contact ↗
                     </a>
-                    <a className="btn ghost" href="https://data.ny.gov/d/f8i8-k2gm" target="_blank" rel="noreferrer">
+                    <a
+                      className="btn ghost"
+                      href={
+                        c.src === 'dohmh'
+                          ? 'https://data.cityofnewyork.us/d/43nn-pn8j'
+                          : 'https://data.ny.gov/d/f8i8-k2gm'
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       Source data ↗
                     </a>
                   </div>
@@ -3510,7 +3546,10 @@ export default function App() {
                     : 'Get the daily digest'}
           </button>
           {emailSaved === 'fail' ? (
-            <span className="digest-note">Could not save — check your connection and try again.</span>
+            <span className="digest-note">
+              That did not save — the fault is at our end, not yours. Email{' '}
+              <a href={`mailto:${CONTACT.email}?subject=Daily%20digest`}>{CONTACT.email}</a> and we will add you by hand.
+            </span>
           ) : (
             email && !emailSaved && <span className="digest-note">Only when something new matches you</span>
           )}

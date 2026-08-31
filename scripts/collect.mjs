@@ -1274,30 +1274,38 @@ const NEW_WINDOW_MS = 48 * 3600 * 1000;
 const seenPath = new URL('../data/seen.json', import.meta.url);
 let seen = null;
 try { if (existsSync(seenPath)) seen = JSON.parse(readFileSync(seenPath, 'utf8')); } catch {}
-const baselineDone = Boolean(seen);
 if (!seen) seen = { bins: {}, contracts: {}, openings: {} };
 const nowIso = TODAY.toISOString();
-const stamp = () => (baselineDone ? nowIso : 'baseline');
+// A register that has never been seen before has no idea what is new in it, and
+// stamping its whole first build with "now" made the strip announce four hundred
+// buildings as fresh the day a register was added. Each bucket gets its own
+// baseline: the first run records that it existed, and only the run after that
+// can call anything new.
+const stamp = (bucket) => (bucket && Object.keys(bucket).length ? nowIso : 'baseline');
 const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
 
+const binsSeen = { ...seen.bins };
 for (const c of cards) {
-  const rec = (seen.bins[c.bin] ||= { first: stamp(), kinds: {} });
-  for (const sg of c.signals) rec.kinds[sg.kind] ||= stamp();
+  const rec = (seen.bins[c.bin] ||= { first: stamp(binsSeen), kinds: {} });
+  for (const sg of c.signals) rec.kinds[sg.kind] ||= stamp(binsSeen);
   c.isNew = isFreshTs(rec.first);
   c.fresh = c.isNew ? [] : c.signals.map((sg) => sg.kind).filter((k) => isFreshTs(rec.kinds[k]));
 }
+const contractsSeen = { ...seen.contracts };
 for (const c of contracts) {
-  seen.contracts[c.id] ||= stamp();
+  seen.contracts[c.id] ||= stamp(contractsSeen);
   c.isNew = isFreshTs(seen.contracts[c.id]);
 }
+const openingsSeen = { ...seen.openings };
 for (const o of openings) {
-  seen.openings[o.id] ||= stamp();
+  seen.openings[o.id] ||= stamp(openingsSeen);
   o.isNew = isFreshTs(seen.openings[o.id]);
 }
 for (const [key, reg] of Object.entries(registers)) {
   seen[key] ||= {};
+  const was = { ...seen[key] };
   for (const g of reg.feed) {
-    seen[key][g.bin] ||= stamp();
+    seen[key][g.bin] ||= stamp(was);
     g.isNew = isFreshTs(seen[key][g.bin]);
   }
 }
