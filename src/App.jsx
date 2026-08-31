@@ -445,9 +445,42 @@ const MANDATES = {
     facts: (c) => [
       ['Cited', c.issued ? `${usDate(c.issued)}${c.openDays ? ` — ${c.openDays} days ago` : ''}` : 'unknown'],
       ['Open violations', String(c.violations)],
+      // The dollar line, where the city's own benchmarking allows one. Both
+      // halves are estimates and the copy says so — the reported figure is
+      // Portfolio Manager's, the cap is computed from the statutory 2024-29
+      // coefficients, and neither is DOB's official BEAM number.
+      ...(c.ghg
+        ? [
+            [
+              `Reported emissions (CY${c.ghg.y})`,
+              `${c.ghg.t.toLocaleString('en-US')} tCO2e` +
+                (c.ghg.cap != null ? ` against an estimated cap of ~${c.ghg.cap.toLocaleString('en-US')}` : '') +
+                (c.ghg.type ? ` · ${c.ghg.type}` : ''),
+            ],
+            ...(c.ghg.usd > 0
+              ? [[
+                  'Estimated overage exposure',
+                  `~${money(c.ghg.usd)}/year at $268 per ton over — an estimate on the city's own benchmarking, not DOB's calculation`,
+                ]]
+              : c.ghg.cap != null
+                ? [[
+                    'Against its cap',
+                    `under by ~${(c.ghg.cap - c.ghg.t).toLocaleString('en-US')} t — the report is the job here, not the retrofit`,
+                  ]]
+                : []),
+          ]
+        : []),
+      ...(c.sqft && !c.ghg?.usd
+        ? [[
+            'Failure-to-file meter',
+            `up to ${money(Math.round(c.sqft * 0.5))}/month statutory ceiling on ${c.sqft.toLocaleString('en-US')} sq ft`,
+          ]]
+        : []),
     ],
     opener: (c) =>
-      `Re: ${title(c.address)} — DOB has an open Local Law 97 violation on this building for an unfiled emissions report. We can get the report filed and scope what it takes to get under the cap.`,
+      c.ghg?.usd > 0
+        ? `Re: ${title(c.address)} — DOB has an open Local Law 97 violation here, and the building's own CY${c.ghg.y} benchmarking shows ${c.ghg.t.toLocaleString('en-US')} tCO2e against an estimated cap near ${c.ghg.cap.toLocaleString('en-US')} — roughly ${money(c.ghg.usd)}/year of exposure at $268/ton. We can file the report and scope the retrofit that gets you under.`
+        : `Re: ${title(c.address)} — DOB has an open Local Law 97 violation on this building for an unfiled emissions report. We can get the report filed and scope what it takes to get under the cap.`,
   },
 };
 const mandateKeys = Object.keys(MANDATES);
