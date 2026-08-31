@@ -241,7 +241,7 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, compa
       )}
       <span className="citymap-cap">
         {compact
-          ? `${located.length.toLocaleString('en-US')} cards on the map · your filters move it · drag to turn, click a column to open`
+          ? `${located.length.toLocaleString('en-US')} cards · filters move it · drag to turn · click to open`
           : `${located.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} shown cards located · colour and height are urgency · amber has a dated hearing or an expiring shed · drag to turn, click a column to open its card`}
       </span>
     </div>
