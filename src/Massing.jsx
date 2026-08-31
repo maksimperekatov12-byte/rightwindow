@@ -49,7 +49,55 @@ const LOOK_AT = new THREE.Vector3(0, 2.1, 0);
 
 const TANK = { r: 0.21, h: 0.42, roofR: 0.25, roofH: 0.2 };
 
-function Building({ b, geo, mat, body, groupRef }) {
+// What the coloured element is, per register.
+//   facades    the whole mass — the law is about the outside of the building
+//   gas        the service riser and meter at the base, where LL152 is inspected
+//   elevators  the hoistway cut up the face, with the machine room on the roof
+//   carbon     the rooftop plant, which is what LL97 actually measures
+const MARK = {
+  facades: { body: true },
+  gas: {
+    riser: { w: 0.16, d: 0.16, h: 2.4, dx: 0.85, dz: 0.98 },
+    meter: { w: 0.62, h: 0.52, d: 0.34, dx: 0.5, dz: 1.02, y: 0.28 },
+  },
+  elevators: {
+    shaft: { w: 0.52, d: 0.14, dx: -0.55, dz: 0.98 },
+    room: { w: 0.78, h: 0.5, d: 0.7, dx: -0.5, dz: -0.2 },
+  },
+  carbon: {
+    plant: { w: 1.15, h: 0.46, d: 0.9, dx: -0.25, dz: -0.25 },
+    flue: { r: 0.11, h: 1.05, dx: 0.55, dz: -0.5 },
+  },
+};
+
+// The mark sits on the subject building and is the only coloured thing in the
+// scene, so which register you are on is legible before any text is read.
+function Mark({ variant, geo, mat, top }) {
+  const m = MARK[variant];
+  if (!m || m.body) return null;
+  if (variant === 'gas')
+    return (
+      <>
+        <mesh geometry={geo.box} material={mat.subject} position={[m.riser.dx, m.riser.h / 2, m.riser.dz]} scale={[m.riser.w, m.riser.h, m.riser.d]} />
+        <mesh geometry={geo.box} material={mat.subject} position={[m.meter.dx, m.meter.y, m.meter.dz]} scale={[m.meter.w, m.meter.h, m.meter.d]} />
+      </>
+    );
+  if (variant === 'elevators')
+    return (
+      <>
+        <mesh geometry={geo.box} material={mat.subject} position={[m.shaft.dx, top / 2, m.shaft.dz]} scale={[m.shaft.w, top, m.shaft.d]} />
+        <mesh geometry={geo.box} material={mat.subject} position={[m.room.dx, top + m.room.h / 2, m.room.dz]} scale={[m.room.w, m.room.h, m.room.d]} />
+      </>
+    );
+  return (
+    <>
+      <mesh geometry={geo.box} material={mat.subject} position={[m.plant.dx, top + m.plant.h / 2, m.plant.dz]} scale={[m.plant.w, m.plant.h, m.plant.d]} />
+      <mesh geometry={geo.flue} material={mat.subject} position={[m.flue.dx, top + m.flue.h / 2, m.flue.dz]} scale={[1, m.flue.h, 1]} />
+    </>
+  );
+}
+
+function Building({ b, geo, mat, body, groupRef, mark }) {
   let y = 0;
   const tiers = b.tiers.map((t, i) => {
     const cy = y + t.h / 2;
@@ -65,6 +113,7 @@ function Building({ b, geo, mat, body, groupRef }) {
           <lineSegments geometry={geo.edges} material={mat.line} />
         </group>
       ))}
+      {mark && <Mark variant={mark} geo={geo} mat={mat} top={y} />}
       {b.tank && (
         <group position={[b.tank[0], y, b.tank[1]]}>
           <mesh geometry={geo.tank} material={mat.tank} position={[0, TANK.h / 2 + 0.06, 0]} />
@@ -75,7 +124,7 @@ function Building({ b, geo, mat, body, groupRef }) {
   );
 }
 
-function Model({ colors, reduced }) {
+function Model({ colors, reduced, variant }) {
   const camera = useThree((s) => s.camera);
   const invalidate = useThree((s) => s.invalidate);
   const aspect = useThree((s) => s.viewport.aspect);
@@ -86,6 +135,7 @@ function Model({ colors, reduced }) {
       box,
       edges: new THREE.EdgesGeometry(box),
       tank: new THREE.CylinderGeometry(TANK.r, TANK.r, TANK.h, 14),
+      flue: new THREE.CylinderGeometry(0.11, 0.11, 1, 10),
       roof: new THREE.CylinderGeometry(0.02, TANK.roofR, TANK.roofH, 14),
     };
   }, []);
@@ -162,7 +212,8 @@ function Model({ colors, reduced }) {
           b={b}
           geo={geo}
           mat={mat}
-          body={i === SUBJECT_INDEX ? mat.subject : mat.mass}
+          body={i === SUBJECT_INDEX && MARK[variant]?.body ? mat.subject : mat.mass}
+          mark={i === SUBJECT_INDEX ? variant : null}
           groupRef={(el) => (groups.current[i] = el)}
         />
       ))}
@@ -170,14 +221,14 @@ function Model({ colors, reduced }) {
   );
 }
 
-export default function Massing({ colors, reduced = false, className }) {
+export default function Massing({ colors, reduced = false, className, variant = 'facades' }) {
   return (
     <Stage
       reduced={reduced}
       className={className}
       camera={{ position: [14.6, 10.4, 18.2], fov: 30, near: 4, far: 70 }}
     >
-      <Model colors={colors} reduced={reduced} />
+      <Model colors={colors} reduced={reduced} variant={variant} />
     </Stage>
   );
 }

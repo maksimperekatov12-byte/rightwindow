@@ -438,9 +438,9 @@ const HEROES = {
   facades: { Scene: Massing, cap: 'Sub-cycle 10A · nothing filed' },
   // A block of buildings on a compliance clock is what every one of these is,
   // so they reuse the facade hero rather than inventing an object per statute.
-  gas: { Scene: Massing, cap: 'Sub-cycle C · gas piping unfiled' },
-  elevators: { Scene: Massing, cap: 'CAT1 cycle skipped · Dec 31 still open' },
-  carbon: { Scene: Massing, cap: 'Emissions report owed · cited this summer' },
+  gas: { Scene: Massing, variant: 'gas', cap: 'Sub-cycle C · gas piping unfiled' },
+  elevators: { Scene: Massing, variant: 'elevators', cap: 'CAT1 cycle skipped · Dec 31 still open' },
+  carbon: { Scene: Massing, variant: 'carbon', cap: 'Emissions report owed · cited this summer' },
   contracts: { Scene: CivicWorks, cap: 'Bid window open · winner not named' },
   openings: { Scene: Storefronts, cap: 'Licence pending · vendors not chosen' },
 };
@@ -657,6 +657,24 @@ const COHORTS = {
     label: 'Whole building only',
     of: (c) => !/\b(HDFC|CONDO|CONDOMINIUM|OWNERS CORP|TENANTS CORP|CO-?OP)\b/i.test(c.owner || ''),
   },
+  // The other registers answer different questions with the same shape.
+  openLong: { label: 'Open over a year', of: (c) => (c.openDays || 0) > 365 },
+  multi: { label: 'More than one', of: (c) => (c.violations || 0) > 1 },
+  behind2: { label: 'Two cycles behind', of: (c) => c.yearsBehind == null || c.yearsBehind >= 2 },
+  manyLifts: { label: '3+ lifts', of: (c) => (c.devices || 0) >= 3 },
+  reachable: { label: 'Has a contact', of: (c) => Boolean(c.agent?.contactKnown || c.phone || c.email || c.contact?.phone) },
+  openBid: { label: 'Still open', of: (c) => c.kind === 'SOLICITATION' || c.kind === 'INTENT' },
+  buildWork: { label: 'Construction', of: (c) => /construction|architect|engineer/i.test(c.category || '') },
+  notOpenYet: { label: 'Not open yet', of: (c) => c.src === 'dohmh' },
+  pouring: { label: 'Liquour licence', of: (c) => c.src === 'sla' },
+};
+// Which cohorts a register offers. The trade's own list wins on facades.
+const REG_COHORTS = {
+  gas: ['reachable', 'openLong', 'multi'],
+  elevators: ['reachable', 'behind2', 'manyLifts'],
+  carbon: ['reachable', 'multi'],
+  contracts: ['openBid', 'buildWork', 'reachable'],
+  openings: ['reachable', 'notOpenYet', 'pouring'],
 };
 
 const DEFAULT_CLOSE_RATE = 0.03;
@@ -1335,13 +1353,14 @@ export default function App() {
         if (showHidden !== isDismissed('c:' + c.id)) return false;
         if (!showHidden && taughtAway('c:', c)) return false;
         if (onlyWatch && !isWatched('c:' + c.id)) return false;
+        if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
         return [c.vendor, c.agency, c.title, c.category, c.contact?.name, c.epin]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }),
-    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery],
+    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
   );
   const mandateLists = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
@@ -1354,6 +1373,7 @@ export default function App() {
         if (!showHidden && taughtAway(pre, c)) return false;
         if (onlyWatch && !isWatched(pre + c.bin)) return false;
         if (onlyWorking && !['contacted', 'won'].includes(fb[pre + c.bin]?.s)) return false;
+        if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
         if (boro !== 'all' && c.borough !== boro) return false;
         if (!q) return true;
         if (zips) return Boolean(c.zip) && zips.includes(c.zip);
@@ -1365,12 +1385,14 @@ export default function App() {
       out[key] = [...out[key]].sort(cmp);
     }
     return out;
-  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking]);
+  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort]);
   // A sort that does not exist on the register you just switched to would leave
   // the control showing nothing while the list quietly reordered itself.
   useEffect(() => {
     const allowed = (REG_SORTS[vertical] || []).map(([v]) => v);
     if (allowed.length && !allowed.includes(sortMode)) setSortMode('profile');
+    const chips = vertical === 'facades' ? profile.cohorts || [] : REG_COHORTS[vertical] || [];
+    if (cohort && !chips.includes(cohort)) setCohort(null);
   }, [vertical]);
 
   const mandateList = mandateLists[vertical] || [];
@@ -1380,13 +1402,14 @@ export default function App() {
         if (showHidden !== isDismissed('o:' + o.id)) return false;
         if (!showHidden && taughtAway('o:', o)) return false;
         if (onlyWatch && !isWatched('o:' + o.id)) return false;
+        if (cohort && !(COHORTS[cohort]?.of(o) ?? true)) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
         return [o.name, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }),
-    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery],
+    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
   );
   const visibleForReasons =
     vertical === 'facades'
@@ -1830,6 +1853,24 @@ export default function App() {
           })}
         </div>
       )}
+      {(REG_COHORTS[vertical] || []).map((k) => {
+        const def = COHORTS[k];
+        if (!def) return null;
+        const pool = data[vertical]?.feed || data[vertical] || [];
+        const n = pool.filter(def.of).length;
+        // A filter that selects the whole register tells you nothing.
+        if (!n || n === pool.length) return null;
+        return (
+          <button
+            key={k}
+            className={'chip-btn' + (cohort === k ? ' on' : '')}
+            aria-pressed={cohort === k}
+            onClick={() => setCohort(cohort === k ? null : k)}
+          >
+            {def.label} ({n})
+          </button>
+        );
+      })}
       {workingCount > 0 && (
         <button
           className={'chip-btn' + (onlyWorking ? ' on' : '')}
@@ -2249,6 +2290,7 @@ export default function App() {
                   colors: themeColors,
                   reduced: reduce,
                   className: 'massing',
+                  ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
                 })}
               </Suspense>
             )}
