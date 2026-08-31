@@ -997,3 +997,45 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dtable.cover td .did { display: block; margin-top: 4px; font-size: 11px; line-height: 1.45; color: var(--ink-3); font-family: var(--sans); white-space: normal; }
 .dtable.cover td.n .did { text-align: right; max-width: 22ch; }
 .dtable.cover td.name { white-space: nowrap; vertical-align: top; }
+
+/* ---- The register on the city ------------------------------------------- */
+.citymap-wrap { position: relative; margin: 10px 0 16px; display: none; }
+@media (min-width: 980px) {
+  .citymap-wrap { display: block; }
+  .citymap {
+    height: 430px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+  }
+  .citymap:active { cursor: grabbing; }
+  .citymap canvas { display: block; }
+}
+.citymap-tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--glass-strong);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 5px 9px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink);
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  z-index: 4;
+}
+.citymap-cap {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}

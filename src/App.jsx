@@ -347,6 +347,7 @@ const blank = { default: () => null };
 const Massing = lazy(() => import('./Massing.jsx').catch(() => blank));
 const CivicWorks = lazy(() => import('./CivicWorks.jsx').catch(() => blank));
 const Storefronts = lazy(() => import('./Storefronts.jsx').catch(() => blank));
+const CityMap = lazy(() => import('./CityMap.jsx').catch(() => blank));
 
 // Each register gets its own object and its own line under it. The caption is
 // the object's job: it says which fact of the register the brand-coloured
@@ -1050,6 +1051,7 @@ export default function App() {
   const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [showAllVerts, setShowAllVerts] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [portfolioText, setPortfolioText] = useState('');
   const [onlyPortfolio, setOnlyPortfolio] = useState(false);
   const [hideBusy, setHideBusy] = useState(false);
@@ -2144,6 +2146,48 @@ export default function App() {
 
   // Every register gets a way to cut its list. A Brooklyn crew handed 400 cards
   // across four boroughs with no filter is being handed a spreadsheet.
+  // What a column's tooltip says: the address, the firm, and the fact that makes
+  // this card a call. One line, because it follows the pointer.
+  const mapDescribe = useCallback(
+    (c) => {
+      const who = c.agent?.company ? ` · ${title(c.agent.company)}` : c.name ? ` · ${c.name}` : '';
+      const fact = c.nextHearing
+        ? ` · hearing ${usShort(c.nextHearing)}`
+        : c.finesOwed > 0
+          ? ` · ${money(c.finesOwed)} assessed`
+          : c.lastCat1 === null && c.devices
+            ? ' · never filed'
+            : c.monthsLeft != null
+              ? ` · ${c.monthsLeft} mo left`
+              : '';
+      return `${title(c.address || '')}${who}${fact}`;
+    },
+    [],
+  );
+  const mapPick = useCallback(
+    (p) => {
+      const id = p.card.bin || p.card.id;
+      if (!id) return;
+      // The deep link the cards already answer to: it forces the list to show
+      // enough rows to reach the target and opens it.
+      location.hash = `#${vertPrefix.replace(':', '')}/${id}`;
+    },
+    [vertPrefix],
+  );
+
+  const mapPanel = (list) =>
+    showMap && sceneReady ? (
+      <Suspense fallback={<div className="citymap-wrap" aria-hidden="true" />}>
+        <CityMap
+          rows={list.map((card) => ({ card }))}
+          colors={themeColors}
+          reduced={reduce}
+          onPick={mapPick}
+          describe={mapDescribe}
+        />
+      </Suspense>
+    ) : null;
+
   const miniToolbar = (list, total, { boroughs = false } = {}) => (
     <div className="toolbar">
       {(REG_SORTS[vertical] || []).length > 0 && (
@@ -2211,6 +2255,16 @@ export default function App() {
       {hiddenCount > 0 && (
         <button className={'chip-btn' + (showHidden ? ' on' : '')} aria-pressed={showHidden} onClick={() => setShowHidden((v) => !v)}>
           Hidden ({hiddenCount})
+        </button>
+      )}
+      {sceneReady && vertical !== 'contracts' && (
+        <button
+          className={'chip-btn' + (showMap ? ' on' : '')}
+          aria-pressed={showMap}
+          onClick={() => setShowMap((v) => !v)}
+          title="Every located card on a map of the five boroughs — the same filtered list as below"
+        >
+          Map
         </button>
       )}
       <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
@@ -2900,6 +2954,16 @@ export default function App() {
                 Hidden ({hiddenCount})
               </button>
             )}
+            {sceneReady && (
+              <button
+                className={'chip-btn' + (showMap ? ' on' : '')}
+                aria-pressed={showMap}
+                onClick={() => setShowMap((v) => !v)}
+                title="Every located card on a map of the five boroughs — the same filtered list as below"
+              >
+                Map
+              </button>
+            )}
             <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
             <span className="count">
               {filteredFeed.length} buildings
@@ -2910,6 +2974,7 @@ export default function App() {
               })()}
             </span>
           </div>
+          {mapPanel(filteredFeed)}
 
 
 
@@ -3529,6 +3594,7 @@ export default function App() {
       {MANDATES[vertical] && (
         <>
           {miniToolbar(mandateList, (data[vertical]?.feed || []).length, { boroughs: true })}
+          {mapPanel(mandateList)}
           <SimpleFeed
             items={mandateList.slice(0, shown)}
             total={mandateList.length}
@@ -3687,6 +3753,7 @@ export default function App() {
       {vertical === 'openings' && (
         <>
           {miniToolbar(openingsList, data.openings.length, { boroughs: true })}
+          {mapPanel(openingsList)}
           <SimpleFeed
             items={openingsList.slice(0, shown)}
             total={openingsList.length}

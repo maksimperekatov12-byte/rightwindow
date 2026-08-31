@@ -19,6 +19,7 @@ import { resolveIdentities } from '../lib/personal.mjs';
 // own Bandwidth Policy — real-time deeds are the City Register's paid feed, not a scrape.
 assertCollectable('data.cityofnewyork.us');
 assertCollectable('data.ny.gov');
+assertCollectable('geosearch.planninglabs.nyc');
 console.log('Source gate: data.cityofnewyork.us ALLOWED, data.ny.gov ALLOWED, a836-acris.nyc.gov DENIED (robots prohibited by city policy)');
 
 const BASE = 'https://data.cityofnewyork.us/resource';
@@ -829,7 +830,7 @@ try {
     '43nn-pn8j',
     {
       $where: `${NEVER_INSPECTED} and camis > '${CAMIS_FLOOR}' and boro in('Manhattan','Brooklyn','Queens','Bronx')`,
-      $select: 'camis,dba,boro,building,street,zipcode,phone,bin,bbl',
+      $select: 'camis,dba,boro,building,street,zipcode,phone,bin,bbl,latitude,longitude',
       $order: 'camis DESC',
     },
     6000,
@@ -850,6 +851,7 @@ try {
       zip: (r.zipcode || '').trim().slice(0, 5) || null,
       bin: r.bin || null,
       camis: r.camis,
+      ll: r.latitude && Number(r.latitude) > 40 ? [Number(Number(r.latitude).toFixed(4)), Number(Number(r.longitude).toFixed(4))] : null,
       // Published by DOHMH on the permit record as the establishment's own line.
       phone: (r.phone || '').replace(/[^\d]/g, '').length === 10 ? r.phone.replace(/[^\d]/g, '') : null,
       received: null,
@@ -1063,7 +1065,7 @@ const tenDigits = (v) => {
 // deadline has to be implied is not a register worth having, so `deadlineFor`
 // is allowed to return nothing and the copy adapts.
 const MANDATE_SELECT =
-  'bin,violation_number,violation_issue_date,violation_remarks,cycle_end_date,borough,block,lot,house_number,street,zip,community_board';
+  'bin,violation_number,violation_issue_date,violation_remarks,cycle_end_date,borough,block,lot,house_number,street,zip,community_board,latitude,longitude';
 const BOROUGHS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'];
 
 async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000, deadlineFor, cap = CEILING }) {
@@ -1086,6 +1088,9 @@ async function mandateRegister({ label, deviceType, extraWhere, fetchCap = 30000
         borough: (r.borough || '').trim(),
         zip: (r.zip || '').trim().slice(0, 5) || null,
         cd: Number(r.community_board) % 100 || null,
+        // Four decimals is eleven metres — enough to put a dot on a building
+        // and short enough not to bloat a committed feed.
+        ll: r.latitude ? [Number(Number(r.latitude).toFixed(4)), Number(Number(r.longitude).toFixed(4))] : null,
         remarks: r.violation_remarks || null,
         cycleEnd: (r.cycle_end_date || '').slice(0, 10) || null,
         issued,
@@ -1187,7 +1192,7 @@ async function elevatorRegister({ cap = CEILING } = {}) {
     {
       $where: `device_status='Active' and (cat1_report_year IS NULL or cat1_report_year <= '${year - 2}')`,
       $select:
-        'bin,device_number,device_type,cat1_report_year,cat1_latest_report_filed,cat5_latest_report_filed,borough,house_number,street_name,zip_code,communitydistrict',
+        'bin,device_number,device_type,cat1_report_year,cat1_latest_report_filed,cat5_latest_report_filed,borough,house_number,street_name,zip_code,communitydistrict,latitude,longitude',
       $order: 'bin',
     },
     60000,
@@ -1204,6 +1209,7 @@ async function elevatorRegister({ cap = CEILING } = {}) {
         borough: (r.borough || '').trim(),
         zip: (r.zip_code || '').trim().slice(0, 5) || null,
         cd: Number(r.communitydistrict) % 100 || null,
+        ll: r.latitude ? [Number(Number(r.latitude).toFixed(4)), Number(Number(r.longitude).toFixed(4))] : null,
         devices: 1,
         lastCat1: y,
         lastCat1On: (r.cat1_latest_report_filed || '').slice(0, 10) || null,
@@ -1503,6 +1509,83 @@ console.log('Source freshness:', sources);
   }
   const big = [...portfolio.values()].filter((s) => s.size >= 3).length;
   console.log(`Managing agents: ${portfolio.size} firms, ${big} of them holding three or more buildings`);
+}
+
+
+// ---- Coordinates for the map -----------------------------------------------
+//
+// Three registers carry latitude/longitude in the rows we already download.
+// Facades do not: their source stops at borough/block/lot, so the tax-lot
+// centroid comes from the city's PLUTO extract, batched by borough. The forty
+// liquour-licence venues carry only a street address and go through the city's
+// own geocoder. Anything that stays unresolved simply has no dot — the card is
+// unaffected.
+const PLUTO_BORO = { Manhattan: 'MN', Brooklyn: 'BK', Queens: 'QN', Bronx: 'BX', 'Staten Island': 'SI' };
+async function plutoCoords(cards) {
+  const need = cards.filter((c) => !c.ll && c.block && c.lot && PLUTO_BORO[c.borough]);
+  const byBoro = {};
+  for (const c of need) (byBoro[c.borough] ||= []).push(c);
+  let hit = 0;
+  for (const [boro, rows] of Object.entries(byBoro)) {
+    for (let i = 0; i < rows.length; i += 45) {
+      const chunk = rows.slice(i, i + 45);
+      const where =
+        `borough='${PLUTO_BORO[boro]}' and (` +
+        chunk.map((c) => `(block=${Number(c.block)} and lot=${Number(c.lot)})`).join(' or ') +
+        ')';
+      try {
+        const got = await getJson(
+          'https://data.cityofnewyork.us/resource/64uk-42ks.json?' +
+            new URLSearchParams({ $select: 'block,lot,latitude,longitude', $where: where, $limit: '200' }),
+        );
+        const map = new Map(got.map((x) => [`${Number(x.block)}/${Number(x.lot)}`, x]));
+        for (const c of chunk) {
+          const m = map.get(`${Number(c.block)}/${Number(c.lot)}`);
+          if (m?.latitude) {
+            c.ll = [Number(Number(m.latitude).toFixed(4)), Number(Number(m.longitude).toFixed(4))];
+            hit++;
+          }
+        }
+      } catch {
+        // A missed batch costs dots, not cards.
+      }
+    }
+  }
+  console.log(`PLUTO coordinates: ${hit} of ${need.length} facade cards located`);
+}
+
+async function geocodeSla(rows) {
+  let hit = 0;
+  for (const o of rows) {
+    if (o.ll || !o.address) continue;
+    try {
+      const r = await fetch(
+        `https://geosearch.planninglabs.nyc/v2/search?text=${encodeURIComponent(o.address + ', NY')}&size=1`,
+        { signal: AbortSignal.timeout(8000) },
+      );
+      if (!r.ok) continue;
+      const j = await r.json();
+      const co = j.features?.[0]?.geometry?.coordinates;
+      // The geocoder answers something for almost any string; only a hit inside
+      // the city is a location, anything else is a guess we do not draw.
+      if (co && co[1] > 40.4 && co[1] < 41.0 && co[0] > -74.3 && co[0] < -73.6) {
+        o.ll = [Number(co[1].toFixed(4)), Number(co[0].toFixed(4))];
+        hit++;
+      }
+    } catch {
+      /* no dot */
+    }
+  }
+  console.log(`Geocoded ${hit} liquour-licence venues`);
+}
+
+await plutoCoords(feed);
+// Openings: the health-permit half arrived with coordinates; the licence half
+// needs the geocoder, and previous builds may already hold the answer.
+{
+  const prev = new Map((prevFeed()?.openings || []).filter((o) => o.ll).map((o) => [o.id, o.ll]));
+  for (const o of openings) if (!o.ll && prev.has(o.id)) o.ll = prev.get(o.id);
+  await geocodeSla(openings.filter((o) => o.src === 'sla'));
 }
 
 const out = {

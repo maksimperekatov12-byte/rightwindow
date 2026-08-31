@@ -66,6 +66,12 @@
     "43nn-pn8j",
     "Food service permitted but never inspected: venues that have not opened yet, with the number on the permit",
     "dohmh"
+   ],
+   [
+    "MapPLUTO (open-data extract)",
+    "64uk-42ks",
+    "Tax-lot centroid coordinates for the facade register's map, plus floors and units",
+    "pluto"
    ]
   ]
  },
@@ -120,5 +126,15 @@
   "license": "Paid API with a free tier. NOT re-checked: the redistribution position could not be established from the public terms on 2026-08-31, so it is treated as restrictive until it is. Nothing is published from a cache built with this provider without checking its terms first.",
   "checked": "2026-08-31",
   "notes": "Alternative to Serper; identical acceptance rules."
+ },
+ {
+  "id": "geosearch",
+  "host": "geosearch.planninglabs.nyc",
+  "publisher": "NYC Department of City Planning — GeoSearch",
+  "verdict": "ALLOWED",
+  "license": "The city's own open geocoder, built by Planning Labs on open data (PAD/Geosupport). Public API, no key, no stated redistribution restriction; the coordinates it returns are city records.",
+  "checked": "2026-08-31",
+  "notes": "Used only to geocode the ~40 State Liquor Authority venues per build, because the SLA file carries an address and no coordinates. One request per venue, cached in the feed.",
+  "datasets": []
  }
 ]
