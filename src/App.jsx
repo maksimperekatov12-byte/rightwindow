@@ -2102,23 +2102,47 @@ export default function App() {
     }
     if (lastDeepLink.current === location.hash) return;
     const [, t, id] = m;
-    const open = (vert, idx) => {
+    // idx must be the card's position in the list AS RENDERED — the same sort,
+    // the same grouping — or "show idx rows" reveals the wrong slice and the
+    // scroll aims at an element that was never mounted. That was the map click
+    // that worked every other time: the raw-feed index only sometimes agreed
+    // with the tiered sort on screen. The scroll retries once, because the
+    // rows it asks for may still be mounting on the first attempt.
+    const open = (vert, idx, targetId = id) => {
       lastDeepLink.current = location.hash;
       keepShown.current = Math.max(7, idx + 1);
       setVertical(vert);
-      setOpenId(id);
+      setOpenId(targetId);
       setShown(keepShown.current);
-      setTimeout(
-        () => document.getElementById(`rw-${id}`)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }),
-        500,
-      );
+      const scroll = () => document.getElementById(`rw-${targetId}`)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      setTimeout(() => {
+        if (document.getElementById(`rw-${targetId}`)) return scroll();
+        // Still not mounted: the register re-sorted after this index was
+        // computed (switching to carbon flips the default sort, for one).
+        // Reveal the whole list and poll until the row exists — a fixed second
+        // timeout raced an 800-card render and lost.
+        setShown(100000);
+        let tries = 0;
+        const poll = setInterval(() => {
+          tries += 1;
+          const el = document.getElementById(`rw-${targetId}`);
+          if (el || tries > 12) {
+            clearInterval(poll);
+            // Instant, not smooth: a sixty-thousand-pixel smooth scroll is an
+            // animation frame loop, and it dies against a list that is still
+            // mounting (and in any backgrounded tab).
+            el?.scrollIntoView({ behavior: 'auto', block: 'center' });
+          }
+        }, 400);
+      }, 500);
     };
     if (t === 'b') {
       // A shared building must open for the recipient whatever their saved
       // filters say — a Manhattan-only view, a watchlist filter or an earlier
       // dismissal used to swallow the link with no sign anything happened.
       const target = data.facades.feed.find((c) => c.bin === id);
-      if (target) {
+      const curIdx = filteredFeed.findIndex((c) => c.bin === id);
+      if (target && curIdx < 0) {
         setBoro('all');
         setOnlyWatch(false);
         setOnlyNew(false);
@@ -2126,21 +2150,35 @@ export default function App() {
         setHideBusy(false);
         setShowHidden(isDismissed('b:' + id));
       }
-      const idx = [...data.facades.feed].sort(byUrgency).findIndex((c) => c.bin === id);
+      const rawIdx = [...data.facades.feed].sort(byUrgency).findIndex((c) => c.bin === id);
+      // Filters were just reset for this link: the list re-sorts on the next
+      // render and no index computed now is trustworthy — reveal everything
+      // once rather than guess and miss.
+      const idx = target && curIdx < 0 ? data.facades.feed.length : Math.max(curIdx, rawIdx);
       if (idx >= 0) open('facades', idx);
     } else if (mandateKeys.some((k) => MANDATES[k].prefix[0] === t)) {
       const key = mandateKeys.find((k) => MANDATES[k].prefix[0] === t);
-      const idx = (data[key]?.feed || []).findIndex((c) => c.bin === id);
-      if (idx >= 0) {
-        setShowHidden(isDismissed(MANDATES[key].prefix + id));
-        setOnlyWatch(false);
-        open(key, idx);
+      // The rendered list is grouped: a card inside a portfolio group has no
+      // row of its own, so the link opens the GROUP that holds it.
+      const rows = mandateLists[key] || [];
+      const rowIdx = rows.findIndex((r) => (r.group ? r.cards.some((c) => c.bin === id) : r.bin === id));
+      if (rowIdx >= 0) {
+        const row = rows[rowIdx];
+        open(key, rowIdx, row.group ? row.id : id);
+      } else {
+        const idx = (data[key]?.feed || []).findIndex((c) => c.bin === id);
+        if (idx >= 0) {
+          setShowHidden(isDismissed(MANDATES[key].prefix + id));
+          setOnlyWatch(false);
+          setBoro('all');
+          open(key, idx);
+        }
       }
     } else if (t === 'c') {
-      const idx = liveContracts.findIndex((c) => c.id === id);
+      const idx = Math.max(contractsList.findIndex((c) => c.id === id), liveContracts.findIndex((c) => c.id === id));
       if (idx >= 0) open('contracts', idx);
     } else {
-      const idx = liveOpenings.findIndex((o) => o.id === id);
+      const idx = Math.max(openingsList.findIndex((o) => o.id === id), liveOpenings.findIndex((o) => o.id === id));
       if (idx >= 0) open('openings', idx);
     }
     // live arrives after mount; a row that only exists there resolves on retry.
@@ -3133,38 +3171,50 @@ export default function App() {
             )
           ) : myPipeline && (vertical === 'facades' || MANDATES[vertical]) ? (
             <motion.div className="pipe" {...fade(0.1)}>
-              {/* One framing at every scale: what has to happen, bounded by
-                  what a crew can pursue. "$31M expected" from a whole register
-                  is a claim the industry reader rejects on sight; "work 40,
-                  win 3" is bounded, checkable, and arguable only on its
-                  stated assumptions. Below capacity the win count is the
-                  reachable-share floor, because capacity × rate under one deal
-                  would print a fraction of a job. */}
+              {/* The big-figure arrow is back by request — what the register
+                  holds, and what a crew takes home — but the expected side
+                  stays BOUNDED: it is the win count times the contract value,
+                  never the whole register times a rate. The sentence that
+                  says what has to happen moved into the note, leading it. */}
               <span className="gross">
                 <Rolling value={myPipeline.gross} format={fmtMoney} /> open
               </span>
-              <b>
-                {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
-                {zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : ''} must file
-                {myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''}.
-              </b>
-              <b>
-                {myPipeline.n > myPipeline.capacity
-                  ? `Work ${myPipeline.capacity}, win ${myPipeline.wins} — that's ${fmtMoney(myPipeline.expected)}.`
-                  : `Win ${winTarget(myPipeline.n)} — that's ${fmtMoney(winTarget(myPipeline.n) * myPipeline.avg)}.`}
+              <span className="arrow" aria-hidden="true">→</span>
+              <b
+                title={
+                  myPipeline.n > myPipeline.capacity
+                    ? `work ${myPipeline.capacity} of ${myPipeline.n} × ${Math.round(myPipeline.rate * 100)}% close = ${myPipeline.wins} won × ${fmtMoney(myPipeline.avg)} = ${fmtMoney(myPipeline.expected)}`
+                    : `win ${winTarget(myPipeline.n)} of ${myPipeline.n} × ${fmtMoney(myPipeline.avg)} = ${fmtMoney(winTarget(myPipeline.n) * myPipeline.avg)}`
+                }
+              >
+                ~<Rolling
+                  value={myPipeline.n > myPipeline.capacity ? myPipeline.expected : winTarget(myPipeline.n) * myPipeline.avg}
+                  format={fmtMoney}
+                />{' '}
+                expected{' '}
+                <em>
+                  {myPipeline.horizon
+                    ? `by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
+                    : 'per year'}
+                </em>
               </b>
               <span className="pipe-note">
+                <b className="pipe-win">
+                  {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
+                  {zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : ''} must file
+                  {myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''} —{' '}
+                  {myPipeline.n > myPipeline.capacity
+                    ? `work ${myPipeline.capacity}, win ${myPipeline.wins}.`
+                    : `win ${winTarget(myPipeline.n)}.`}
+                </b>{' '}
+                <em className="pipe-asof">for one crew, on today's register — it refills as the city publishes</em>
                 {myPipeline.arriving ? (
                   <span className="pipe-arr">
-                    {myPipeline.n.toLocaleString('en-US')} shown + {myPipeline.arriving.toLocaleString('en-US')} more
-                    by the deadline at this week's rate ·{' '}
+                    {' '}· +{myPipeline.arriving.toLocaleString('en-US')} more by the deadline at this week's rate
                   </span>
-                ) : null}
-                {basisLabel(myPipeline)} · {rateLabel(myPipeline)}
-                {myPipeline.n > myPipeline.capacity
-                  ? ` · ${myPipeline.capacity} pursuits ${myPipeline.capExplicit ? '— yours' : '— sized to the window'}`
-                  : ''}{' '}
-                · <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
+                ) : null}{' '}
+                · {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
+                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
           ) : myPipeline ? (
