@@ -3227,10 +3227,13 @@ export default function App() {
                     : 'per year'}
                 </em>
               </b>
-              <span className={'pipe-grow' + (myPipeline.growWeek > 0 ? '' : ' still')}>
+              <span
+                className={'pipe-grow' + (myPipeline.growWeek > 0 ? '' : ' still')}
+                title="Counted this minute from today's register. The city files daily — tomorrow's records move every figure here."
+              >
                 {myPipeline.growWeek > 0
-                  ? `↑ ${fmtMoney(myPipeline.growWeek)} of new work entered this view in the last week — counted this minute; tomorrow's filings will move it`
-                  : `counted this minute, on today's register — the city files daily, and the next sweep moves every figure here`}
+                  ? `↑ ${fmtMoney(myPipeline.growWeek)} entered this view this week — counted this minute`
+                  : 'counted this minute — the next city sweep moves it'}
               </span>
               <span className="pipe-note">
                 <b className="pipe-win">
@@ -3262,25 +3265,27 @@ export default function App() {
                       : ''}{' '}
                 · <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
+              {/* The answer to "somebody else will take these", in one quiet
+                  line: the reserve is a real mechanic — three cards held per
+                  account, rotated every 48 hours — priced at the user's own
+                  numbers. Facades only, where the reservation actually runs. */}
+              {vertical === 'facades' && (() => {
+                const laneMonthly = 45; // 3 held at a time × 48h rotation
+                const laneKind = myPipeline.basis === 'fee' || myPipeline.basis === 'constant' ? 5 : 1.6;
+                const laneWins = Math.max(1, Math.round(Math.min(laneMonthly, laneKind * 4.33) * myPipeline.rate));
+                return (
+                  <span
+                    className="lane-line"
+                    title="Three cards are reserved to your account at any moment and rotate every 48 hours — while they are yours, nobody else can claim them."
+                  >
+                    <b>3 cards held for you alone</b> · up to {laneMonthly}/mo nobody else can claim ·{' '}
+                    ~{fmtMoney(laneMonthly * myPipeline.avg)} of work — close {laneWins} ≈{' '}
+                    {fmtMoney(laneWins * myPipeline.avg)}/mo
+                  </span>
+                );
+              })()}
             </motion.div>
           ) : null}
-          {/* The answer to "somebody else will take these": the reserve lane
-              is a real mechanic (three cards held per account, rotated every
-              48 hours), and this names what that private flow is worth at the
-              user's own numbers. Facades only — the one register where the
-              reservation actually runs today. */}
-          {myPipeline && vertical === 'facades' && (() => {
-            const laneMonthly = 45; // 3 held at a time × 48h rotation
-            const laneKind = myPipeline.basis === 'fee' || myPipeline.basis === 'constant' ? 5 : 1.6;
-            const laneWins = Math.max(1, Math.round(Math.min(laneMonthly, laneKind * 4.33) * myPipeline.rate));
-            return (
-              <motion.p className="lane" {...fade(0.14)}>
-                <b>3 cards are held for you alone at any moment</b> — rotated every 48 hours, that is up to{' '}
-                {laneMonthly} a month nobody else can claim, carrying ~{fmtMoney(laneMonthly * myPipeline.avg)} of
-                work. Close {laneWins} — that's ~{fmtMoney(laneWins * myPipeline.avg)} a month.
-              </motion.p>
-            );
-          })()}
           {winStats.total > 0 && (
             <p className="recorded-line">{fmtMoney(winStats.total)} recorded through Right Window</p>
           )}

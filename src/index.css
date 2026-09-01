@@ -1194,21 +1194,18 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 /* A borough the current filters leave empty: present, honest, quiet. */
 .chip.dim, .chip-btn.dim { opacity: 0.45; }
 
-/* The reserve-lane plate: the private flow of cards, named in money. */
-.lane {
-  display: inline-block;
-  margin: 10px 0 0;
+/* The reserve lane, one quiet line at the foot of the funnel card. */
+.lane-line {
+  flex-basis: 100%;
+  border-top: 1px dashed rgba(138, 100, 16, 0.28);
+  padding-top: 7px;
+  margin-top: 3px;
   font-family: var(--mono);
-  font-size: 14.5px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 11.5px;
   color: var(--warm);
-  background: var(--warm-wash);
-  border: 1px solid rgba(138, 100, 16, 0.3);
-  border-left: 3px solid var(--warm);
-  border-radius: var(--r-sm);
-  padding: 8px 14px;
 }
+.pipe .lane-line, .pipe .lane-line b { font-size: 11.5px; font-family: var(--mono); color: var(--warm); }
+.pipe .lane-line b { font-weight: 700; }
 
 /* The product's only real traction number, small and permanent. */
 .recorded-line { margin: 6px 0 0; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0.02em; }
@@ -1305,7 +1302,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .hook { padding: 7px 10px 8px; }
   .cycle-bar .cycle-head { font-size: 11px; }
   .cycle-bar .cycle-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lane { font-size: 12px; padding: 6px 10px; }
+  .lane-line { font-size: 10.5px; }
   .pulseline { font-size: 9.5px; }
   .toolbar { gap: 5px; }
   .toolbar .search { min-height: 38px; }
@@ -1350,8 +1347,8 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .pipe-grow {
   flex-basis: 100%;
   font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--brand);
 }
 
