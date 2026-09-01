@@ -136,6 +136,8 @@ const PROFILES = {
         `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
     },
     cNeed: (c) => `Mobilizing a ${money(c.amount)} contract takes working capital — payroll and equipment come before the city's first payment.`,
+    // Working capital is lent to a winner, not to a bid notice — awards only.
+    cFilter: (c) => c.kind === 'AWARD',
     oNeed: () => `Build-outs run on borrowed money — kitchen equipment and fit-out financing get arranged in exactly this window.`,
   },
   elevator: {
@@ -176,6 +178,10 @@ const PROFILES = {
       },
     },
     cNeed: (c) => `${c.vendor} must post performance bonds and certificates of insurance before mobilizing ${money(c.amount)} of city work — usually within two weeks of the award.`,
+    // The pitch above is to the WINNER. A solicitation has no vendor yet, and
+    // an eight-point-hat notice in front of a surety broker is somebody else's
+    // card — awards only.
+    cFilter: (c) => c.kind === 'AWARD',
     cOpener: (c) =>
       `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or COIs lined up before mobilization, we can quote it this week.`,
     oNeed: () => `A new venue needs general liability and liquor liability before the doors open — and underwriting takes weeks.`,
@@ -204,6 +210,8 @@ const PROFILES = {
     tile: 'Staffing / recruiting',
     facade: null,
     cNeed: (c) => `${c.vendor} needs crews to deliver ${money(c.amount)} of new work — hiring happens in the first weeks after an award.`,
+    // Hiring happens after the award, as the line above says — awards only.
+    cFilter: (c) => c.kind === 'AWARD',
     cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted crews ready this month.`,
     oNeed: () => `A venue opening in 2–4 months hires its whole team in the last six weeks — the search starts now.`,
     oOpener: (c) => `Re: ${venueName(c)} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
@@ -2519,15 +2527,19 @@ export default function App() {
   // Every register's hook needs the same anatomy: one big count, the law or
   // the moment, a date, a consequence. These are the live inputs the two
   // registers without a statutory clock bring to it.
+  // Counted from the PROFILE's contract base, not the raw register: an
+  // awards-only trade must not be greeted with a count of solicitations it
+  // will never see.
   const contractHook = useMemo(() => {
-    const open = liveContracts.filter((c) => c.kind !== 'AWARD' && (c.daysLeft == null || c.daysLeft >= 0));
+    const open = contractsBase.filter((c) => c.kind !== 'AWARD' && (c.daysLeft == null || c.daysLeft >= 0));
     const nearest = open
       .map((c) => c.daysLeft)
       .filter((d) => d != null && d >= 0)
       .sort((a, b) => a - b)[0];
-    const awards = liveContracts.filter((c) => c.kind === 'AWARD').reduce((s, c) => s + (c.amount || 0), 0);
-    return { open: open.length, nearest, awards };
-  }, [liveContracts]);
+    const awardRows = contractsBase.filter((c) => c.kind === 'AWARD');
+    const awards = awardRows.reduce((s, c) => s + (c.amount || 0), 0);
+    return { open: open.length, nearest, awards, awardN: awardRows.length };
+  }, [contractsBase]);
   const openingsPhones = useMemo(() => liveOpenings.filter((o) => o.phone).length, [liveOpenings]);
   const monthsToDec26 = Math.max(0, Math.round((new Date('2026-12-31') - now) / (30.44 * 86400000)));
 
@@ -3180,6 +3192,17 @@ export default function App() {
               <span>
                 skipped an entire annual CAT1 elevator cycle. The missed test and this year's are both due by Dec 31,
                 2026 — <strong>{monthsToDec26} months out</strong>. After that: DOB violations, device by device.
+              </span>
+            </motion.div>
+          ) : vertical === 'contracts' && contractHook.open === 0 && contractHook.awardN > 0 ? (
+            <motion.div className="hook" data-label="City Record · procurement" {...fade(0)}>
+              <b>
+                <CountUp value={contractHook.awardN} />
+              </b>
+              <i>awards</i>
+              <span>
+                worth {fmtMoney(contractHook.awards)} just landed. Every winner has about two weeks to line up
+                bonding, working capital and crews before mobilization.
               </span>
             </motion.div>
           ) : vertical === 'contracts' ? (
