@@ -1099,3 +1099,36 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   height: auto;
 }
 .massing-slot .citymap-cap { position: absolute; left: 2px; right: 0; bottom: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* The map's own filter row: Expand plus the four cuts, glass over the tiles. */
+.citymap-topbar {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  right: 52px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  pointer-events: none;
+}
+.citymap-topbar > * { pointer-events: auto; }
+.citymap-topbar .citymap-big { position: static; }
+.citymap-cuts { display: flex; flex-wrap: wrap; gap: 4px; }
+.citymap-cuts button {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  background: var(--glass-strong);
+  backdrop-filter: blur(8px);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.citymap-cuts button i { font-style: normal; color: var(--ink-3); }
+.citymap-cuts button.on { background: var(--pill); border-color: var(--pill); color: var(--on-cta); }
+.citymap-cuts button.on i { color: var(--on-cta); opacity: 0.75; }
+.citymap-full-bar .citymap-cuts button { background: var(--paper-2); backdrop-filter: none; }

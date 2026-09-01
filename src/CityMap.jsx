@@ -7,6 +7,7 @@ import { Map as GLMap, NavigationControl, setWorkerUrl } from 'maplibre-gl';
 // hashed path, which MapLibre is told to use outright.
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import outline from './data/nyc-outline.json';
 
 setWorkerUrl(workerUrl);
 
@@ -71,6 +72,13 @@ function themedStyle(colors) {
         else if (/road|street|minor|service|path|rail|bridge|tunnel|link|secondary|tertiary/.test(id))
           l.paint['line-color'] = P.roadMinor;
       } else if (l.type === 'symbol') {
+        // POI pins, house numbers and transit icons are what made the map read
+        // as heavy — they compete with the cards, which are the point.
+        if (/poi|housenumber|house_num|transit|airport|aeroway|ferry|station|oneway/.test(id)) {
+          l.layout = l.layout || {};
+          l.layout.visibility = 'none';
+          continue;
+        }
         l.paint['text-color'] = /place|city|town|suburb|neighbourhood|borough/.test(id) ? P.label : P.labelFaint;
         l.paint['text-halo-color'] = P.halo;
       }
@@ -83,6 +91,33 @@ const NYC_BOUNDS = [
   [-74.28, 40.48],
   [-73.68, 40.93],
 ];
+
+// Everything that is not the five boroughs is veiled: a world-sized polygon
+// whose holes are the borough rings, filled with the page's own ground. New
+// Jersey and Connecticut stop competing for attention, and the city the cards
+// live in is the only thing drawn in full. The same rings give the city a
+// crisp edge line.
+const MASK = {
+  type: 'Feature',
+  properties: {},
+  geometry: {
+    type: 'Polygon',
+    coordinates: [
+      [[-75.5, 39.8], [-72.5, 39.8], [-72.5, 41.6], [-75.5, 41.6], [-75.5, 39.8]],
+      ...outline.flatMap((b) => b.rings),
+    ],
+  },
+};
+const EDGES = {
+  type: 'FeatureCollection',
+  features: outline.flatMap((b) =>
+    b.rings.map((ring) => ({
+      type: 'Feature',
+      properties: { boro: b.boro },
+      geometry: { type: 'LineString', coordinates: [...ring, ring[0]] },
+    })),
+  ),
+};
 
 // A column footprint in degrees: ~26m across, small enough that two adjacent
 // buildings read separately at street zoom.
@@ -108,7 +143,7 @@ function toGeoJSON(rows) {
     const [lat, lon] = r.card.ll;
     const t = ((r.card.urgencyScore ?? 1) - lo) / span;
     const hot = soon(r.card.nextHearing, 30) || soon(r.card.shed?.until, 60) ? 1 : 0;
-    const props = { i, t, hot, height: 60 + t * 240 };
+    const props = { i, t, hot, height: 40 + t * 140 };
     pts.push({ type: 'Feature', id: i, properties: props, geometry: { type: 'Point', coordinates: [lon, lat] } });
     polys.push({
       type: 'Feature',
@@ -183,12 +218,17 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
       container: el,
       style,
       bounds: located.length ? boundsOf(located) : NYC_BOUNDS,
-      fitBoundsOptions: { padding: 48, maxZoom: 15 },
+      fitBoundsOptions: { padding: 40, maxZoom: 15 },
+      // The camera cannot leave the city or zoom out past it: the register has
+      // nothing to say about Norwalk.
       maxBounds: [
-        [-74.75, 40.2],
-        [-73.2, 41.2],
+        [-74.4, 40.42],
+        [-73.55, 41.0],
       ],
-      pitch: 48,
+      minZoom: 8.8,
+      // Flat by default. The tilted view is what made the panel feel heavy;
+      // the fly-in still pitches when a card is opened.
+      pitch: 0,
       attributionControl: { compact: true },
     });
     // Zoom buttons and a pitch-aware compass: the ask was zoom in and out, so
@@ -213,6 +253,20 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     });
 
     map.on('load', () => {
+      map.addSource('nyc-mask', { type: 'geojson', data: MASK });
+      map.addSource('nyc-edge', { type: 'geojson', data: EDGES });
+      map.addLayer({
+        id: 'nyc-mask',
+        type: 'fill',
+        source: 'nyc-mask',
+        paint: { 'fill-color': colors.bg || '#F1EFE9', 'fill-opacity': 0.86 },
+      });
+      map.addLayer({
+        id: 'nyc-edge',
+        type: 'line',
+        source: 'nyc-edge',
+        paint: { 'line-color': colors.line || 'rgba(15,30,26,0.25)', 'line-width': 1 },
+      });
       map.addSource('cards-pts', { type: 'geojson', data: data.pts });
       map.addSource('cards', { type: 'geojson', data: data.polys });
       // Far out, a dot; close in, the extruded column. The crossover leaves no
@@ -223,9 +277,12 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
         source: 'cards-pts',
         maxzoom: 13.5,
         paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 2.2, 13.5, 5],
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 2.6, 13.5, 5.5],
           'circle-color': ['case', ['==', ['get', 'hot'], 1], colors.warm, colors.brand],
-          'circle-opacity': 0.9,
+          'circle-opacity': 0.92,
+          // The paper halo is what separates a dot from the street under it.
+          'circle-stroke-color': colors.paper || '#FBFAF6',
+          'circle-stroke-width': 1,
         },
       });
       map.addLayer({
@@ -333,12 +390,66 @@ function tipExtras(c) {
   return out.slice(0, 5);
 }
 
+// The map's own filter. The toolbar's filters already move the map, but a
+// reader lost in eight hundred dots needs a cut they can make WITHOUT leaving
+// the map — the three questions that matter on it: who can I ring, whose window
+// is dated, and who is most urgent.
+const MAP_CUTS = [
+  { k: 'all', label: 'All', of: () => true },
+  {
+    k: 'callable',
+    label: 'Callable',
+    of: (c) => Boolean(c.agent?.contactKnown || c.phone || c.email),
+  },
+  {
+    k: 'soon',
+    label: 'Dated soon',
+    of: (c) => soon(c.nextHearing, 30) || soon(c.shed?.until, 60),
+  },
+  { k: 'top', label: 'Top 100', of: null }, // by rank, handled below
+];
+
 export default function CityMap({ rows, colors, reduced, onPick, describe, compact = false, startBig = false }) {
   const [big, setBig] = useState(startBig);
+  const [cut, setCut] = useState('all');
 
   const located = useMemo(
     () => rows.filter((r) => Array.isArray(r.card.ll) && r.card.ll.length === 2),
     [rows],
+  );
+
+  const cutCounts = useMemo(() => {
+    const m = { all: located.length, top: Math.min(100, located.length) };
+    for (const c of MAP_CUTS) if (c.of && c.k !== 'all') m[c.k] = located.filter((r) => c.of(r.card)).length;
+    return m;
+  }, [located]);
+
+  const shown = useMemo(() => {
+    if (cut === 'top')
+      return [...located].sort((a, b) => (b.card.urgencyScore ?? 0) - (a.card.urgencyScore ?? 0)).slice(0, 100);
+    const def = MAP_CUTS.find((c) => c.k === cut);
+    return def?.of && cut !== 'all' ? located.filter((r) => def.of(r.card)) : located;
+  }, [located, cut]);
+
+  // A cut that empties under the current toolbar filters resets rather than
+  // showing a blank city.
+  useEffect(() => {
+    if (cut !== 'all' && !shown.length) setCut('all');
+  }, [shown.length, cut]);
+
+  const cutChips = (
+    <div className="citymap-cuts" role="group" aria-label="Filter the cards on the map">
+      {MAP_CUTS.map((c) => (
+        <button
+          key={c.k}
+          className={cut === c.k ? 'on' : ''}
+          aria-pressed={cut === c.k}
+          onClick={() => setCut(c.k)}
+        >
+          {c.label} <i>{cutCounts[c.k] ?? 0}</i>
+        </button>
+      ))}
+    </div>
   );
 
   useEffect(() => {
@@ -367,27 +478,31 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, compa
   return (
     <div className="citymap-wrap">
       <div className={'citymap' + (compact ? ' compact' : '')}>
-        <MapSurface rows={located} colors={colors} onPick={onPick} describe={describe} />
-        <button className="citymap-big" onClick={() => setBig(true)} title="Expand the map to the whole window">
-          ⤢ Expand
-        </button>
+        <MapSurface rows={shown} colors={colors} onPick={onPick} describe={describe} />
+        <div className="citymap-topbar">
+          <button className="citymap-big" onClick={() => setBig(true)} title="Expand the map to the whole window">
+            ⤢ Expand
+          </button>
+          {cutChips}
+        </div>
       </div>
       <span className="citymap-cap">
         {compact
-          ? `${located.length.toLocaleString('en-US')} cards · OpenStreetMap base · filters move it · click to open`
-          : `${located.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} shown cards on the map · colour is urgency, amber has a dated hearing or an expiring shed · zoom to any card, click it to open`}
+          ? `${shown.length.toLocaleString('en-US')} cards · filters and the cut above move it · click to open`
+          : `${shown.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} shown cards on the map · colour is urgency, amber has a dated hearing or an expiring shed · zoom to any card, click it to open`}
       </span>
 
       {big && (
         <div className="citymap-full" role="dialog" aria-label="Register map, full window">
           <div className="citymap-full-bar">
-            <b>{located.length.toLocaleString('en-US')} cards on the map</b>
-            <span>hover a column for what makes it a call · click flies in and opens the card · Esc closes</span>
+            <b>{shown.length.toLocaleString('en-US')} cards on the map</b>
+            {cutChips}
+            <span>hover for what makes it a call · click flies in and opens the card · Esc closes</span>
             <button className="btn ghost" onClick={() => setBig(false)}>
               ✕ Close
             </button>
           </div>
-          <MapSurface rows={located} colors={colors} onPick={pick} describe={describe} richTip />
+          <MapSurface rows={shown} colors={colors} onPick={pick} describe={describe} richTip />
         </div>
       )}
     </div>
