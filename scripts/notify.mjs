@@ -12,11 +12,9 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
 }
 const SITE = process.env.SITE || 'https://rightwindow.nyc';
 const { unsubUrl, mailHeaders } = await import('../lib/unsub.mjs');
-const { readArtifact } = await import('../lib/artifacts.mjs');
+const { suppressedSet } = await import('../lib/leads.mjs');
 // Unsubscribed means unsubscribed here too.
-const suppressed = new Set(
-  Object.keys(((await readArtifact('suppressed')) || {}).emails || {}).map((e) => e.toLowerCase()),
-);
+const suppressed = await suppressedSet();
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 const MAX_PER_RUN = 3;
 

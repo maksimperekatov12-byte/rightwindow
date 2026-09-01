@@ -40,10 +40,8 @@ if (process.env.DIGEST_TEST) {
 // Unsubscribed means unsubscribed everywhere: the digest consults the same
 // suppression set the one-click endpoint writes.
 const { unsubUrl, mailHeaders } = await import('../lib/unsub.mjs');
-const { readArtifact } = await import('../lib/artifacts.mjs');
-const suppressed = new Set(
-  Object.keys(((await readArtifact('suppressed')) || {}).emails || {}).map((e) => e.toLowerCase()),
-);
+const { suppressedSet } = await import('../lib/leads.mjs');
+const suppressed = await suppressedSet();
 
 const prefsDoc = await readDoc(PREFS);
 const everyone = Object.values(prefsDoc);

@@ -1,7 +1,7 @@
 // One click out. GET is a person on the link; POST is the mail client's
 // one-click (RFC 8058). Both verify the signature, drop the address from the
 // subscriber list and add it to the suppression set that every sender checks.
-import { readArtifact, publishArtifact } from '../lib/artifacts.mjs';
+import { removeSubscriber, suppress } from '../lib/leads.mjs';
 import { unsubOk } from '../lib/unsub.mjs';
 
 export default async function handler(req, res) {
@@ -16,16 +16,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const subs = (await readArtifact('subscribers')) || { subscribers: {} };
-    if (subs.subscribers?.[email]) {
-      delete subs.subscribers[email];
-      subs.count = Object.keys(subs.subscribers).length;
-      await publishArtifact('subscribers', subs);
-    }
-    const sup = (await readArtifact('suppressed')) || { emails: {} };
-    sup.emails = sup.emails || {};
-    sup.emails[email] = { at: new Date().toISOString() };
-    await publishArtifact('suppressed', sup);
+    await suppress(email);
+    await removeSubscriber(email);
   } catch {
     res.statusCode = 503;
     return res.end('That did not save on our side — email us and we will remove you by hand.');

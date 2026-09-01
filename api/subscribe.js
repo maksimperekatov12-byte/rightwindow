@@ -12,7 +12,8 @@
 // reports honestly that it cannot store, and the page keeps the route that does
 // work. It starts storing the moment STORAGE_DRIVER=r2 is configured, with no
 // further change here.
-import { readArtifact, publishArtifact, canStorePrivate, VisibilityError } from '../lib/artifacts.mjs';
+import { canStorePrivate } from '../lib/artifacts.mjs';
+import { addSubscriber, unsuppress } from '../lib/leads.mjs';
 import { mailHeaders, unsubUrl } from '../lib/unsub.mjs';
 
 const EMAIL = /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i;
@@ -104,32 +105,15 @@ export default async function handler(req, res) {
     });
 
   try {
-    const doc = (await readArtifact('subscribers')) || { subscribers: {} };
-    const list = doc.subscribers || {};
-    // A second sign-up with the same address is a success, not an error: the
-    // person wants the digest and now they are on it.
-    const already = Boolean(list[email]);
-    try {
-      const sup = (await readArtifact('suppressed')) || { emails: {} };
-      if (sup.emails?.[email]) {
-        delete sup.emails[email];
-        await publishArtifact('suppressed', sup);
-      }
-    } catch {}
-    list[email] = {
-      email,
-      profile: profile || list[email]?.profile || null,
-      boro: boro || list[email]?.boro || null,
-      since: list[email]?.since || new Date().toISOString(),
-      updated: new Date().toISOString(),
-    };
-    await publishArtifact('subscribers', { subscribers: list, count: Object.keys(list).length });
+    // One file per address — subscribing twice rewrites the same file, which is
+    // why a duplicate is a success rather than an error. Signing up again also
+    // lifts any suppression: consent renewed is consent.
+    const { already } = await addSubscriber({ email, profile, boro });
+    await unsuppress(email).catch(() => {});
 
     const mail = await confirm(email, profile);
     return res.status(200).json({ ok: true, already, confirmation: mail.sent, note: mail.reason || undefined });
   } catch (e) {
-    if (e instanceof VisibilityError)
-      return res.status(503).json({ ok: false, canStore: false, error: 'We cannot store sign-ups yet on our side.' });
     return res.status(503).json({ ok: false, error: 'That did not save on our side.' });
   }
 }
