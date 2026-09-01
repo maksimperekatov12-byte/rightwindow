@@ -1491,6 +1491,28 @@ export default function App() {
     [data],
   );
 
+  // What the user asked of the default order, in one sentence: a card you can
+  // ACT on now sits above one you can only write to, and both sit above one
+  // with nobody to reach. Tier 2 is a dialable number (served or printed on the
+  // record), tier 1 is an inbox or a findable number, tier 0 is silence. The
+  // explicit sorts (next hearing, penalties owed…) stay pure — this shapes only
+  // the defaults. Declared before every table that calls it: a const in this
+  // body is dead until its line runs, and the first deploy of this feature
+  // proved it by taking the whole page down.
+  const actTier = useCallback(
+    (c) => {
+      const srv = contacts[c.bin] || {};
+      if (srv.phone || c.phone || c.contact?.phone) return 2;
+      if (srv.email || c.email || c.contact?.email || c.agent?.contactKnown) return 1;
+      return 0;
+    },
+    [contacts],
+  );
+  const tierFirst = useCallback(
+    (cmp) => (a, b) => actTier(b) - actTier(a) || cmp(a, b),
+    [actTier],
+  );
+
   // Contracts and openings order themselves. An open solicitation always sits
   // above a closed one, and an award above neither — the deadline is the point.
   const CONTRACT_SORTS = {
@@ -1552,26 +1574,6 @@ export default function App() {
       ['open', 'most violations'],
     ],
   };
-  // What the user asked of the default order, in one sentence: a card you can
-  // ACT on now sits above one you can only write to, and both sit above one
-  // with nobody to reach. Tier 2 is a dialable number (served or printed on the
-  // record), tier 1 is an inbox or a findable number, tier 0 is silence. The
-  // explicit sorts (next hearing, penalties owed…) stay pure — this shapes only
-  // the defaults.
-  const actTier = useCallback(
-    (c) => {
-      const srv = contacts[c.bin] || {};
-      if (srv.phone || c.phone || c.contact?.phone) return 2;
-      if (srv.email || c.email || c.contact?.email || c.agent?.contactKnown) return 1;
-      return 0;
-    },
-    [contacts],
-  );
-  const tierFirst = useCallback(
-    (cmp) => (a, b) => actTier(b) - actTier(a) || cmp(a, b),
-    [actTier],
-  );
-
   const MANDATE_SORTS = {
     profile: tierFirst((a, b) => b.urgencyScore - a.urgencyScore),
     open: (a, b) => (b.openDays || 0) - (a.openDays || 0) || b.violations - a.violations,
