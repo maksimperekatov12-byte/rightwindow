@@ -85,9 +85,47 @@ if (leaked.length) {
   process.exit(1);
 }
 
+// A build that resolved almost nothing is a build with no cache, not a city
+// where the firms stopped existing. The hourly CI cannot see the enrichment
+// cache — it is gitignored — and one such run force-pushed a 391-byte artefact
+// over 1,142 rows, zeroing every number in production within the hour. Neither
+// destination may shrink drastically below what is already published: the
+// existing set was validated when IT was published, and keeping it is strictly
+// better than replacing it with an empty file.
+async function refuseShrink(kind, next, readExisting) {
+  const nextN = Object.keys(next).length;
+  let existing = null;
+  try {
+    existing = await readExisting();
+  } catch {
+    existing = null;
+  }
+  const prevN = existing ? Object.keys(existing).length : 0;
+  if (prevN > 20 && nextN < prevN * 0.5) {
+    console.log(
+      `push-contacts: REFUSING to shrink the ${kind} set from ${prevN} to ${nextN} rows — ` +
+        'this build has no enrichment cache; the published set stands',
+    );
+    return existing;
+  }
+  return null;
+}
+
 // The artefact the workflow force-pushes to the `data` branch.
 const dir = process.env.DATA_DIR || new URL('../.data/', import.meta.url).pathname;
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+{
+  const kept = await refuseShrink('public', publicOut, async () => {
+    const repo = process.env.DATA_REPO || 'maksimperekatov12-byte/rightwindow';
+    const r = await fetch(`https://raw.githubusercontent.com/${repo}/data/contacts.json`, {
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.contacts || null;
+  });
+  if (kept) Object.assign(publicOut, kept);
+}
 writeFileSync(
   `${dir.replace(/\/?$/, '/')}contacts.json`,
   JSON.stringify(
@@ -114,6 +152,11 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
   console.log('push-contacts: no blob token, private store skipped');
 } else {
   try {
+    const kept = await refuseShrink('private', all, async () => {
+      const { readJsonSoft } = await import('../lib/store.mjs');
+      return await readJsonSoft('contacts.json');
+    });
+    if (kept) Object.assign(all, kept);
     await writeJson('contacts.json', all);
     console.log(`push-contacts: ${Object.keys(all).length} written to the private store`);
   } catch (e) {
