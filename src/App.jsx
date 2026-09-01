@@ -67,12 +67,9 @@ const GENERIC_FACADE = {
 const PROFILES = {
   qewi: {
     cohorts: ['notReengaged', 'stalled', 'owes', 'callable'],
-    mandates: {
-      gas: (c) =>
-        `${c.violations > 1 ? `${c.violations} open gas-piping violations` : 'An open gas-piping violation'} and the sub-cycle ${c.subCycle} deadline is ${usDate(c.deadline)} — the inspection has to be filed by a licensed master plumber.`,
-      elevators: (c) =>
-        `A skipped CAT1 cycle usually travels with the rest of a building's filings — the same owner is behind on more than the lift.`,
-    },
+    // No gas, no elevators: a QEWI cannot file LL152 (that is a licensed
+    // master plumber's signature) and does not test lifts. A facade trade
+    // sees facade work, full stop.
     label: 'Facade engineer',
     tile: 'Facade engineering / inspections (QEWI)',
     facade: {
@@ -145,24 +142,10 @@ const PROFILES = {
     cohorts: ['lifts', 'callable'],
     label: 'Elevator services',
     tile: 'Elevator service / modernization',
-    facade: {
-      hero: 'Elevators that missed a test — *not the ones running late*',
-      hint: 'Buildings whose devices skipped a CAT1 cycle outright, or are due a five-year CAT5. Not filing yet this year is the calendar; skipping a year is the signal.',
-      sort: (a, b) =>
-        (b.elevator?.cat1Overdue || 0) + (b.elevator?.cat5Due || 0) - (a.elevator?.cat1Overdue || 0) - (a.elevator?.cat5Due || 0) ||
-        byUrgency(a, b),
-      why: (c) =>
-        c.elevator
-          ? `${c.elevator.cat1Overdue ? `${c.elevator.cat1Overdue}/${c.elevator.devices} skipped a CAT1 cycle` : ''}${c.elevator.cat1Overdue && c.elevator.cat5Due ? ', ' : ''}${c.elevator.cat5Due ? `${c.elevator.cat5Due} due for CAT5` : ''} — this year's filing still closes December 31.`
-          : 'Forced-work windows usually bundle elevator capex.',
-      opener: (c) =>
-        c.elevator?.cat1Overdue
-          ? `Re: ${title(c.address)} — DOB shows ${c.elevator.cat1Overdue} elevator device(s) that skipped a CAT1 cycle entirely. We can test and file both the missed one and this year's before December 31.`
-          : `Re: ${title(c.address)} — DOB shows ${c.elevator?.cat5Due || 'several'} elevator device(s) with a five-year CAT5 coming due. We can test and file before the December 31 deadline.`,
-      // A device that simply has not been tested yet this year is half the city
-      // in August. Only a skipped cycle or a due CAT5 earns a card.
-      fFilter: (c) => Boolean(c.elevator && (c.elevator.cat1Overdue > 0 || c.elevator.cat5Due > 0)),
-    },
+    // The elevator trade lives in the Elevators register. The facade-feed
+    // view it used to get was FISP filings dressed up with lift counters —
+    // facade information in front of an elevator crew.
+    facade: null,
     mandates: {
       elevators: (c) =>
         `${c.devices === 1 ? 'One device' : `${c.devices} devices`} that last filed for ${c.lastCat1 || 'no year on record'} — a skipped cycle, so the backlog and this year's test are one visit.`,
@@ -892,6 +875,15 @@ const ticketFor = (k, v) => TICKET[k]?.[v] || 0;
 // whole product read as empty. Below this, the tab does not appear at all.
 const MIN_LIST = 4;
 
+// Signals a trade is never shown on a facade card: they still score urgency,
+// they just do not speak. A facade engineer does not act on lift tests, and a
+// card that says "Elevator tests due" to one reads as somebody else's lead.
+const SIGNALS_OFF = {
+  qewi: ['ELEV_DUE'],
+  restoration: ['ELEV_DUE'],
+  equipment: ['ELEV_DUE'],
+};
+
 const BADGE = {
   NON_FILER: 'No Cycle 10 filing',
   SWARMP_CARRYOVER: 'Open SWARMP',
@@ -1512,7 +1504,9 @@ export default function App() {
     const m = location.hash.match(/^#(b|c|g|e|k|o)\//);
     forcedVert.current = m ? { b: 'facades', g: 'gas', e: 'elevators', k: 'carbon', c: 'contracts', o: 'openings' }[m[1]] : '';
   }
-  const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed;
+  // "No facade, no contracts, no openings" used to mean "exploring" — until
+  // the elevator trade became mandates-only and got classified as a tourist.
+  const isExplore = !profile.facade && !profile.cNeed && !profile.oNeed && !profile.mandates;
 
   const vertPrefix = MANDATES[vertical]
     ? MANDATES[vertical].prefix
@@ -3665,7 +3659,9 @@ export default function App() {
               // about any of them. Lead with the signal that is rare in the list
               // you are actually looking at, and fall back to urgency to break
               // ties.
-              const topSignal = [...c.signals].sort(
+              const spoken = c.signals.filter((sg) => !(SIGNALS_OFF[profileKey] || []).includes(sg.kind));
+              const sigs = spoken.length ? spoken : c.signals;
+              const topSignal = [...sigs].sort(
                 (a, b) => (signalFreq[a.kind] || 0) - (signalFreq[b.kind] || 0) || b.urgency - a.urgency,
               )[0];
               return (
@@ -3722,7 +3718,7 @@ export default function App() {
                         )}
                         <span className="badge">{BADGE[topSignal.kind]}</span>
                         {c.freshHaz && <span className="badge urgent">Violation {c.freshHaz.daysAgo}d ago</span>}
-                        {c.signals.length > 1 && <span className="badge more">+{c.signals.length - 1}</span>}
+                        {sigs.length > 1 && <span className="badge more">+{sigs.length - 1}</span>}
                         {claimTaken === 'b:' + c.bin && <span className="badge urgent">Someone claimed it first</span>}
                       </span>
                       <span className="head-side">
