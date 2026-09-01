@@ -833,9 +833,6 @@ const venueName = (o) => o?.name || o?.identity || `New business at ${String(o?.
 // assumption, so the UI says so and hands over the pencil; three recorded wins
 // replace it with the device's own ratio.
 const DEFAULT_CLOSE_RATE = 0.08;
-// The borough-plan price is not public yet. This is the one place it lives;
-// set the real figure when it exists. ESTIMATED.
-const PLAN_PRICE_YEAR = 6000;
 
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 
@@ -3252,20 +3249,38 @@ export default function App() {
                   })()}
                 </b>{' '}
                 {basisLabel(myPipeline)} · {rateLabel(myPipeline)}
-                {(vertical === 'gas' || vertical === 'elevators') && myPipeline.bigAgents >= 10
+                {/* The small-figure registers carry their real economics in
+                    words: gas wins travel with the agent's portfolio, a lift
+                    won here re-tests every year, a venue won before opening
+                    buys its whole stack from whoever got in first. */}
+                {vertical === 'gas' && myPipeline.bigAgents >= 10
                   ? ` · ${myPipeline.bigAgents} of these sit with agents running 3+ buildings — one win rarely stays one building`
-                  : ''}{' '}
+                  : vertical === 'elevators'
+                    ? ' · CAT1 is annual — a building won here files with you every year after'
+                    : vertical === 'openings'
+                      ? ' · a venue won before the doors open buys its whole stack at once'
+                      : ''}{' '}
                 · <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
           ) : null}
-          {/* Pipeline math shrinks exactly when the user makes it personal;
-              payback does not. */}
-          {myPipeline && vertical !== 'carbon' && (vertical === 'facades' || MANDATES[vertical]) && myPipeline.avg >= PLAN_PRICE_YEAR && (
-            <motion.p className="payback" {...fade(0.14)}>
-              One filing at {fmtMoney(myPipeline.avg)} covers a year of your borough plan.
-            </motion.p>
-          )}
+          {/* The answer to "somebody else will take these": the reserve lane
+              is a real mechanic (three cards held per account, rotated every
+              48 hours), and this names what that private flow is worth at the
+              user's own numbers. Facades only — the one register where the
+              reservation actually runs today. */}
+          {myPipeline && vertical === 'facades' && (() => {
+            const laneMonthly = 45; // 3 held at a time × 48h rotation
+            const laneKind = myPipeline.basis === 'fee' || myPipeline.basis === 'constant' ? 5 : 1.6;
+            const laneWins = Math.max(1, Math.round(Math.min(laneMonthly, laneKind * 4.33) * myPipeline.rate));
+            return (
+              <motion.p className="lane" {...fade(0.14)}>
+                <b>3 cards are held for you alone at any moment</b> — rotated every 48 hours, that is up to{' '}
+                {laneMonthly} a month nobody else can claim, carrying ~{fmtMoney(laneMonthly * myPipeline.avg)} of
+                work. Close {laneWins} — that's ~{fmtMoney(laneWins * myPipeline.avg)} a month.
+              </motion.p>
+            );
+          })()}
           {winStats.total > 0 && (
             <p className="recorded-line">{fmtMoney(winStats.total)} recorded through Right Window</p>
           )}

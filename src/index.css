@@ -1194,9 +1194,8 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 /* A borough the current filters leave empty: present, honest, quiet. */
 .chip.dim, .chip-btn.dim { opacity: 0.45; }
 
-/* The line that does not shrink with the territory — and the one that sells
-   the plan, so it is set to be seen, not scanned past. */
-.payback {
+/* The reserve-lane plate: the private flow of cards, named in money. */
+.lane {
   display: inline-block;
   margin: 10px 0 0;
   font-family: var(--mono);
@@ -1285,7 +1284,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .lede { padding: 6px 0 2px; gap: 10px; }
   .pipe { padding: 8px 11px; margin-top: 8px; }
   .pipe-asof { display: none; }
-  .payback { font-size: 12px; margin-top: 6px; }
+  .lane { font-size: 12px; margin-top: 6px; }
   .legend { display: none; }
   .livestrip { margin: 8px 0 0; }
   .cycle-bar { margin-bottom: 4px; }
@@ -1306,7 +1305,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .hook { padding: 7px 10px 8px; }
   .cycle-bar .cycle-head { font-size: 11px; }
   .cycle-bar .cycle-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .payback { font-size: 12.5px; padding: 6px 10px; }
+  .lane { font-size: 12px; padding: 6px 10px; }
   .pulseline { font-size: 9.5px; }
   .toolbar { gap: 5px; }
   .toolbar .search { min-height: 38px; }
