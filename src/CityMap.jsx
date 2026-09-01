@@ -386,7 +386,8 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
     }
     const update = () => {
       const p = map.project([pin.lng, pin.lat]);
-      setPinXY({ x: p.x, y: p.y });
+      const c = map.getContainer().getBoundingClientRect();
+      setPinXY({ x: p.x, y: p.y, w: c.width, h: c.height });
     };
     update();
     map.on('move', update);
@@ -406,16 +407,23 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
       <div ref={host} className="citymap-gl" />
       {pin && pinXY && (
         <div
-          className={'citymap-pop' + (pinXY.y < 190 ? ' below' : '')}
-          style={{ left: pinXY.x, top: pinXY.y }}
+          // Clamped into the panel: the container clips overflow, and a popup
+          // pinned near an edge must stay readable rather than exact.
+          className={'citymap-pop' + (pinXY.y < 190 && pinXY.y < pinXY.h - 250 ? ' below' : '')}
+          style={{
+            left: Math.min(Math.max(pinXY.x, 145), Math.max(pinXY.w - 145, 145)),
+            top: Math.min(Math.max(pinXY.y, 200), Math.max(pinXY.h - 16, 200)),
+          }}
           role="dialog"
           aria-label={describe(pin.card)}
         >
           <button className="pop-x" onClick={() => setPin(null)} aria-label="Close">×</button>
           <b>{describe(pin.card)}</b>
-          {tipExtras(pin.card, 8).map((line) => (
-            <span key={line}>{line}</span>
-          ))}
+          {tipExtras(pin.card, 8)
+            .filter((line) => !describe(pin.card).includes(line))
+            .map((line) => (
+              <span key={line}>{line}</span>
+            ))}
           <div className="pop-actions">
             {pinPhone && (
               <a className="btn solid" href={`tel:${String(pinPhone).replace(/[^+\d]/g, '')}`}>
