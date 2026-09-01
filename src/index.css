@@ -1180,3 +1180,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
    let source order win and painted the label white on white. */
 .citymap-cuts button.on,
 .citymap-full-bar .citymap-cuts button.on { background: var(--pill); border-color: var(--pill); color: var(--on-cta); }
+
+/* Under 768px the sort control already says "for you"; the prose version of the
+   same sentence only pushes the first card further away. */
+@media (max-width: 767px) {
+  .personas-hint { display: none; }
+  .mapskel { position: relative; inset: auto; height: 200px; }
+  .massing-slot { min-height: 200px; margin: 2px 0 4px; }
+}
