@@ -2422,12 +2422,21 @@ export default function App() {
     const assumed = basis === 'constant' || basis === 'fee';
 
     const explicitRate = loadLS('rw.closeRate', null) != null;
+    // A mandated $1,800 inspection with a hard deadline is not an 8% sale:
+    // every building on the list HAS to buy it from somebody before the date.
+    // Cheap compulsory work defaults higher, and says so.
+    const cheapMandate = (vertical === 'gas' || vertical === 'elevators') && avg <= 5000;
     const rate = explicitRate && Number.isFinite(closeRate) && closeRate > 0
       ? clampRate(closeRate)
       : winStats.ratio > 0
         ? clampRate(winStats.ratio)
-        : DEFAULT_CLOSE_RATE;
-    const rateBasis = explicitRate ? 'yours' : winStats.ratio > 0 ? 'wins' : 'default';
+        : cheapMandate
+          ? 0.2
+          : DEFAULT_CLOSE_RATE;
+    const rateBasis = explicitRate ? 'yours' : winStats.ratio > 0 ? 'wins' : cheapMandate ? 'mandate' : 'default';
+    // One won agent rarely stays one building — the portfolio is the argument
+    // on registers the city cites in sweeps.
+    const bigAgents = rows.filter((c) => (c.agent?.portfolio || 0) >= 3).length;
 
     // Nobody works a whole register. Expected is bounded by what one crew can
     // actually pursue before the deadline — the user's figure if they set one,
@@ -2465,6 +2474,7 @@ export default function App() {
       wins,
       arriving,
       growWeek,
+      bigAgents,
       weeks: Math.round(weeks),
       horizon,
       assumed,
@@ -2495,7 +2505,9 @@ export default function App() {
       ? `${Math.round(p.rate * 100)}% close rate — yours`
       : p.rateBasis === 'wins'
         ? `${Math.round(p.rate * 100)}% close — based on your ${winStats.touched} recorded outcomes`
-        : `${Math.round(p.rate * 100)}% close rate — assumed for mandated work`;
+        : p.rateBasis === 'mandate'
+          ? `${Math.round(p.rate * 100)}% close — assumed: a cheap, compulsory buy with a hard date`
+          : `${Math.round(p.rate * 100)}% close rate — assumed for mandated work`;
   // Carbon's money is the city's arithmetic summed over the filtered view.
   const carbonMoney = useMemo(() => {
     if (vertical !== 'carbon') return { n: 0, priced: 0, sum: 0, max: 0 };
@@ -3183,17 +3195,19 @@ export default function App() {
                   of priced exposure across {carbonMoney.priced.toLocaleString('en-US')} of{' '}
                   {carbonMoney.n.toLocaleString('en-US')} buildings shown — $268 a ton over the cap, every year, from
                   each building's own reported emissions against an estimated cap; a campus that files one report is
-                  counted once{carbonMoney.max > 0 ? ` · largest ${fmtMoney(carbonMoney.max)}/yr` : ''}
+                  counted once{carbonMoney.max > 0 ? ` · largest ${fmtMoney(carbonMoney.max)}/yr` : ''} · counted this
+                  minute — new benchmarking filings move it
                 </span>
               </motion.div>
             )
-          ) : myPipeline && (vertical === 'facades' || MANDATES[vertical]) ? (
+          ) : myPipeline ? (
             <motion.div className="pipe" {...fade(0.1)}>
-              {/* The big-figure arrow is back by request — what the register
-                  holds, and what a crew takes home — but the expected side
-                  stays BOUNDED: it is the win count times the contract value,
-                  never the whole register times a rate. The sentence that
-                  says what has to happen moved into the note, leading it. */}
+              {/* One presentation for every register: the big figure is what a
+                  crew takes home, bounded by what it can pursue — never the
+                  register times a rate. The sentence names the task in the
+                  register's own verb, and the line under the arrow says the
+                  count is THIS MINUTE's: the city files daily, the number
+                  moves. */}
               <span className="gross">
                 <Rolling value={myPipeline.gross} format={fmtMoney} /> open
               </span>
@@ -3216,56 +3230,32 @@ export default function App() {
                     : 'per year'}
                 </em>
               </b>
-              {myPipeline.growWeek > 0 && (
-                <span className="pipe-grow" title="Measured from what the city published in the last seven days, scaled to the current filters">
-                  ↑ {fmtMoney(myPipeline.growWeek)} of new work entered this view in the last week — it climbs as the city publishes
-                </span>
-              )}
+              <span className={'pipe-grow' + (myPipeline.growWeek > 0 ? '' : ' still')}>
+                {myPipeline.growWeek > 0
+                  ? `↑ ${fmtMoney(myPipeline.growWeek)} of new work entered this view in the last week — counted this minute; tomorrow's filings will move it`
+                  : `counted this minute, on today's register — the city files daily, and the next sweep moves every figure here`}
+              </span>
               <span className="pipe-note">
                 <b className="pipe-win">
-                  {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
-                  {zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : ''} must file
-                  {myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''} —{' '}
-                  {myPipeline.n > myPipeline.capacity
-                    ? `work ${myPipeline.capacity}, win ${myPipeline.wins}.`
-                    : `win ${winTarget(myPipeline.n)}.`}
+                  {(() => {
+                    const terr = zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : '';
+                    const act =
+                      myPipeline.n > myPipeline.capacity
+                        ? `work ${myPipeline.capacity}, win ${myPipeline.wins}.`
+                        : `win ${winTarget(myPipeline.n)}.`;
+                    const nTxt = myPipeline.n.toLocaleString('en-US');
+                    if (vertical === 'contracts')
+                      return `${nTxt} ${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}${terr} open on city work right now — ${act}`;
+                    if (vertical === 'openings')
+                      return `${nTxt} venue${myPipeline.n === 1 ? '' : 's'}${terr} getting ready to open — ${act}`;
+                    return `${nTxt} building${myPipeline.n === 1 ? '' : 's'}${terr} must file${myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''} — ${act}`;
+                  })()}
                 </b>{' '}
-                {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
-                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
-              </span>
-            </motion.div>
-          ) : myPipeline ? (
-            <motion.div className="pipe" {...fade(0.1)}>
-              <span className="gross">
-                <Rolling value={myPipeline.gross} format={fmtMoney} /> open
-              </span>
-              <span className="arrow" aria-hidden="true">→</span>
-              <b
-                title={
-                  myPipeline.arriving
-                    ? `(${myPipeline.n} shown + ${myPipeline.arriving} arriving over ${myPipeline.weeks} weeks at the measured rate) × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% = ${fmtMoney(myPipeline.expected)}`
-                    : `${myPipeline.n} shown × ${fmtMoney(myPipeline.avg)} × ${Math.round(myPipeline.rate * 100)}% close rate = ${fmtMoney(myPipeline.expected)}`
-                }
-              >
-                ~<Rolling value={myPipeline.expected} format={fmtMoney} /> expected{' '}
-                <em>
-                  {myPipeline.horizon
-                    ? `by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
-                    : 'per year'}
-                </em>
-              </b>
-              <span className="pipe-note">
-                {/* "shown", not "open": the figure is the filtered view, and
-                    saying so is what makes it move credibly when you filter. */}
-                <em className="pipe-asof">for one crew, on today's register — it refills as the city publishes</em>{' '}
-                · {myPipeline.n.toLocaleString('en-US')}{' '}
-                {vertical === 'contracts'
-                  ? `${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}`
-                  : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
-                    (myPipeline.n === 1 ? '' : 's')}{' '}
-                shown{myPipeline.arriving ? ` + ${myPipeline.arriving.toLocaleString('en-US')} more by then at this week's rate` : ''} ·{' '}
-                {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
-                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
+                {basisLabel(myPipeline)} · {rateLabel(myPipeline)}
+                {(vertical === 'gas' || vertical === 'elevators') && myPipeline.bigAgents >= 10
+                  ? ` · ${myPipeline.bigAgents} of these sit with agents running 3+ buildings — one win rarely stays one building`
+                  : ''}{' '}
+                · <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
           ) : null}
