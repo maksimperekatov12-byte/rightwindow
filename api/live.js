@@ -11,18 +11,20 @@ import { fetchLive, fetchContacts } from '../lib/live-source.mjs';
 export default async function handler(req, res) {
   const uid = String(req.query.uid || '');
   // Resolved numbers are deliberately absent from the committed feed, so this is
-  // the only path that carries them. The public set — numbers a company printed
-  // on its own site or a government record — comes off the data branch and costs
-  // nothing. The private store holds the rest and is read only when the branch
-  // has not been published yet, because it is billed per read and its allowance
-  // is what suspended the store in the first place.
-  const [live, branch] = await Promise.all([fetchLive(), fetchContacts()]);
-  // The private store may legitimately hold MORE than the branch: the branch
-  // carries only what may be republished in bulk, while serving one card at a
-  // time was never the thing the provider's terms restrict. It is read only
-  // when the branch has nothing, because it is billed per read.
-  const stored = branch ? null : await readJsonSoft('contacts.json');
-  const contacts = branch || stored || {};
+  // the only path that carries them. Two sets merge here, and the difference
+  // between them is the publication gate, not trust: the branch carries what may
+  // be REPUBLISHED IN BULK — numbers off the firm's own site or a government
+  // record — while the private store also holds the directory-tier numbers the
+  // gate keeps out of the downloadable artefact. Serving one card at a time was
+  // never what any licence restricted, so with the store alive again (Pro,
+  // 2026-08-31) a card gets the fullest contact we resolved, and the branch
+  // remains both the CDN fast path and the fallback when the store blinks.
+  const [live, branch, stored] = await Promise.all([
+    fetchLive(),
+    fetchContacts(),
+    readJsonSoft('contacts.json'),
+  ]);
+  const contacts = { ...(branch || {}), ...(stored || {}) };
   // "No contacts" must not be cached as though it were an answer. Before the
   // first publish, or during a branch outage, an empty map pinned at the edge
   // for two minutes is every card in the product saying there is nobody to ring.
