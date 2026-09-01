@@ -2375,6 +2375,20 @@ export default function App() {
       avg = ticketFor(profileKey, vertical) || ticketFor('qewi', vertical);
       basis = 'constant';
     }
+    // The declared cost is the WHOLE job, and most trades bill a slice of it:
+    // an inspector's report fee is not the restoration it mandates. A derived
+    // median therefore caps at the trade's own figure, and the label keeps both
+    // numbers so the cap reads as honesty, not as a smaller guess. Numbers the
+    // user typed or recorded are theirs and are never capped.
+    let capMedian = 0;
+    if (basis === 'view' || basis === 'register') {
+      const ceiling = ticketFor(profileKey, vertical) || ticketFor('qewi', vertical);
+      if (ceiling && avg > ceiling) {
+        capMedian = avg;
+        avg = ceiling;
+        basis = 'capped';
+      }
+    }
     if (!avg) return null;
     const assumed = basis === 'constant';
     // Close rate: the user's saved figure, else the observed ratio from 3+
@@ -2424,7 +2438,7 @@ export default function App() {
     const grossByDeadline = total * avg;
     const expectedByDeadline = grossByDeadline * rate;
     if (!Number.isFinite(expectedByDeadline) || expectedByDeadline <= 0)
-      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon, assumed, basis, rateBasis };
+      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon, assumed, basis, rateBasis, capMedian };
 
     return {
       n,
@@ -2438,6 +2452,7 @@ export default function App() {
       assumed,
       basis,
       rateBasis,
+      capMedian,
     };
   }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons, facadeFeed, winStats, now, wn, vertSize]);
 
@@ -2455,7 +2470,9 @@ export default function App() {
           ? `${fmtMoney(p.avg)} — median declared job cost in this view`
           : p.basis === 'register'
             ? `${fmtMoney(p.avg)} — median declared job cost on this register`
-            : `assuming a ${fmtMoney(p.avg)} average job`;
+            : p.basis === 'capped'
+              ? `${fmtMoney(p.avg)} — your trade's share of a ${fmtMoney(p.capMedian)} median declared job`
+              : `assuming a ${fmtMoney(p.avg)} average job`;
   const rateLabel = (p) =>
     p.rateBasis === 'yours'
       ? `${Math.round(p.rate * 100)}% close rate — yours`
