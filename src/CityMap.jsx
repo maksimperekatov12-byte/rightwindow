@@ -486,16 +486,28 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, compa
           {cutChips}
         </div>
       </div>
+      {/* The counts must reconcile with the chips and the feed footer: the map
+          holds the geocoded subset, and saying "789 of 800 mapped" — computed,
+          not asserted — is cheaper than a careful reader catching the gap. */}
       <span className="citymap-cap">
         {compact
-          ? `${shown.length.toLocaleString('en-US')} cards · filters and the cut above move it · click to open`
-          : `${shown.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} shown cards on the map · colour is urgency, amber has a dated hearing or an expiring shed · zoom to any card, click it to open`}
+          ? `${
+              located.length < rows.length
+                ? `${located.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} cards mapped`
+                : `${shown.length.toLocaleString('en-US')} cards`
+            } · filters and the cut above move it · click to open`
+          : `${shown.length.toLocaleString('en-US')} shown of ${located.length.toLocaleString('en-US')} mapped${
+              located.length < rows.length ? ` (${rows.length.toLocaleString('en-US')} in the list)` : ''
+            } · colour is urgency, amber has a dated hearing or an expiring shed · zoom to any card, click it to open`}
       </span>
 
       {big && (
         <div className="citymap-full" role="dialog" aria-label="Register map, full window">
           <div className="citymap-full-bar">
-            <b>{shown.length.toLocaleString('en-US')} cards on the map</b>
+            <b>
+              {shown.length.toLocaleString('en-US')} cards on the map
+              {located.length < rows.length ? ` · ${located.length.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')} mapped` : ''}
+            </b>
             {cutChips}
             <span>hover for what makes it a call · click flies in and opens the card · Esc closes</span>
             <button className="btn ghost" onClick={() => setBig(false)}>

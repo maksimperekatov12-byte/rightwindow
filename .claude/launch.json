@@ -1,11 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    {
-      "name": "rightwindow",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5205
-    }
+    { "name": "rightwindow", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 5205 },
+    { "name": "rightwindow-built", "runtimeExecutable": "npm", "runtimeArgs": ["run", "preview", "--", "--port", "5215", "--strictPort"], "port": 5215 }
   ]
 }

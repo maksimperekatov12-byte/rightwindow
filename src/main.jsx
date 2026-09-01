@@ -22,10 +22,16 @@ class Boundary extends React.Component {
   }
   render() {
     if (!this.state.failed) return this.props.children;
+    // The copy asserts nothing about the cause — an earlier version blamed a
+    // stale deploy, and that confident guess hid a real crash for a day. State
+    // the failure, say what the product is, offer the one action that helps.
     return (
       <div className="crash">
-        <b>This page stopped loading.</b>
-        <p>Usually it means the site was updated while you had it open. Reloading picks up the new version.</p>
+        <b>This page hit an error and stopped.</b>
+        <p>
+          Right Window reads New York City's public records and lists the buildings and businesses with a legal
+          deadline — and the person to call about it. A reload usually brings the page back.
+        </p>
         <button className="btn solid" onClick={() => location.reload()}>
           Reload
         </button>

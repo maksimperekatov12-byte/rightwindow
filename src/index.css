@@ -181,15 +181,15 @@ a.logo { color: inherit; text-decoration: none; }
 .tlabel { position: relative; z-index: 1; }
 
 /* ---------- hero + stats: desktop side by side ---------- */
-.lede { display: grid; gap: 18px; padding: 24px 0 4px; align-items: start; }
+.lede { display: grid; gap: 14px; padding: 12px 0 2px; align-items: start; }
 @media (min-width: 980px) {
   .lede { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 34px; }
   .lede .stats { margin-top: 6px; }
 }
 .hero h1 {
-  margin: 0 0 12px; font-family: var(--display); font-weight: 400;
-  font-size: clamp(32px, 4.2vw, 47px);
-  letter-spacing: -0.008em; line-height: 1.06; max-width: 21ch; text-wrap: balance;
+  margin: 0 0 8px; font-family: var(--display); font-weight: 400;
+  font-size: clamp(25px, 2.2vw, 30px);
+  letter-spacing: -0.008em; line-height: 1.1; max-width: 34ch; text-wrap: balance;
 }
 .hero h1 em { font-style: italic; color: var(--brand); }
 .hero p { margin: 0; color: var(--ink-2); max-width: 54ch; font-size: 15.5px; }
@@ -292,6 +292,11 @@ a.logo { color: inherit; text-decoration: none; }
 }
 .card-head:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: var(--r); }
 .head-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+/* The callable tier, visible on the collapsed row: full number, or a mail glyph. */
+.c-hint { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; color: var(--brand); }
+.c-hint svg { flex: none; position: relative; top: 1px; }
+.c-hint i { font-style: normal; font-family: var(--mono); font-size: 12px; letter-spacing: -0.01em; }
+.c-hint.mail { color: var(--ink-3); }
 .addr { font-family: var(--sans); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .boro { color: var(--ink-3); font-size: 12.5px; }
 .found {
@@ -412,9 +417,8 @@ a.logo { color: inherit; text-decoration: none; }
 /* ---------- modal ---------- */
 .modal-back {
   position: fixed; inset: 0; z-index: 50;
-  background: rgba(15, 30, 26, 0.35);
-  backdrop-filter: blur(10px) saturate(1.2);
-  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  /* A dim, not a blur: the product must stay legible behind the question. */
+  background: rgba(15, 30, 26, 0.28);
   display: flex; align-items: center; justify-content: center; padding: 20px;
   overflow-y: auto;
 }
@@ -477,7 +481,7 @@ footer a { color: var(--brand); }
 .totop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .tiles { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
 
-.hero h1 { min-height: 2.15em; }
+.hero h1 { min-height: 1.1em; }
 @media (min-width: 1020px) {
   .feed { align-items: start; }
 }
@@ -519,10 +523,10 @@ footer a { color: var(--brand); }
 .fb.dismiss.on { background: var(--warm-wash); border-color: var(--warm); color: var(--warm); }
 .fb:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
-.eyebrow { font: 700 10.5px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand); margin-bottom: 10px; }
+.eyebrow { font: 700 10.5px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand); margin-bottom: 6px; }
 .pipe {
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 14px;
-  border-radius: 12px; padding: 11px 15px;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 10px;
+  border-radius: 12px; padding: 9px 15px;
   background: var(--warm-wash); border: 1px solid rgba(138, 100, 16, 0.3);
   box-shadow: var(--glass-edge); font-size: 14px; color: var(--warm);
 }
@@ -573,7 +577,7 @@ footer a { color: var(--brand); }
 }
 .p-banner .found { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
 .p-banner b { font-weight: 700; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin: 0 0 12px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin: 0 0 8px; }
 .legend .ldot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 .legend .ldot.open { background: var(--brand); }
 .legend .ldot.taken { background: var(--warm); }
@@ -590,7 +594,7 @@ footer a { color: var(--brand); }
 .pf-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .pf-miss { font-size: 12.5px; color: var(--warm); margin-top: 12px !important; }
 
-.livestrip { margin: 16px 0 0; }
+.livestrip { margin: 10px 0 0; }
 .news.plain { cursor: default; }
 .news:disabled { cursor: default; opacity: 1; }
 .pulseline {
@@ -640,8 +644,8 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .sig.busy .sig-k { color: var(--ink-3); }
 
 .hook {
-  display: block; margin-bottom: 18px;
-  padding: 13px 16px 15px; border-radius: var(--r-sm);
+  display: block; margin-bottom: 10px;
+  padding: 9px 14px 11px; border-radius: var(--r-sm);
   background: var(--warm-wash);
   border: 1px solid rgba(138, 100, 16, .28);
   border-left: 3px solid var(--warm);
@@ -649,7 +653,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .hook::before {
   content: 'Compliance calendar · NYC DOB';
   display: block; font: 600 9.5px/1 var(--mono); letter-spacing: .15em; text-transform: uppercase;
-  color: var(--warm); margin-bottom: 10px; padding-bottom: 9px;
+  color: var(--warm); margin-bottom: 6px; padding-bottom: 6px;
   border-bottom: 1px solid rgba(138, 100, 16, .22);
 }
 .hook b { font-family: var(--mono); font-size: 27px; font-weight: 600; letter-spacing: -.03em; color: var(--warm); }
@@ -752,6 +756,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .page-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
 .page-bar .back { margin-bottom: 0; }
 .more-row-inline { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+.btn.everything { margin-top: 12px; width: 100%; justify-content: center; }
 .trade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 8px; }
 .trade-card {
   display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
@@ -772,11 +777,15 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 
 /* ---------- the block ---------- */
 /* The model is the subject of the product, not decoration, so it gets the half
-   of the hero the eye lands on second — and nothing on a phone, where it would
-   only cost battery. */
-.massing-slot { display: none; }
+   of the hero the eye lands on second. On a phone the live map never loads —
+   battery — but the slot stays: the static outline with the dots baked in is
+   thirty kilobytes and reviewers open links on phones. Contracts' built 3D
+   scene has no static fallback, so that slot alone stays desktop-only. */
+.massing-slot { display: block; position: relative; min-height: 235px; margin: 4px 0 6px; }
+.massing-slot.scene-only { display: none; }
 @media (min-width: 980px) {
-  .massing-slot { display: block; position: relative; min-height: 356px; margin-top: -14px; padding-bottom: 22px; }
+  .massing-slot { display: block; position: relative; min-height: 356px; margin: -14px 0 0; padding-bottom: 22px; }
+  .massing-slot.scene-only { display: block; }
   .massing { position: absolute; inset: 0 0 22px 0; }
   .massing canvas { display: block; }
   .massing-cap {
@@ -1098,6 +1107,40 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   position: absolute;
   inset: 0 0 30px 0;
   height: auto;
+  /* Transparent while MapLibre boots so the skeleton underneath shows through;
+     the map's own themed ground covers it the moment the style paints. */
+  background: transparent;
+}
+
+/* The instant footprint: borough outlines and baked dots, painted before any
+   network request. On desktop the live map mounts over it; under 980px it IS
+   the map. */
+.mapskel {
+  position: absolute;
+  inset: 0 0 30px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--paper);
+  overflow: hidden;
+}
+.mapskel svg { position: absolute; inset: 4% 3%; width: 94%; height: 92%; }
+.mapskel-boro { fill: var(--paper-2); stroke: var(--ink-3); stroke-width: 0.8; }
+.mapskel-dot { fill: var(--brand); opacity: 0.5; }
+.mapskel-dot.hot { fill: var(--warm); opacity: 0.75; }
+.mapskel-cap {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+  background: var(--paper);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+@media (max-width: 979px) {
+  .mapskel { inset: 0; }
 }
 .massing-slot .citymap-cap { position: absolute; left: 2px; right: 0; bottom: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

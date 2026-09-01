@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import data from './data/feed.json';
+import MapSkeleton from './MapSkeleton.jsx';
 import DataPage from './Data.jsx';
 import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
 import TradesPage from './Trades.jsx';
@@ -10,7 +11,9 @@ const YEAR = new Date().getFullYear();
 // One place for how people reach Maxim. Add PHONE when there is a US number.
 const CONTACT = {
   name: 'Maxim Perekatov',
-  email: 'maxim122090@gmail.com',
+  // Inbound on the product's own domain (forwarded), not a personal mailbox in
+  // the markup of a site whose thesis is professional data hygiene.
+  email: 'hello@rightwindow.nyc',
   phone: '', // e.g. '+1 (917) 555-0134' — shown as a tap-to-call link when set
 };
 const byUrgency = (a, b) => b.urgencyScore - a.urgencyScore || a.monthsLeft - b.monthsLeft;
@@ -47,7 +50,12 @@ function signalStory(c) {
 }
 
 const GENERIC_FACADE = {
-  hero: 'Buildings in a *forced-spend* window',
+  // The explanatory sentence leads and the metaphor demotes to the eyebrow: a
+  // stranger cannot decode "forced-spend window", and the line that says what
+  // the product does was hiding underneath it.
+  hero: 'Every building over six stories runs on a *public compliance clock*.',
+  subline: 'We surface the ones that fell off it — with the deadline and the person to call.',
+  eyebrow: 'Buildings in a forced-spend window',
   hint: 'Ranked by urgency — deadlines, fresh violations, ownership changes, penalty balances.',
   sort: byUrgency,
   why: (c) => signalStory(c),
@@ -690,6 +698,32 @@ function StatusDot({ status, note, legend }) {
   );
 }
 
+// The callable-first sort orders the feed by whether anyone answers; this makes
+// that order visible on the collapsed row. A published number is printed in
+// full — the number is the product's promise — an inbox or a confirmed agent is
+// a glyph, and silence shows nothing rather than a placeholder.
+function ContactHint({ phone, mail }) {
+  if (phone)
+    return (
+      <span className="c-hint tel" title="Published number — expand the card for the source">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.4 19.4 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.27a2 2 0 0 1 2.1-.45c.9.34 1.85.57 2.8.7a2 2 0 0 1 1.7 2.03z" />
+        </svg>
+        <i>{phone}</i>
+      </span>
+    );
+  if (mail)
+    return (
+      <span className="c-hint mail" title="Reachable by email — expand the card">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m22 7-10 6L2 7" />
+        </svg>
+      </span>
+    );
+  return null;
+}
+
 // "11215" is a territory, "11215 11217 11231" is the territory a crew actually
 // covers. Anything else in the box is a free-text search as before.
 const ZIP_QUERY = /^\s*\d{5}(?:\s*[,;\s]\s*\d{5})*\s*$/;
@@ -1075,9 +1109,10 @@ export default function App() {
   const [profileKey, setProfileKey] = useState(() =>
     hashTrade && PROFILES[hashTrade] ? hashTrade : loadLS('rw.profile', null),
   );
-  const [showOnboard, setShowOnboard] = useState(
-    () => !loadLS('rw.profile', null) && !deepLinked.current && !(hashTrade && PROFILES[hashTrade]),
-  );
+  // Never open on arrival. A stranger gives this page twenty seconds, and a
+  // modal over a blurred feed asks them to classify themselves before showing
+  // them anything. The feed renders first; the question waits in the header.
+  const [showOnboard, setShowOnboard] = useState(false);
   const [vertical, setVertical] = useState('facades');
   const [shown, setShown] = useState(7);
   const [openId, setOpenId] = useState(null);
@@ -1778,6 +1813,20 @@ export default function App() {
     setShown(7);
   }, [query, boro, onlyNew, onlyWatch, vertical, showHidden, onlyPortfolio, hideBusy]);
 
+  // The expanded card is the product — the address, the deadline, the money,
+  // the source, the number to ring. A stranger gives this page twenty seconds
+  // and must not have to dig for it, so the top-ranked card of each register
+  // arrives already open. Once per register, never over a deep link, and
+  // closing it closes it like any other card.
+  const autoOpened = useRef({});
+  useEffect(() => {
+    if (deepLinked.current || autoOpened.current[vertical]) return;
+    const top = (visibleForReasons || [])[0];
+    if (!top) return;
+    autoOpened.current[vertical] = true;
+    setOpenId(top.bin || top.id);
+  }, [vertical, visibleForReasons]);
+
   // A register shows up only if this trade can act on it *and* there is enough
   // in it to be worth a page. Counted before the search box and the filters, so
   // typing never makes a tab vanish. A deep link always opens its own register.
@@ -1844,8 +1893,11 @@ export default function App() {
   // end of fifteen tiles, so a visitor who does not want to classify themselves
   // can see a way in without expanding anything.
   const pickable = orderedTrades.filter((k) => k !== 'explore');
-  const primaryTrades = pickable.slice(0, 6);
-  const otherTrades = pickable.slice(6);
+  // Facade engineering leads the grid by hand: it is the product's deepest
+  // register and the trade a first visitor most likely is. Everything else
+  // keeps the measured-volume order.
+  const primaryTrades = ['qewi', ...pickable.filter((k) => k !== 'qewi')].slice(0, 6);
+  const otherTrades = pickable.filter((k) => !primaryTrades.includes(k));
 
   const hiddenCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && fb[k]?.s === 'dismissed').length;
   // What this device has already picked up. Without it, a follow-up list means
@@ -2145,7 +2197,16 @@ export default function App() {
   const myPipeline = useMemo(() => {
     const n = openCount;
     if (!n) return null;
-    const avg = Number.isFinite(ticket) && ticket > 0 ? ticket : ticketFor(profileKey, vertical);
+    let avg = Number.isFinite(ticket) && ticket > 0 ? ticket : ticketFor(profileKey, vertical);
+    // A visitor who has not picked a trade still deserves the most persuasive
+    // number in the product. Compute it with the facade engineer's figure and
+    // SAY SO — an explicit, editable assumption is honest; a hidden number
+    // costs the visitor.
+    let assumed = false;
+    if (!avg) {
+      avg = ticketFor('qewi', vertical);
+      assumed = Boolean(avg);
+    }
     if (!avg) return null;
     const rate = Number.isFinite(closeRate) && closeRate > 0 ? clampRate(closeRate) : DEFAULT_CLOSE_RATE;
     const gross = n * avg;
@@ -2187,7 +2248,7 @@ export default function App() {
     const grossByDeadline = total * avg;
     const expectedByDeadline = grossByDeadline * rate;
     if (!Number.isFinite(expectedByDeadline) || expectedByDeadline <= 0)
-      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon };
+      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon, assumed };
 
     return {
       n,
@@ -2198,6 +2259,7 @@ export default function App() {
       arriving,
       weeks: Math.round(weeks),
       horizon,
+      assumed,
     };
   }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons, now, wn, vertSize]);
 
@@ -2216,7 +2278,8 @@ export default function App() {
 
   const heroSub =
     vertical === 'facades'
-      ? "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
+      ? fv.subline ||
+        "Every building over six stories runs on a public compliance clock. We surface the ones that fell off it — with the deadline and the person to call."
       : vertical === 'gas'
         ? 'Local Law 152 puts every gas-piped building on a four-year clock by community district. These are the ones DOB has already cited and whose next filing is due. Every one is in sub-cycle C, so they share a deadline: 31 December 2026.'
         : vertical === 'elevators'
@@ -2440,13 +2503,15 @@ export default function App() {
                   </button>
                 ))}
               </div>
+              {/* The way out is a real button, not a consolation prize set in
+                  the same tertiary caps as a docs link. */}
+              <button className="btn solid everything" onClick={() => pickProfile('explore')}>
+                Just show me everything
+              </button>
               {!showOther ? (
                 <div className="more-row-inline">
                   <button className="more-trades" onClick={() => setShowOther(true)}>
                     Other trades ({otherTrades.length})
-                  </button>
-                  <button className="more-trades" onClick={() => pickProfile('explore')}>
-                    Just show me everything
                   </button>
                   <button
                     className="more-trades"
@@ -2653,7 +2718,7 @@ export default function App() {
             Contact
           </a>
           <button className="profile-chip" onClick={() => setShowOnboard(true)}>
-            {profileKey ? profile.label : 'Who are you?'} <span aria-hidden="true">›</span>
+            {profileKey ? `${profile.label} — not you?` : 'What do you do?'} <span aria-hidden="true">›</span>
           </button>
           <div className="pulled">
             <motion.span
@@ -2733,6 +2798,7 @@ export default function App() {
           ) : (
             <div className="eyebrow">New York City · public records, read hourly</div>
           )}
+          {vertical === 'facades' && fv.eyebrow && <div className="eyebrow">{fv.eyebrow}</div>}
           {/* No AnimatePresence here on purpose. The crossfade leaves the old
               headline mounted until its exit transition finishes, and a tab that
               is in the background does not run transitions — so switching
@@ -2785,8 +2851,10 @@ export default function App() {
                   : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
                     (myPipeline.n === 1 ? '' : 's')}{' '}
                 shown{myPipeline.arriving ? ` + ${myPipeline.arriving.toLocaleString('en-US')} more by then at this week's rate` : ''} ·{' '}
-                {fmtMoney(myPipeline.avg)} avg contract ·{' '}
-                {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
+                {myPipeline.assumed
+                  ? `assuming a ${fmtMoney(myPipeline.avg)} ${vertical === 'facades' ? 'report fee' : 'average job'}`
+                  : `${fmtMoney(myPipeline.avg)} avg contract`}{' '}
+                · {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
@@ -2794,11 +2862,15 @@ export default function App() {
 
         </section>
         {HEROES[vertical] && (
-          <div className="massing-slot">
+          <div className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
             {/* Registers with coordinates put the register ITSELF in the hero:
                 the live map of the filtered list, not an illustration of the
                 kind of thing the list contains. Contracts keep their built
-                scene — a solicitation has no address to stand on. */}
+                scene — a solicitation has no address to stand on. The skeleton
+                is the same outline twice over: the loading state before
+                MapLibre arrives, and the whole map on a phone, where MapLibre
+                never loads at all. */}
+            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} />}
             {sceneReady &&
               (vertical !== 'contracts' ? (
                 <Suspense fallback={null}>
@@ -2825,23 +2897,6 @@ export default function App() {
           </div>
         )}
       </div>
-      {vertical === 'facades' && (
-        <div className="stats">
-          {[
-            [data.facades.totals.candidates, 'buildings off the compliance calendar, four boroughs'],
-            [data.facades.totals.nonFilers10A, `unfiled for sub-cycle 10A — ${monthsToDeadline} months to deadline`],
-            [data.facades.totals.swarmpCarryover, 'open SWARMP scopes carried from Cycle 9'],
-            [1000, 'per month — the DOB penalty meter after a missed deadline', '$'],
-          ].map(([n, l, pre], i) => (
-            <motion.div className="stat" key={l} {...fade(0.08 + i * 0.06)}>
-              <div className="n">
-                <CountUp value={n} prefix={pre || ''} />
-              </div>
-              <div className="l">{l}</div>
-            </motion.div>
-          ))}
-        </div>
-      )}
 
       <motion.div
         key={vertical}
@@ -3147,7 +3202,12 @@ export default function App() {
                   }}
                 >
                   <div className="card-row">
-                    <button className="card-head" aria-expanded={open} onClick={() => toggleCard('b', c.bin, open)}>
+                    <button
+                      className="card-head"
+                      aria-expanded={open}
+                      aria-label={`${open ? 'Collapse' : 'Expand'} ${title(c.address)}, ${c.borough}`}
+                      onClick={() => toggleCard('b', c.bin, open)}
+                    >
                       <StatusDot
                         status={statusOf('b:' + c.bin)}
                         note={
@@ -3163,6 +3223,10 @@ export default function App() {
                           {c.zip ? <span className="zip">{c.zip}</span> : null}
                           {c.agent?.company && <span className="who">{title(c.agent.company)}</span>}
                         </span>
+                        <ContactHint
+                          phone={contacts[c.bin]?.phone || c.phone || c.contact?.phone}
+                          mail={Boolean(contacts[c.bin]?.email || c.email || c.contact?.email || c.agent?.contactKnown)}
+                        />
                         {c.isNew && <span className="badge new">New</span>}
                         {!c.isNew && c.fresh?.length > 0 && <span className="badge new">New signal</span>}
                         {statusOf('b:' + c.bin) === 'personal' && (
@@ -3549,6 +3613,7 @@ export default function App() {
                     <span className="badge">Won {money(c.amount)}</span>
                   )}
                   {isOpenNotice(c) && <span className="boro">{c.agency}</span>}
+                  <ContactHint phone={c.contact?.phone} mail={Boolean(c.contact?.email)} />
                 </span>
                 <span className="head-side">
                   <span
@@ -3705,6 +3770,7 @@ export default function App() {
               </>
             )}
             idOf={(c) => c.id}
+            nameOf={(c) => (isOpenNotice(c) ? c.title : c.vendor)}
           />
         </>
       )}
@@ -3726,6 +3792,7 @@ export default function App() {
             onWatch={(c) => toggleWatch(vertPrefix + c.bin)}
             statusOf={statusOf}
             idOf={(c) => c.bin}
+            nameOf={(c) => `${title(c.address)}, ${c.borough}`}
             renderHead={(c) => {
               const m = MANDATES[vertical];
               const k = vertPrefix + c.bin;
@@ -3736,6 +3803,10 @@ export default function App() {
                     <span className="boro">
                       {c.borough} {c.zip && <span className="zip">{c.zip}</span>}
                     </span>
+                    <ContactHint
+                      phone={contacts[c.bin]?.phone || c.phone || c.contact?.phone}
+                      mail={Boolean(contacts[c.bin]?.email || c.email || c.contact?.email || c.agent?.contactKnown)}
+                    />
                     {c.isNew && <span className="badge new">New</span>}
                     {fbOf(k) && fbOf(k) !== 'dismissed' && <span className={'badge st ' + fbOf(k)}>{fbOf(k)}</span>}
                     <span className="badge">{m.badge(c)}</span>
@@ -3898,7 +3969,7 @@ export default function App() {
                   <span className="badge">
                     {c.src === 'dohmh' ? 'Permitted, not yet inspected' : `${c.kind} · licence pending`}
                   </span>
-                  {c.phone && <span className="badge">Phone on file</span>}
+                  <ContactHint phone={c.phone} mail={Boolean(c.email)} />
                 </span>
                 <span className="head-side">
                   <span className="clock">
@@ -4019,11 +4090,33 @@ export default function App() {
               </>
             )}
             idOf={(c) => c.id}
+            nameOf={venueName}
           />
         </>
       )}
 
       </motion.div>
+
+      {/* The market stats moved below the feed on purpose: they sized the
+          hero, and the hero's job is to put a real expanded card above the
+          fold. The scale of the register is context, not the pitch. */}
+      {vertical === 'facades' && (
+        <div className="stats">
+          {[
+            [data.facades.totals.candidates, 'buildings off the compliance calendar, four boroughs'],
+            [data.facades.totals.nonFilers10A, `unfiled for sub-cycle 10A — ${monthsToDeadline} months to deadline`],
+            [data.facades.totals.swarmpCarryover, 'open SWARMP scopes carried from Cycle 9'],
+            [1000, 'per month — the DOB penalty meter after a missed deadline', '$'],
+          ].map(([n, l, pre], i) => (
+            <motion.div className="stat" key={l} {...fade(0.08 + i * 0.06)}>
+              <div className="n">
+                <CountUp value={n} prefix={pre || ''} />
+              </div>
+              <div className="l">{l}</div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       <AnimatePresence>
         {showTop && (
@@ -4227,7 +4320,7 @@ export default function App() {
   );
 }
 
-function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, hashType, isWatched, onWatch, statusOf }) {
+function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, nameOf, hashType, isWatched, onWatch, statusOf }) {
   return (
     <>
       <div className="feed">
@@ -4252,7 +4345,14 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
               }}
             >
               <div className="card-row">
-                <button className="card-head" aria-expanded={open} onClick={() => toggle(hashType, id, open)}>
+                <button
+                  className="card-head"
+                  aria-expanded={open}
+                  // The screen-reader name says which record this is; the visual
+                  // head is a dense span soup that reads as an anonymous button.
+                  aria-label={nameOf ? `${open ? 'Collapse' : 'Expand'} ${nameOf(c)}` : undefined}
+                  onClick={() => toggle(hashType, id, open)}
+                >
                   <StatusDot status={statusOf ? statusOf(hashType + ':' + id) : 'open'} />
                   {renderHead(c)}
                   <motion.span
