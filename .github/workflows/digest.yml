@@ -16,6 +16,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # Prints length, first three characters and whitespace flags — never the
+      # value. Exists because a pasted secret that fails with 401 is invisible:
+      # this is the only way to tell "wrong string" from "stray newline".
+      - name: Key fingerprint (safe)
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          node -e "const k=process.env.RESEND_API_KEY||'';console.log('len',k.length,'prefix',JSON.stringify(k.slice(0,3)),'leadWS',/^\s/.test(k),'trailWS',/\s$/.test(k))"
       - name: Send personalized digests
         env:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
