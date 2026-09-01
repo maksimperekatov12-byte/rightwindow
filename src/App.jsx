@@ -1842,6 +1842,13 @@ export default function App() {
             const mp = phoneOf(m);
             return m.agent?.company && mp && m.zip && `${nameKey(m.agent.company)}|${mp}|${m.zip}` === gk;
           });
+          // A campus files ONE benchmarking report and the city stamps the same
+          // tonnage on every BIN in it — twelve identical $311,602 rows are one
+          // figure, not twelve. Identical (tons, dollars) pairs inside a group
+          // count once; genuinely distinct exposures still sum.
+          const uniqFigures = new Map();
+          for (const m of cards) if (m.ghg?.usd > 0) uniqFigures.set(`${m.ghg.t}|${m.ghg.usd}`, m.ghg.usd);
+          const pricedMembers = cards.filter((m) => m.ghg?.usd > 0).length;
           grouped.push({
             group: true,
             id: 'grp-' + gk.replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
@@ -1850,7 +1857,8 @@ export default function App() {
             phone: ph,
             zip: cards[0].zip,
             borough: cards[0].borough,
-            usd: cards.reduce((s, m) => s + (m.ghg?.usd || 0), 0),
+            usd: [...uniqFigures.values()].reduce((s, v) => s + v, 0),
+            oneFigure: uniqFigures.size === 1 && pricedMembers > 1,
             violations: cards.reduce((s, m) => s + (m.violations || 0), 0),
           });
         }
@@ -2458,10 +2466,18 @@ export default function App() {
   const carbonMoney = useMemo(() => {
     if (vertical !== 'carbon') return { n: 0, priced: 0, sum: 0, max: 0 };
     const priced = mandateList.filter((c) => c.ghg?.usd > 0);
+    // Same rule as the grouped rows: a campus's one benchmarking figure stamped
+    // on every BIN counts once in the aggregate, or the headline number
+    // multiplies a single report by the number of doors it covers.
+    const seen = new Map();
+    for (const c of priced) {
+      const agent = String(c.agent?.company || c.zip || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      seen.set(`${agent}|${c.ghg.t}|${c.ghg.usd}`, c.ghg.usd);
+    }
     return {
       n: mandateList.length,
       priced: priced.length,
-      sum: priced.reduce((s, c) => s + c.ghg.usd, 0),
+      sum: [...seen.values()].reduce((s, v) => s + v, 0),
       max: priced.reduce((m, c) => Math.max(m, c.ghg.usd), 0),
     };
   }, [vertical, mandateList]);
@@ -3062,8 +3078,8 @@ export default function App() {
                       the dollar figure is the city's arithmetic, not ours. */}
                   of priced exposure across {carbonMoney.priced.toLocaleString('en-US')} of{' '}
                   {carbonMoney.n.toLocaleString('en-US')} buildings shown — $268 a ton over the cap, every year, from
-                  each building's own reported emissions against an estimated cap
-                  {carbonMoney.max > 0 ? ` · largest ${fmtMoney(carbonMoney.max)}/yr` : ''}
+                  each building's own reported emissions against an estimated cap; a campus that files one report is
+                  counted once{carbonMoney.max > 0 ? ` · largest ${fmtMoney(carbonMoney.max)}/yr` : ''}
                 </span>
               </motion.div>
             )
@@ -4137,7 +4153,11 @@ export default function App() {
                       <div className="sig-k">One call, {c.cards.length} buildings</div>
                       <div className="sig-v">
                         {title(c.company)} is the registered agent for all {c.cards.length}
-                        {c.usd > 0 ? ` — combined exposure ${fmtMoney(c.usd)} a year, estimated against computed caps` : ` — ${c.violations} open violations between them`}.
+                        {c.usd > 0
+                          ? c.oneFigure
+                            ? ` — the complex benchmarks as one: ${fmtMoney(c.usd)} a year over the cap, estimated`
+                            : ` — combined exposure ${fmtMoney(c.usd)} a year, estimated against computed caps`
+                          : ` — ${c.violations} open violations between them`}.
                         The city cited the complex in one sweep; the fix is one conversation.
                       </div>
                     </div>
@@ -4147,7 +4167,7 @@ export default function App() {
                         {c.cards.map((b) => (
                           <div key={b.bin}>
                             {title(b.address)}
-                            {b.ghg?.usd > 0 ? ` — ${fmtMoney(b.ghg.usd)}/yr` : b.violations ? ` — ${b.violations} violation${b.violations > 1 ? 's' : ''}` : ''}
+                            {c.oneFigure ? '' : b.ghg?.usd > 0 ? ` — ${fmtMoney(b.ghg.usd)}/yr` : b.violations ? ` — ${b.violations} violation${b.violations > 1 ? 's' : ''}` : ''}
                           </div>
                         ))}
                       </div>
