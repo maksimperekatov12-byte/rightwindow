@@ -65,6 +65,15 @@ async function confirm(email, profile) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  // A status probe that leaks nothing but booleans: which storage the function
+  // can actually see. Diagnosing "cannot store" blind cost more than this line.
+  if (req.method === 'GET')
+    return res.json({
+      canStore: canStorePrivate(),
+      blobToken: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      resend: Boolean(process.env.RESEND_API_KEY),
+      driver: process.env.STORAGE_DRIVER || 'github-branch',
+    });
   if (req.method !== 'POST') return res.status(405).end();
 
   const body = await readBody(req);
