@@ -4,5 +4,29 @@
     "deploymentEnabled": {
       "data": false
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.rightwindow.nyc"
+        }
+      ],
+      "destination": "https://rightwindow.nyc/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "rightwindow.vercel.app"
+        }
+      ],
+      "destination": "https://rightwindow.nyc/:path*",
+      "permanent": true
+    }
+  ]
 }

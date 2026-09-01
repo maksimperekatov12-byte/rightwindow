@@ -2,7 +2,7 @@
 
 **Reads New York City's public records hourly and tells businesses who needs their services this week — with the deadline, the contact, and the reason to call.**
 
-Live: **[rightwindow.vercel.app](https://rightwindow.vercel.app)**
+Live: **[rightwindow.nyc](https://rightwindow.nyc)**
 
 ---
 

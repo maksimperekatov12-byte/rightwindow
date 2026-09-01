@@ -53,7 +53,7 @@ async function confirm(email, profile) {
           (profile ? ` for ${profile}` : '') +
           ', and nothing on a quiet day.\n\n' +
           'Every card links back to the city record it came from. Reply to this message to stop.\n\n' +
-          'https://rightwindow.vercel.app/\n',
+          'https://rightwindow.nyc/\n',
       }),
       signal: AbortSignal.timeout(8000),
     });

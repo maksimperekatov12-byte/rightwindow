@@ -4,7 +4,7 @@ import { matchFor } from '../lib/signals.mjs';
 import { digestBlocks, postToSlack } from '../lib/slack.mjs';
 import { readFileSync } from 'node:fs';
 
-const SITE = process.env.SITE || 'https://rightwindow.vercel.app';
+const SITE = process.env.SITE || 'https://rightwindow.nyc';
 const FROM = process.env.DIGEST_FROM || 'Right Window <onboarding@resend.dev>';
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 

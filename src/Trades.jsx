@@ -21,7 +21,7 @@ export default function TradesPage({ profiles, primary, other, volume, onPick, o
         <b>{p.label}</b>
         <span className="tc-what">{p.tile}</span>
         <span className="tc-feed">{parts.length ? parts.join(' · ') : 'nothing open today'}</span>
-        <span className="tc-link">rightwindow.vercel.app/#t/{k}</span>
+        <span className="tc-link">rightwindow.nyc/#t/{k}</span>
       </button>
     );
   };

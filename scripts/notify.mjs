@@ -10,7 +10,7 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
   console.log('notify: skipped, no blob token');
   process.exit(0);
 }
-const SITE = process.env.SITE || 'https://rightwindow.vercel.app';
+const SITE = process.env.SITE || 'https://rightwindow.nyc';
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 const MAX_PER_RUN = 3;
 
