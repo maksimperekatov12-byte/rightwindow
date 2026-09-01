@@ -4,6 +4,7 @@ import data from './data/feed.json';
 import MapSkeleton from './MapSkeleton.jsx';
 import DataPage from './Data.jsx';
 import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
+import { resolveDealBasis, defaultCapacity, medianOf, PERFORMS_WORK } from '../lib/deal-basis.mjs';
 import TradesPage from './Trades.jsx';
 
 const YEAR = new Date().getFullYear();
@@ -835,11 +836,7 @@ const DEFAULT_CLOSE_RATE = 0.08;
 // The borough-plan price is not public yet. This is the one place it lives;
 // set the real figure when it exists. ESTIMATED.
 const PLAN_PRICE_YEAR = 6000;
-const medianOf = (a) => {
-  if (!a.length) return 0;
-  const s = [...a].sort((x, y) => x - y);
-  return s[Math.floor(s.length / 2)];
-};
+
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 
 
@@ -1187,6 +1184,7 @@ export default function App() {
   const [ticket, setTicket] = useState(() => loadLS('rw.ticket', 0));
   const [cohort, setCohort] = useState(null);
   const [onlyWorking, setOnlyWorking] = useState(false);
+  const [capacitySaved, setCapacitySaved] = useState(() => Number(loadLS('rw.capacity', 0)) || 0);
   const [closeRate, setCloseRate] = useState(() => {
     const v = Number(loadLS('rw.closeRate', DEFAULT_CLOSE_RATE));
     return Number.isFinite(v) && v > 0 ? clampRate(v) : DEFAULT_CLOSE_RATE;
@@ -1539,6 +1537,12 @@ export default function App() {
     });
   };
 
+  const saveCapacity = (v) => {
+    const n = Math.round(Number(v));
+    if (!Number.isFinite(n) || n <= 0) return;
+    setCapacitySaved(n);
+    saveLS('rw.capacity', n);
+  };
   const saveTicket = (v) => {
     setTicket(v);
     saveLS('rw.ticket', v);
@@ -2343,56 +2347,36 @@ export default function App() {
     const n = openCount;
     if (!n) return null;
     const rows = visibleForReasons || [];
-    // The average contract, best basis first. The city already publishes what
-    // this work costs — declared job cost on the filings — so a constant of
-    // ours is the LAST resort, not the default:
-    //   1. a figure this user typed          ("your average contract")
-    //   2. the median of 3+ recorded wins    ("your recorded outcomes")
-    //   3. median declared cost in this view (sample of 8+)
-    //   4. median declared cost, register-wide
-    //   5. the per-trade constant, named as an assumption
-    // "Explicit" means saved to the device by the user's own hand — the value
-    // a trade tile pre-fills does not count, or the medians would never run.
-    const explicitTicket = Number(loadLS('rw.ticket', 0)) > 0;
-    const viewCosts = rows.map((c) => c?.filing?.cost).filter((v) => Number.isFinite(v) && v > 0);
-    const registerCosts =
-      vertical === 'facades' ? facadeFeed.map((c) => c.filing?.cost).filter((v) => Number.isFinite(v) && v > 0) : [];
-    let avg = 0;
-    let basis = '';
-    if (explicitTicket && Number.isFinite(ticket) && ticket > 0) {
-      avg = ticket;
-      basis = 'yours';
-    } else if (winStats.recorded >= 3 && winStats.median > 0) {
-      avg = winStats.median;
-      basis = 'wins';
-    } else if (viewCosts.length >= 8) {
-      avg = medianOf(viewCosts);
-      basis = 'view';
-    } else if (registerCosts.length >= 8) {
-      avg = medianOf(registerCosts);
-      basis = 'register';
-    } else {
-      avg = ticketFor(profileKey, vertical) || ticketFor('qewi', vertical);
-      basis = 'constant';
+
+    // The EARLIEST deadline the visible rows carry — the one a contractor is
+    // racing — computed first because both the arrivals term and the default
+    // crew capacity are sized to it.
+    const todayIso = new Date(now).toISOString().slice(0, 10);
+    let horizon = null;
+    for (const c of rows) {
+      const d = c?.deadline;
+      if (typeof d === 'string' && d.length === 10 && d >= todayIso && (!horizon || d < horizon)) horizon = d;
     }
-    // The declared cost is the WHOLE job, and most trades bill a slice of it:
-    // an inspector's report fee is not the restoration it mandates. A derived
-    // median therefore caps at the trade's own figure, and the label keeps both
-    // numbers so the cap reads as honesty, not as a smaller guess. Numbers the
-    // user typed or recorded are theirs and are never capped.
-    let capMedian = 0;
-    if (basis === 'view' || basis === 'register') {
-      const ceiling = ticketFor(profileKey, vertical) || ticketFor('qewi', vertical);
-      if (ceiling && avg > ceiling) {
-        capMedian = avg;
-        avg = ceiling;
-        basis = 'capped';
-      }
-    }
+    const weeks = horizon ? Math.max(0, (new Date(horizon) - now) / (7 * 86400000)) : 0;
+
+    // The contract value: one pure resolution path, no matter the viewport,
+    // the register opened first, or anything stored. lib/deal-basis.mjs is the
+    // only place the order lives, and scripts/test-basis.mjs locks it.
+    const { avg, basis } = resolveDealBasis({
+      explicitTicket: Number(loadLS('rw.ticket', 0)) > 0,
+      ticket: Number.isFinite(ticket) ? ticket : 0,
+      winsRecorded: winStats.recorded,
+      winsMedian: winStats.median,
+      profileKey,
+      viewCosts: rows.map((c) => c?.filing?.cost).filter((v) => Number.isFinite(v) && v > 0),
+      registerCosts:
+        vertical === 'facades' ? facadeFeed.map((c) => c.filing?.cost).filter((v) => Number.isFinite(v) && v > 0) : [],
+      profileFee: ticketFor(profileKey, vertical),
+      fallbackFee: ticketFor('qewi', vertical),
+    });
     if (!avg) return null;
-    const assumed = basis === 'constant';
-    // Close rate: the user's saved figure, else the observed ratio from 3+
-    // recorded wins, else the stated default.
+    const assumed = basis === 'constant' || basis === 'fee';
+
     const explicitRate = loadLS('rw.closeRate', null) != null;
     const rate = explicitRate && Number.isFinite(closeRate) && closeRate > 0
       ? clampRate(closeRate)
@@ -2400,61 +2384,43 @@ export default function App() {
         ? clampRate(winStats.ratio)
         : DEFAULT_CLOSE_RATE;
     const rateBasis = explicitRate ? 'yours' : winStats.ratio > 0 ? 'wins' : 'default';
-    const gross = n * avg;
-    const expected = gross * rate;
-    if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
 
-    // The EARLIEST deadline the visible rows carry, not the latest. Facades hold
-    // two sub-cycles at once — 722 cards due Feb 2027 and 78 due Feb 2028 — and
-    // taking the latest put the horizon 77 weeks out, which is both the wrong
-    // date to work toward and far too long to carry one week's arrival rate.
-    // The first deadline that closes is the one a contractor is racing.
-    const todayIso = new Date(now).toISOString().slice(0, 10);
-    let horizon = null;
-    for (const c of rows) {
-      const d = c?.deadline;
-      if (typeof d === 'string' && d.length === 10 && d >= todayIso && (!horizon || d < horizon)) horizon = d;
-    }
+    // Nobody works a whole register. Expected is bounded by what one crew can
+    // actually pursue before the deadline — the user's figure if they set one,
+    // else sized to the window.
+    const capSaved = capacitySaved;
+    const capacity = capSaved > 0 ? Math.round(capSaved) : defaultCapacity(weeks);
+    const workN = Math.min(n, capacity);
+    const wins = Math.max(1, Math.round(workN * rate));
+    const winSum = wins * avg;
 
-    // What is on the list today is not what there is to win by the deadline: the
-    // register keeps filling. The rate is measured, not guessed — whatsNew counts
-    // what the city published inside a seven-day window, and this extends that
-    // one rate over the weeks left. It is scaled to the share of the register the
-    // filters have left on screen, so a Brooklyn-only view is credited with
-    // Brooklyn's share of the arrivals and not the city's.
-    //
-    // A register that reports no arrivals adds nothing, which is the right
-    // answer for the ones issued in sweeps: LL152 and LL97 have published
-    // nothing new in a week and the figure should not pretend otherwise.
-    const weeks = horizon ? Math.max(0, (new Date(horizon) - now) / (7 * 86400000)) : 0;
+    // The gross stays whole-register context: today's list plus the measured
+    // arrival rate carried to the deadline, scaled to the filtered share.
     const perWeek = vertical === 'facades' ? wn.buildings || 0 : vertical === 'contracts' ? wn.contracts || 0 : vertical === 'openings' ? wn.openings || 0 : wn[vertical] || 0;
     const registerSize = vertSize[vertical] || n;
     const share = registerSize > 0 ? Math.min(1, n / registerSize) : 1;
     const arriving = Math.round(perWeek * weeks * share);
-    // Both figures on one basis. Leaving the gross on today's list while the
-    // expected counted arrivals put the two sides of the arrow on different
-    // populations, which is exactly the kind of arithmetic nobody can follow.
-    const total = n + arriving;
-    const grossByDeadline = total * avg;
-    const expectedByDeadline = grossByDeadline * rate;
-    if (!Number.isFinite(expectedByDeadline) || expectedByDeadline <= 0)
-      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon, assumed, basis, rateBasis, capMedian };
+    const gross = (n + arriving) * avg;
+    if (!Number.isFinite(gross) || gross <= 0) return null;
 
     return {
       n,
       avg,
       rate,
-      gross: grossByDeadline,
-      expected: expectedByDeadline,
+      gross,
+      expected: winSum,
+      capacity,
+      capExplicit: capSaved > 0,
+      workN,
+      wins,
       arriving,
       weeks: Math.round(weeks),
       horizon,
       assumed,
       basis,
       rateBasis,
-      capMedian,
     };
-  }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons, facadeFeed, winStats, now, wn, vertSize]);
+  }, [ticket, closeRate, capacitySaved, openCount, profileKey, vertical, visibleForReasons, facadeFeed, winStats, now, wn, vertSize]);
 
   // Below ~40 actionable signals, "win N" replaces expected value: a plainly
   // reachable share, floored at two so it never reads as a dare.
@@ -2470,8 +2436,8 @@ export default function App() {
           ? `${fmtMoney(p.avg)} — median declared job cost in this view`
           : p.basis === 'register'
             ? `${fmtMoney(p.avg)} — median declared job cost on this register`
-            : p.basis === 'capped'
-              ? `${fmtMoney(p.avg)} — your trade's share of a ${fmtMoney(p.capMedian)} median declared job`
+            : p.basis === 'fee'
+              ? `${fmtMoney(p.avg)} — your trade's fee per building`
               : `assuming a ${fmtMoney(p.avg)} average job`;
   const rateLabel = (p) =>
     p.rateBasis === 'yours'
@@ -2584,6 +2550,46 @@ export default function App() {
       }
     },
     [vertPrefix],
+  );
+
+  const mapSlot = (
+    <>
+      {HEROES[vertical] && (
+          <div className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
+            {/* Registers with coordinates put the register ITSELF in the hero:
+                the live map of the filtered list, not an illustration of the
+                kind of thing the list contains. Contracts keep their built
+                scene — a solicitation has no address to stand on. The skeleton
+                is the same outline twice over: the loading state before
+                MapLibre arrives, and the whole map on a phone, where MapLibre
+                never loads at all. */}
+            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} onPick={mapPick} />}
+            {sceneReady &&
+              (vertical !== 'contracts' ? (
+                <Suspense fallback={null}>
+                  <CityMap
+                    compact
+                    rows={(visibleForReasons || []).map((card) => ({ card }))}
+                    colors={themeColors}
+                    reduced={reduce}
+                    onPick={mapPick}
+                    describe={mapDescribe} contactFor={mapContact}
+                  />
+                </Suspense>
+              ) : (
+                <Suspense fallback={null}>
+                  {React.createElement(HEROES[vertical].Scene, {
+                    colors: themeColors,
+                    reduced: reduce,
+                    className: 'massing',
+                    ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
+                  })}
+                </Suspense>
+              ))}
+            {vertical === 'contracts' && <span className="massing-cap">{HEROES[vertical].cap}</span>}
+          </div>
+      )}
+    </>
   );
 
   const mapPanel = (list) =>
@@ -2841,9 +2847,27 @@ export default function App() {
                       }}
                     />
                   </div>
+                  <label htmlFor="cap" className="second">How many can your crew pursue before the deadline?</label>
+                  <div className="ticket-row">
+                    {[20, 40, 60].map((v) => (
+                      <button key={v} className={'chip-btn' + (capacitySaved === v ? ' on' : '')} aria-pressed={capacitySaved === v} onClick={() => saveCapacity(v)}>
+                        {v}
+                      </button>
+                    ))}
+                    <input
+                      id="cap"
+                      type="number"
+                      min="1"
+                      inputMode="numeric"
+                      placeholder="buildings"
+                      defaultValue={capacitySaved || ''}
+                      onBlur={(e) => saveCapacity(e.target.value)}
+                    />
+                  </div>
                   <span className="ticket-note">
-                    Both numbers stay on this device and only size your pipeline. The default 8% close rate assumes
-                    deadline work the owner is required to buy — set your own if you know it.
+                    All three stay on this device and only size your pipeline. The default 8% close rate assumes
+                    deadline work the owner is required to buy; unset capacity sizes itself to the window. Set your
+                    own if you know them.
                   </span>
                 </div>
               )}
@@ -3107,27 +3131,40 @@ export default function App() {
                 </span>
               </motion.div>
             )
-          ) : myPipeline && myPipeline.n < 40 && (vertical === 'facades' || MANDATES[vertical]) ? (
+          ) : myPipeline && (vertical === 'facades' || MANDATES[vertical]) ? (
             <motion.div className="pipe" {...fade(0.1)}>
-              {/* Expected-value arithmetic is meaningless at this size: twelve
-                  signals times a close rate is half a job, and nobody closes
-                  half a job. Below the threshold the frame switches from a
-                  forecast to a task — what must happen, and what winning a
-                  plainly reachable share of it is worth. */}
+              {/* One framing at every scale: what has to happen, bounded by
+                  what a crew can pursue. "$31M expected" from a whole register
+                  is a claim the industry reader rejects on sight; "work 40,
+                  win 3" is bounded, checkable, and arguable only on its
+                  stated assumptions. Below capacity the win count is the
+                  reachable-share floor, because capacity × rate under one deal
+                  would print a fraction of a job. */}
               <span className="gross">
                 <Rolling value={myPipeline.gross} format={fmtMoney} /> open
               </span>
               <b>
-                {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}{' '}
-                {zipsIn(deferredQuery) ? 'in your ZIPs' : boro !== 'all' ? `in ${boro}` : 'on this list'} must file
+                {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
+                {zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : ''} must file
                 {myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''}.
               </b>
               <b>
-                Win {winTarget(myPipeline.n)} — that's {fmtMoney(winTarget(myPipeline.n) * myPipeline.avg)}.
+                {myPipeline.n > myPipeline.capacity
+                  ? `Work ${myPipeline.capacity}, win ${myPipeline.wins} — that's ${fmtMoney(myPipeline.expected)}.`
+                  : `Win ${winTarget(myPipeline.n)} — that's ${fmtMoney(winTarget(myPipeline.n) * myPipeline.avg)}.`}
               </b>
               <span className="pipe-note">
-                {basisLabel(myPipeline)} ·{' '}
-                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
+                {myPipeline.arriving ? (
+                  <span className="pipe-arr">
+                    {myPipeline.n.toLocaleString('en-US')} shown + {myPipeline.arriving.toLocaleString('en-US')} more
+                    by the deadline at this week's rate ·{' '}
+                  </span>
+                ) : null}
+                {basisLabel(myPipeline)} · {rateLabel(myPipeline)}
+                {myPipeline.n > myPipeline.capacity
+                  ? ` · ${myPipeline.capacity} pursuits ${myPipeline.capExplicit ? '— yours' : '— sized to the window'}`
+                  : ''}{' '}
+                · <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
           ) : myPipeline ? (
@@ -3177,41 +3214,10 @@ export default function App() {
           )}
 
         </section>
-        {HEROES[vertical] && (
-          <div className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
-            {/* Registers with coordinates put the register ITSELF in the hero:
-                the live map of the filtered list, not an illustration of the
-                kind of thing the list contains. Contracts keep their built
-                scene — a solicitation has no address to stand on. The skeleton
-                is the same outline twice over: the loading state before
-                MapLibre arrives, and the whole map on a phone, where MapLibre
-                never loads at all. */}
-            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} onPick={mapPick} />}
-            {sceneReady &&
-              (vertical !== 'contracts' ? (
-                <Suspense fallback={null}>
-                  <CityMap
-                    compact
-                    rows={(visibleForReasons || []).map((card) => ({ card }))}
-                    colors={themeColors}
-                    reduced={reduce}
-                    onPick={mapPick}
-                    describe={mapDescribe} contactFor={mapContact}
-                  />
-                </Suspense>
-              ) : (
-                <Suspense fallback={null}>
-                  {React.createElement(HEROES[vertical].Scene, {
-                    colors: themeColors,
-                    reduced: reduce,
-                    className: 'massing',
-                    ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
-                  })}
-                </Suspense>
-              ))}
-            {vertical === 'contracts' && <span className="massing-cap">{HEROES[vertical].cap}</span>}
-          </div>
-        )}
+      {/* The hero map on desktop; on a phone it moves BELOW the feed — the
+          first card inside 1.2 screens beats the visual, and the drawing is
+          still there for whoever scrolls. */}
+        {wide && mapSlot}
       </div>
 
       <motion.div
@@ -3263,18 +3269,16 @@ export default function App() {
         </button>
         <div className="pulseline">
           <span title="Every check writes a timestamp, whether the city published anything or not">
+            {/* "checks paused" read as "nobody maintains this" — the one thing
+                the header must never say. A short gap is the scheduler being a
+                scheduler; only a real one (>3× cadence) is surfaced, sized, and
+                worded as a delay rather than neglect. */}
             {!checkedAt || now - checkedAt > 15 * 60000
-              ? 'checks paused'
+              ? `checks delayed — last ran ${checkedAt ? ago(checkedAt) : 'before this build'}, resuming`
               : checksToday >= 24
                 ? `${checksToday} checks in the last 24h`
                 : 'checking every 5 minutes'}
           </span>
-          {checkedAt && now - checkedAt > 40 * 60000 && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>last completed check {ago(checkedAt)}</span>
-            </>
-          )}
           <span aria-hidden="true">·</span>
           <span>last new signal {lastChangeLabel}</span>
           {recentDays.some((d) => d.n > 0) && (
@@ -4483,6 +4487,8 @@ export default function App() {
 
       </motion.div>
 
+      {!wide && <div className="lede lede-after">{mapSlot}</div>}
+
       {/* The market stats moved below the feed on purpose: they sized the
           hero, and the hero's job is to put a real expanded card above the
           fold. The scale of the register is context, not the pitch. */}
@@ -4668,29 +4674,36 @@ export default function App() {
           Right Window reads New York's public registers and hands you the window — with a contact and a reason to
           call. Every card links to the city's own record.
         </p>
-        <button
-          className="foot-toggle"
-          onClick={() => {
-            history.pushState(null, '', '#data');
-            setRoute('data');
-            window.scrollTo({ top: 0 });
-          }}
-        >
-          Data, sources and privacy
-        </button>
-        <button
-          className="foot-toggle"
-          onClick={() => {
-            history.pushState(null, '', '#trades');
-            setRoute('trades');
-            window.scrollTo({ top: 0 });
-          }}
-        >
-          A page for every trade
-        </button>
-        <button className="foot-toggle" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources}>
-          {showSources ? 'Hide source dates' : 'Source dates'}
-        </button>
+        {/* One flex row with real gaps and visible separators. Reported as
+            running together twice — the second report after a margin-only fix —
+            so the separators are now content, not spacing. */}
+        <div className="foot-links">
+          <button
+            className="foot-toggle"
+            onClick={() => {
+              history.pushState(null, '', '#data');
+              setRoute('data');
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            Data, sources and privacy
+          </button>
+          <span className="foot-sep" aria-hidden="true">·</span>
+          <button
+            className="foot-toggle"
+            onClick={() => {
+              history.pushState(null, '', '#trades');
+              setRoute('trades');
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            A page for every trade
+          </button>
+          <span className="foot-sep" aria-hidden="true">·</span>
+          <button className="foot-toggle" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources}>
+            {showSources ? 'Hide source dates' : 'Source dates'}
+          </button>
+        </div>
         {showSources && (
           <p className="foot-detail">
             DOB {data.sources?.facades} · ECB {data.sources?.ecb} · elevators {data.sources?.elevators} · awards{' '}

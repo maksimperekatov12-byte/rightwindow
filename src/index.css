@@ -1240,3 +1240,91 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   padding: 4px;
 }
 .citymap-pop .pop-x:hover { color: var(--ink); }
+
+/* Footer links: a flex row with gaps AND visible middots — belt and braces,
+   because "no separator" was reported twice. */
+.foot-links { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; }
+.foot-links .foot-toggle { margin-right: 0; }
+.foot-sep { color: var(--ink-3); }
+
+/* ---- Item: the first card within reach on a phone. Budget spent where the
+   audit pointed: tabs to one scrolling row, header condensed, calendar box
+   trimmed. The funnel sentence is deliberately untouched. ---- */
+@media (max-width: 767px) {
+  .verticals { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .verticals::-webkit-scrollbar { display: none; }
+  .verticals button { white-space: nowrap; flex: none; }
+
+  .top { padding: 7px 12px; gap: 4px 8px; margin: 8px 0 4px; }
+  .logo b { font-size: 18px; }
+  .logo span { display: none; }
+  .pulled { font-size: 10px; gap: 4px; }
+  .pulled > span { overflow: hidden; text-overflow: ellipsis; }
+  .etclock { display: none; }
+
+  .hook { padding: 8px 11px 9px; margin-bottom: 8px; }
+  .hook::before { display: none; }
+  .hook b { font-size: 20px; }
+  .hook span { font-size: 12.5px; }
+  .hero h1 { font-size: 22px; }
+  .hero p { font-size: 14px; }
+  .eyebrow { display: none; }
+  .lede { padding: 6px 0 2px; gap: 10px; }
+  .pipe { padding: 8px 11px; margin-top: 8px; }
+  .pipe-asof { display: none; }
+  .payback { font-size: 12px; margin-top: 6px; }
+  .legend { display: none; }
+  .livestrip { margin: 8px 0 0; }
+  .cycle-bar { margin-bottom: 4px; }
+  .toolbar { gap: 6px; }
+  .toolbar .chip-btn { padding: 5px 9px; font-size: 11.5px; }
+}
+
+/* Mobile, round two: the funnel SENTENCE stays full size; its assumptions
+   line, the news strip and the calendar box tighten instead. */
+@media (max-width: 767px) {
+  .pipe-arr { display: none; }
+  .pipe-note { font-size: 10.5px; line-height: 1.5; }
+  .pipe b { font-size: 17px; }
+  .livestrip .news { font-size: 11.5px; line-height: 1.45; }
+  .hook b { font-size: 18px; }
+  .hook i { font-size: 13px; }
+  .hook span { font-size: 12px; line-height: 1.4; }
+  .hook { padding: 7px 10px 8px; }
+  .cycle-bar .cycle-head { font-size: 11px; }
+  .cycle-bar .cycle-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .payback { display: none; }
+  .pulseline { font-size: 9.5px; }
+  .toolbar { gap: 5px; }
+  .toolbar .search { min-height: 38px; }
+  .toolbar .sel { min-height: 34px; font-size: 11.5px; }
+  .top .contact-chip { display: none; }
+}
+
+/* Mobile, round three: header to two tight lines, news strip clamped. */
+@media (max-width: 767px) {
+  .top { flex-wrap: nowrap; }
+  .top .pulled { position: static; flex: none; }
+  .top { flex-wrap: wrap; row-gap: 2px; }
+  .top-right { gap: 6px; }
+  .theme-btn { padding: 4px 6px; }
+  .livestrip .news > span:not(.news-dot) {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .news-cta { display: none; }
+  .chip-btn { font-size: 11px; }
+}
+
+/* Mobile, final trims: the news strip and cycle meter to their minimum honest height. */
+@media (max-width: 767px) {
+  .livestrip .news { padding: 7px 10px; font-size: 11px; }
+  .livestrip .news b { font-size: 11px; }
+  .cycle-bar { margin: 6px 0 2px; }
+  .cycle-bar .winbar { height: 4px; }
+  .cycle-bar .cycle-head { margin-bottom: 3px; }
+  .cycle-bar .cycle-head b { font-size: 10.5px; }
+  .personas-hint { display: none; }
+}
