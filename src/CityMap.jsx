@@ -259,7 +259,7 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
         id: 'nyc-mask',
         type: 'fill',
         source: 'nyc-mask',
-        paint: { 'fill-color': colors.bg || '#F1EFE9', 'fill-opacity': 0.86 },
+        paint: { 'fill-color': colors.bg || '#F1EFE9', 'fill-opacity': 0.93 },
       });
       map.addLayer({
         id: 'nyc-edge',
