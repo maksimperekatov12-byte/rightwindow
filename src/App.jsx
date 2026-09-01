@@ -826,7 +826,20 @@ const REG_COHORTS = {
 // address instead — see lib/personal.mjs for what counts as vouching.
 const venueName = (o) => o?.name || o?.identity || `New business at ${String(o?.address || '').split(',')[0]}`;
 
-const DEFAULT_CLOSE_RATE = 0.03;
+// 8%, not 3%: three per cent is a cold-outbound rate, and this is not cold
+// outbound — the owner is legally required to hire somebody, the penalty meter
+// is already running, and the caller opens with the specific reason. Still an
+// assumption, so the UI says so and hands over the pencil; three recorded wins
+// replace it with the device's own ratio.
+const DEFAULT_CLOSE_RATE = 0.08;
+// The borough-plan price is not public yet. This is the one place it lives;
+// set the real figure when it exists. ESTIMATED.
+const PLAN_PRICE_YEAR = 6000;
+const medianOf = (a) => {
+  if (!a.length) return 0;
+  const s = [...a].sort((x, y) => x - y);
+  return s[Math.floor(s.length / 2)];
+};
 const clampRate = (v) => Math.min(1, Math.max(0.01, v));
 
 
@@ -895,6 +908,17 @@ const BADGE = {
   ELEV_DUE: 'Elevator tests due',
   SHED_NO_REPAIR: 'Shed up, no repair filed',
   FILING_STALLED: 'Filing stalled',
+};
+
+// The conversion banner names the buyer of the register it sits under — a
+// facade pitch under the carbon tab reads as a template left unfilled.
+const PILOT_COPY = {
+  facades: ['One facade contractor per borough.', 'Territory plans give you every FISP signal in your borough, exclusively — nobody else on the block sees them.'],
+  gas: ['One licensed master plumber per borough.', 'Territory plans give you every LL152 citation in your borough, exclusively — nobody else on the block sees them.'],
+  elevators: ['One elevator contractor per borough.', 'Territory plans give you every skipped-cycle lift in your borough, exclusively — nobody else on the block sees them.'],
+  carbon: ['One retrofit partner per borough.', 'Territory plans give you every priced LL97 exposure in your borough, exclusively — nobody else on the block sees them.'],
+  contracts: ['One firm per trade on city work.', 'Territory plans give you the solicitations and awards that match your trade, exclusively.'],
+  openings: ['One vendor per category, per borough.', 'Territory plans give you every pre-opening venue in your borough, exclusively.'],
 };
 
 const VERTICALS = [
@@ -1281,6 +1305,38 @@ export default function App() {
       return n;
     });
   };
+  // A win without a size is why the funnel had to guess. The amount rides on
+  // the same entry as the status and the note — optional, on-device, and a
+  // skipped field never breaks any arithmetic downstream.
+  const markAmount = (k, raw) => {
+    const n = Number(String(raw).replace(/[^\d]/g, ''));
+    setFb((f) => {
+      const cur = f[k];
+      if (!cur) return f;
+      const next = { ...f, [k]: { ...cur, a: n > 0 ? n : undefined } };
+      saveLS('rw.fb', next);
+      return next;
+    });
+  };
+  const amountOf = (k) => fb[k]?.a || 0;
+  // Everything the funnel can learn from recorded outcomes, in one place:
+  // the running total (the product's only real traction number), the median
+  // win, and the observed close ratio against everything marked contacted.
+  const winStats = useMemo(() => {
+    const entries = Object.values(fb);
+    const amounts = entries.filter((e) => e?.s === 'won' && e.a > 0).map((e) => e.a).sort((a, b) => a - b);
+    const won = entries.filter((e) => e?.s === 'won').length;
+    const touched = entries.filter((e) => e?.s === 'contacted' || e?.s === 'won').length;
+    return {
+      total: amounts.reduce((s, v) => s + v, 0),
+      recorded: amounts.length,
+      median: amounts.length ? amounts[Math.floor(amounts.length / 2)] : 0,
+      ratio: won >= 3 && touched > 0 ? Math.min(1, won / touched) : 0,
+      won,
+      touched,
+    };
+  }, [fb]);
+
   // The reason rides on the dismissal that already exists, so answering "why"
   // is optional: skip it and the card is still hidden, just silently.
   const markReason = (k, reasonKey, value) => {
@@ -1324,10 +1380,7 @@ export default function App() {
       }
       // A card link pasted into an open tab must open that card, not just
       // change the address bar.
-      if (/^#(b|c|g|e|k|o)\//.test(location.hash)) {
-        deepLinkDone.current = false;
-        setHashTick((n) => n + 1);
-      }
+      if (/^#(b|c|g|e|k|o)\//.test(location.hash)) setHashTick((n) => n + 1);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -1611,9 +1664,11 @@ export default function App() {
     ],
     // LL97 was cited citywide in one summer, so age and count barely separate
     // four hundred cards. Whether there is anyone to ring is the real order.
+    // Exposure leads: the priced 120 are the registry's whole point, and a
+    // chip nobody clicks is where they used to hide.
     carbon: [
-      ['profile', 'for you'],
       ['exposure', 'dollar exposure'],
+      ['profile', 'for you'],
       ['holdings', 'biggest landlord'],
       ['callable', 'contact first'],
       ['open', 'most violations'],
@@ -1644,10 +1699,15 @@ export default function App() {
     [profileKey, sortMode, contacts],
   );
   const deferredQuery = useDeferredValue(query);
-  const filteredFeed = useMemo(() => {
+  // Split in two on purpose: everything EXCEPT the borough chip first, then the
+  // chip. The borough counts must be faceted — computed against the rows every
+  // other filter has left — or a ZIP territory search shows "Brooklyn 200" next
+  // to a map that honestly says twelve. Two contradicting sets of numbers on
+  // screen during the single most persuasive interaction.
+  const filteredNoBoro = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
     const zips = zipsIn(q);
-    const base = facadeFeed.filter((c) => {
+    return facadeFeed.filter((c) => {
       if (showHidden !== isDismissed('b:' + c.bin)) return false;
       if (!showHidden && taughtAway('b:', c)) return false;
       if (hideBusy && c.occupied) return false;
@@ -1655,7 +1715,6 @@ export default function App() {
       if (onlyWorking && !['contacted', 'won'].includes(fb['b:' + c.bin]?.s)) return false;
       if (onlyPortfolio && !portfolio.includes(c.bin)) return false;
       if (onlyWatch && !isWatched('b:' + c.bin)) return false;
-      if (boro !== 'all' && c.borough !== boro) return false;
       if (onlyNew && !(c.isNew || c.fresh?.length)) return false;
       if (!q) return true;
       if (zips) return Boolean(c.zip) && zips.includes(c.zip);
@@ -1663,15 +1722,18 @@ export default function App() {
         .filter(Boolean)
         .some((f) => String(f).toLowerCase().includes(q));
     });
+  }, [facadeFeed, deferredQuery, onlyNew, onlyWatch, watch, fb, showHidden, onlyPortfolio, portfolio, hideBusy, cohort, onlyWorking]);
+  const filteredFeed = useMemo(() => {
+    const base = boro === 'all' ? filteredNoBoro : filteredNoBoro.filter((c) => c.borough === boro);
     const at = Date.now();
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > at ? 0 : 1);
-    return base.sort((a, b) => isMine(a) - isMine(b));
-  }, [facadeFeed, deferredQuery, boro, onlyNew, onlyWatch, watch, fb, showHidden, mine, onlyPortfolio, portfolio, hideBusy, cohort, onlyWorking]);
+    return [...base].sort((a, b) => isMine(a) - isMine(b));
+  }, [filteredNoBoro, boro, mine]);
   const boroCounts = useMemo(() => {
-    const m = {};
-    for (const c of facadeFeed) m[c.borough] = (m[c.borough] || 0) + 1;
+    const m = { all: filteredNoBoro.length };
+    for (const c of filteredNoBoro) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
-  }, [facadeFeed]);
+  }, [filteredNoBoro]);
   // The five-minute lane re-checks a narrow slice — award notices and liquor
   // licences — and publishes only what it saw. It must never REPLACE a register:
   // it was still writing the old 29-award, 40-venue shape after the build moved
@@ -1728,24 +1790,76 @@ export default function App() {
     const q = deferredQuery.trim().toLowerCase();
     const zips = zipsIn(q);
     const out = {};
+    const counts = {};
     for (const key of mandateKeys) {
       const pre = MANDATES[key].prefix;
-      out[key] = (data[key]?.feed || []).filter((c) => {
+      // Borough excluded here so the chips can count faceted — see filteredNoBoro.
+      const noBoro = (data[key]?.feed || []).filter((c) => {
         if (showHidden !== isDismissed(pre + c.bin)) return false;
         if (!showHidden && taughtAway(pre, c)) return false;
         if (onlyWatch && !isWatched(pre + c.bin)) return false;
         if (onlyWorking && !['contacted', 'won'].includes(fb[pre + c.bin]?.s)) return false;
         if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
-        if (boro !== 'all' && c.borough !== boro) return false;
         if (!q) return true;
         if (zips) return Boolean(c.zip) && zips.includes(c.zip);
         return [c.address, c.agent?.company, c.zip, c.bin]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       });
+      counts[key] = { all: noBoro.length };
+      for (const c of noBoro) counts[key][c.borough] = (counts[key][c.borough] || 0) + 1;
+      const rows = boro === 'all' ? noBoro : noBoro.filter((c) => c.borough === boro);
       const cmp = MANDATE_SORTS[sortMode] || MANDATE_SORTS.profile;
-      out[key] = [...out[key]].sort(cmp);
+      const sorted = [...rows].sort(cmp);
+      // LL97 and LL152 cite whole complexes in one sweep, so the register opens
+      // on six near-identical addresses under one agent and one phone — correct,
+      // and it reads as broken data. Rows that share an agent, a served number
+      // and a ZIP collapse into one: "SLJ Property Management — 6 buildings,
+      // one call", exposure summed, members listed inside. This is also the
+      // portfolio argument (141 firms hold three or more buildings) finally
+      // appearing in the UI instead of only in the pitch.
+      if (key === 'carbon' || key === 'gas') {
+        const nameKey = (s) => String(s || '').toUpperCase().replace(/[^A-Z]/g, '').replace(/(LLC|INC|CORP|CO|LP|LLP)$/,'');
+        const phoneOf = (c) => contacts[c.bin]?.phone || c.phone || c.contact?.phone || null;
+        const byGroup = new Map();
+        for (const c of sorted) {
+          const ph = phoneOf(c);
+          const gk = c.agent?.company && ph && c.zip ? `${nameKey(c.agent.company)}|${ph}|${c.zip}` : null;
+          if (gk) byGroup.set(gk, (byGroup.get(gk) || 0) + 1);
+        }
+        const emitted = new Set();
+        const grouped = [];
+        for (const c of sorted) {
+          const ph = phoneOf(c);
+          const gk = c.agent?.company && ph && c.zip ? `${nameKey(c.agent.company)}|${ph}|${c.zip}` : null;
+          if (!gk || byGroup.get(gk) < 2) {
+            grouped.push(c);
+            continue;
+          }
+          if (emitted.has(gk)) continue;
+          emitted.add(gk);
+          const cards = sorted.filter((m) => {
+            const mp = phoneOf(m);
+            return m.agent?.company && mp && m.zip && `${nameKey(m.agent.company)}|${mp}|${m.zip}` === gk;
+          });
+          grouped.push({
+            group: true,
+            id: 'grp-' + gk.replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
+            cards,
+            company: cards[0].agent.company,
+            phone: ph,
+            zip: cards[0].zip,
+            borough: cards[0].borough,
+            usd: cards.reduce((s, m) => s + (m.ghg?.usd || 0), 0),
+            violations: cards.reduce((s, m) => s + (m.violations || 0), 0),
+          });
+        }
+        out[key] = grouped;
+      } else {
+        out[key] = sorted;
+      }
     }
+    out._counts = counts;
     return out;
   }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort, contacts]);
   // A sort that does not exist on the register you just switched to would leave
@@ -1753,26 +1867,43 @@ export default function App() {
   useEffect(() => {
     const allowed = (REG_SORTS[vertical] || []).map(([v]) => v);
     if (allowed.length && !allowed.includes(sortMode)) setSortMode(allowed[0]);
+    // Carbon defaults to priced exposure; only the untouched generic default is
+    // overridden, a sort the user picked survives the tab switch.
+    if (vertical === 'carbon' && sortMode === 'profile') setSortMode('exposure');
     const chips = vertical === 'facades' ? profile.cohorts || [] : REG_COHORTS[vertical] || [];
     if (cohort && !chips.includes(cohort)) setCohort(null);
   }, [vertical]);
 
-  const mandateList = mandateLists[vertical] || [];
-  const openingsList = useMemo(
+  // Two shapes of the same list: the feed renders the grouped rows, everything
+  // that counts or maps buildings works on the flat one.
+  const mandateRows = mandateLists[vertical] || [];
+  const mandateList = useMemo(() => mandateRows.flatMap((r) => (r.group ? r.cards : [r])), [mandateRows]);
+  const openingsNoBoro = useMemo(
     () =>
       liveOpenings.filter((o) => {
         if (showHidden !== isDismissed('o:' + o.id)) return false;
         if (!showHidden && taughtAway('o:', o)) return false;
         if (onlyWatch && !isWatched('o:' + o.id)) return false;
         if (cohort && !(COHORTS[cohort]?.of(o) ?? true)) return false;
-        if (boro !== 'all' && o.county !== boro) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
         return [o.name, o.identity, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
-      }).sort(OPENING_SORTS[sortMode] || OPENING_SORTS.recent),
-    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode, boro, contacts],
+      }),
+    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
+  );
+  const openingsCounts = useMemo(() => {
+    const m = { all: openingsNoBoro.length };
+    for (const o of openingsNoBoro) m[o.county] = (m[o.county] || 0) + 1;
+    return m;
+  }, [openingsNoBoro]);
+  const openingsList = useMemo(
+    () =>
+      openingsNoBoro
+        .filter((o) => boro === 'all' || o.county === boro)
+        .sort(OPENING_SORTS[sortMode] || OPENING_SORTS.recent),
+    [openingsNoBoro, sortMode, boro, contacts],
   );
   // How common each signal is across the rows on screen, so a card can lead with
   // what makes it different.
@@ -1947,14 +2078,20 @@ export default function App() {
     location.assign(u.toString());
   };
 
-  const deepLinkDone = useRef(false);
+  // Keyed by the hash, not a one-shot boolean: a map pick writes the same kind
+  // of deep link, and the boolean meant the FIRST click opened a card and every
+  // later one was silently swallowed.
+  const lastDeepLink = useRef(null);
   useEffect(() => {
-    if (deepLinkDone.current) return;
     const m = location.hash.match(/^#(b|c|g|e|k|o)\/(.+)$/);
-    if (!m) return;
+    if (!m) {
+      lastDeepLink.current = null;
+      return;
+    }
+    if (lastDeepLink.current === location.hash) return;
     const [, t, id] = m;
     const open = (vert, idx) => {
-      deepLinkDone.current = true;
+      lastDeepLink.current = location.hash;
       keepShown.current = Math.max(7, idx + 1);
       setVertical(vert);
       setOpenId(id);
@@ -2197,18 +2334,50 @@ export default function App() {
   const myPipeline = useMemo(() => {
     const n = openCount;
     if (!n) return null;
-    let avg = Number.isFinite(ticket) && ticket > 0 ? ticket : ticketFor(profileKey, vertical);
-    // A visitor who has not picked a trade still deserves the most persuasive
-    // number in the product. Compute it with the facade engineer's figure and
-    // SAY SO — an explicit, editable assumption is honest; a hidden number
-    // costs the visitor.
-    let assumed = false;
-    if (!avg) {
-      avg = ticketFor('qewi', vertical);
-      assumed = Boolean(avg);
+    const rows = visibleForReasons || [];
+    // The average contract, best basis first. The city already publishes what
+    // this work costs — declared job cost on the filings — so a constant of
+    // ours is the LAST resort, not the default:
+    //   1. a figure this user typed          ("your average contract")
+    //   2. the median of 3+ recorded wins    ("your recorded outcomes")
+    //   3. median declared cost in this view (sample of 8+)
+    //   4. median declared cost, register-wide
+    //   5. the per-trade constant, named as an assumption
+    // "Explicit" means saved to the device by the user's own hand — the value
+    // a trade tile pre-fills does not count, or the medians would never run.
+    const explicitTicket = Number(loadLS('rw.ticket', 0)) > 0;
+    const viewCosts = rows.map((c) => c?.filing?.cost).filter((v) => Number.isFinite(v) && v > 0);
+    const registerCosts =
+      vertical === 'facades' ? facadeFeed.map((c) => c.filing?.cost).filter((v) => Number.isFinite(v) && v > 0) : [];
+    let avg = 0;
+    let basis = '';
+    if (explicitTicket && Number.isFinite(ticket) && ticket > 0) {
+      avg = ticket;
+      basis = 'yours';
+    } else if (winStats.recorded >= 3 && winStats.median > 0) {
+      avg = winStats.median;
+      basis = 'wins';
+    } else if (viewCosts.length >= 8) {
+      avg = medianOf(viewCosts);
+      basis = 'view';
+    } else if (registerCosts.length >= 8) {
+      avg = medianOf(registerCosts);
+      basis = 'register';
+    } else {
+      avg = ticketFor(profileKey, vertical) || ticketFor('qewi', vertical);
+      basis = 'constant';
     }
     if (!avg) return null;
-    const rate = Number.isFinite(closeRate) && closeRate > 0 ? clampRate(closeRate) : DEFAULT_CLOSE_RATE;
+    const assumed = basis === 'constant';
+    // Close rate: the user's saved figure, else the observed ratio from 3+
+    // recorded wins, else the stated default.
+    const explicitRate = loadLS('rw.closeRate', null) != null;
+    const rate = explicitRate && Number.isFinite(closeRate) && closeRate > 0
+      ? clampRate(closeRate)
+      : winStats.ratio > 0
+        ? clampRate(winStats.ratio)
+        : DEFAULT_CLOSE_RATE;
+    const rateBasis = explicitRate ? 'yours' : winStats.ratio > 0 ? 'wins' : 'default';
     const gross = n * avg;
     const expected = gross * rate;
     if (!Number.isFinite(gross) || !Number.isFinite(expected) || expected <= 0) return null;
@@ -2218,7 +2387,6 @@ export default function App() {
     // taking the latest put the horizon 77 weeks out, which is both the wrong
     // date to work toward and far too long to carry one week's arrival rate.
     // The first deadline that closes is the one a contractor is racing.
-    const rows = visibleForReasons || [];
     const todayIso = new Date(now).toISOString().slice(0, 10);
     let horizon = null;
     for (const c of rows) {
@@ -2248,7 +2416,7 @@ export default function App() {
     const grossByDeadline = total * avg;
     const expectedByDeadline = grossByDeadline * rate;
     if (!Number.isFinite(expectedByDeadline) || expectedByDeadline <= 0)
-      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon, assumed };
+      return { n, avg, rate, gross, expected, arriving: 0, weeks: 0, horizon, assumed, basis, rateBasis };
 
     return {
       n,
@@ -2260,8 +2428,43 @@ export default function App() {
       weeks: Math.round(weeks),
       horizon,
       assumed,
+      basis,
+      rateBasis,
     };
-  }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons, now, wn, vertSize]);
+  }, [ticket, closeRate, openCount, profileKey, vertical, visibleForReasons, facadeFeed, winStats, now, wn, vertSize]);
+
+  // Below ~40 actionable signals, "win N" replaces expected value: a plainly
+  // reachable share, floored at two so it never reads as a dare.
+  const winTarget = (n) => Math.min(n, Math.max(2, Math.round(n * 0.2)));
+  // Every funnel figure names its basis, because the number is only believed
+  // when the reader can see where it came from.
+  const basisLabel = (p) =>
+    p.basis === 'yours'
+      ? `${fmtMoney(p.avg)} avg contract — yours`
+      : p.basis === 'wins'
+        ? `${fmtMoney(p.avg)} — median of your ${winStats.recorded} recorded wins`
+        : p.basis === 'view'
+          ? `${fmtMoney(p.avg)} — median declared job cost in this view`
+          : p.basis === 'register'
+            ? `${fmtMoney(p.avg)} — median declared job cost on this register`
+            : `assuming a ${fmtMoney(p.avg)} average job`;
+  const rateLabel = (p) =>
+    p.rateBasis === 'yours'
+      ? `${Math.round(p.rate * 100)}% close rate — yours`
+      : p.rateBasis === 'wins'
+        ? `${Math.round(p.rate * 100)}% close — based on your ${winStats.touched} recorded outcomes`
+        : `${Math.round(p.rate * 100)}% close rate — assumed for mandated work`;
+  // Carbon's money is the city's arithmetic summed over the filtered view.
+  const carbonMoney = useMemo(() => {
+    if (vertical !== 'carbon') return { n: 0, priced: 0, sum: 0, max: 0 };
+    const priced = mandateList.filter((c) => c.ghg?.usd > 0);
+    return {
+      n: mandateList.length,
+      priced: priced.length,
+      sum: priced.reduce((s, c) => s + c.ghg.usd, 0),
+      max: priced.reduce((m, c) => Math.max(m, c.ghg.usd), 0),
+    };
+  }, [vertical, mandateList]);
 
   const heroText =
     vertical === 'facades'
@@ -2293,6 +2496,7 @@ export default function App() {
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
   const deadlineIso = '2027-02-21';
   const monthsToDeadline = Math.max(0, Math.round((new Date(deadlineIso) - now) / (30.44 * 86400000)));
+  const monthsToCarbon = Math.max(0, Math.round((new Date('2027-05-01') - now) / (30.44 * 86400000)));
 
   const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 };
   const fade = (delay = 0) =>
@@ -2329,8 +2533,16 @@ export default function App() {
       const id = p.card.bin || p.card.id;
       if (!id) return;
       // The deep link the cards already answer to: it forces the list to show
-      // enough rows to reach the target and opens it.
-      location.hash = `#${vertPrefix.replace(':', '')}/${id}`;
+      // enough rows to reach the target and opens it. Re-picking the card the
+      // hash already names fires no hashchange, so that case re-arms the
+      // handler by hand — closing a card and tapping its dot again must work.
+      const target = `#${vertPrefix.replace(':', '')}/${id}`;
+      if (location.hash === target) {
+        lastDeepLink.current = null;
+        setHashTick((n) => n + 1);
+      } else {
+        location.hash = target;
+      }
     },
     [vertPrefix],
   );
@@ -2349,7 +2561,7 @@ export default function App() {
       </Suspense>
     ) : null;
 
-  const miniToolbar = (list, total, { boroughs = false } = {}) => (
+  const miniToolbar = (list, total, { boroughs = false, counts = null } = {}) => (
     <div className="toolbar">
       {(REG_SORTS[vertical] || []).length > 0 && (
         <select className="sel" value={sortMode} onChange={(e) => setSortMode(e.target.value)} aria-label="Sort">
@@ -2371,11 +2583,20 @@ export default function App() {
       {boroughs && (
         <div className="chips" role="group" aria-label="Borough">
           {['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'].map((b) => {
+            // Faceted: counted against the rows the other filters left, so the
+            // chips can never contradict the map. A borough the register never
+            // touches stays hidden; one the current filters empty is dimmed.
             const pool = data[vertical]?.feed || (Array.isArray(data[vertical]) ? data[vertical] : []);
-            const n = b === 'all' ? total : pool.filter((c) => (c.borough || c.county) === b).length;
-            if (b !== 'all' && !n) return null;
+            const ever = b === 'all' || pool.some((c) => (c.borough || c.county) === b);
+            if (!ever) return null;
+            const n = counts ? counts[b === 'all' ? 'all' : b] || 0 : b === 'all' ? total : pool.filter((c) => (c.borough || c.county) === b).length;
             return (
-              <button key={b} className={'chip' + (boro === b ? ' on' : '')} aria-pressed={boro === b} onClick={() => setBoro(b)}>
+              <button
+                key={b}
+                className={'chip' + (boro === b ? ' on' : '') + (!n && boro !== b ? ' dim' : '')}
+                aria-pressed={boro === b}
+                onClick={() => setBoro(b)}
+              >
                 {b === 'all' ? 'All' : b} <i>{n}</i>
               </button>
             );
@@ -2581,7 +2802,8 @@ export default function App() {
                     />
                   </div>
                   <span className="ticket-note">
-                    Both numbers stay on this device and only size your pipeline.
+                    Both numbers stay on this device and only size your pipeline. The default 8% close rate assumes
+                    deadline work the owner is required to buy — set your own if you know it.
                   </span>
                 </div>
               )}
@@ -2795,6 +3017,17 @@ export default function App() {
                 <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
               </span>
             </motion.div>
+          ) : vertical === 'carbon' ? (
+            <motion.div className="hook" {...fade(0)}>
+              <b>
+                <CountUp value={data.carbon?.totals?.cited || 0} />
+              </b>
+              <i>buildings</i>
+              <span>
+                cited under Local Law 97 with no accepted emissions report. The next report is due May 1, 2027 —{' '}
+                <strong>{monthsToCarbon} months out</strong>. Over the cap: $268 a ton, every year.
+              </span>
+            </motion.div>
           ) : (
             <div className="eyebrow">New York City · public records, read hourly</div>
           )}
@@ -2816,7 +3049,48 @@ export default function App() {
             {emphasize(heroText)}
           </motion.h1>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
-          {myPipeline ? (
+          {vertical === 'carbon' ? (
+            carbonMoney.n > 0 && (
+              <motion.div className="pipe" {...fade(0.1)}>
+                <b>
+                  <Rolling value={carbonMoney.sum} format={fmtMoney} />/year
+                </b>
+                <span className="pipe-note">
+                  {/* Not a close-rate funnel on purpose: this buyer sells against a
+                      recurring penalty, and the register prices it from each
+                      building's own reported emissions — the one register where
+                      the dollar figure is the city's arithmetic, not ours. */}
+                  of priced exposure across {carbonMoney.priced.toLocaleString('en-US')} of{' '}
+                  {carbonMoney.n.toLocaleString('en-US')} buildings shown — $268 a ton over the cap, every year, from
+                  each building's own reported emissions against an estimated cap
+                  {carbonMoney.max > 0 ? ` · largest ${fmtMoney(carbonMoney.max)}/yr` : ''}
+                </span>
+              </motion.div>
+            )
+          ) : myPipeline && myPipeline.n < 40 && (vertical === 'facades' || MANDATES[vertical]) ? (
+            <motion.div className="pipe" {...fade(0.1)}>
+              {/* Expected-value arithmetic is meaningless at this size: twelve
+                  signals times a close rate is half a job, and nobody closes
+                  half a job. Below the threshold the frame switches from a
+                  forecast to a task — what must happen, and what winning a
+                  plainly reachable share of it is worth. */}
+              <span className="gross">
+                <Rolling value={myPipeline.gross} format={fmtMoney} /> open
+              </span>
+              <b>
+                {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}{' '}
+                {zipsIn(deferredQuery) ? 'in your ZIPs' : boro !== 'all' ? `in ${boro}` : 'on this list'} must file
+                {myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''}.
+              </b>
+              <b>
+                Win {winTarget(myPipeline.n)} — that's {fmtMoney(winTarget(myPipeline.n) * myPipeline.avg)}.
+              </b>
+              <span className="pipe-note">
+                {basisLabel(myPipeline)} ·{' '}
+                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
+              </span>
+            </motion.div>
+          ) : myPipeline ? (
             <motion.div className="pipe" {...fade(0.1)}>
               <span className="gross">
                 <Rolling value={myPipeline.gross} format={fmtMoney} /> open
@@ -2838,12 +3112,7 @@ export default function App() {
               </b>
               <span className="pipe-note">
                 {/* "shown", not "open": the figure is the filtered view, and
-                    saying so is what makes it move credibly when you filter.
-                    The arrivals term is the measured weekly rate carried to the
-                    deadline — named, so the larger number can be checked. */}
-                {/* "for one crew, right now": the figure reads small if a
-                    visitor mistakes it for the service's market rather than one
-                    firm's own pipeline under the current filters. */}
+                    saying so is what makes it move credibly when you filter. */}
                 <em className="pipe-asof">for one crew, on today's register — it refills as the city publishes</em>{' '}
                 · {myPipeline.n.toLocaleString('en-US')}{' '}
                 {vertical === 'contracts'
@@ -2851,14 +3120,21 @@ export default function App() {
                   : (vertical === 'openings' ? 'opening' : MANDATES[vertical] ? 'building' : 'signal') +
                     (myPipeline.n === 1 ? '' : 's')}{' '}
                 shown{myPipeline.arriving ? ` + ${myPipeline.arriving.toLocaleString('en-US')} more by then at this week's rate` : ''} ·{' '}
-                {myPipeline.assumed
-                  ? `assuming a ${fmtMoney(myPipeline.avg)} ${vertical === 'facades' ? 'report fee' : 'average job'}`
-                  : `${fmtMoney(myPipeline.avg)} avg contract`}{' '}
-                · {Math.round(myPipeline.rate * 100)}% close rate ·{' '}
+                {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>
           ) : null}
+          {/* Pipeline math shrinks exactly when the user makes it personal;
+              payback does not. */}
+          {myPipeline && vertical !== 'carbon' && (vertical === 'facades' || MANDATES[vertical]) && myPipeline.avg >= PLAN_PRICE_YEAR && (
+            <motion.p className="payback" {...fade(0.14)}>
+              One filing at {fmtMoney(myPipeline.avg)} covers a year of your borough plan.
+            </motion.p>
+          )}
+          {winStats.total > 0 && (
+            <p className="recorded-line">{fmtMoney(winStats.total)} recorded through Right Window</p>
+          )}
 
         </section>
         {HEROES[vertical] && (
@@ -2870,7 +3146,7 @@ export default function App() {
                 is the same outline twice over: the loading state before
                 MapLibre arrives, and the whole map on a phone, where MapLibre
                 never loads at all. */}
-            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} />}
+            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} onPick={mapPick} />}
             {sceneReady &&
               (vertical !== 'contracts' ? (
                 <Suspense fallback={null}>
@@ -3016,21 +3292,28 @@ export default function App() {
         <>
           {(() => {
             // One meter for the whole feed: the sub-cycle clock is the same for
-            // every building on it, so drawing it per card said nothing.
-            const cycles = [...new Set(filteredFeed.map((c) => c.subCycle))];
-            if (cycles.length !== 1) return null;
-            const cyc = cycles[0];
+            // every building on it, so drawing it per card said nothing. It used
+            // to appear only when a filter narrowed the list to one sub-cycle —
+            // the strongest line on the page, hidden from anyone who did not
+            // type a ZIP. Now the earliest-deadline sub-cycle carries the bar in
+            // every view, with an honest count when the list holds more than one.
+            if (!filteredFeed.length) return null;
+            const byCycle = {};
+            for (const c of filteredFeed) if (c.subCycle && c.deadline) byCycle[c.subCycle] = byCycle[c.subCycle] || { n: 0, deadline: c.deadline };
+            for (const c of filteredFeed) if (c.subCycle && byCycle[c.subCycle]) byCycle[c.subCycle].n += 1;
+            const cycles = Object.entries(byCycle).sort((a, b) => a[1].deadline.localeCompare(b[1].deadline));
+            if (!cycles.length) return null;
+            const [cyc, { n: cnt, deadline }] = cycles[0];
             const opens = subOpens(cyc);
-            const deadline = filteredFeed[0]?.deadline;
             if (!opens || !deadline) return null;
-            // The hook above already states the deadline; this carries what the
-            // bar actually adds — how much of the window is already spent.
             const elapsed = Math.round(((now - new Date(opens)) / (new Date(deadline) - new Date(opens))) * 100);
+            const mixed = cnt < filteredFeed.length;
             return (
               <div className="cycle-bar" title={`Sub-cycle ${cyc} opened ${usDate(opens)}`}>
                 <div className="cycle-head">
                   <b>Sub-cycle {cyc}</b>
                   <span>
+                    {mixed ? `${cnt.toLocaleString('en-US')} of ${filteredFeed.length.toLocaleString('en-US')} buildings here · ` : ''}
                     <strong>{elapsed}% of the window is gone</strong> · {monthsToDeadline} months to {usDate(deadline)}
                   </span>
                 </div>
@@ -3079,13 +3362,23 @@ export default function App() {
                 ['Brooklyn', 'Brooklyn', 'bk', 'B'],
                 ['Queens', 'Queens', 'qn', 'N'],
                 ['Bronx', 'Bronx', 'bx', '2'],
-              ].map(([b, label, line, glyph]) => (
-                <button key={b} className={'chip-btn' + (boro === b ? ' on' : '')} aria-pressed={boro === b} onClick={() => setBoro(b)}>
-                  {line && <span className={'bullet ' + line} aria-hidden="true">{glyph}</span>}
-                  {label}
-                  <small>{b === 'all' ? facadeFeed.length : boroCounts[b] || 0}</small>
-                </button>
-              ))}
+              ].map(([b, label, line, glyph]) => {
+                const n = b === 'all' ? boroCounts.all : boroCounts[b] || 0;
+                // A borough the current filters empty is dimmed, not shown with
+                // a stale register-wide count.
+                return (
+                  <button
+                    key={b}
+                    className={'chip-btn' + (boro === b ? ' on' : '') + (!n && boro !== b ? ' dim' : '')}
+                    aria-pressed={boro === b}
+                    onClick={() => setBoro(b)}
+                  >
+                    {line && <span className={'bullet ' + line} aria-hidden="true">{glyph}</span>}
+                    {label}
+                    <small>{n}</small>
+                  </button>
+                );
+              })}
             </div>
             {(profile.cohorts || []).map((k) => {
               const def = COHORTS[k];
@@ -3565,7 +3858,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
+                          <FeedbackRow k={'b:' + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} amountOf={amountOf} markAmount={markAmount} feedForReasons={visibleForReasons} />
                         </div>
                       </motion.div>
                     )}
@@ -3766,7 +4059,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
+                <FeedbackRow k={'c:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} amountOf={amountOf} markAmount={markAmount} feedForReasons={visibleForReasons} />
               </>
             )}
             idOf={(c) => c.id}
@@ -3777,24 +4070,40 @@ export default function App() {
 
       {MANDATES[vertical] && (
         <>
-          {miniToolbar(mandateList, (data[vertical]?.feed || []).length, { boroughs: true })}
+          {miniToolbar(mandateList, (data[vertical]?.feed || []).length, { boroughs: true, counts: mandateLists._counts?.[vertical] })}
           {mapPanel(mandateList)}
           <SimpleFeed
-            items={mandateList.slice(0, shown)}
-            total={mandateList.length}
+            items={mandateRows.slice(0, shown)}
+            total={mandateRows.length}
             shown={shown}
             onMore={() => setShown((n) => n + 7)}
             openId={openId}
             toggle={toggleCard}
             hashType={vertPrefix[0]}
             reduce={reduce}
-            isWatched={(c) => isWatched(vertPrefix + c.bin)}
-            onWatch={(c) => toggleWatch(vertPrefix + c.bin)}
+            isWatched={(c) => isWatched(vertPrefix + (c.group ? c.id : c.bin))}
+            onWatch={(c) => toggleWatch(vertPrefix + (c.group ? c.id : c.bin))}
             statusOf={statusOf}
-            idOf={(c) => c.bin}
-            nameOf={(c) => `${title(c.address)}, ${c.borough}`}
+            idOf={(c) => (c.group ? c.id : c.bin)}
+            nameOf={(c) => (c.group ? `${title(c.company)}, ${c.cards.length} buildings` : `${title(c.address)}, ${c.borough}`)}
             renderHead={(c) => {
               const m = MANDATES[vertical];
+              if (c.group)
+                return (
+                  <>
+                    <span className="head-main">
+                      <span className="addr">{title(c.company)}</span>
+                      <span className="boro">
+                        {c.borough} <span className="zip">{c.zip}</span>
+                      </span>
+                      <ContactHint phone={c.phone} mail={false} />
+                      <span className="badge">{c.cards.length} buildings · one call</span>
+                    </span>
+                    <span className="head-side">
+                      <span className="clock">{c.usd > 0 ? `${fmtMoney(c.usd)}/yr` : `${c.violations} violations`}</span>
+                    </span>
+                  </>
+                );
               const k = vertPrefix + c.bin;
               return (
                 <>
@@ -3819,6 +4128,39 @@ export default function App() {
             }}
             renderBody={(c) => {
               const m = MANDATES[vertical];
+              if (c.group) {
+                const first = c.cards[0];
+                const ct = contactOf(first, contacts[first.bin]);
+                return (
+                  <>
+                    <div className="sig">
+                      <div className="sig-k">One call, {c.cards.length} buildings</div>
+                      <div className="sig-v">
+                        {title(c.company)} is the registered agent for all {c.cards.length}
+                        {c.usd > 0 ? ` — combined exposure ${fmtMoney(c.usd)} a year, estimated against computed caps` : ` — ${c.violations} open violations between them`}.
+                        The city cited the complex in one sweep; the fix is one conversation.
+                      </div>
+                    </div>
+                    <div className="facts">
+                      <div className="k">Buildings</div>
+                      <div className="v">
+                        {c.cards.map((b) => (
+                          <div key={b.bin}>
+                            {title(b.address)}
+                            {b.ghg?.usd > 0 ? ` — ${fmtMoney(b.ghg.usd)}/yr` : b.violations ? ` — ${b.violations} violation${b.violations > 1 ? 's' : ''}` : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {ct.phone && (
+                      <div className="call-block">
+                        <a className="btn solid" href={`tel:${String(ct.phone).replace(/[^+\d]/g, '')}`}>Call {ct.phone}</a>
+                      </div>
+                    )}
+                    <FeedbackRow k={vertPrefix + c.id} card={null} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} amountOf={amountOf} markAmount={markAmount} feedForReasons={visibleForReasons} />
+                  </>
+                );
+              }
               const mine = profile.mandates?.[vertical];
               const ct = contactOf(c, contacts[c.bin]);
               return (
@@ -3931,7 +4273,7 @@ export default function App() {
                       </a>
                     </div>
                   </div>
-                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
+                  <FeedbackRow k={vertPrefix + c.bin} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} amountOf={amountOf} markAmount={markAmount} feedForReasons={visibleForReasons} />
                 </>
               );
             }}
@@ -3941,7 +4283,7 @@ export default function App() {
 
       {vertical === 'openings' && (
         <>
-          {miniToolbar(openingsList, data.openings.length, { boroughs: true })}
+          {miniToolbar(openingsList, data.openings.length, { boroughs: true, counts: openingsCounts })}
           {mapPanel(openingsList)}
           <SimpleFeed
             items={openingsList.slice(0, shown)}
@@ -4086,7 +4428,7 @@ export default function App() {
                     </a>
                   </div>
                 </div>
-                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} feedForReasons={visibleForReasons} />
+                <FeedbackRow k={'o:' + c.id} card={c} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} amountOf={amountOf} markAmount={markAmount} feedForReasons={visibleForReasons} />
               </>
             )}
             idOf={(c) => c.id}
@@ -4144,10 +4486,10 @@ export default function App() {
 
       <div className="pilot">
         <div>
-          <b>One facade contractor per borough.</b>
+          <b>{(PILOT_COPY[vertical] || PILOT_COPY.facades)[0]}</b>
           <span>
-            Territory plans give you every FISP signal in your borough, exclusively — nobody else on the block sees
-            them. The open pool above stays free. Pilots are free while we learn.
+            {(PILOT_COPY[vertical] || PILOT_COPY.facades)[1]} The open pool above stays free. Pilots are free while we
+            learn.
           </span>
         </div>
         <form
@@ -4410,7 +4752,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
   );
 }
 
-function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNote, feedForReasons }) {
+function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNote, amountOf, markAmount, feedForReasons }) {
   const cur = fbOf(k);
   const opts = [
     ['contacted', 'Contacted'],
@@ -4440,6 +4782,25 @@ function FeedbackRow({ k, card, fbOf, mark, reasonOf, markReason, noteOf, markNo
       </div>
       {/* Once a card is picked up, what happened to it is the only thing worth
           writing down, and there was nowhere to write it. */}
+      {/* The one number the product cannot read from any register: what the
+          job actually closed for. Optional — skipping it never breaks the
+          math — but three recorded wins replace every assumption in the
+          funnel with this device's own history. */}
+      {cur === 'won' && markAmount && (
+        <div className="fb-row note">
+          <span className="fb-cap">What was it worth?</span>
+          <input
+            className="fb-note amt"
+            type="text"
+            inputMode="numeric"
+            defaultValue={amountOf?.(k) ? String(amountOf(k)) : ''}
+            placeholder="$ — optional"
+            aria-label="Deal value"
+            onChange={(e) => markAmount(k, e.target.value)}
+            onBlur={(e) => markAmount(k, e.target.value)}
+          />
+        </div>
+      )}
       {['contacted', 'won', 'lost'].includes(cur) && (
         <div className="fb-row note">
           <span className="fb-cap">Note:</span>

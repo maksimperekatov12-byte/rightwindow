@@ -617,7 +617,9 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
   background: none; border: 0; border-bottom: 1px dashed var(--line-2); color: var(--ink-3);
   display: inline-flex; align-items: center; min-height: 26px; padding: 3px 0; cursor: pointer;
+  margin-right: 18px;
 }
+.foot-toggle:last-of-type { margin-right: 0; }
 .foot-toggle:hover { color: var(--brand); border-color: var(--brand); }
 .foot-detail { margin-top: 10px !important; font-size: 12px; }
 
@@ -1188,3 +1190,15 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .mapskel { position: relative; inset: auto; height: 200px; }
   .massing-slot { min-height: 200px; margin: 2px 0 4px; }
 }
+
+/* A borough the current filters leave empty: present, honest, quiet. */
+.chip.dim, .chip-btn.dim { opacity: 0.45; }
+
+/* The line that does not shrink with the territory. */
+.payback { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
+.payback::before { content: ''; }
+
+/* The product's only real traction number, small and permanent. */
+.recorded-line { margin: 6px 0 0; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0.02em; }
+
+.fb-note.amt { max-width: 160px; }

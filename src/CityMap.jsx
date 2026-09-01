@@ -185,6 +185,17 @@ function boundsOf(rows) {
   ];
 }
 
+// The frame every register's default view shares: the five boroughs, nothing
+// more. A register that includes Staten Island used to fit a hair wider than
+// one that does not, and that hair was Paterson and Long Beach on screen.
+// A broad view fits this fixed frame; a genuinely narrowed view (a ZIP
+// territory, a cohort) still flies to its own bounds.
+const CITY_FRAME = [
+  [-74.26, 40.49],
+  [-73.69, 40.92],
+];
+const frameFor = (rows) => (rows.length > 150 ? CITY_FRAME : boundsOf(rows));
+
 // One map instance. The expanded overlay mounts a second one of these — tiles
 // are cached by the browser, so the cost is a rebuild of the vector layers, and
 // each instance owns its whole lifecycle, which is far simpler than moving a
@@ -217,7 +228,7 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     const map = new GLMap({
       container: el,
       style,
-      bounds: located.length ? boundsOf(located) : NYC_BOUNDS,
+      bounds: located.length ? frameFor(located) : CITY_FRAME,
       fitBoundsOptions: { padding: 40, maxZoom: 15 },
       // The camera cannot leave the city or zoom out past it: the register has
       // nothing to say about Norwalk.
@@ -246,7 +257,7 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     // far out. One refit once everything has settled.
     map.once('idle', () => {
       map.resize();
-      if (located.length) map.fitBounds(boundsOf(located), { padding: 48, maxZoom: 15, duration: 0 });
+      if (located.length) map.fitBounds(frameFor(located), { padding: 40, maxZoom: 15, duration: 0 });
     });
     map.on('movestart', () => {
       delete el.dataset.mapIdle;
@@ -347,7 +358,7 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     const apply = () => {
       map.getSource('cards-pts')?.setData(data.pts);
       map.getSource('cards')?.setData(data.polys);
-      if (located.length) map.fitBounds(boundsOf(located), { padding: 48, maxZoom: 15, duration: 700 });
+      if (located.length) map.fitBounds(frameFor(located), { padding: 40, maxZoom: 15, duration: 700 });
     };
     if (map.isStyleLoaded()) apply();
     else map.once('load', apply);

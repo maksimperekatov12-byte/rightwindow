@@ -23,18 +23,45 @@ const BOROS = outline.map((b) =>
     .join(''),
 );
 
-export default function MapSkeleton({ cards = [], loading = false }) {
+export default function MapSkeleton({ cards = [], loading = false, onPick = null }) {
   const dots = useMemo(
     () =>
       cards
         .filter((c) => Array.isArray(c.ll) && c.ll.length === 2)
         // ll is [lat, lon] everywhere in the feed — same order CityMap reads.
-        .map((c) => [px(c.ll[1]), py(c.ll[0]), (c.urgencyScore ?? 0) >= 18]),
+        .map((c) => [px(c.ll[1]), py(c.ll[0]), (c.urgencyScore ?? 0) >= 18, c]),
     [cards],
   );
+  // On a phone this drawing IS the map, so its dots must open cards the way
+  // the live map's columns do: a tap resolves to the nearest dot within a
+  // finger's width and fires the same deep link.
+  const pick = (e) => {
+    if (!onPick || !dots.length) return;
+    const svg = e.currentTarget;
+    const r = svg.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * W;
+    const y = ((e.clientY - r.top) / r.height) * H;
+    let best = null;
+    let bestD = Infinity;
+    for (const [dx, dy, , card] of dots) {
+      const d = (dx - x) ** 2 + (dy - y) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = card;
+      }
+    }
+    const finger = (14 / r.width) * W;
+    if (best && bestD <= finger * finger) onPick({ card: best });
+  };
   return (
     <div className="mapskel" aria-hidden={loading ? 'true' : undefined}>
-      <svg viewBox={`0 0 ${W} ${H}`} role={loading ? undefined : 'img'} aria-label={loading ? undefined : `${dots.length} cards across the five boroughs`}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role={loading ? undefined : 'img'}
+        aria-label={loading ? undefined : `${dots.length} cards across the five boroughs — tap one to open it`}
+        onClick={pick}
+        style={onPick ? { cursor: 'pointer' } : undefined}
+      >
         {BOROS.map((d, i) => (
           <path key={i} d={d} className="mapskel-boro" />
         ))}
@@ -43,7 +70,7 @@ export default function MapSkeleton({ cards = [], loading = false }) {
         ))}
       </svg>
       <span className="mapskel-cap">
-        {dots.length.toLocaleString('en-US')} cards on the city{loading ? ' · map loading' : ''}
+        {dots.length.toLocaleString('en-US')} cards on the city{loading ? ' · map loading' : ' · tap a dot to open its card'}
       </span>
     </div>
   );
