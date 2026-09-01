@@ -32,7 +32,7 @@ jobs:
     env:
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+      UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
       DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
       INTERVAL_SECONDS: '300'
       DATA_DIR: ${{ github.workspace }}/.data
