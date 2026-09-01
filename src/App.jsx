@@ -1092,7 +1092,17 @@ export default function App() {
   const [walletReady, setWalletReady] = useState(false);
   const [slackInteractive, setSlackInteractive] = useState(false);
   const [email, setEmail] = useState(() => loadLS('rw.email', ''));
-  const [theme, setTheme] = useState(() => loadLS('rw.theme', null));
+  // ?theme=dark is the dark page's own address. The parameter beats the saved
+  // choice and then becomes it, so a shared dark link keeps meaning dark on
+  // every later visit without the parameter.
+  const [theme] = useState(() => {
+    const q = new URLSearchParams(location.search).get('theme');
+    if (q === 'dark' || q === 'light') {
+      saveLS('rw.theme', q);
+      return q;
+    }
+    return loadLS('rw.theme', null);
+  });
   const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [now, setNow] = useState(Date.now());
   const [checkedAt, setCheckedAt] = useState(null);
@@ -1876,8 +1886,13 @@ export default function App() {
   const isDark = theme ? theme === 'dark' : systemDark;
   const toggleTheme = () => {
     const next = isDark ? 'light' : 'dark';
-    setTheme(next);
     saveLS('rw.theme', next);
+    // A reload, not a repaint: the map style, the 3D materials and every
+    // canvas are built from the palette they were born under, and each theme
+    // is its own page at ?theme=…, so the switch navigates there.
+    const u = new URL(location.href);
+    u.searchParams.set('theme', next);
+    location.assign(u.toString());
   };
 
   const deepLinkDone = useRef(false);
@@ -2598,7 +2613,7 @@ export default function App() {
       </AnimatePresence>
 
       <header className="top">
-        <div className="logo">
+        <a className="logo" href={theme ? `/?theme=${theme}` : '/'} aria-label="Right Window — back to the front page">
           <svg className="mark" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <rect x="2.5" y="2.5" width="19" height="19" rx="4.5" stroke="currentColor" strokeWidth="2" />
             <rect x="12.6" y="6.4" width="5.4" height="5.4" rx="1.4" fill="var(--brand)" stroke="none" />
@@ -2606,7 +2621,7 @@ export default function App() {
           </svg>
           <b>Right Window</b>
           <span>NYC public records</span>
-        </div>
+        </a>
         <div className="top-right">
           <button
             className="theme-btn"
