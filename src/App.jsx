@@ -1168,7 +1168,6 @@ export default function App() {
   const [slackState, setSlackState] = useState('idle');
   const [portfolio, setPortfolio] = useState(() => loadLS('rw.portfolio', []));
   const [portfolioOpen, setPortfolioOpen] = useState(false);
-  const [showAllVerts, setShowAllVerts] = useState(false);
   // ?map=1 opens the map straight away; ?map=big opens it across the whole
   // window — a shareable view of the register on the city.
   const mapParam = useRef(new URLSearchParams(location.search).get('map')).current;
@@ -1995,13 +1994,11 @@ export default function App() {
   );
   const bigEnough = matchedVerts.filter((v) => v.key === forcedVert.current || vertSize[v.key] >= MIN_LIST);
   const matchedVertKeys = (bigEnough.length ? bigEnough : matchedVerts).map((v) => v.key);
-  // Hiding the registers a trade cannot act on keeps the strip honest, but it
-  // also hides that they exist. The trailing button opens the rest without
-  // discarding the trade, and folds them away again.
-  const restVerts = VERTICALS.filter((v) => !matchedVertKeys.includes(v.key) && vertSize[v.key] >= MIN_LIST);
-  const visibleVerts = (
-    bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1)
-  ).concat(showAllVerts ? restVerts : []);
+  // A chosen trade sees ONLY its own registers. The old "+N more" escape
+  // hatch put the facade register in front of a marketing shop, and every card
+  // there read as mistargeted. The full six stay one click away — pick "Just
+  // exploring" in the header.
+  const visibleVerts = bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1);
   const pickedVert = useRef(false);
   useEffect(() => {
     const here = visibleVerts.some((v) => v.key === vertical);
@@ -2524,6 +2521,21 @@ export default function App() {
       max: priced.reduce((m, c) => Math.max(m, c.ghg.usd), 0),
     };
   }, [vertical, mandateList]);
+
+  // Every register's hook needs the same anatomy: one big count, the law or
+  // the moment, a date, a consequence. These are the live inputs the two
+  // registers without a statutory clock bring to it.
+  const contractHook = useMemo(() => {
+    const open = liveContracts.filter((c) => c.kind !== 'AWARD' && (c.daysLeft == null || c.daysLeft >= 0));
+    const nearest = open
+      .map((c) => c.daysLeft)
+      .filter((d) => d != null && d >= 0)
+      .sort((a, b) => a - b)[0];
+    const awards = liveContracts.filter((c) => c.kind === 'AWARD').reduce((s, c) => s + (c.amount || 0), 0);
+    return { open: open.length, nearest, awards };
+  }, [liveContracts]);
+  const openingsPhones = useMemo(() => liveOpenings.filter((o) => o.phone).length, [liveOpenings]);
+  const monthsToDec26 = Math.max(0, Math.round((new Date('2026-12-31') - now) / (30.44 * 86400000)));
 
   const heroText =
     vertical === 'facades'
@@ -3120,18 +3132,14 @@ export default function App() {
               <span className="tlabel">{v.label}</span>
             </button>
           ))}
-          {restVerts.length > 0 && (
-            <button className="vmore" onClick={() => setShowAllVerts((v) => !v)}>
-              {showAllVerts ? 'Fewer' : `+${restVerts.length} more`}
-            </button>
-          )}
+
         </div>
       </LayoutGroup>
 
       <div className="lede">
         <section className="hero">
           {vertical === 'facades' ? (
-            <motion.div className="hook" {...fade(0)}>
+            <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
               <b>
                 <CountUp value={data.facades.totals.nonFilers10A} />
               </b>
@@ -3147,7 +3155,7 @@ export default function App() {
               </span>
             </motion.div>
           ) : vertical === 'carbon' ? (
-            <motion.div className="hook" {...fade(0)}>
+            <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
               <b>
                 <CountUp value={data.carbon?.totals?.cited || 0} />
               </b>
@@ -3155,6 +3163,67 @@ export default function App() {
               <span>
                 cited under Local Law 97 with no accepted emissions report. The next report is due May 1, 2027 —{' '}
                 <strong>{monthsToCarbon} months out</strong>. Over the cap: $268 a ton, every year.
+              </span>
+            </motion.div>
+          ) : vertical === 'gas' ? (
+            <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
+              <b>
+                <CountUp value={data.gas?.totals?.cited || 0} />
+              </b>
+              <i>buildings</i>
+              <span>
+                are cited on Local Law 152's four-year gas clock. Sub-cycle C closes Dec 31, 2026 —{' '}
+                <strong>{monthsToDec26} months out</strong> — and these {(data.gas?.totals?.open || 0).toLocaleString('en-US')} have
+                no inspection on file.
+              </span>
+            </motion.div>
+          ) : vertical === 'elevators' ? (
+            <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
+              <b>
+                <CountUp value={data.elevators?.totals?.cited || 0} />
+              </b>
+              <i>buildings</i>
+              <span>
+                skipped an entire annual CAT1 elevator cycle. The missed test and this year's are both due by Dec 31,
+                2026 — <strong>{monthsToDec26} months out</strong>. After that: DOB violations, device by device.
+              </span>
+            </motion.div>
+          ) : vertical === 'contracts' ? (
+            <motion.div className="hook" data-label="City Record · procurement" {...fade(0)}>
+              <b>
+                <CountUp value={contractHook.open} />
+              </b>
+              <i>notices</i>
+              <span>
+                are open on city work right now
+                {contractHook.nearest != null ? (
+                  <>
+                    {' '}— the nearest closes{' '}
+                    <strong>
+                      {contractHook.nearest === 0
+                        ? 'today'
+                        : `in ${contractHook.nearest} business day${contractHook.nearest === 1 ? '' : 's'}`}
+                    </strong>
+                  </>
+                ) : null}
+                {contractHook.awards > 0 ? (
+                  <>
+                    . {fmtMoney(contractHook.awards)} in fresh awards is lining up subcontractors and bonding as you read.
+                  </>
+                ) : (
+                  '.'
+                )}
+              </span>
+            </motion.div>
+          ) : vertical === 'openings' ? (
+            <motion.div className="hook" data-label="DOHMH & NYS SLA · new venues" {...fade(0)}>
+              <b>
+                <CountUp value={vertSize.openings || 0} />
+              </b>
+              <i>venues</i>
+              <span>
+                hold a fresh permit and no first inspection — build-out is happening now, before the doors open. The
+                city prints a phone number on <strong>{openingsPhones.toLocaleString('en-US')}</strong> of them.
               </span>
             </motion.div>
           ) : (

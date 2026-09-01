@@ -653,7 +653,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   border-left: 3px solid var(--warm);
 }
 .hook::before {
-  content: 'Compliance calendar · NYC DOB';
+  content: attr(data-label);
   display: block; font: 600 9.5px/1 var(--mono); letter-spacing: .15em; text-transform: uppercase;
   color: var(--warm); margin-bottom: 6px; padding-bottom: 6px;
   border-bottom: 1px solid rgba(138, 100, 16, .22);
