@@ -1792,6 +1792,27 @@ const out = {
 // Both stay in the pipeline and reach the private serving path; only the
 // committed artefact is redacted. PUBLISH_CONTACTS=1 opts a private deployment
 // back in.
+// The hourly CI has no enrichment cache — it is gitignored, deliberately — so
+// a CI rebuild used to mark every agent contactKnown:false and the "Has a
+// contact" chips read zero until the next local build. The public artefact on
+// the data branch knows which buildings have a servable number, costs nothing
+// to read, and is the truth the flag is supposed to state.
+async function publishedContactBins() {
+  const repo = process.env.DATA_REPO || 'maksimperekatov12-byte/rightwindow';
+  const branch = process.env.DATA_BRANCH || 'data';
+  try {
+    const r = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/contacts.json`, {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) return new Set();
+    const j = await r.json();
+    return new Set(Object.keys(j.contacts || j || {}));
+  } catch {
+    return new Set();
+  }
+}
+
 const PUBLISH_CONTACTS = process.env.PUBLISH_CONTACTS === '1';
 if (!PUBLISH_CONTACTS) {
   let contacts = 0;
@@ -1800,13 +1821,17 @@ if (!PUBLISH_CONTACTS) {
   // last time a register was added this loop was left pointing at facades and
   // 399 people's names went into the public repo.
   const withAgents = [out.facades.feed, ...Object.keys(registers).map((k) => out[k].feed)].flat();
+  const served = await publishedContactBins();
+  if (served.size) console.log(`Published contact set: ${served.size} bins on the data branch`);
   for (const c of withAgents) {
     if (!c.agent) continue;
     if (c.agent.phone || c.agent.email) contacts++;
     if (c.agent.name) names++;
     // Keep the shape the card renders against, so a redacted feed still shows
-    // which contacts exist rather than pretending there are none.
-    c.agent.contactKnown = Boolean(c.agent.phone || c.agent.email);
+    // which contacts exist rather than pretending there are none. "Known" is
+    // resolved locally OR already serving from the public artefact — the
+    // latter is what keeps an hourly cache-less CI rebuild honest.
+    c.agent.contactKnown = Boolean(c.agent.phone || c.agent.email) || served.has(String(c.bin));
     c.agent.namedContact = Boolean(c.agent.name);
     delete c.agent.phone;
     delete c.agent.email;

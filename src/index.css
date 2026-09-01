@@ -1132,3 +1132,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .citymap-cuts button.on { background: var(--pill); border-color: var(--pill); color: var(--on-cta); }
 .citymap-cuts button.on i { color: var(--on-cta); opacity: 0.75; }
 .citymap-full-bar .citymap-cuts button { background: var(--paper-2); backdrop-filter: none; }
+/* The active state must survive the full-bar override above — equal specificity
+   let source order win and painted the label white on white. */
+.citymap-cuts button.on,
+.citymap-full-bar .citymap-cuts button.on { background: var(--pill); border-color: var(--pill); color: var(--on-cta); }
