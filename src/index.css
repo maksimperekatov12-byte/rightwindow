@@ -1341,3 +1341,17 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .cycle-bar .cycle-head b { font-size: 10.5px; }
   .personas-hint { display: none; }
 }
+
+/* The sentence that leads the funnel's fine print — small and bold, never the
+   19px mono that .pipe b hands every <b> in the block. (The rule that was
+   supposed to say this once died in a shell pipe and shipped as nothing.) */
+.pipe-note .pipe-win { font-family: var(--sans); font-size: 12.5px; color: var(--ink); font-weight: 700; }
+
+/* The number that climbs day by day, measured, not promised. */
+.pipe-grow {
+  flex-basis: 100%;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand);
+}

@@ -1702,6 +1702,12 @@ export default function App() {
     () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || SORTS.profile),
     [profileKey, sortMode, contacts],
   );
+  // The one register-wide money figure that grows in every hourly build: what
+  // DOB has already assessed. It rises as the city works, not as we estimate.
+  const facadeFines = useMemo(
+    () => Math.round(data.facades.feed.reduce((s, c) => s + (c.finesOwed || 0), 0)),
+    [],
+  );
   const deferredQuery = useDeferredValue(query);
   // Split in two on purpose: everything EXCEPT the borough chip first, then the
   // chip. The borough counts must be faceted — computed against the rows every
@@ -2425,9 +2431,12 @@ export default function App() {
 
     // Nobody works a whole register. Expected is bounded by what one crew can
     // actually pursue before the deadline — the user's figure if they set one,
-    // else sized to the window.
+    // else sized to the window AND to what the trade sells: a report-seller
+    // turns over buildings several times faster than a crew that performs the
+    // work.
     const capSaved = capacitySaved;
-    const capacity = capSaved > 0 ? Math.round(capSaved) : defaultCapacity(weeks);
+    const capKind = basis === 'fee' || basis === 'constant' ? 'fee' : 'work';
+    const capacity = capSaved > 0 ? Math.round(capSaved) : defaultCapacity(weeks, capKind);
     const workN = Math.min(n, capacity);
     const wins = Math.max(1, Math.round(workN * rate));
     const winSum = wins * avg;
@@ -2438,6 +2447,9 @@ export default function App() {
     const registerSize = vertSize[vertical] || n;
     const share = registerSize > 0 ? Math.min(1, n / registerSize) : 1;
     const arriving = Math.round(perWeek * weeks * share);
+    // What the city added to this view in the last measured week, in dollars —
+    // the number that genuinely climbs day by day as departments publish.
+    const growWeek = Math.round(perWeek * share) * avg;
     const gross = (n + arriving) * avg;
     if (!Number.isFinite(gross) || gross <= 0) return null;
 
@@ -2452,6 +2464,7 @@ export default function App() {
       workN,
       wins,
       arriving,
+      growWeek,
       weeks: Math.round(weeks),
       horizon,
       assumed,
@@ -3117,6 +3130,11 @@ export default function App() {
               <span>
                 have not filed their sub-cycle 10A facade report. The deadline is {usDate(deadlineIso)} —{' '}
                 <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
+                {facadeFines > 0 && (
+                  <>
+                    {' '}<strong>{fmtMoney(facadeFines)} already assessed</strong> on this register — and climbing.
+                  </>
+                )}
               </span>
             </motion.div>
           ) : vertical === 'carbon' ? (
@@ -3198,6 +3216,11 @@ export default function App() {
                     : 'per year'}
                 </em>
               </b>
+              {myPipeline.growWeek > 0 && (
+                <span className="pipe-grow" title="Measured from what the city published in the last seven days, scaled to the current filters">
+                  ↑ {fmtMoney(myPipeline.growWeek)} of new work entered this view in the last week — it climbs as the city publishes
+                </span>
+              )}
               <span className="pipe-note">
                 <b className="pipe-win">
                   {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
@@ -3207,13 +3230,7 @@ export default function App() {
                     ? `work ${myPipeline.capacity}, win ${myPipeline.wins}.`
                     : `win ${winTarget(myPipeline.n)}.`}
                 </b>{' '}
-                <em className="pipe-asof">for one crew, on today's register — it refills as the city publishes</em>
-                {myPipeline.arriving ? (
-                  <span className="pipe-arr">
-                    {' '}· +{myPipeline.arriving.toLocaleString('en-US')} more by the deadline at this week's rate
-                  </span>
-                ) : null}{' '}
-                · {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
+                {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
                 <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
               </span>
             </motion.div>

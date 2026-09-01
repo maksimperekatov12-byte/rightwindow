@@ -52,10 +52,15 @@ assert.deepEqual(
 assert.equal(resolveDealBasis({ ...base, viewCosts: [1, 2] }).basis, 'register');
 assert.equal(resolveDealBasis({ ...base, viewCosts: [], registerCosts: [] }).basis, 'constant');
 
-// Capacity is bounded and sane at the edges.
+// Capacity is bounded, sane at the edges, and matches what the trade sells:
+// report-sellers turn over several buildings a week, work-performers do not.
 assert.equal(defaultCapacity(NaN), 40);
 assert.equal(defaultCapacity(0.5), 8);
 assert.equal(defaultCapacity(25), 40);
 assert.ok(defaultCapacity(1000) <= 48);
+assert.equal(defaultCapacity(NaN, 'fee'), 120);
+assert.equal(defaultCapacity(25, 'fee'), 125);
+assert.ok(defaultCapacity(1000, 'fee') <= 240);
+assert.ok(defaultCapacity(1, 'fee') >= 30);
 
 console.log('test-basis: all assertions pass');
