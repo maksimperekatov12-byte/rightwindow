@@ -37,6 +37,14 @@ if (process.env.DIGEST_TEST) {
   process.exit(res.ok ? 0 : 1);
 }
 
+// Unsubscribed means unsubscribed everywhere: the digest consults the same
+// suppression set the one-click endpoint writes.
+const { unsubUrl, mailHeaders } = await import('../lib/unsub.mjs');
+const { readArtifact } = await import('../lib/artifacts.mjs');
+const suppressed = new Set(
+  Object.keys(((await readArtifact('suppressed')) || {}).emails || {}).map((e) => e.toLowerCase()),
+);
+
 const prefsDoc = await readDoc(PREFS);
 const everyone = Object.values(prefsDoc);
 let mail = 0, slack = 0, skipped = 0;
@@ -57,7 +65,12 @@ for (const pref of everyone) {
     if (ok) slack++;
   }
   const email = pref.channels?.email;
-  if (email && process.env.RESEND_API_KEY && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+  if (
+    email &&
+    process.env.RESEND_API_KEY &&
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) &&
+    !suppressed.has(email.toLowerCase())
+  ) {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
@@ -65,7 +78,10 @@ for (const pref of everyone) {
         from: FROM,
         to: [email],
         subject: `${items.length} new window${items.length > 1 ? 's' : ''} in NYC — Right Window`,
-        html: html(items, pref.profile),
+        ...mailHeaders(email),
+        html:
+          html(items, pref.profile) +
+          `<p style="font-size:12px;color:#5F6F69;font-family:-apple-system,sans-serif"><a href="${unsubUrl(email)}" style="color:#5F6F69">Unsubscribe</a></p>`,
       }),
     });
     if (res.ok) mail++;

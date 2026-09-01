@@ -1494,10 +1494,10 @@ export default function App() {
   // Contracts and openings order themselves. An open solicitation always sits
   // above a closed one, and an award above neither — the deadline is the point.
   const CONTRACT_SORTS = {
-    closing: (a, b) => {
+    closing: tierFirst((a, b) => {
       const live = (c) => (c.daysLeft == null ? 2 : c.daysLeft < 0 ? 1 : 0);
       return live(a) - live(b) || (a.daysLeft ?? 9e9) - (b.daysLeft ?? 9e9);
-    },
+    }),
     posted: (a, b) => String(b.date || '').localeCompare(String(a.date || '')),
     value: (a, b) => (b.amount || 0) - (a.amount || 0) || String(b.date || '').localeCompare(String(a.date || '')),
     reachable: (a, b) =>
@@ -1505,7 +1505,7 @@ export default function App() {
       (a.daysLeft ?? 9e9) - (b.daysLeft ?? 9e9),
   };
   const OPENING_SORTS = {
-    recent: (a, b) => openingRank(a) - openingRank(b),
+    recent: tierFirst((a, b) => openingRank(a) - openingRank(b)),
     callable: (a, b) => Number(Boolean(b.phone)) - Number(Boolean(a.phone)) || Number(b.camis || 0) - Number(a.camis || 0),
     borough: (a, b) => String(a.county || '').localeCompare(String(b.county || '')) || Number(b.camis || 0) - Number(a.camis || 0),
   };
@@ -1552,8 +1552,28 @@ export default function App() {
       ['open', 'most violations'],
     ],
   };
+  // What the user asked of the default order, in one sentence: a card you can
+  // ACT on now sits above one you can only write to, and both sit above one
+  // with nobody to reach. Tier 2 is a dialable number (served or printed on the
+  // record), tier 1 is an inbox or a findable number, tier 0 is silence. The
+  // explicit sorts (next hearing, penalties owed…) stay pure — this shapes only
+  // the defaults.
+  const actTier = useCallback(
+    (c) => {
+      const srv = contacts[c.bin] || {};
+      if (srv.phone || c.phone || c.contact?.phone) return 2;
+      if (srv.email || c.email || c.contact?.email || c.agent?.contactKnown) return 1;
+      return 0;
+    },
+    [contacts],
+  );
+  const tierFirst = useCallback(
+    (cmp) => (a, b) => actTier(b) - actTier(a) || cmp(a, b),
+    [actTier],
+  );
+
   const MANDATE_SORTS = {
-    profile: (a, b) => b.urgencyScore - a.urgencyScore,
+    profile: tierFirst((a, b) => b.urgencyScore - a.urgencyScore),
     open: (a, b) => (b.openDays || 0) - (a.openDays || 0) || b.violations - a.violations,
     holdings: (a, b) => (b.agent?.portfolio || 0) - (a.agent?.portfolio || 0) || b.urgencyScore - a.urgencyScore,
     exposure: (a, b) => (b.ghg?.usd || 0) - (a.ghg?.usd || 0) || (b.ghg?.t || 0) - (a.ghg?.t || 0) || b.urgencyScore - a.urgencyScore,
@@ -1563,7 +1583,7 @@ export default function App() {
       Number(Boolean(b.agent?.contactKnown)) - Number(Boolean(a.agent?.contactKnown)) || b.urgencyScore - a.urgencyScore,
   };
   const SORTS = {
-    profile: fv.sort,
+    profile: tierFirst(fv.sort),
     cost: (a, b) => (b.filing?.cost || 0) - (a.filing?.cost || 0) || byUrgency(a, b),
     callable: (a, b) =>
       Number(Boolean(b.agent?.contactKnown)) - Number(Boolean(a.agent?.contactKnown)) || byUrgency(a, b),
@@ -1573,8 +1593,8 @@ export default function App() {
     money: (a, b) => (b.ecbBalance || 0) + (b.finesOwed || 0) - (a.ecbBalance || 0) - (a.finesOwed || 0),
   };
   const facadeFeed = useMemo(
-    () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || fv.sort),
-    [profileKey, sortMode],
+    () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || SORTS.profile),
+    [profileKey, sortMode, contacts],
   );
   const deferredQuery = useDeferredValue(query);
   const filteredFeed = useMemo(() => {
@@ -1655,7 +1675,7 @@ export default function App() {
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }).sort(CONTRACT_SORTS[sortMode] || CONTRACT_SORTS.closing),
-    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode],
+    [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode, contacts],
   );
   const mandateLists = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
@@ -1680,7 +1700,7 @@ export default function App() {
       out[key] = [...out[key]].sort(cmp);
     }
     return out;
-  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort]);
+  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort, contacts]);
   // A sort that does not exist on the register you just switched to would leave
   // the control showing nothing while the list quietly reordered itself.
   useEffect(() => {
@@ -1705,7 +1725,7 @@ export default function App() {
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }).sort(OPENING_SORTS[sortMode] || OPENING_SORTS.recent),
-    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode, boro],
+    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode, boro, contacts],
   );
   // How common each signal is across the rows on screen, so a card can lead with
   // what makes it different.

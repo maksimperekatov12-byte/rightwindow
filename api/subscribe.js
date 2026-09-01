@@ -13,6 +13,7 @@
 // work. It starts storing the moment STORAGE_DRIVER=r2 is configured, with no
 // further change here.
 import { readArtifact, publishArtifact, canStorePrivate, VisibilityError } from '../lib/artifacts.mjs';
+import { mailHeaders, unsubUrl } from '../lib/unsub.mjs';
 
 const EMAIL = /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i;
 const PROFILE = /^[\w-]{1,32}$/;
@@ -48,12 +49,23 @@ async function confirm(email, profile) {
         from: process.env.DIGEST_FROM || 'Right Window <onboarding@resend.dev>',
         to: email,
         subject: 'You are on the Right Window digest',
+        ...mailHeaders(email),
         text:
           'You will get one email each morning with what the city published overnight' +
           (profile ? ` for ${profile}` : '') +
           ', and nothing on a quiet day.\n\n' +
-          'Every card links back to the city record it came from. Reply to this message to stop.\n\n' +
-          'https://rightwindow.nyc/\n',
+          'Every card links back to the city record it came from.\n\n' +
+          'https://rightwindow.nyc/\n\n' +
+          `Unsubscribe: ${unsubUrl(email)}\n`,
+        html:
+          '<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:480px;color:#101613;line-height:1.6">' +
+          '<p>You will get one email each morning with what the city published overnight' +
+          (profile ? ` for <b>${profile}</b>` : '') +
+          ', and nothing on a quiet day.</p>' +
+          '<p>Every card links back to the city record it came from.</p>' +
+          '<p><a href="https://rightwindow.nyc/" style="color:#14594A">rightwindow.nyc</a></p>' +
+          `<p style="font-size:12px;color:#5F6F69"><a href="${unsubUrl(email)}" style="color:#5F6F69">Unsubscribe</a></p>` +
+          '</div>',
       }),
       signal: AbortSignal.timeout(8000),
     });
@@ -97,6 +109,13 @@ export default async function handler(req, res) {
     // A second sign-up with the same address is a success, not an error: the
     // person wants the digest and now they are on it.
     const already = Boolean(list[email]);
+    try {
+      const sup = (await readArtifact('suppressed')) || { emails: {} };
+      if (sup.emails?.[email]) {
+        delete sup.emails[email];
+        await publishArtifact('suppressed', sup);
+      }
+    } catch {}
     list[email] = {
       email,
       profile: profile || list[email]?.profile || null,

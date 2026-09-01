@@ -11,6 +11,12 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
   process.exit(0);
 }
 const SITE = process.env.SITE || 'https://rightwindow.nyc';
+const { unsubUrl, mailHeaders } = await import('../lib/unsub.mjs');
+const { readArtifact } = await import('../lib/artifacts.mjs');
+// Unsubscribed means unsubscribed here too.
+const suppressed = new Set(
+  Object.keys(((await readArtifact('suppressed')) || {}).emails || {}).map((e) => e.toLowerCase()),
+);
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 const MAX_PER_RUN = 3;
 
@@ -58,7 +64,7 @@ for (const pref of Object.values(prefsDoc)) {
     sent.add(`${it.kind}:${it.id}`);
   }
 
-  if (!slack && email && process.env.RESEND_API_KEY) {
+  if (!slack && email && process.env.RESEND_API_KEY && !suppressed.has(String(email).toLowerCase())) {
     const rows = hits
       .map(
         (i) =>
@@ -72,7 +78,8 @@ for (const pref of Object.values(prefsDoc)) {
         from: process.env.DIGEST_FROM || 'Right Window <onboarding@resend.dev>',
         to: [email],
         subject: `Time-sensitive: ${hits[0].title}`,
-        html: `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px"><div style="font-size:17px;font-weight:800">Right Window · time-sensitive</div><table style="width:100%;border-collapse:collapse;margin-top:14px">${rows}</table><a href="${SITE}" style="display:inline-block;margin-top:16px;background:#0c3e33;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:700">Open the feed</a></div>`,
+        ...mailHeaders(email),
+        html: `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px"><div style="font-size:17px;font-weight:800">Right Window · time-sensitive</div><table style="width:100%;border-collapse:collapse;margin-top:14px">${rows}</table><a href="${SITE}" style="display:inline-block;margin-top:16px;background:#0c3e33;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:700">Open the feed</a><p style="font-size:12px;color:#5F6F69"><a href="${unsubUrl(email)}" style="color:#5F6F69">Unsubscribe</a></p></div>`,
       }),
     });
     if (r.ok) mailSent++;
