@@ -14,7 +14,7 @@
 // further change here.
 import { canStorePrivate } from '../lib/artifacts.mjs';
 import { addSubscriber, unsuppress } from '../lib/leads.mjs';
-import { mailHeaders, unsubUrl } from '../lib/unsub.mjs';
+import { mailHeaders, unsubUrl, unsubSig } from '../lib/unsub.mjs';
 
 const EMAIL = /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i;
 const PROFILE = /^[\w-]{1,32}$/;
@@ -85,6 +85,10 @@ export default async function handler(req, res) {
       canStore: canStorePrivate(),
       blobToken: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
       resend: Boolean(process.env.RESEND_API_KEY),
+      // Eight characters of one fixed HMAC: enough to tell "same secret as the
+      // sender" from "different or missing", and useless for forging any other
+      // address's link.
+      unsub: process.env.UNSUB_SECRET ? unsubSig('probe@rightwindow.nyc').slice(0, 8) : null,
       driver: process.env.STORAGE_DRIVER || 'github-branch',
     });
   if (req.method !== 'POST') return res.status(405).end();
