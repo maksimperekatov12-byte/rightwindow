@@ -200,10 +200,15 @@ const frameFor = (rows) => (rows.length > 150 ? CITY_FRAME : boundsOf(rows));
 // are cached by the browser, so the cost is a rebuild of the vector layers, and
 // each instance owns its whole lifecycle, which is far simpler than moving a
 // live WebGL canvas between containers.
-function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
+function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip = false }) {
   const host = useRef(null);
   const mapRef = useRef(null);
   const [tip, setTip] = useState(null);
+  // The pinned popup: a click opens the card's whole story ON the map — every
+  // fact the register knows, the number to ring, and the jump to the full
+  // card. It stays anchored to the building through pans and the fly-in.
+  const [pin, setPin] = useState(null);
+  const [pinXY, setPinXY] = useState(null);
 
   const located = rows;
   const data = useMemo(() => toGeoJSON(located), [located]);
@@ -322,14 +327,19 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
       });
       map.on('click', (e) => {
         const hits = map.queryRenderedFeatures(e.point, { layers: hoverable });
-        if (!hits.length) return;
+        if (!hits.length) {
+          setPin(null);
+          return;
+        }
         const r = located[hits[0].properties.i];
         if (!r) return;
         const [lat, lon] = r.card.ll;
-        // Fly to the building first — the zoom IS the answer to "where is
-        // this" — then open its card in the feed below.
-        map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 16.6), pitch: 55, duration: 900 });
-        onPick({ card: r.card });
+        // Fly to the building — the zoom IS the answer to "where is this" —
+        // and pin its popup there. Opening the full card moved into the popup:
+        // the map answers first, the feed is one tap further.
+        map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 14.5), duration: 900 });
+        setTip(null);
+        setPin({ lng: lon, lat, card: r.card });
       });
     });
     mapRef.current = map;
@@ -362,12 +372,69 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
     };
     if (map.isStyleLoaded()) apply();
     else map.once('load', apply);
+    // A popup pinned to a card the filters just removed would hang over nothing.
+    setPin(null);
   }, [data, located]);
 
+  // The popup is a DOM overlay, not a map layer, so it follows its building by
+  // reprojecting on every camera move.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !pin) {
+      setPinXY(null);
+      return;
+    }
+    const update = () => {
+      const p = map.project([pin.lng, pin.lat]);
+      setPinXY({ x: p.x, y: p.y });
+    };
+    update();
+    map.on('move', update);
+    const onKey = (e) => {
+      if (e.key === 'Escape') setPin(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      map.off('move', update);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [pin]);
+
+  const pinPhone = pin && contactFor ? contactFor(pin.card) : pin?.card?.phone || pin?.card?.contact?.phone || null;
   return (
     <div className="citymap-surface">
       <div ref={host} className="citymap-gl" />
-      {tip && (
+      {pin && pinXY && (
+        <div
+          className={'citymap-pop' + (pinXY.y < 190 ? ' below' : '')}
+          style={{ left: pinXY.x, top: pinXY.y }}
+          role="dialog"
+          aria-label={describe(pin.card)}
+        >
+          <button className="pop-x" onClick={() => setPin(null)} aria-label="Close">×</button>
+          <b>{describe(pin.card)}</b>
+          {tipExtras(pin.card, 8).map((line) => (
+            <span key={line}>{line}</span>
+          ))}
+          <div className="pop-actions">
+            {pinPhone && (
+              <a className="btn solid" href={`tel:${String(pinPhone).replace(/[^+\d]/g, '')}`}>
+                Call {pinPhone}
+              </a>
+            )}
+            <button
+              className="btn ghost"
+              onClick={() => {
+                setPin(null);
+                onPick({ card: pin.card });
+              }}
+            >
+              Open the card
+            </button>
+          </div>
+        </div>
+      )}
+      {tip && (!pin || tip.card !== pin.card) && (
         <div className="citymap-tip" style={{ left: tip.x + 14, top: tip.y - 10 }}>
           {richTip ? (
             <>
@@ -387,7 +454,7 @@ function MapSurface({ rows, colors, onPick, describe, richTip = false }) {
 
 // The lines that separate one card from its neighbours, for the expanded view:
 // whatever this register actually knows about the building.
-function tipExtras(c) {
+function tipExtras(c, limit = 5) {
   const out = [];
   if (c.ghg?.usd > 0) out.push(`~$${c.ghg.usd.toLocaleString('en-US')}/yr estimated overage`);
   else if (c.ghg) out.push(`${c.ghg.t.toLocaleString('en-US')} tCO2e reported (CY${c.ghg.y})`);
@@ -396,9 +463,10 @@ function tipExtras(c) {
   if (c.nextHearing) out.push(`hearing ${c.nextHearing}`);
   if (c.laa) out.push(c.laa.filed ? `gas work filed ${c.laa.filed}` : 'gas work in pre-filing');
   if (c.devices) out.push(`${c.devices} device${c.devices > 1 ? 's' : ''} · CAT1 ${c.lastCat1 ?? 'never filed'}`);
+  if (c.filing?.cost > 0) out.push(`$${Math.round(c.filing.cost).toLocaleString('en-US')} declared job cost`);
   if (c.monthsLeft != null) out.push(`${c.monthsLeft} mo to deadline`);
   if (c.urgencyScore != null) out.push(`urgency ${c.urgencyScore}`);
-  return out.slice(0, 5);
+  return out.slice(0, limit);
 }
 
 // The map's own filter. The toolbar's filters already move the map, but a
@@ -420,7 +488,7 @@ const MAP_CUTS = [
   { k: 'top', label: 'Top 100', of: null }, // by rank, handled below
 ];
 
-export default function CityMap({ rows, colors, reduced, onPick, describe, compact = false, startBig = false }) {
+export default function CityMap({ rows, colors, reduced, onPick, describe, contactFor = null, compact = false, startBig = false }) {
   const [big, setBig] = useState(startBig);
   const [cut, setCut] = useState('all');
 
@@ -489,7 +557,7 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, compa
   return (
     <div className="citymap-wrap">
       <div className={'citymap' + (compact ? ' compact' : '')}>
-        <MapSurface rows={shown} colors={colors} onPick={onPick} describe={describe} />
+        <MapSurface rows={shown} colors={colors} onPick={onPick} describe={describe} contactFor={contactFor} />
         <div className="citymap-topbar">
           <button className="citymap-big" onClick={() => setBig(true)} title="Expand the map to the whole window">
             ⤢ Expand
@@ -525,7 +593,7 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, compa
               ✕ Close
             </button>
           </div>
-          <MapSurface rows={shown} colors={colors} onPick={pick} describe={describe} richTip />
+          <MapSurface rows={shown} colors={colors} onPick={pick} describe={describe} contactFor={contactFor} richTip />
         </div>
       )}
     </div>

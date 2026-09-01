@@ -2561,6 +2561,12 @@ export default function App() {
     },
     [],
   );
+  // The popup's number: the same waterfall the feed rows use — served contact
+  // first, then whatever the city printed on the record.
+  const mapContact = useCallback(
+    (c) => contacts[c.bin]?.phone || c.phone || c.contact?.phone || null,
+    [contacts],
+  );
   const mapPick = useCallback(
     (p) => {
       const id = p.card.bin || p.card.id;
@@ -2589,6 +2595,7 @@ export default function App() {
           reduced={reduce}
           onPick={mapPick}
           describe={mapDescribe}
+          contactFor={mapContact}
           startBig={mapParam === 'big'}
         />
       </Suspense>
@@ -3189,7 +3196,7 @@ export default function App() {
                     colors={themeColors}
                     reduced={reduce}
                     onPick={mapPick}
-                    describe={mapDescribe}
+                    describe={mapDescribe} contactFor={mapContact}
                   />
                 </Suspense>
               ) : (
