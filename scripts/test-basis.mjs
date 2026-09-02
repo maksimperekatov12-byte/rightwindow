@@ -38,9 +38,10 @@ assert.equal(resolveMoney({ ...base, winsRecorded: 3, winsMedian: 80000 }).basis
 assert.equal(resolveMoney({ ...base, register: 'contracts', profileKey: 'restoration' }).unit, 0);
 assert.equal(resolveMoney({ ...base, register: 'contracts', profileKey: 'insurance' }).unit, Math.round(3194100 * 0.015));
 
-// Recurring units say so.
+// Recurring units say so; a tradeless visitor gets no invented venue money.
 assert.equal(resolveMoney({ ...base, register: 'elevators', profileKey: null }).recurring, 'year');
 assert.equal(resolveMoney({ ...base, register: 'openings', profileKey: 'pos' }).life, 4);
+assert.ok(!resolveMoney({ ...base, register: 'openings', profileKey: null }).unit);
 
 // Every non-derived unit in the table is marked as an assumption.
 for (const [reg, table] of Object.entries(TRADE_UNITS))

@@ -1138,6 +1138,18 @@ export default function App() {
   // them anything. The feed renders first; the question waits in the header.
   const [showOnboard, setShowOnboard] = useState(false);
   const [vertical, setVertical] = useState('facades');
+  // Six tabs of equal weight is an unmade decision. With no trade chosen the
+  // row holds the three registers that pass the bar — figure rests on a city
+  // record, buyer is a building-services contractor, deadline is real and
+  // dated — and the rest sit behind "+3 more". Expanding sticks for the
+  // session; hiding what is not useful is honest, hiding that it exists is not.
+  const [rowOpen, setRowOpen] = useState(() => {
+    try { return sessionStorage.getItem('rw.row') === '1'; } catch { return false; }
+  });
+  const openRow = () => {
+    setRowOpen(true);
+    try { sessionStorage.setItem('rw.row', '1'); } catch {}
+  };
   const [shown, setShown] = useState(7);
   const [openId, setOpenId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -2002,6 +2014,19 @@ export default function App() {
     contracts: contractsBase.length,
     openings: liveOpenings.length,
   };
+  // THE pool every register-level chip and count reads from — the same rows
+  // the body prices. Raw data.* is never counted directly by the UI again:
+  // that is how "Still open (127)" sat beside "126 notices open" (the raw feed
+  // still held a cancellation the register had already dropped).
+  const registerPool = (k) =>
+    k === 'facades'
+      ? facadeFeed
+      : MANDATES[k]
+        ? data[k]?.feed || []
+        : k === 'contracts'
+          ? contractsBase
+          : liveOpenings;
+
   const matchedVerts = VERTICALS.filter(
     (v) =>
       isExplore ||
@@ -2013,22 +2038,33 @@ export default function App() {
   );
   const bigEnough = matchedVerts.filter((v) => v.key === forcedVert.current || vertSize[v.key] >= MIN_LIST);
   const matchedVertKeys = (bigEnough.length ? bigEnough : matchedVerts).map((v) => v.key);
-  // A chosen trade sees ONLY its own registers. The old "+N more" escape
-  // hatch put the facade register in front of a marketing shop, and every card
-  // there read as mistargeted. The full six stay one click away — pick "Just
-  // exploring" in the header.
-  const visibleVerts = bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1);
+  // A chosen trade sees ONLY its own registers (a marketing shop never gets
+  // the facade register). With no trade, the default row is facades · carbon ·
+  // elevators, the rest behind "+3 more" for the session.
+  const DEFAULT_ROW = ['facades', 'carbon', 'elevators'];
+  const allMatched = bigEnough.length ? bigEnough : matchedVerts.length ? matchedVerts.slice(0, 1) : VERTICALS.slice(0, 1);
+  const visibleVerts =
+    isExplore && !rowOpen
+      ? DEFAULT_ROW.map((k) => allMatched.find((v) => v.key === k)).filter(Boolean)
+      : allMatched;
+  const hiddenVertCount = allMatched.length - visibleVerts.length;
   const pickedVert = useRef(false);
   useEffect(() => {
     const here = visibleVerts.some((v) => v.key === vertical);
     // A deep link, or a tab this visitor chose, always wins.
     if (here && (pickedVert.current || forcedVert.current)) return;
+    // A deep link into a collapsed register expands the row rather than being
+    // bounced back to the default three.
+    if (!here && allMatched.some((v) => v.key === vertical)) {
+      openRow();
+      return;
+    }
     // Otherwise open where the work is. Property management matched on facades
     // and landed on seven cards while its twelve hundred sat two tabs away.
     const best = [...visibleVerts].sort((a, b) => (vertSize[b.key] || 0) - (vertSize[a.key] || 0))[0];
     const next = (best || visibleVerts[0]).key;
     if (next !== vertical) setVertical(next);
-  }, [profileKey, visibleVerts.map((v) => v.key).join()]);
+  }, [profileKey, vertical, visibleVerts.map((v) => v.key).join()]);
 
   // How much work each trade can act on right now: facade rows that pass its own
   // filter, plus the awards and venue filings it can use. The picker is ordered
@@ -2751,7 +2787,7 @@ export default function App() {
       {(REG_COHORTS[vertical] || []).map((k) => {
         const def = COHORTS[k];
         if (!def) return null;
-        const pool = data[vertical]?.feed || data[vertical] || [];
+        const pool = registerPool(vertical);
         const n = pool.filter(def.of).length;
         // A filter that selects the whole register tells you nothing.
         if (!n || n === pool.length) return null;
@@ -3159,7 +3195,11 @@ export default function App() {
               <span className="tlabel">{v.label}</span>
             </button>
           ))}
-
+          {hiddenVertCount > 0 && (
+            <button className="vmore" onClick={openRow}>
+              +{hiddenVertCount} more
+            </button>
+          )}
         </div>
       </LayoutGroup>
 
@@ -3167,10 +3207,8 @@ export default function App() {
         <section className="hero">
           {vertical === 'facades' ? (
             <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
-              <b>
-                <CountUp value={data.facades.totals.nonFilers10A} />
-              </b>
-              <i>buildings</i>
+              <b>{(data.facades.totals.nonFilers10A || 0).toLocaleString('en-US')}</b>
+              <i>buildings citywide</i>
               <span>
                 have not filed their sub-cycle 10A facade report. The deadline is {usDate(deadlineIso)} —{' '}
                 <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
@@ -3183,10 +3221,8 @@ export default function App() {
             </motion.div>
           ) : vertical === 'carbon' ? (
             <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
-              <b>
-                <CountUp value={data.carbon?.totals?.cited || 0} />
-              </b>
-              <i>buildings</i>
+              <b>{(data.carbon?.totals?.cited || 0).toLocaleString('en-US')}</b>
+              <i>buildings citywide</i>
               <span>
                 cited under Local Law 97 with no accepted emissions report. The next report is due May 1, 2027 —{' '}
                 <strong>{monthsToCarbon} months out</strong>. Over the cap: $268 a ton, every year.
@@ -3194,10 +3230,8 @@ export default function App() {
             </motion.div>
           ) : vertical === 'gas' ? (
             <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
-              <b>
-                <CountUp value={data.gas?.totals?.cited || 0} />
-              </b>
-              <i>buildings</i>
+              <b>{(data.gas?.totals?.cited || 0).toLocaleString('en-US')}</b>
+              <i>buildings citywide</i>
               <span>
                 are cited on Local Law 152's four-year gas clock. Sub-cycle C closes Dec 31, 2026 —{' '}
                 <strong>{monthsToDec26} months out</strong> — and these {(data.gas?.totals?.open || 0).toLocaleString('en-US')} have
@@ -3206,20 +3240,17 @@ export default function App() {
             </motion.div>
           ) : vertical === 'elevators' ? (
             <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
-              <b>
-                <CountUp value={data.elevators?.totals?.cited || 0} />
-              </b>
-              <i>buildings</i>
+              <b>{(data.elevators?.totals?.cited || 0).toLocaleString('en-US')}</b>
+              <i>buildings citywide</i>
               <span>
-                skipped an entire annual CAT1 elevator cycle. The missed test and this year's are both due by Dec 31,
+                skipped an entire annual CAT1 elevator cycle; the {(data.elevators?.totals?.open || 0).toLocaleString('en-US')} most
+                urgent are on this register. The missed test and this year's are both due by Dec 31,
                 2026 — <strong>{monthsToDec26} months out</strong>. After that: DOB violations, device by device.
               </span>
             </motion.div>
           ) : vertical === 'contracts' && contractHook.open === 0 && contractHook.awardN > 0 ? (
             <motion.div className="hook" data-label="City Record · procurement" {...fade(0)}>
-              <b>
-                <CountUp value={contractHook.awardN} />
-              </b>
+              <b>{contractHook.awardN.toLocaleString('en-US')}</b>
               <i>awards</i>
               <span>
                 worth {fmtMoney(contractHook.awards)} just landed. Every winner has about two weeks to line up
@@ -3228,9 +3259,7 @@ export default function App() {
             </motion.div>
           ) : vertical === 'contracts' ? (
             <motion.div className="hook" data-label="City Record · procurement" {...fade(0)}>
-              <b>
-                <CountUp value={contractHook.open} />
-              </b>
+              <b>{contractHook.open.toLocaleString('en-US')}</b>
               <i>notices</i>
               <span>
                 are open on city work right now
@@ -3255,9 +3284,7 @@ export default function App() {
             </motion.div>
           ) : vertical === 'openings' ? (
             <motion.div className="hook" data-label="DOHMH & NYS SLA · new venues" {...fade(0)}>
-              <b>
-                <CountUp value={vertSize.openings || 0} />
-              </b>
+              <b>{(vertSize.openings || 0).toLocaleString('en-US')}</b>
               <i>venues</i>
               <span>
                 hold a fresh permit and no first inspection — build-out is happening now, before the doors open. The
@@ -3386,11 +3413,18 @@ export default function App() {
                     </b>
                   )
                 ) : vertical === 'openings' ? (
-                  <b className="pipe-win">
-                    {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)}
-                    {myPipeline.recurring ? ' a year' : ''}
-                    {myPipeline.life ? ` — for the ~${myPipeline.life} years a venue stays. · assumption` : '.'}
-                  </b>
+                  myPipeline.avg > 0 ? (
+                    <b className="pipe-win">
+                      {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)}
+                      {myPipeline.recurring ? ' a year' : ''}
+                      {myPipeline.life ? ` — for the ~${myPipeline.life} years a venue stays · assumption` : '.'}
+                    </b>
+                  ) : (
+                    <b className="pipe-win">
+                      Every venue here is choosing its vendors during build-out. Pick your trade and this figure
+                      prices itself.
+                    </b>
+                  )
                 ) : (
                   <b className="pipe-win">
                     {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
@@ -4132,7 +4166,7 @@ export default function App() {
 
       {vertical === 'contracts' && (
         <>
-          {miniToolbar(contractsList, data.contracts.length)}
+          {miniToolbar(contractsList, contractsBase.length)}
           <SimpleFeed
             items={contractsList.slice(0, shown)}
             total={contractsList.length}
@@ -4540,7 +4574,7 @@ export default function App() {
 
       {vertical === 'openings' && (
         <>
-          {miniToolbar(openingsList, data.openings.length, { boroughs: true, counts: openingsCounts })}
+          {miniToolbar(openingsList, liveOpenings.length, { boroughs: true, counts: openingsCounts })}
           {mapPanel(openingsList)}
           <SimpleFeed
             items={openingsList.slice(0, shown)}

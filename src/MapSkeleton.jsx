@@ -70,7 +70,10 @@ export default function MapSkeleton({ cards = [], loading = false, onPick = null
         ))}
       </svg>
       <span className="mapskel-cap">
-        {dots.length.toLocaleString('en-US')} cards on the city{loading ? ' · map loading' : ' · tap a dot to open its card'}
+        {dots.length < cards.length
+          ? `${dots.length.toLocaleString('en-US')} of ${cards.length.toLocaleString('en-US')} cards mapped`
+          : `${dots.length.toLocaleString('en-US')} cards on the city`}
+        {loading ? ' · map loading' : ' · tap a dot to open its card'}
       </span>
     </div>
   );
