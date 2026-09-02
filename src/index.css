@@ -783,7 +783,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
    battery — but the slot stays: the static outline with the dots baked in is
    thirty kilobytes and reviewers open links on phones. Contracts' built 3D
    scene has no static fallback, so that slot alone stays desktop-only. */
-.massing-slot { display: block; position: relative; min-height: 235px; margin: 4px 0 6px; }
+.massing-slot { display: block; position: relative; min-height: 48vh; margin: 4px 0 6px; }
+@media (max-width: 979px) {
+  .massing-slot .citymap-wrap { position: absolute; inset: 0; margin: 0; }
+  .massing-slot .citymap { position: absolute; inset: 0 0 30px 0; height: auto; background: transparent; }
+}
 .massing-slot.scene-only { display: none; }
 @media (min-width: 980px) {
   .massing-slot { display: block; position: relative; min-height: 356px; margin: -14px 0 0; padding-bottom: 22px; }
@@ -1011,9 +1015,8 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dtable.cover td.name { white-space: nowrap; vertical-align: top; }
 
 /* ---- The register on the city ------------------------------------------- */
-.citymap-wrap { position: relative; margin: 10px 0 16px; display: none; }
+.citymap-wrap { position: relative; margin: 10px 0 16px; display: block; }
 @media (min-width: 980px) {
-  .citymap-wrap { display: block; }
   .citymap {
     position: relative;
     height: 430px;
@@ -1187,8 +1190,10 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
    same sentence only pushes the first card further away. */
 @media (max-width: 767px) {
   .personas-hint { display: none; }
-  .mapskel { position: relative; inset: auto; height: 200px; }
-  .massing-slot { min-height: 200px; margin: 2px 0 4px; }
+  /* The real map ships on phones now: a touch-appropriate stage, with the
+     static outline absolutely underneath it as the loading/no-WebGL state. */
+  .mapskel { inset: 0; }
+  .massing-slot { min-height: 48vh; margin: 2px 0 6px; }
 }
 
 /* A borough the current filters leave empty: present, honest, quiet. */
@@ -1260,7 +1265,12 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
    audit pointed: tabs to one scrolling row, header condensed, calendar box
    trimmed. The funnel sentence is deliberately untouched. ---- */
 @media (max-width: 767px) {
-  .verticals { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  /* width:fit-content let the strip grow past the viewport and drag the whole
+     page sideways. Constrained, and sized so the three defaults plus "+3 more"
+     share one row on a 375px screen with no scrolling. */
+  .verticals { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; max-width: 100%; width: auto; gap: 2px; padding: 3px; }
+  .verticals button { font-size: 12.5px; padding: 8px 9px; min-height: 40px; }
+  .verticals .vmore { font-size: 11px; padding: 8px 8px; }
   .verticals::-webkit-scrollbar { display: none; }
   .verticals button { white-space: nowrap; flex: none; }
 

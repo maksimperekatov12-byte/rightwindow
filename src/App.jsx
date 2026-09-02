@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useDeferredValue, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
-import data from './data/feed.json';
+import feedLite from './data/feed-lite.json';
+import { feedPromise } from './feed-loader.js';
 import MapSkeleton from './MapSkeleton.jsx';
 import DataPage from './Data.jsx';
 import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
@@ -1137,6 +1138,17 @@ export default function App() {
   // modal over a blurred feed asks them to classify themselves before showing
   // them anything. The feed renders first; the question waits in the header.
   const [showOnboard, setShowOnboard] = useState(false);
+  // The shell ships with feed-lite (totals + the first rows); the 2MB register
+  // arrives as parallel JSON and swaps in here. Every memo that reads `data`
+  // lists it as a dependency, so the whole page reprices exactly once.
+  const [data, setData] = useState(feedLite);
+  useEffect(() => {
+    let dead = false;
+    feedPromise.then((full) => {
+      if (!dead) setData(full);
+    }).catch(() => {});
+    return () => { dead = true; };
+  }, []);
   const [vertical, setVertical] = useState('facades');
   // Six tabs of equal weight is an unmade decision. With no trade chosen the
   // row holds the three registers that pass the bar — figure rests on a city
@@ -1215,7 +1227,12 @@ export default function App() {
   const reduce = useReducedMotion();
   // Mounts the register's scene only once the page is idle, and never on a
   // narrow viewport, under reduced motion, or without WebGL.
-  const sceneReady = useSceneReady(wide && !reduce);
+  // The map loads on phones too now: WebGL is there, MapLibre handles touch,
+  // and the register is geocoded — the one place the product's strongest
+  // visual was missing was the device reviewers open links on. Still idle-
+  // gated so the feed is interactive first; the static outline holds the
+  // space and remains the honest fallback where WebGL truly is absent.
+  const sceneReady = useSceneReady(!reduce);
   const uid = useRef(null);
   const secret = useRef(null);
   if (uid.current === null) {
@@ -1722,13 +1739,13 @@ export default function App() {
   };
   const facadeFeed = useMemo(
     () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || SORTS.profile),
-    [profileKey, sortMode, contacts],
+    [data, profileKey, sortMode, contacts],
   );
   // The one register-wide money figure that grows in every hourly build: what
   // DOB has already assessed. It rises as the city works, not as we estimate.
   const facadeFines = useMemo(
-    () => Math.round(data.facades.feed.reduce((s, c) => s + (c.finesOwed || 0), 0)),
-    [],
+    () => (data.lite ? data.meta.facadeFines : Math.round(data.facades.feed.reduce((s, c) => s + (c.finesOwed || 0), 0))),
+    [data],
   );
   const deferredQuery = useDeferredValue(query);
   // Split in two on purpose: everything EXCEPT the borough chip first, then the
@@ -1785,8 +1802,8 @@ export default function App() {
   // A cancellation notice is not an open solicitation; City Record files them
   // under the same kind, and one sat in the feed reading "closes in 2 days".
   const noCancel = (rows) => rows.filter((c) => !/^\s*cancell/i.test(c.title || ''));
-  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts)), [live]);
-  const liveOpenings = useMemo(() => mergeLive(data.openings, live?.openings), [live]);
+  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts)), [data, live]);
+  const liveOpenings = useMemo(() => mergeLive(data.openings, live?.openings), [data, live]);
   // The liquour file dates its applications and the health file does not, so
   // there is no single number both sources can be ordered by: comparing them
   // directly put all 350 undated rows below all 39 dated ones and called it
@@ -1904,7 +1921,7 @@ export default function App() {
     }
     out._counts = counts;
     return out;
-  }, [onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort, contacts]);
+  }, [data, onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort, contacts]);
   // A sort that does not exist on the register you just switched to would leave
   // the control showing nothing while the list quietly reordered itself.
   useEffect(() => {
@@ -2082,7 +2099,7 @@ export default function App() {
       m[k] = { facades: f, contracts: c, openings: o, mandates: mand, total: k === 'explore' ? -1 : f + c + o + mand };
     }
     return m;
-  }, [liveContracts, liveOpenings]);
+  }, [data, liveContracts, liveOpenings]);
   const orderedTrades = useMemo(
     () => Object.keys(PROFILES).sort((a, b) => tradeVolume[b].total - tradeVolume[a].total),
     [tradeVolume],
@@ -2237,7 +2254,7 @@ export default function App() {
       if (idx >= 0) open('openings', idx);
     }
     // live arrives after mount; a row that only exists there resolves on retry.
-  }, [live, reduce, hashTick]);
+  }, [data, live, reduce, hashTick]);
 
   // A dialog that does not take focus, hold it, and give it back is unusable
   // with a keyboard or a screen reader.
@@ -2588,6 +2605,8 @@ export default function App() {
   // awards-only trade must not be greeted with a count of solicitations it
   // will never see.
   const contractHook = useMemo(() => {
+    if (data.lite)
+      return { open: data.meta.contractsOpen, nearest: null, awards: data.meta.awardsSum, awardN: data.meta.awardN };
     const open = contractsBase.filter((c) => c.kind !== 'AWARD' && (c.daysLeft == null || c.daysLeft >= 0));
     const nearest = open
       .map((c) => c.daysLeft)
@@ -2596,7 +2615,7 @@ export default function App() {
     const awardRows = contractsBase.filter((c) => c.kind === 'AWARD');
     const awards = awardRows.reduce((s, c) => s + (c.amount || 0), 0);
     return { open: open.length, nearest, awards, awardN: awardRows.length };
-  }, [contractsBase]);
+  }, [data, contractsBase]);
   const openingsPhones = useMemo(() => liveOpenings.filter((o) => o.phone).length, [liveOpenings]);
   const monthsToDec26 = Math.max(0, Math.round((new Date('2026-12-31') - now) / (30.44 * 86400000)));
 
@@ -2861,6 +2880,7 @@ export default function App() {
   if (route === 'data')
     return (
       <DataPage
+        data={data}
         live={live}
         isDark={isDark}
         onTheme={toggleTheme}
@@ -3284,11 +3304,11 @@ export default function App() {
             </motion.div>
           ) : vertical === 'openings' ? (
             <motion.div className="hook" data-label="DOHMH & NYS SLA · new venues" {...fade(0)}>
-              <b>{(vertSize.openings || 0).toLocaleString('en-US')}</b>
+              <b>{(data.lite ? data.meta.openings : vertSize.openings || 0).toLocaleString('en-US')}</b>
               <i>venues</i>
               <span>
                 hold a fresh permit and no first inspection — build-out is happening now, before the doors open. The
-                city prints a phone number on <strong>{openingsPhones.toLocaleString('en-US')}</strong> of them.
+                city prints a phone number on <strong>{(data.lite ? data.meta.openingsPhones : openingsPhones).toLocaleString('en-US')}</strong> of them.
               </span>
             </motion.div>
           ) : (
@@ -3312,7 +3332,14 @@ export default function App() {
             {emphasize(heroText)}
           </motion.h1>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
-          {vertical === 'carbon' ? (
+          {data.lite && HEROES[vertical] ? (
+            <motion.div className="pipe" {...fade(0.1)}>
+              {/* The full register is still on the wire; a funnel priced from
+                  the lite slice would print numbers that correct themselves a
+                  second later — the one sin this page cannot afford. */}
+              <b className="pipe-lead">Pricing this register from the city's filings…</b>
+            </motion.div>
+          ) : vertical === 'carbon' ? (
             carbonMoney.n > 0 && (
               <motion.div className="pipe" {...fade(0.1)}>
                 <b>
@@ -3323,7 +3350,8 @@ export default function App() {
                       recurring penalty, and the register prices it from each
                       building's own reported emissions — the one register where
                       the dollar figure is the city's arithmetic, not ours. */}
-                  of priced exposure across {carbonMoney.priced.toLocaleString('en-US')} of{' '}
+                  of the buildings' own priced exposure — their money, not a vendor forecast — across{' '}
+                  {carbonMoney.priced.toLocaleString('en-US')} of{' '}
                   {carbonMoney.n.toLocaleString('en-US')} buildings shown — $268 a ton over the cap, every year, from
                   each building's own reported emissions against an estimated cap; a campus that files one report is
                   counted once{carbonMoney.max > 0 ? ` · largest ${fmtMoney(carbonMoney.max)}/yr` : ''} · counted this
@@ -3354,7 +3382,7 @@ export default function App() {
                   {myPipeline.nearestClose != null
                     ? ` — the nearest closes ${myPipeline.nearestClose === 0 ? 'today' : `in ${myPipeline.nearestClose} business day${myPipeline.nearestClose === 1 ? '' : 's'}`}`
                     : ''}{' '}
-                  · {fmtMoney(myPipeline.awardsSum)} in awards placed in the last window.
+                  · {fmtMoney(myPipeline.awardsSum)} in awards placed in the last window — the winners' money.
                 </b>
               ) : vertical === 'openings' ? (
                 <b className="pipe-lead">
@@ -3363,18 +3391,20 @@ export default function App() {
                 </b>
               ) : (
                 <>
+                  {/* Two kinds of money, named for their owners: the register
+                      figure is what the BUILDINGS will spend; the amber figure
+                      addresses the user and says its denomination. The old bare
+                      arrow claimed the first converts into the second. */}
                   <span className="gross">
-                    <Rolling value={myPipeline.gross} format={fmtMoney} /> open
+                    <Rolling value={myPipeline.gross} format={fmtMoney} /> of facade work sits on this register
                   </span>
-                  <span className="arrow" aria-hidden="true">→</span>
                   <b title={`${workClause(myPipeline)} × ${fmtMoney(myPipeline.avg)} = ${fmtMoney(myPipeline.expected)}`}>
-                    ~<Rolling value={myPipeline.expected} format={fmtMoney} /> expected{' '}
+                    ~<Rolling value={myPipeline.expected} format={fmtMoney} />{' '}
                     <em>
-                      {myPipeline.recurring
-                        ? `a ${myPipeline.recurring}, recurring`
-                        : myPipeline.horizon
-                          ? `by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
-                          : 'per year'}
+                      reaches you, in {myPipeline.recurring ? `contracts a ${myPipeline.recurring}` : 'contracts'}
+                      {myPipeline.horizon && !myPipeline.recurring
+                        ? ` · by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
+                        : ''}
                     </em>
                   </b>
                 </>
@@ -3392,19 +3422,19 @@ export default function App() {
               <span className="pipe-note">
                 {vertical === 'gas' ? (
                   <b className="pipe-win">
-                    {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)} now — and LL152 brings the same
-                    buildings back every four years.
+                    {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)} reaches you, in contracts — and
+                    LL152 brings the same buildings back every four years.
                   </b>
                 ) : vertical === 'elevators' ? (
                   <b className="pipe-win">
-                    {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)} a year — and a service contract renews
-                    every year.
+                    {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)} a year reaches you, in contracts —
+                    and a service contract renews every year.
                   </b>
                 ) : vertical === 'contracts' ? (
                   myPipeline.avg > 0 ? (
                     <b className="pipe-win">
-                      Selling into the winners: {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)} of the{' '}
-                      {fmtMoney(myPipeline.awardsSum)} placed.
+                      The {fmtMoney(myPipeline.awardsSum)} placed is the winners' money — and they buy from you:{' '}
+                      {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)} reaches you, in fees.
                     </b>
                   ) : (
                     <b className="pipe-win">
@@ -3415,14 +3445,14 @@ export default function App() {
                 ) : vertical === 'openings' ? (
                   myPipeline.avg > 0 ? (
                     <b className="pipe-win">
-                      {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)}
-                      {myPipeline.recurring ? ' a year' : ''}
+                      {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)}
+                      {myPipeline.recurring ? ' a year' : ''} reaches you, in billings
                       {myPipeline.life ? ` — for the ~${myPipeline.life} years a venue stays · assumption` : '.'}
                     </b>
                   ) : (
                     <b className="pipe-win">
-                      Every venue here is choosing its vendors during build-out. Pick your trade and this figure
-                      prices itself.
+                      Every venue here is choosing its vendors during build-out — what that is worth depends on what
+                      you sell. Pick your trade above.
                     </b>
                   )
                 ) : (
@@ -3458,7 +3488,7 @@ export default function App() {
       {/* The hero map on desktop; on a phone it moves BELOW the feed — the
           first card inside 1.2 screens beats the visual, and the drawing is
           still there for whoever scrolls. */}
-        {wide && mapSlot}
+        {mapSlot}
       </div>
 
       <motion.div
@@ -4729,8 +4759,6 @@ export default function App() {
       )}
 
       </motion.div>
-
-      {!wide && <div className="lede lede-after">{mapSlot}</div>}
 
       {/* The market stats moved below the feed on purpose: they sized the
           hero, and the hero's job is to put a real expanded card above the

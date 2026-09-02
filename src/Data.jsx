@@ -9,11 +9,12 @@ const onDate = (iso) => {
   return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-import data from './data/feed.json';
+// The 2MB feed must not ride in the bundle for a coverage table — the app
+// passes the loaded register down instead.
 
 // Generated from data/source-policy.json at build time. Nothing on this page is
 // written by hand, so it cannot drift from the gate the collectors actually enforce.
-export default function DataPage({ live, onBack, isDark, onTheme }) {
+export default function DataPage({ data, live, onBack, isDark, onTheme }) {
   const freshness = { ...(data.sources || {}), ...(live?.sources || {}) };
   const allowed = policy.filter((p) => p.verdict === 'ALLOWED' && p.datasets?.length);
   const denied = policy.filter((p) => p.verdict !== 'ALLOWED');
