@@ -1561,6 +1561,12 @@ export default function App() {
   const pickProfile = (k) => {
     setProfileKey(k);
     saveLS('rw.profile', k);
+    // A card deep link earlier in the session pinned its register open
+    // (forcedVert) so the shared link could not be swallowed. Choosing a trade
+    // is a stronger statement: the pin comes off, or a POS shop that once
+    // glanced at a contract card keeps a City contracts tab forever.
+    forcedVert.current = '';
+    pickedVert.current = false;
     goTrade(k);
     setRoute('feed');
     if (!loadLS('rw.ticket', 0) && k !== 'explore') setTicket(ticketFor(k, homeVertical(k)));
