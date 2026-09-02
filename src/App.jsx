@@ -2689,21 +2689,61 @@ export default function App() {
   );
   const mapPick = useCallback(
     (p) => {
-      const id = p.card.bin || p.card.id;
+      const c = p.card;
+      const id = c.bin || c.id;
       if (!id) return;
-      // The deep link the cards already answer to: it forces the list to show
-      // enough rows to reach the target and opens it. Re-picking the card the
-      // hash already names fires no hashchange, so that case re-arms the
-      // handler by hand — closing a card and tapping its dot again must work.
-      const target = `#${vertPrefix.replace(':', '')}/${id}`;
-      if (location.hash === target) {
-        lastDeepLink.current = null;
-        setHashTick((n) => n + 1);
+      // Open DIRECTLY. The old path wrote a hash and let the deep-link effect
+      // re-derive a list index — which lost the race whenever the list was
+      // still sorting, grouping, or streaming in from the split feed, and a
+      // map click felt dead or landed wrong. The map already holds the card;
+      // the hash is written afterwards for sharing, not as the mechanism.
+      let targetId = id;
+      let idx = -1;
+      if (vertical === 'facades') {
+        idx = filteredFeed.findIndex((x) => x.bin === id);
+      } else if (MANDATES[vertical]) {
+        idx = mandateRows.findIndex((r) => (r.group ? r.cards.some((m) => m.bin === id) : r.bin === id));
+        if (idx >= 0 && mandateRows[idx].group) targetId = mandateRows[idx].id;
+      } else if (vertical === 'contracts') {
+        idx = contractsList.findIndex((x) => x.id === id);
       } else {
-        location.hash = target;
+        idx = openingsList.findIndex((x) => x.id === id);
       }
+      if (idx < 0) {
+        // Not in the rendered list (mid-stream or filtered) — fall back to the
+        // deep link, which re-resolves when the data settles.
+        const target = `#${vertPrefix.replace(':', '')}/${id}`;
+        if (location.hash === target) {
+          lastDeepLink.current = null;
+          setHashTick((n) => n + 1);
+        } else {
+          location.hash = target;
+        }
+        return;
+      }
+      setShown((s) => Math.max(s, idx + 1));
+      setOpenId(targetId);
+      try {
+        history.replaceState(null, '', `#${vertPrefix.replace(':', '')}/${id}`);
+        lastDeepLink.current = location.hash;
+      } catch {}
+      // Instant jump, retried until the row mounts: a smooth scroll is an
+      // animation and dies against a list that is still rendering.
+      const jump = () => document.getElementById(`rw-${targetId}`)?.scrollIntoView({ behavior: 'auto', block: 'center' });
+      setTimeout(() => {
+        if (document.getElementById(`rw-${targetId}`)) return jump();
+        let tries = 0;
+        const poll = setInterval(() => {
+          tries += 1;
+          const el = document.getElementById(`rw-${targetId}`);
+          if (el || tries > 12) {
+            clearInterval(poll);
+            el?.scrollIntoView({ behavior: 'auto', block: 'center' });
+          }
+        }, 350);
+      }, 350);
     },
-    [vertPrefix],
+    [vertical, vertPrefix, filteredFeed, mandateRows, contractsList, openingsList],
   );
 
   const mapSlot = (
