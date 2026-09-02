@@ -736,7 +736,10 @@ const openNotice = async (type, kind, limit) => {
       'request_id,start_date,due_date,agency_name,short_title,category_description,' +
       'selection_method_description,pin,address_to_request,contact_name,contact_phone,email,additional_description_1',
   }, 2000);
-  return rows.slice(0, limit).map((r) => {
+  // City Record files cancellations under the same notice type with a live
+  // due date — "Cancellation: …" read as open for bids until someone noticed.
+  const real = rows.filter((r) => !/^\s*cancell/i.test(String(r.short_title || '')));
+  return real.slice(0, limit).map((r) => {
     const scope = plain(r.additional_description_1);
     return {
       id: r.request_id,

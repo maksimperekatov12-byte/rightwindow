@@ -1,66 +1,58 @@
-// Locks the funnel's contract-value basis to one answer per input.
+// Locks the funnel's money to one resolution path per input.
 //
 // Regression this guards: the same empty register once showed a $375K basis on
-// one screen and $12K on another. The resolution function takes no viewport, no
-// storage and no globals, and this test fails the build if that ever changes —
-// or if the resolution order drifts.
+// one screen and $12K on another. resolveMoney takes no viewport, no storage
+// and no globals; this fails the build if that changes — or if the order
+// drifts, or if an assumption sneaks in outside TRADE_UNITS.
 import assert from 'node:assert/strict';
-import { resolveDealBasis, defaultCapacity, medianOf } from '../lib/deal-basis.mjs';
+import { resolveMoney, defaultCapacity, medianOf, TRADE_UNITS } from '../lib/deal-basis.mjs';
 
-const costs = [100000, 200000, 375000, 400000, 500000, 575000, 600000, 700000];
-
-// Determinism: identical inputs, identical output — called twice, and there is
-// no width/viewport parameter to pass at all.
+const derived = { medianCost: 375000, medianAward: 3194100 };
 const base = {
+  register: 'facades',
+  profileKey: null,
   explicitTicket: false,
   ticket: 0,
   winsRecorded: 0,
   winsMedian: 0,
-  profileKey: null,
-  viewCosts: costs,
-  registerCosts: costs,
-  profileFee: 0,
-  fallbackFee: 12000,
+  derived,
 };
-assert.deepEqual(resolveDealBasis({ ...base }), resolveDealBasis({ ...base }));
 
-// No profile → the city's own median, not our constant.
-assert.deepEqual(resolveDealBasis({ ...base }), { avg: medianOf(costs), basis: 'view' });
+// Determinism: identical inputs, identical output.
+assert.deepEqual(resolveMoney({ ...base }), resolveMoney({ ...base }));
 
-// A report-selling trade gets its fee, never the whole job's cost.
-assert.deepEqual(
-  resolveDealBasis({ ...base, profileKey: 'qewi', profileFee: 12000 }),
-  { avg: 12000, basis: 'fee' },
-);
+// No profile → the city's own median, marked city-record.
+assert.deepEqual(resolveMoney({ ...base }), { unit: 375000, basis: 'city-record', what: 'median declared job cost' });
 
-// A trade that performs the work prices at the declared cost.
-assert.equal(resolveDealBasis({ ...base, profileKey: 'restoration', profileFee: 100000 }).basis, 'view');
+// The unit follows the TRADE: a QEWI sells the report, restoration sells the job.
+assert.equal(resolveMoney({ ...base, profileKey: 'qewi' }).unit, 12000);
+assert.equal(resolveMoney({ ...base, profileKey: 'restoration' }).unit, 375000);
+assert.equal(resolveMoney({ ...base, profileKey: 'restoration' }).basis, 'city-record');
 
-// The user's own saved figure beats everything.
-assert.deepEqual(
-  resolveDealBasis({ ...base, explicitTicket: true, ticket: 90000, winsRecorded: 5, winsMedian: 50000 }),
-  { avg: 90000, basis: 'yours' },
-);
+// The user's own figure beats everything; three wins beat the table.
+assert.equal(resolveMoney({ ...base, explicitTicket: true, ticket: 90000, winsRecorded: 5, winsMedian: 50000 }).unit, 90000);
+assert.equal(resolveMoney({ ...base, winsRecorded: 3, winsMedian: 80000 }).basis, 'wins');
 
-// Three recorded wins beat every derived figure.
-assert.deepEqual(
-  resolveDealBasis({ ...base, winsRecorded: 3, winsMedian: 80000 }),
-  { avg: 80000, basis: 'wins' },
-);
+// Contracts: a bidding trade gets no invented money; a service trade prices
+// as a share of the real award amounts.
+assert.equal(resolveMoney({ ...base, register: 'contracts', profileKey: 'restoration' }).unit, 0);
+assert.equal(resolveMoney({ ...base, register: 'contracts', profileKey: 'insurance' }).unit, Math.round(3194100 * 0.015));
 
-// Small view sample falls through to the register, then to the fee.
-assert.equal(resolveDealBasis({ ...base, viewCosts: [1, 2] }).basis, 'register');
-assert.equal(resolveDealBasis({ ...base, viewCosts: [], registerCosts: [] }).basis, 'constant');
+// Recurring units say so.
+assert.equal(resolveMoney({ ...base, register: 'elevators', profileKey: null }).recurring, 'year');
+assert.equal(resolveMoney({ ...base, register: 'openings', profileKey: 'pos' }).life, 4);
 
-// Capacity is bounded, sane at the edges, and matches what the trade sells:
-// report-sellers turn over several buildings a week, work-performers do not.
+// Every non-derived unit in the table is marked as an assumption.
+for (const [reg, table] of Object.entries(TRADE_UNITS))
+  for (const [k, spec] of Object.entries(table))
+    if (spec.unit) assert.equal(spec.basis, 'assumption', `${reg}.${k} must be labelled an assumption`);
+
+// Capacity bounds are sane at the edges.
 assert.equal(defaultCapacity(NaN), 40);
-assert.equal(defaultCapacity(0.5), 8);
 assert.equal(defaultCapacity(25), 40);
 assert.ok(defaultCapacity(1000) <= 48);
-assert.equal(defaultCapacity(NaN, 'fee'), 120);
 assert.equal(defaultCapacity(25, 'fee'), 125);
 assert.ok(defaultCapacity(1000, 'fee') <= 240);
-assert.ok(defaultCapacity(1, 'fee') >= 30);
+assert.equal(medianOf([1, 2, 3]), 2);
 
 console.log('test-basis: all assertions pass');

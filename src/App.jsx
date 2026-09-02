@@ -4,7 +4,7 @@ import data from './data/feed.json';
 import MapSkeleton from './MapSkeleton.jsx';
 import DataPage from './Data.jsx';
 import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
-import { resolveDealBasis, defaultCapacity, medianOf, PERFORMS_WORK } from '../lib/deal-basis.mjs';
+import { resolveMoney, defaultCapacity, medianOf } from '../lib/deal-basis.mjs';
 import TradesPage from './Trades.jsx';
 
 const YEAR = new Date().getFullYear();
@@ -1770,7 +1770,10 @@ export default function App() {
     }
     return [...byId.values()];
   };
-  const liveContracts = useMemo(() => mergeLive(data.contracts, live?.contracts), [live]);
+  // A cancellation notice is not an open solicitation; City Record files them
+  // under the same kind, and one sat in the feed reading "closes in 2 days".
+  const noCancel = (rows) => rows.filter((c) => !/^\s*cancell/i.test(c.title || ''));
+  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts)), [live]);
   const liveOpenings = useMemo(() => mergeLive(data.openings, live?.openings), [live]);
   // The liquour file dates its applications and the health file does not, so
   // there is no single number both sources can be ordered by: comparing them
@@ -2402,9 +2405,8 @@ export default function App() {
     if (!n) return null;
     const rows = visibleForReasons || [];
 
-    // The EARLIEST deadline the visible rows carry — the one a contractor is
-    // racing — computed first because both the arrivals term and the default
-    // crew capacity are sized to it.
+    // The earliest deadline the visible rows carry — arrivals and default
+    // capacity are both sized to it.
     const todayIso = new Date(now).toISOString().slice(0, 10);
     let horizon = null;
     for (const c of rows) {
@@ -2413,64 +2415,63 @@ export default function App() {
     }
     const weeks = horizon ? Math.max(0, (new Date(horizon) - now) / (7 * 86400000)) : 0;
 
-    // The contract value: one pure resolution path, no matter the viewport,
-    // the register opened first, or anything stored. lib/deal-basis.mjs is the
-    // only place the order lives, and scripts/test-basis.mjs locks it.
-    const { avg, basis } = resolveDealBasis({
+    // Everything the resolver may derive from city records, computed from the
+    // FILTERED view first so a ZIP territory reprices on the spot.
+    const viewCosts = rows.map((c) => c?.filing?.cost).filter((v) => Number.isFinite(v) && v > 0);
+    const registerCosts =
+      vertical === 'facades' ? facadeFeed.map((c) => c.filing?.cost).filter((v) => Number.isFinite(v) && v > 0) : [];
+    const costScope = viewCosts.length >= 8 ? 'view' : registerCosts.length >= 8 ? 'register' : null;
+    const awardAmounts = vertical === 'contracts' ? rows.filter((c) => c.kind === 'AWARD' && c.amount > 0).map((c) => c.amount) : [];
+    const money = resolveMoney({
+      register: vertical,
+      profileKey,
       explicitTicket: Number(loadLS('rw.ticket', 0)) > 0,
       ticket: Number.isFinite(ticket) ? ticket : 0,
       winsRecorded: winStats.recorded,
       winsMedian: winStats.median,
-      profileKey,
-      viewCosts: rows.map((c) => c?.filing?.cost).filter((v) => Number.isFinite(v) && v > 0),
-      registerCosts:
-        vertical === 'facades' ? facadeFeed.map((c) => c.filing?.cost).filter((v) => Number.isFinite(v) && v > 0) : [],
-      profileFee: ticketFor(profileKey, vertical),
-      fallbackFee: ticketFor('qewi', vertical),
+      derived: {
+        medianCost: costScope === 'view' ? medianOf(viewCosts) : costScope === 'register' ? medianOf(registerCosts) : 0,
+        medianAward: medianOf(awardAmounts),
+      },
     });
-    if (!avg) return null;
-    const assumed = basis === 'constant' || basis === 'fee';
+    if (!money) return null;
+    const avg = money.unit;
 
+    // One close rate everywhere unless the user set one or recorded outcomes —
+    // silent variation between tabs is what a careful reader catches.
     const explicitRate = loadLS('rw.closeRate', null) != null;
-    // A mandated $1,800 inspection with a hard deadline is not an 8% sale:
-    // every building on the list HAS to buy it from somebody before the date.
-    // Cheap compulsory work defaults higher, and says so.
-    const cheapMandate = (vertical === 'gas' || vertical === 'elevators') && avg <= 5000;
     const rate = explicitRate && Number.isFinite(closeRate) && closeRate > 0
       ? clampRate(closeRate)
       : winStats.ratio > 0
         ? clampRate(winStats.ratio)
-        : cheapMandate
-          ? 0.2
-          : DEFAULT_CLOSE_RATE;
-    const rateBasis = explicitRate ? 'yours' : winStats.ratio > 0 ? 'wins' : cheapMandate ? 'mandate' : 'default';
-    // One won agent rarely stays one building — the portfolio is the argument
-    // on registers the city cites in sweeps.
-    const bigAgents = rows.filter((c) => (c.agent?.portfolio || 0) >= 3).length;
+        : DEFAULT_CLOSE_RATE;
+    const rateBasis = explicitRate ? 'yours' : winStats.ratio > 0 ? 'wins' : 'default';
 
-    // Nobody works a whole register. Expected is bounded by what one crew can
-    // actually pursue before the deadline — the user's figure if they set one,
-    // else sized to the window AND to what the trade sells: a report-seller
-    // turns over buildings several times faster than a crew that performs the
-    // work.
+    // Nobody works a whole register: the pace follows what the trade sells —
+    // small units turn over fast, whole jobs do not.
     const capSaved = capacitySaved;
-    const capKind = basis === 'fee' || basis === 'constant' ? 'fee' : 'work';
+    const capKind = avg > 0 && avg < 60000 ? 'fee' : 'work';
     const capacity = capSaved > 0 ? Math.round(capSaved) : defaultCapacity(weeks, capKind);
     const workN = Math.min(n, capacity);
-    const wins = Math.max(1, Math.round(workN * rate));
+    const wins = avg > 0 ? Math.max(1, Math.round(workN * rate)) : 0;
     const winSum = wins * avg;
 
-    // The gross stays whole-register context: today's list plus the measured
-    // arrival rate carried to the deadline, scaled to the filtered share.
+    // The register-level facts each tab leads with, computed from the
+    // FILTERED list so every figure moves under the ZIP box.
+    const agents = new Map();
+    for (const c of rows) if (c.agent?.company) agents.set(c.agent.company.toUpperCase().trim(), (agents.get(c.agent.company.toUpperCase().trim()) || 0) + 1);
+    const largestAgent = Math.max(0, ...agents.values());
+    const openNotices = vertical === 'contracts' ? rows.filter((c) => c.kind !== 'AWARD' && (c.daysLeft == null || c.daysLeft >= 0)) : [];
+    const nearestClose = openNotices.map((c) => c.daysLeft).filter((d) => d != null && d >= 0).sort((a, b) => a - b)[0];
+    const awardsSum = awardAmounts.reduce((s, v) => s + v, 0);
+    const phones = vertical === 'openings' ? rows.filter((o) => o.phone).length : 0;
+
     const perWeek = vertical === 'facades' ? wn.buildings || 0 : vertical === 'contracts' ? wn.contracts || 0 : vertical === 'openings' ? wn.openings || 0 : wn[vertical] || 0;
     const registerSize = vertSize[vertical] || n;
     const share = registerSize > 0 ? Math.min(1, n / registerSize) : 1;
     const arriving = Math.round(perWeek * weeks * share);
-    // What the city added to this view in the last measured week, in dollars —
-    // the number that genuinely climbs day by day as departments publish.
     const growWeek = Math.round(perWeek * share) * avg;
     const gross = (n + arriving) * avg;
-    if (!Number.isFinite(gross) || gross <= 0) return null;
 
     return {
       n,
@@ -2484,40 +2485,46 @@ export default function App() {
       wins,
       arriving,
       growWeek,
-      bigAgents,
       weeks: Math.round(weeks),
       horizon,
-      assumed,
-      basis,
+      basis: money.basis,
+      what: money.what,
+      recurring: money.recurring || null,
+      life: money.life || null,
+      costScope,
       rateBasis,
+      agents: agents.size,
+      largestAgent,
+      openNotices: openNotices.length,
+      nearestClose,
+      awardsSum,
+      awardN: awardAmounts.length,
+      phones,
     };
   }, [ticket, closeRate, capacitySaved, openCount, profileKey, vertical, visibleForReasons, facadeFeed, winStats, now, wn, vertSize]);
 
-  // Below ~40 actionable signals, "win N" replaces expected value: a plainly
-  // reachable share, floored at two so it never reads as a dare.
-  const winTarget = (n) => Math.min(n, Math.max(2, Math.round(n * 0.2)));
-  // Every funnel figure names its basis, because the number is only believed
-  // when the reader can see where it came from.
+  // Every figure names its origin: the city's record, the user's own numbers,
+  // or an assumption from lib/deal-basis.mjs — never an unlabelled constant.
   const basisLabel = (p) =>
     p.basis === 'yours'
-      ? `${fmtMoney(p.avg)} avg contract — yours`
+      ? `${fmtMoney(p.avg)} — your average contract`
       : p.basis === 'wins'
         ? `${fmtMoney(p.avg)} — median of your ${winStats.recorded} recorded wins`
-        : p.basis === 'view'
-          ? `${fmtMoney(p.avg)} — median declared job cost in this view`
-          : p.basis === 'register'
-            ? `${fmtMoney(p.avg)} — median declared job cost on this register`
-            : p.basis === 'fee'
-              ? `${fmtMoney(p.avg)} — your trade's fee per building`
-              : `assuming a ${fmtMoney(p.avg)} average job`;
+        : p.basis === 'city-record'
+          ? `${fmtMoney(p.avg)} — ${p.what}${p.costScope === 'view' ? ' in this view' : ''} · city record`
+          : `${fmtMoney(p.avg)} — ${p.what} · assumption`;
   const rateLabel = (p) =>
     p.rateBasis === 'yours'
-      ? `${Math.round(p.rate * 100)}% close rate — yours`
+      ? `${Math.round(p.rate * 100)}% close — yours`
       : p.rateBasis === 'wins'
-        ? `${Math.round(p.rate * 100)}% close — based on your ${winStats.touched} recorded outcomes`
-        : p.rateBasis === 'mandate'
-          ? `${Math.round(p.rate * 100)}% close — assumed: a cheap, compulsory buy with a hard date`
-          : `${Math.round(p.rate * 100)}% close rate — assumed for mandated work`;
+        ? `${Math.round(p.rate * 100)}% close — from your ${winStats.touched} recorded outcomes`
+        : `${Math.round(p.rate * 100)}% close — assumed`;
+  // "work 120, win 10" on two different registers read as a hardcoded
+  // placeholder. When the ceiling is the crew, the sentence says so.
+  const workClause = (p) =>
+    p.n > p.capacity
+      ? `work ${p.capacity} of ${p.n.toLocaleString('en-US')} — your capacity, not the register — win ${p.wins}`
+      : `win ${p.wins} of ${p.n.toLocaleString('en-US')}`;
   // Carbon's money is the city's arithmetic summed over the filtered view.
   const carbonMoney = useMemo(() => {
     if (vertical !== 'carbon') return { n: 0, priced: 0, sum: 0, max: 0 };
@@ -3299,91 +3306,114 @@ export default function App() {
             )
           ) : myPipeline ? (
             <motion.div className="pipe" {...fade(0.1)}>
-              {/* One presentation for every register: the big figure is what a
-                  crew takes home, bounded by what it can pursue — never the
-                  register times a rate. The sentence names the task in the
-                  register's own verb, and the line under the arrow says the
-                  count is THIS MINUTE's: the city files daily, the number
-                  moves. */}
-              <span className="gross">
-                <Rolling value={myPipeline.gross} format={fmtMoney} /> open
-              </span>
-              <span className="arrow" aria-hidden="true">→</span>
-              <b
-                title={
-                  myPipeline.n > myPipeline.capacity
-                    ? `work ${myPipeline.capacity} of ${myPipeline.n} × ${Math.round(myPipeline.rate * 100)}% close = ${myPipeline.wins} won × ${fmtMoney(myPipeline.avg)} = ${fmtMoney(myPipeline.expected)}`
-                    : `win ${winTarget(myPipeline.n)} of ${myPipeline.n} × ${fmtMoney(myPipeline.avg)} = ${fmtMoney(winTarget(myPipeline.n) * myPipeline.avg)}`
-                }
-              >
-                ~<Rolling
-                  value={myPipeline.n > myPipeline.capacity ? myPipeline.expected : winTarget(myPipeline.n) * myPipeline.avg}
-                  format={fmtMoney}
-                />{' '}
-                expected{' '}
-                <em>
-                  {myPipeline.horizon
-                    ? `by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
-                    : 'per year'}
-                </em>
-              </b>
-              <span
-                className={'pipe-grow' + (myPipeline.growWeek > 0 ? '' : ' still')}
-                title="Counted this minute from today's register. The city files daily — tomorrow's records move every figure here."
-              >
-                {myPipeline.growWeek > 0
-                  ? `↑ ${fmtMoney(myPipeline.growWeek)} entered this view this week — counted this minute`
-                  : 'counted this minute — the next city sweep moves it'}
-              </span>
-              <span className="pipe-note">
-                <b className="pipe-win">
-                  {(() => {
-                    const terr = zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : '';
-                    const act =
-                      myPipeline.n > myPipeline.capacity
-                        ? `work ${myPipeline.capacity}, win ${myPipeline.wins}.`
-                        : `win ${winTarget(myPipeline.n)}.`;
-                    const nTxt = myPipeline.n.toLocaleString('en-US');
-                    if (vertical === 'contracts')
-                      return `${nTxt} ${myPipeline.n === 1 ? 'opportunity' : 'opportunities'}${terr} open on city work right now — ${act}`;
-                    if (vertical === 'openings')
-                      return `${nTxt} venue${myPipeline.n === 1 ? '' : 's'}${terr} getting ready to open — ${act}`;
-                    return `${nTxt} building${myPipeline.n === 1 ? '' : 's'}${terr} must file${myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''} — ${act}`;
-                  })()}
-                </b>{' '}
-                {basisLabel(myPipeline)} · {rateLabel(myPipeline)}
-                {/* The small-figure registers carry their real economics in
-                    words: gas wins travel with the agent's portfolio, a lift
-                    won here re-tests every year, a venue won before opening
-                    buys its whole stack from whoever got in first. */}
-                {vertical === 'gas' && myPipeline.bigAgents >= 10
-                  ? ` · ${myPipeline.bigAgents} of these sit with agents running 3+ buildings — one win rarely stays one building`
-                  : vertical === 'elevators'
-                    ? ' · CAT1 is annual — a building won here files with you every year after'
-                    : vertical === 'openings'
-                      ? ' · a venue won before the doors open buys its whole stack at once'
-                      : ''}{' '}
-                · <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
-              </span>
-              {/* The answer to "somebody else will take these", in one quiet
-                  line: the reserve is a real mechanic — three cards held per
-                  account, rotated every 48 hours — priced at the user's own
-                  numbers. Facades only, where the reservation actually runs. */}
-              {vertical === 'facades' && (() => {
-                const laneMonthly = 45; // 3 held at a time × 48h rotation
-                const laneKind = myPipeline.basis === 'fee' || myPipeline.basis === 'constant' ? 5 : 1.6;
-                const laneWins = Math.max(1, Math.round(Math.min(laneMonthly, laneKind * 4.33) * myPipeline.rate));
-                return (
-                  <span
-                    className="lane-line"
-                    title="Three cards are reserved to your account at any moment and rotate every 48 hours — while they are yours, nobody else can claim them."
-                  >
-                    <b>3 cards held for you alone</b> · up to {laneMonthly}/mo nobody else can claim ·{' '}
-                    ~{fmtMoney(laneMonthly * myPipeline.avg)} of work — close {laneWins} ≈{' '}
-                    {fmtMoney(laneWins * myPipeline.avg)}/mo
+              {/* One computation (myPipeline ← lib/deal-basis.mjs) feeds every
+                  figure here. Each register LEADS with the strongest fact the
+                  city produced; the modelled figure follows, named and
+                  bounded. Facades keeps its arrow — its unit can come straight
+                  off the city's declared job costs. */}
+              {vertical === 'gas' ? (
+                <b className="pipe-lead">
+                  {myPipeline.n.toLocaleString('en-US')} buildings must file by Dec 31 — held by{' '}
+                  {myPipeline.agents.toLocaleString('en-US')} managing agents; the largest holds {myPipeline.largestAgent}.
+                </b>
+              ) : vertical === 'elevators' ? (
+                <b className="pipe-lead">
+                  {myPipeline.n.toLocaleString('en-US')} buildings skipped a full CAT1 cycle — nobody is servicing
+                  them today.
+                </b>
+              ) : vertical === 'contracts' ? (
+                <b className="pipe-lead">
+                  {myPipeline.openNotices.toLocaleString('en-US')} notices open
+                  {myPipeline.nearestClose != null
+                    ? ` — the nearest closes ${myPipeline.nearestClose === 0 ? 'today' : `in ${myPipeline.nearestClose} business day${myPipeline.nearestClose === 1 ? '' : 's'}`}`
+                    : ''}{' '}
+                  · {fmtMoney(myPipeline.awardsSum)} in awards placed in the last window.
+                </b>
+              ) : vertical === 'openings' ? (
+                <b className="pipe-lead">
+                  {myPipeline.phones.toLocaleString('en-US')} of {myPipeline.n.toLocaleString('en-US')} venues carry a
+                  phone number the city itself printed.
+                </b>
+              ) : (
+                <>
+                  <span className="gross">
+                    <Rolling value={myPipeline.gross} format={fmtMoney} /> open
                   </span>
-                );
-              })()}
+                  <span className="arrow" aria-hidden="true">→</span>
+                  <b title={`${workClause(myPipeline)} × ${fmtMoney(myPipeline.avg)} = ${fmtMoney(myPipeline.expected)}`}>
+                    ~<Rolling value={myPipeline.expected} format={fmtMoney} /> expected{' '}
+                    <em>
+                      {myPipeline.recurring
+                        ? `a ${myPipeline.recurring}, recurring`
+                        : myPipeline.horizon
+                          ? `by ${usShort(myPipeline.horizon)} ${myPipeline.horizon.slice(0, 4)}`
+                          : 'per year'}
+                    </em>
+                  </b>
+                </>
+              )}
+              {myPipeline.avg > 0 && (
+                <span
+                  className={'pipe-grow' + (myPipeline.growWeek > 0 ? '' : ' still')}
+                  title="Counted this minute from today's register. The city files daily — tomorrow's records move every figure here."
+                >
+                  {myPipeline.growWeek > 0
+                    ? `↑ ${fmtMoney(myPipeline.growWeek)} entered this view this week — counted this minute`
+                    : 'counted this minute — the next city sweep moves it'}
+                </span>
+              )}
+              <span className="pipe-note">
+                {vertical === 'gas' ? (
+                  <b className="pipe-win">
+                    {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)} now — and LL152 brings the same
+                    buildings back every four years.
+                  </b>
+                ) : vertical === 'elevators' ? (
+                  <b className="pipe-win">
+                    {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)} a year — and a service contract renews
+                    every year.
+                  </b>
+                ) : vertical === 'contracts' ? (
+                  myPipeline.avg > 0 ? (
+                    <b className="pipe-win">
+                      Selling into the winners: {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)} of the{' '}
+                      {fmtMoney(myPipeline.awardsSum)} placed.
+                    </b>
+                  ) : (
+                    <b className="pipe-win">
+                      You bid directly. Notices publish deadlines, not amounts — the money is on the notice when the
+                      city prints it.
+                    </b>
+                  )
+                ) : vertical === 'openings' ? (
+                  <b className="pipe-win">
+                    {workClause(myPipeline)} ≈ {fmtMoney(myPipeline.expected)}
+                    {myPipeline.recurring ? ' a year' : ''}
+                    {myPipeline.life ? ` — for the ~${myPipeline.life} years a venue stays. · assumption` : '.'}
+                  </b>
+                ) : (
+                  <b className="pipe-win">
+                    {myPipeline.n.toLocaleString('en-US')} building{myPipeline.n === 1 ? '' : 's'}
+                    {zipsIn(deferredQuery) ? ' in your ZIPs' : boro !== 'all' ? ` in ${boro}` : ''} must file
+                    {myPipeline.horizon ? ` before ${usShort(myPipeline.horizon)}` : ''} — {workClause(myPipeline)}.
+                  </b>
+                )}{' '}
+                {myPipeline.avg > 0 ? (
+                  <>
+                    {basisLabel(myPipeline)} · {rateLabel(myPipeline)} ·{' '}
+                  </>
+                ) : null}
+                <button className="linkish" onClick={() => setShowOnboard(true)}>change</button>
+              </span>
+              {vertical === 'facades' && (
+                <span
+                  className="lane-line"
+                  title="Three cards are reserved to your account at any moment and rotate every 48 hours — while they are yours, nobody else can claim them."
+                >
+                  <b>3 cards held for you alone at any moment</b> · rotated every 48 hours · while they are yours,
+                  nobody else can claim or contact them
+                </span>
+              )}
             </motion.div>
           ) : null}
           {winStats.total > 0 && (

@@ -1354,3 +1354,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 
 /* The snapshot line when nothing new arrived this week: quiet, still honest. */
 .pipe-grow.still { color: var(--ink-3); font-weight: 400; }
+
+/* The register's lead fact: the strongest thing the city produced, first. */
+.pipe .pipe-lead { font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--ink); flex-basis: 100%; letter-spacing: -0.01em; }
+@media (max-width: 767px) { .pipe .pipe-lead { font-size: 14.5px; } }
