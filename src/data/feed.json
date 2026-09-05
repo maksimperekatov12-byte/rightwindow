@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-05T12:35:06.394Z",
+ "generatedAt": "2026-09-05T18:07:53.219Z",
  "sources": {
   "facades": "2026-09-04",
   "hpd": "2026-08-12",
@@ -17,7 +17,7 @@
  "whatsNew": {
   "windowHours": 168,
   "buildings": 4,
-  "signals": 5,
+  "signals": 6,
   "contracts": 65,
   "openings": 103,
   "gas": 0,
@@ -15599,6 +15599,88 @@
     ]
    },
    {
+    "bin": "3002642",
+    "address": "110 LIVINGSTON STREET",
+    "borough": "Brooklyn",
+    "block": "269",
+    "lot": "7501",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "FILING_STALLED",
+      "urgency": 3,
+      "monthsLeft": 6
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2022-02-21",
+    "priorQewi": "LANE ENGINEERING CONSULTING, P.C.",
+    "owner": "TWO TREES MANAGEMENT COMPANY",
+    "finesOwed": 6250,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 7,
+     "cat1Missing": 0,
+     "cat1Overdue": 0,
+     "cat5Due": 2
+    },
+    "shed": null,
+    "filing": {
+     "filed": "2025-05-08",
+     "daysSince": 486,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": 116300,
+     "who": "INSIGHT STUDIO ARCHITECTURE PC"
+    },
+    "height": 184,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 13,
+    "zip": "11201",
+    "multifamily": true,
+    "agent": {
+     "company": "SOLSTICE RESIDENTIAL GROUP, LLC",
+     "role": "Managing agent (HPD registration)",
+     "address": "120 BROADWAY, 22 FL, New York NY 10004",
+     "portfolio": 4,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [
+     "ELEV_DUE"
+    ],
+    "ll": [
+     40.6908,
+     -73.99
+    ]
+   },
+   {
     "bin": "3001859",
     "address": "52 CLARK STREET",
     "borough": "Brooklyn",
@@ -15684,78 +15766,6 @@
     "ll": [
      40.6975,
      -73.9941
-    ]
-   },
-   {
-    "bin": "3063330",
-    "address": "344 RODNEY STREET",
-    "borough": "Brooklyn",
-    "block": "2436",
-    "lot": "4",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-11-22",
-    "priorQewi": "COWLEY ENGINEERING, PC",
-    "owner": "SOUTHSIDE UNITED-LOS SURES MANAGEME",
-    "finesOwed": 10000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 557,
-     "since": "2025-02-26",
-     "until": "2027-01-18",
-     "type": "Sidewalk Shed",
-     "who": "RELIABLE ENTERPRISES INC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "zip": "11211",
-    "multifamily": true,
-    "agent": {
-     "company": "LOS SURES MANAGEMENT CO",
-     "role": "Managing agent (HPD registration)",
-     "address": "434 SOUTH 5TH STREET, OFFICE, BROOKLYN NY 11211",
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [
-     "SHED_NO_REPAIR"
-    ],
-    "ll": [
-     40.7097,
-     -73.9555
     ]
    },
    {
@@ -15847,11 +15857,11 @@
     ]
    },
    {
-    "bin": "3348311",
-    "address": "580 WYTHE AVENUE",
+    "bin": "3063330",
+    "address": "344 RODNEY STREET",
     "borough": "Brooklyn",
-    "block": "2165",
-    "lot": "7502",
+    "block": "2436",
+    "lot": "4",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -15862,70 +15872,60 @@
       "monthsLeft": 6
      },
      {
-      "kind": "UNSAFE_PRIOR",
+      "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 6
      },
      {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
       "monthsLeft": 6
      }
     ],
     "score": 7,
-    "lastStatus": "UNSAFE",
+    "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-06-21",
-    "priorQewi": "SCOPE ENGINEERING CONSULTANTS PC",
-    "owner": "Kent-Rush Realty Corp.",
-    "finesOwed": 150000,
+    "lastFiling": "2022-11-22",
+    "priorQewi": "COWLEY ENGINEERING, PC",
+    "owner": "SOUTHSIDE UNITED-LOS SURES MANAGEME",
+    "finesOwed": 10000,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 557,
+     "since": "2025-02-26",
+     "until": "2027-01-18",
+     "type": "Sidewalk Shed",
+     "who": "RELIABLE ENTERPRISES INC",
+     "longStanding": true
     },
-    "shed": null,
-    "filing": {
-     "filed": "2024-12-30",
-     "daysSince": 615,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": true,
-     "cost": null,
-     "who": "Mumtaz Enterprises"
-    },
-    "height": 90,
+    "filing": null,
+    "height": null,
     "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 11250,
+    "payingForNothing": true,
+    "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11249",
+    "zip": "11211",
     "multifamily": true,
     "agent": {
-     "company": "SEM NY CORP",
+     "company": "LOS SURES MANAGEMENT CO",
      "role": "Managing agent (HPD registration)",
-     "address": "670 FLUSHING AVE, 313, Brooklyn NY 11206",
-     "portfolio": 10,
+     "address": "434 SOUTH 5TH STREET, OFFICE, BROOKLYN NY 11211",
+     "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [
-     "FILING_STALLED"
+     "SHED_NO_REPAIR"
     ],
     "ll": [
-     40.7055,
-     -73.9673
+     40.7097,
+     -73.9555
     ]
    },
    {
@@ -16007,11 +16007,11 @@
     ]
    },
    {
-    "bin": "3034169",
-    "address": "377 MONTGOMERY STREET",
+    "bin": "3348311",
+    "address": "580 WYTHE AVENUE",
     "borough": "Brooklyn",
-    "block": "1296",
-    "lot": "52",
+    "block": "2165",
+    "lot": "7502",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -16025,50 +16025,67 @@
       "kind": "UNSAFE_PRIOR",
       "urgency": 3,
       "monthsLeft": 6
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "FILING_STALLED",
+      "urgency": 3,
+      "monthsLeft": 6
      }
     ],
     "score": 7,
     "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2023-03-02",
-    "priorQewi": "INSITE DESIGN STUDIO",
-    "owner": "ICON MANAGEMENT GROUP",
-    "finesOwed": 313050,
+    "lastFiling": "2024-06-21",
+    "priorQewi": "SCOPE ENGINEERING CONSULTANTS PC",
+    "owner": "Kent-Rush Realty Corp.",
+    "finesOwed": 150000,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2837,
-     "since": "2018-11-30",
-     "until": "2019-11-30",
-     "type": "Sidewalk Shed",
-     "who": "EXPERT GROUPENTERPRISE IN",
-     "longStanding": true
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
     },
-    "filing": null,
-    "height": null,
+    "shed": null,
+    "filing": {
+     "filed": "2024-12-30",
+     "daysSince": 615,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": null,
+     "who": "Mumtaz Enterprises"
+    },
+    "height": 90,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 31270,
+    "ecbBalance": 11250,
     "freshHaz": null,
-    "nextHearing": "2027-01-21",
+    "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11225",
+    "zip": "11249",
     "multifamily": true,
     "agent": {
-     "company": "ICON MGMT GROUP LLC",
+     "company": "SEM NY CORP",
      "role": "Managing agent (HPD registration)",
-     "address": "4620 16TH AVE, BROOKLYN NY 11204",
-     "portfolio": 1,
+     "address": "670 FLUSHING AVE, 313, Brooklyn NY 11206",
+     "portfolio": 10,
      "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
-    "fresh": [],
+    "fresh": [
+     "FILING_STALLED"
+    ],
     "ll": [
-     40.6657,
-     -73.9518
+     40.7055,
+     -73.9673
     ]
    },
    {
@@ -16152,11 +16169,11 @@
     ]
    },
    {
-    "bin": "3113812",
-    "address": "585 EAST 32 STREET",
+    "bin": "3034169",
+    "address": "377 MONTGOMERY STREET",
     "borough": "Brooklyn",
-    "block": "4996",
-    "lot": "2",
+    "block": "1296",
+    "lot": "52",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -16167,46 +16184,44 @@
       "monthsLeft": 6
      },
      {
-      "kind": "CHRONIC_NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "ELEV_DUE",
+      "kind": "UNSAFE_PRIOR",
       "urgency": 3,
       "monthsLeft": 6
      }
     ],
-    "score": 6,
-    "lastStatus": "No Report Filed",
+    "score": 7,
+    "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": null,
-    "priorQewi": null,
-    "owner": null,
-    "finesOwed": 113900,
+    "lastFiling": "2023-03-02",
+    "priorQewi": "INSITE DESIGN STUDIO",
+    "owner": "ICON MANAGEMENT GROUP",
+    "finesOwed": 313050,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 1,
-     "cat5Due": 1
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2837,
+     "since": "2018-11-30",
+     "until": "2019-11-30",
+     "type": "Sidewalk Shed",
+     "who": "EXPERT GROUPENTERPRISE IN",
+     "longStanding": true
     },
-    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 69250,
+    "ecbBalance": 31270,
     "freshHaz": null,
-    "nextHearing": null,
+    "nextHearing": "2027-01-21",
     "urgencyScore": 13,
-    "zip": "11210",
+    "zip": "11225",
     "multifamily": true,
     "agent": {
-     "company": "EMILE REALTY INC",
+     "company": "ICON MGMT GROUP LLC",
      "role": "Managing agent (HPD registration)",
-     "address": "755 E 56 ST, 01, Brooklyn NY 11234",
+     "address": "4620 16TH AVE, BROOKLYN NY 11204",
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -16214,8 +16229,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6367,
-     -73.9458
+     40.6657,
+     -73.9518
     ]
    },
    {
@@ -16295,11 +16310,11 @@
     "fresh": []
    },
    {
-    "bin": "3138388",
-    "address": "1370 51 STREET",
+    "bin": "3113812",
+    "address": "585 EAST 32 STREET",
     "borough": "Brooklyn",
-    "block": "5656",
-    "lot": "34",
+    "block": "4996",
+    "lot": "2",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -16316,7 +16331,7 @@
      },
      {
       "kind": "ELEV_DUE",
-      "urgency": 2,
+      "urgency": 3,
       "monthsLeft": 6
      }
     ],
@@ -16326,38 +16341,30 @@
     "lastFiling": null,
     "priorQewi": null,
     "owner": null,
-    "finesOwed": 492000,
+    "finesOwed": 113900,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
      "devices": 1,
      "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
+     "cat1Overdue": 1,
+     "cat5Due": 1
     },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 3223,
-     "since": "2017-11-09",
-     "until": "2018-04-03",
-     "type": "Sidewalk Shed",
-     "who": "JJS BUILDERS",
-     "longStanding": true
-    },
+    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 39065,
+    "ecbBalance": 69250,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11219",
+    "zip": "11210",
     "multifamily": true,
     "agent": {
-     "company": "1370 51ST REALTY LLC",
+     "company": "EMILE REALTY INC",
      "role": "Managing agent (HPD registration)",
-     "address": "1388 CONEY ISLAND AVENUE, BROOKLYN NY 11230",
+     "address": "755 E 56 ST, 01, Brooklyn NY 11234",
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -16365,8 +16372,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6326,
-     -73.9916
+     40.6367,
+     -73.9458
     ]
    },
    {
@@ -16458,74 +16465,69 @@
     ]
    },
    {
-    "bin": "3137572",
-    "address": "950 49 STREET",
+    "bin": "3138388",
+    "address": "1370 51 STREET",
     "borough": "Brooklyn",
-    "block": "5638",
-    "lot": "19",
-    "subCycle": "10B",
-    "deadline": "2028-02-21",
-    "monthsLeft": 18,
+    "block": "5656",
+    "lot": "34",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
     "signals": [
      {
       "kind": "NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 18
+      "urgency": 3,
+      "monthsLeft": 6
      },
      {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 18
+      "kind": "CHRONIC_NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 6
      },
      {
       "kind": "ELEV_DUE",
       "urgency": 2,
-      "monthsLeft": 18
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 18
+      "monthsLeft": 6
      }
     ],
     "score": 6,
-    "lastStatus": "UNSAFE",
+    "lastStatus": "No Report Filed",
     "lastCycle": "9",
-    "lastFiling": "2026-01-06",
-    "priorQewi": "ARCHITECTURAL PRESERVATION STUDIO,",
-    "owner": "Maimonides Health",
-    "finesOwed": 99290,
+    "lastFiling": null,
+    "priorQewi": null,
+    "owner": null,
+    "finesOwed": 492000,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
-     "cat5Due": 2
+     "cat5Due": 0
     },
     "shed": {
-     "state": "active",
-     "ageDays": 1244,
-     "since": "2023-04-11",
-     "until": "2026-11-10",
+     "state": "lapsed",
+     "ageDays": 3223,
+     "since": "2017-11-09",
+     "until": "2018-04-03",
      "type": "Sidewalk Shed",
-     "who": "SPRING SCAFFOLDING LLC",
+     "who": "JJS BUILDERS",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
+    "payingForNothing": false,
+    "ecbBalance": 39065,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 13,
     "zip": "11219",
     "multifamily": true,
     "agent": {
-     "company": "MMC MANAGEMENT",
+     "company": "1370 51ST REALTY LLC",
      "role": "Managing agent (HPD registration)",
-     "address": "950 49TH STREET, Brooklyn NY 11219",
+     "address": "1388 CONEY ISLAND AVENUE, BROOKLYN NY 11230",
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -16533,8 +16535,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6395,
-     -74
+     40.6326,
+     -73.9916
     ]
    },
    {
@@ -16616,11 +16618,11 @@
     ]
    },
    {
-    "bin": "3245104",
-    "address": "500 BRIGHTWATER COURT",
+    "bin": "3137572",
+    "address": "950 49 STREET",
     "borough": "Brooklyn",
-    "block": "8690",
-    "lot": "91",
+    "block": "5638",
+    "lot": "19",
     "subCycle": "10B",
     "deadline": "2028-02-21",
     "monthsLeft": 18,
@@ -16649,25 +16651,25 @@
     "score": 6,
     "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2025-02-05",
-    "priorQewi": "LAWLESS & MANGIONE ARCHITECT AND EN",
-    "owner": "Brighton House, Inc.",
-    "finesOwed": 40750,
+    "lastFiling": "2026-01-06",
+    "priorQewi": "ARCHITECTURAL PRESERVATION STUDIO,",
+    "owner": "Maimonides Health",
+    "finesOwed": 99290,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
      "devices": 2,
      "cat1Missing": 2,
      "cat1Overdue": 0,
-     "cat5Due": 0
+     "cat5Due": 2
     },
     "shed": {
      "state": "active",
-     "ageDays": 755,
-     "since": "2024-08-12",
-     "until": "2026-12-02",
+     "ageDays": 1244,
+     "since": "2023-04-11",
+     "until": "2026-11-10",
      "type": "Sidewalk Shed",
-     "who": "XINOS CONSTRUCTION CORP",
+     "who": "SPRING SCAFFOLDING LLC",
      "longStanding": true
     },
     "filing": null,
@@ -16678,21 +16680,21 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11235",
+    "zip": "11219",
     "multifamily": true,
     "agent": {
-     "company": "METRO MANAGEMENT DEVELOPMENT, INC",
+     "company": "MMC MANAGEMENT",
      "role": "Managing agent (HPD registration)",
-     "address": "500 BRIGHTWATER COURT, Brooklyn NY 11235",
+     "address": "950 49TH STREET, Brooklyn NY 11219",
      "portfolio": 1,
-     "contactKnown": true,
+     "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.5754,
-     -73.9621
+     40.6395,
+     -74
     ]
    },
    {
@@ -16864,11 +16866,11 @@
     ]
    },
    {
-    "bin": "3030090",
-    "address": "77 NEW YORK AVENUE",
+    "bin": "3245104",
+    "address": "500 BRIGHTWATER COURT",
     "borough": "Brooklyn",
-    "block": "1208",
-    "lot": "1",
+    "block": "8690",
+    "lot": "91",
     "subCycle": "10B",
     "deadline": "2028-02-21",
     "monthsLeft": 18,
@@ -16889,18 +16891,18 @@
       "monthsLeft": 18
      },
      {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
       "monthsLeft": 18
      }
     ],
     "score": 6,
     "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2026-01-16",
-    "priorQewi": "IVAN BRICE ARCHITECTURE",
-    "owner": "STUYPARK HOUSING 2014 LP",
-    "finesOwed": 1000,
+    "lastFiling": "2025-02-05",
+    "priorQewi": "LAWLESS & MANGIONE ARCHITECT AND EN",
+    "owner": "Brighton House, Inc.",
+    "finesOwed": 40750,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
@@ -16911,44 +16913,36 @@
     },
     "shed": {
      "state": "active",
-     "ageDays": 1321,
-     "since": "2023-01-24",
-     "until": "2026-10-08",
+     "ageDays": 755,
+     "since": "2024-08-12",
+     "until": "2026-12-02",
      "type": "Sidewalk Shed",
-     "who": "BK CONSTRUCTION SVCS INC",
+     "who": "XINOS CONSTRUCTION CORP",
      "longStanding": true
     },
-    "filing": {
-     "filed": "2026-04-16",
-     "daysSince": 143,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": true,
-     "cost": null,
-     "who": "WKR CONSTRUCTION INC"
-    },
+    "filing": null,
     "height": null,
     "occupied": false,
-    "payingForNothing": false,
+    "payingForNothing": true,
     "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11216",
+    "zip": "11235",
     "multifamily": true,
     "agent": {
-     "company": "SHINDA MANAGEMENT CORPORATION",
+     "company": "METRO MANAGEMENT DEVELOPMENT, INC",
      "role": "Managing agent (HPD registration)",
-     "address": "221-10 JAMAICA AVENUE, 3RD FL, QUEENS VILLAGE NY 11428",
-     "portfolio": 17,
+     "address": "500 BRIGHTWATER COURT, Brooklyn NY 11235",
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6771,
-     -73.9467
+     40.5754,
+     -73.9621
     ]
    },
    {
@@ -17118,10 +17112,10 @@
     ]
    },
    {
-    "bin": "3107446",
-    "address": "665 NEW YORK AVENUE",
+    "bin": "3030090",
+    "address": "77 NEW YORK AVENUE",
     "borough": "Brooklyn",
-    "block": "4820",
+    "block": "1208",
     "lot": "1",
     "subCycle": "10B",
     "deadline": "2028-02-21",
@@ -17139,6 +17133,11 @@
      },
      {
       "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 18
+     },
+     {
+      "kind": "FILING_STALLED",
       "urgency": 3,
       "monthsLeft": 18
      }
@@ -17146,47 +17145,58 @@
     "score": 6,
     "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2021-02-25",
-    "priorQewi": "WRG ENGINEERING, P.C.",
-    "owner": "Kings & Queens Holdings, LLC",
-    "finesOwed": 751400,
+    "lastFiling": "2026-01-16",
+    "priorQewi": "IVAN BRICE ARCHITECTURE",
+    "owner": "STUYPARK HOUSING 2014 LP",
+    "finesOwed": 1000,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
      "devices": 2,
      "cat1Missing": 2,
-     "cat1Overdue": 2,
-     "cat5Due": 2
+     "cat1Overdue": 0,
+     "cat5Due": 0
     },
-    "shed": null,
-    "filing": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 1321,
+     "since": "2023-01-24",
+     "until": "2026-10-08",
+     "type": "Sidewalk Shed",
+     "who": "BK CONSTRUCTION SVCS INC",
+     "longStanding": true
+    },
+    "filing": {
+     "filed": "2026-04-16",
+     "daysSince": 143,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": null,
+     "who": "WKR CONSTRUCTION INC"
+    },
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 1250,
-    "freshHaz": {
-     "daysAgo": 27,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "SITE INACTIVE. OBSERVED NO WORK IN PROGRESS. WALKED PERIMETER. NO ACCESS. VIOLATING CONDITIONS OBSERVED. UPON MY RESEARCH ON D.O.B NOW SIDEWALK SHED P"
-    },
-    "nextHearing": "2026-10-21",
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11203",
+    "zip": "11216",
     "multifamily": true,
     "agent": {
-     "company": "665 NYA Owner LLC",
+     "company": "SHINDA MANAGEMENT CORPORATION",
      "role": "Managing agent (HPD registration)",
-     "address": "40 Fulton Street, 1404, New York NY 10038",
-     "portfolio": 1,
-     "contactKnown": false,
+     "address": "221-10 JAMAICA AVENUE, 3RD FL, QUEENS VILLAGE NY 11428",
+     "portfolio": 17,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6577,
-     -73.9471
+     40.6771,
+     -73.9467
     ]
    },
    {
@@ -17345,6 +17355,78 @@
     "ll": [
      40.7332,
      -73.9855
+    ]
+   },
+   {
+    "bin": "3107446",
+    "address": "665 NEW YORK AVENUE",
+    "borough": "Brooklyn",
+    "block": "4820",
+    "lot": "1",
+    "subCycle": "10B",
+    "deadline": "2028-02-21",
+    "monthsLeft": 18,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 18
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 18
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 3,
+      "monthsLeft": 18
+     }
+    ],
+    "score": 6,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2021-02-25",
+    "priorQewi": "WRG ENGINEERING, P.C.",
+    "owner": "Kings & Queens Holdings, LLC",
+    "finesOwed": 751400,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 2,
+     "cat1Missing": 2,
+     "cat1Overdue": 2,
+     "cat5Due": 2
+    },
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 1250,
+    "freshHaz": {
+     "daysAgo": 27,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "SITE INACTIVE. OBSERVED NO WORK IN PROGRESS. WALKED PERIMETER. NO ACCESS. VIOLATING CONDITIONS OBSERVED. UPON MY RESEARCH ON D.O.B NOW SIDEWALK SHED P"
+    },
+    "nextHearing": "2026-10-21",
+    "urgencyScore": 13,
+    "zip": "11203",
+    "multifamily": true,
+    "agent": {
+     "company": "665 NYA Owner LLC",
+     "role": "Managing agent (HPD registration)",
+     "address": "40 Fulton Street, 1404, New York NY 10038",
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6577,
+     -73.9471
     ]
    },
    {
@@ -21795,6 +21877,76 @@
     ]
    },
    {
+    "bin": "4432099",
+    "address": "66-40 108 STREET",
+    "borough": "Queens",
+    "block": "2154",
+    "lot": "1",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 6
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2024-02-20",
+    "priorQewi": "INSITE DESIGN STUDIO",
+    "owner": "QUALITY & RUSKIN APTS CORP.",
+    "finesOwed": 42250,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 850,
+     "since": "2024-05-09",
+     "until": "2025-05-09",
+     "type": "Sidewalk Shed",
+     "who": "ACE GROUP NY CORP",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 1250,
+    "freshHaz": {
+     "daysAgo": 82,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "MISCELLANEOUS VIOLATIONS. AT0I I OBSERVED TPP IS INADEQUATE FOR THE SCOPE OF WORK UNDER HEALTH REQUIREMENTS AS THEIR IS NO MEANS AND METHODS FOR DUST"
+    },
+    "nextHearing": "2027-03-25",
+    "urgencyScore": 12,
+    "zip": "11375",
+    "multifamily": true,
+    "agent": {
+     "company": "ARGO REAL ESTATE LLC",
+     "role": "Managing agent (HPD registration)",
+     "address": "50 WEST 17TH STREET, 6FL, New York NY 10011",
+     "portfolio": 12,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.729,
+     -73.8485
+    ]
+   },
+   {
     "bin": "3397266",
     "address": "100 CATON AVENUE",
     "borough": "Brooklyn",
@@ -21867,151 +22019,6 @@
     "ll": [
      40.6466,
      -73.9796
-    ]
-   },
-   {
-    "bin": "4432099",
-    "address": "66-40 108 STREET",
-    "borough": "Queens",
-    "block": "2154",
-    "lot": "1",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2024-02-20",
-    "priorQewi": "INSITE DESIGN STUDIO",
-    "owner": "QUALITY & RUSKIN APTS CORP.",
-    "finesOwed": 42250,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 850,
-     "since": "2024-05-09",
-     "until": "2025-05-09",
-     "type": "Sidewalk Shed",
-     "who": "ACE GROUP NY CORP",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 1250,
-    "freshHaz": {
-     "daysAgo": 82,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "MISCELLANEOUS VIOLATIONS. AT0I I OBSERVED TPP IS INADEQUATE FOR THE SCOPE OF WORK UNDER HEALTH REQUIREMENTS AS THEIR IS NO MEANS AND METHODS FOR DUST"
-    },
-    "nextHearing": "2027-03-25",
-    "urgencyScore": 12,
-    "zip": "11375",
-    "multifamily": true,
-    "agent": {
-     "company": "ARGO REAL ESTATE LLC",
-     "role": "Managing agent (HPD registration)",
-     "address": "50 WEST 17TH STREET, 6FL, New York NY 10011",
-     "portfolio": 12,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.729,
-     -73.8485
-    ]
-   },
-   {
-    "bin": "3388495",
-    "address": "970 KENT AVENUE",
-    "borough": "Brooklyn",
-    "block": "1925",
-    "lot": "7501",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-14",
-    "priorQewi": "GILSANZ MURRAY STEFICEK, LLP",
-    "owner": "MAXWELLKATES",
-    "finesOwed": 6500,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 3,
-     "cat1Missing": 3,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2481,
-     "since": "2019-11-21",
-     "until": "2024-12-13",
-     "type": "Sidewalk Shed",
-     "who": "SPIRE SCAFFOLDING & HOIST",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 12,
-    "zip": "11205",
-    "multifamily": true,
-    "agent": {
-     "company": "AKAM ASSOCIATES, INC.",
-     "role": "Managing agent (HPD registration)",
-     "address": "99 PARK AVENUE, 14TH F, NEW YORK NY 10016",
-     "portfolio": 34,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6913,
-     -73.959
     ]
    },
    {
@@ -22165,11 +22172,11 @@
     ]
    },
    {
-    "bin": "3024654",
-    "address": "78 8 AVENUE",
+    "bin": "3388495",
+    "address": "970 KENT AVENUE",
     "borough": "Brooklyn",
-    "block": "1065",
-    "lot": "31",
+    "block": "1925",
+    "lot": "7501",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -22193,25 +22200,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-02-18",
-    "priorQewi": "SW ENGINEERING COMPANY, PLLC",
-    "owner": "78 8TH AVENUE TENANTS' CORP.",
-    "finesOwed": 2650,
+    "lastFiling": "2022-02-14",
+    "priorQewi": "GILSANZ MURRAY STEFICEK, LLP",
+    "owner": "MAXWELLKATES",
+    "finesOwed": 6500,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 3,
+     "cat1Missing": 3,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 2658,
-     "since": "2019-05-28",
-     "until": "2026-08-04",
-     "type": "Supported Scaffold",
-     "who": "JJS BUILDERS",
+     "ageDays": 2481,
+     "since": "2019-11-21",
+     "until": "2024-12-13",
+     "type": "Sidewalk Shed",
+     "who": "SPIRE SCAFFOLDING & HOIST",
      "longStanding": true
     },
     "filing": null,
@@ -22222,21 +22229,21 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11215",
+    "zip": "11205",
     "multifamily": true,
     "agent": {
-     "company": "NEW BEDFORD MANAGEMENT CORP.",
+     "company": "AKAM ASSOCIATES, INC.",
      "role": "Managing agent (HPD registration)",
-     "address": "210 EAST 23RD STREET, 5FL, NEW YORK CITY NY 10010",
-     "portfolio": 33,
+     "address": "99 PARK AVENUE, 14TH F, NEW YORK NY 10016",
+     "portfolio": 34,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6733,
-     -73.9734
+     40.6913,
+     -73.959
     ]
    },
    {
@@ -22390,11 +22397,11 @@
     ]
    },
    {
-    "bin": "3104520",
-    "address": "5421 BEVERLY ROAD",
+    "bin": "3024654",
+    "address": "78 8 AVENUE",
     "borough": "Brooklyn",
-    "block": "4739",
-    "lot": "33",
+    "block": "1065",
+    "lot": "31",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -22418,10 +22425,10 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-02-14",
-    "priorQewi": "FRAMEWORK ENGINEERING PC",
-    "owner": "5421 Beverly LLC",
-    "finesOwed": 49850,
+    "lastFiling": "2022-02-18",
+    "priorQewi": "SW ENGINEERING COMPANY, PLLC",
+    "owner": "78 8TH AVENUE TENANTS' CORP.",
+    "finesOwed": 2650,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
@@ -22432,36 +22439,36 @@
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 2865,
-     "since": "2018-11-02",
-     "until": "2019-11-02",
-     "type": "Sidewalk Shed",
-     "who": "J & G CONSTRUCTION SRVCS",
+     "ageDays": 2658,
+     "since": "2019-05-28",
+     "until": "2026-08-04",
+     "type": "Supported Scaffold",
+     "who": "JJS BUILDERS",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 625,
+    "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11203",
+    "zip": "11215",
     "multifamily": true,
     "agent": {
-     "company": "JBM ESTATES, LLC",
+     "company": "NEW BEDFORD MANAGEMENT CORP.",
      "role": "Managing agent (HPD registration)",
-     "address": "828 BEDFORD AVE., #103, Brooklyn NY 11205",
-     "portfolio": 1,
-     "contactKnown": false,
+     "address": "210 EAST 23RD STREET, 5FL, NEW YORK CITY NY 10010",
+     "portfolio": 33,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6468,
-     -73.9253
+     40.6733,
+     -73.9734
     ]
    },
    {
@@ -22618,11 +22625,11 @@
     ]
    },
    {
-    "bin": "3190549",
-    "address": "2035 EAST    7 STREET",
+    "bin": "3104520",
+    "address": "5421 BEVERLY ROAD",
     "borough": "Brooklyn",
-    "block": "7089",
-    "lot": "62",
+    "block": "4739",
+    "lot": "33",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -22646,10 +22653,10 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-12-27",
-    "priorQewi": "DS ENGINEERING SERVICES, PC",
-    "owner": "CONEY MANGEMENT, LLC",
-    "finesOwed": 2250,
+    "lastFiling": "2024-02-14",
+    "priorQewi": "FRAMEWORK ENGINEERING PC",
+    "owner": "5421 Beverly LLC",
+    "finesOwed": 49850,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
@@ -22660,27 +22667,27 @@
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 865,
-     "since": "2024-04-24",
-     "until": "2025-04-24",
+     "ageDays": 2865,
+     "since": "2018-11-02",
+     "until": "2019-11-02",
      "type": "Sidewalk Shed",
-     "who": "TOPLINE NYC INC",
+     "who": "J & G CONSTRUCTION SRVCS",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 0,
+    "ecbBalance": 625,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11223",
+    "zip": "11203",
     "multifamily": true,
     "agent": {
-     "company": "SONESTA TOWERS INC.",
+     "company": "JBM ESTATES, LLC",
      "role": "Managing agent (HPD registration)",
-     "address": "1499 CONEY ISLAND AVENUE, BROOKLYN NY 11230",
+     "address": "828 BEDFORD AVE., #103, Brooklyn NY 11205",
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -22688,8 +22695,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.601,
-     -73.9643
+     40.6468,
+     -73.9253
     ]
    },
    {
@@ -22843,11 +22850,11 @@
     ]
    },
    {
-    "bin": "3194109",
-    "address": "815 GRAVESEND NECK ROAD",
+    "bin": "3190549",
+    "address": "2035 EAST    7 STREET",
     "borough": "Brooklyn",
-    "block": "7159",
-    "lot": "146",
+    "block": "7089",
+    "lot": "62",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -22863,11 +22870,6 @@
       "monthsLeft": 6
      },
      {
-      "kind": "OWNER_CHANGE",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
       "kind": "ELEV_DUE",
       "urgency": 2,
       "monthsLeft": 6
@@ -22876,23 +22878,27 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-10-26",
-    "priorQewi": "CONSTRUCTION MANAGEMENT & SAFETY CO",
-    "owner": "TREGER MANAGEMENT LLC",
-    "finesOwed": 2000,
+    "lastFiling": "2021-12-27",
+    "priorQewi": "DS ENGINEERING SERVICES, PC",
+    "owner": "CONEY MANGEMENT, LLC",
+    "finesOwed": 2250,
     "mgmtChange": null,
-    "ownerChange": {
-     "daysAgo": 139,
-     "amount": 10777374.88,
-     "recorded": "2026-04-20"
-    },
+    "ownerChange": null,
     "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
-    "shed": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 865,
+     "since": "2024-04-24",
+     "until": "2025-04-24",
+     "type": "Sidewalk Shed",
+     "who": "TOPLINE NYC INC",
+     "longStanding": true
+    },
     "filing": null,
     "height": null,
     "occupied": false,
@@ -22904,18 +22910,18 @@
     "zip": "11223",
     "multifamily": true,
     "agent": {
-     "company": "Nieuw Amsterdam Property Management",
+     "company": "SONESTA TOWERS INC.",
      "role": "Managing agent (HPD registration)",
-     "address": "80 Fifth Ave, 1216, New York NY 10011",
-     "portfolio": 4,
-     "contactKnown": true,
+     "address": "1499 CONEY ISLAND AVENUE, BROOKLYN NY 11230",
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.5948,
-     -73.9617
+     40.601,
+     -73.9643
     ]
    },
    {
@@ -23069,11 +23075,11 @@
     ]
    },
    {
-    "bin": "3080124",
-    "address": "725 EVERGREEN AVENUE",
+    "bin": "3194109",
+    "address": "815 GRAVESEND NECK ROAD",
     "borough": "Brooklyn",
-    "block": "3446",
-    "lot": "1",
+    "block": "7159",
+    "lot": "146",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -23089,6 +23095,11 @@
       "monthsLeft": 6
      },
      {
+      "kind": "OWNER_CHANGE",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
       "kind": "ELEV_DUE",
       "urgency": 2,
       "monthsLeft": 6
@@ -23097,27 +23108,23 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-03-31",
-    "priorQewi": "ADVANCED BUILDING CONSULTANTS",
-    "owner": "Duncan Genns Apartments",
-    "finesOwed": 14250,
+    "lastFiling": "2021-10-26",
+    "priorQewi": "CONSTRUCTION MANAGEMENT & SAFETY CO",
+    "owner": "TREGER MANAGEMENT LLC",
+    "finesOwed": 2000,
     "mgmtChange": null,
-    "ownerChange": null,
+    "ownerChange": {
+     "daysAgo": 139,
+     "amount": 10777374.88,
+     "recorded": "2026-04-20"
+    },
     "elevator": {
      "devices": 2,
      "cat1Missing": 2,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 745,
-     "since": "2024-08-22",
-     "until": "2025-08-22",
-     "type": "Suspended Scaffold",
-     "who": "PHOENIX SUTTON STR, INC",
-     "longStanding": true
-    },
+    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
@@ -23126,21 +23133,21 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11207",
+    "zip": "11223",
     "multifamily": true,
     "agent": {
-     "company": "ARCO MANAGEMENT CORP",
+     "company": "Nieuw Amsterdam Property Management",
      "role": "Managing agent (HPD registration)",
-     "address": "62 WEST 62ND ST, #25c, New York NY 10023",
-     "portfolio": 1,
+     "address": "80 Fifth Ave, 1216, New York NY 10011",
+     "portfolio": 4,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.686,
-     -73.9073
+     40.5948,
+     -73.9617
     ]
    },
    {
@@ -23297,11 +23304,11 @@
     ]
    },
    {
-    "bin": "3394276",
-    "address": "535 KENT AVENUE",
+    "bin": "3080124",
+    "address": "725 EVERGREEN AVENUE",
     "borough": "Brooklyn",
-    "block": "2165",
-    "lot": "7501",
+    "block": "3446",
+    "lot": "1",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -23325,50 +23332,50 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-06-04",
-    "priorQewi": "SCOPE ENGINEERING CONSULTANTS PC",
-    "owner": "525-535 Park Plaza Condo",
-    "finesOwed": 126000,
+    "lastFiling": "2022-03-31",
+    "priorQewi": "ADVANCED BUILDING CONSULTANTS",
+    "owner": "Duncan Genns Apartments",
+    "finesOwed": 14250,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 2,
+     "cat1Missing": 2,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 1003,
-     "since": "2023-12-08",
-     "until": "2025-03-04",
-     "type": "Sidewalk Shed",
-     "who": "A & D GENERAL CONTR INC",
+     "ageDays": 745,
+     "since": "2024-08-22",
+     "until": "2025-08-22",
+     "type": "Suspended Scaffold",
+     "who": "PHOENIX SUTTON STR, INC",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 11250,
+    "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11249",
+    "zip": "11207",
     "multifamily": true,
     "agent": {
-     "company": "SEM NY CORP",
+     "company": "ARCO MANAGEMENT CORP",
      "role": "Managing agent (HPD registration)",
-     "address": "670 FLUSHING AVE, 313, Brooklyn NY 11206",
-     "portfolio": 10,
-     "contactKnown": false,
+     "address": "62 WEST 62ND ST, #25c, New York NY 10023",
+     "portfolio": 1,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7053,
-     -73.9675
+     40.686,
+     -73.9073
     ]
    },
    {
@@ -23519,11 +23526,11 @@
     ]
    },
    {
-    "bin": "3397047",
-    "address": "1594 FULTON STREET",
+    "bin": "3394276",
+    "address": "535 KENT AVENUE",
     "borough": "Brooklyn",
-    "block": "1699",
-    "lot": "27",
+    "block": "2165",
+    "lot": "7501",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -23544,53 +23551,53 @@
       "monthsLeft": 6
      }
     ],
-    "score": 6,
+    "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-02-18",
-    "priorQewi": "VIDARIS, INC.",
-    "owner": "GREEN CEDAR MANAGEMENT",
-    "finesOwed": 0,
+    "lastFiling": "2024-06-04",
+    "priorQewi": "SCOPE ENGINEERING CONSULTANTS PC",
+    "owner": "525-535 Park Plaza Condo",
+    "finesOwed": 126000,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
-     "cat5Due": 2
+     "cat5Due": 0
     },
-    "shed": null,
-    "filing": {
-     "filed": "2026-09-02",
-     "daysSince": 4,
-     "status": "Pending QA Review",
-     "permitted": false,
-     "stalled": false,
-     "cost": null,
-     "who": "STRUCTUAL PRESV SYSTEM"
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 1003,
+     "since": "2023-12-08",
+     "until": "2025-03-04",
+     "type": "Sidewalk Shed",
+     "who": "A & D GENERAL CONTR INC",
+     "longStanding": true
     },
+    "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 81280,
+    "ecbBalance": 11250,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11213",
+    "zip": "11249",
     "multifamily": true,
     "agent": {
-     "company": "GREEN CEDAR MANAGEMENT, LLC",
+     "company": "SEM NY CORP",
      "role": "Managing agent (HPD registration)",
-     "address": "111 5TH AVENUE, 9TH FL, New York NY 10003",
-     "portfolio": 3,
+     "address": "670 FLUSHING AVE, 313, Brooklyn NY 11206",
+     "portfolio": 10,
      "contactKnown": false,
      "namedContact": true
     },
-    "isNew": true,
+    "isNew": false,
     "fresh": [],
     "ll": [
-     40.6795,
-     -73.9369
+     40.7053,
+     -73.9675
     ]
    },
    {
@@ -23731,11 +23738,11 @@
     ]
    },
    {
-    "bin": "3024627",
-    "address": "47 PLAZA STREET",
+    "bin": "3397047",
+    "address": "1594 FULTON STREET",
     "borough": "Brooklyn",
-    "block": "1064",
-    "lot": "24",
+    "block": "1699",
+    "lot": "27",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -23754,68 +23761,55 @@
       "kind": "ELEV_DUE",
       "urgency": 2,
       "monthsLeft": 6
-     },
-     {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
-      "monthsLeft": 6
      }
     ],
     "score": 6,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-06-24",
-    "priorQewi": "HOWARD L. ZIMMERMAN ARCHITECTS, PC",
-    "owner": "PL UN TENANTS CORP",
+    "lastFiling": "2022-02-18",
+    "priorQewi": "VIDARIS, INC.",
+    "owner": "GREEN CEDAR MANAGEMENT",
     "finesOwed": 0,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 3,
-     "cat1Missing": 3,
+     "devices": 2,
+     "cat1Missing": 2,
      "cat1Overdue": 0,
-     "cat5Due": 0
+     "cat5Due": 2
     },
-    "shed": {
-     "state": "active",
-     "ageDays": 811,
-     "since": "2024-06-17",
-     "until": "2027-02-17",
-     "type": "Sidewalk Shed",
-     "who": "ANDAMIO SCAFFOLDING LLC",
-     "longStanding": true
-    },
+    "shed": null,
     "filing": {
-     "filed": "2025-12-16",
-     "daysSince": 264,
-     "status": "Approved",
+     "filed": "2026-09-02",
+     "daysSince": 4,
+     "status": "Pending QA Review",
      "permitted": false,
-     "stalled": true,
-     "cost": 373647.39,
-     "who": "CUONO ENGINEERING PLLC"
+     "stalled": false,
+     "cost": null,
+     "who": "STRUCTUAL PRESV SYSTEM"
     },
-    "height": 150,
+    "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 0,
+    "ecbBalance": 81280,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11217",
+    "zip": "11213",
     "multifamily": true,
     "agent": {
-     "company": "PL-UN TENANTS CORP",
+     "company": "GREEN CEDAR MANAGEMENT, LLC",
      "role": "Managing agent (HPD registration)",
-     "address": "47 PLAZA STREET, BROOKLYN NY 11217",
-     "portfolio": 1,
+     "address": "111 5TH AVENUE, 9TH FL, New York NY 10003",
+     "portfolio": 3,
      "contactKnown": false,
      "namedContact": true
     },
-    "isNew": false,
+    "isNew": true,
     "fresh": [],
     "ll": [
-     40.6731,
-     -73.9714
+     40.6795,
+     -73.9369
     ]
    },
    {
@@ -23959,11 +23953,11 @@
     ]
    },
    {
-    "bin": "3426648",
-    "address": "779 47 STREET",
+    "bin": "3024627",
+    "address": "47 PLAZA STREET",
     "borough": "Brooklyn",
-    "block": "759",
-    "lot": "44",
+    "block": "1064",
+    "lot": "24",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -23974,47 +23968,77 @@
       "monthsLeft": 6
      },
      {
-      "kind": "CHRONIC_NON_FILER",
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "ELEV_DUE",
       "urgency": 2,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "FILING_STALLED",
+      "urgency": 3,
       "monthsLeft": 6
      }
     ],
-    "score": 5,
-    "lastStatus": "No Report Filed",
+    "score": 6,
+    "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": null,
-    "priorQewi": null,
-    "owner": null,
+    "lastFiling": "2021-06-24",
+    "priorQewi": "HOWARD L. ZIMMERMAN ARCHITECTS, PC",
+    "owner": "PL UN TENANTS CORP",
     "finesOwed": 0,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
-    "shed": null,
-    "filing": null,
-    "height": null,
+    "elevator": {
+     "devices": 3,
+     "cat1Missing": 3,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "active",
+     "ageDays": 811,
+     "since": "2024-06-17",
+     "until": "2027-02-17",
+     "type": "Sidewalk Shed",
+     "who": "ANDAMIO SCAFFOLDING LLC",
+     "longStanding": true
+    },
+    "filing": {
+     "filed": "2025-12-16",
+     "daysSince": 264,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": 373647.39,
+     "who": "CUONO ENGINEERING PLLC"
+    },
+    "height": 150,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 7500,
-    "freshHaz": {
-     "daysAgo": 34,
-     "hazardous": true,
-     "severity": "CLASS - 1",
-     "desc": "BC 907.2.8. FAILURE TO PROVIDE FIRE ALARM SYSTEM CLASS \"J\" FOR TRANSIENT USE AT APT 6A. REMEDY: DISCONTINUE ILLEGAL OCCUPANCY."
-    },
-    "nextHearing": "2026-10-07",
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11220",
+    "zip": "11217",
     "multifamily": true,
     "agent": {
-     "company": "ON BOARD NY LLC",
+     "company": "PL-UN TENANTS CORP",
      "role": "Managing agent (HPD registration)",
-     "address": "238 50TH ST, Brooklyn NY 11220",
+     "address": "47 PLAZA STREET, BROOKLYN NY 11217",
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
-    "fresh": []
+    "fresh": [],
+    "ll": [
+     40.6731,
+     -73.9714
+    ]
    },
    {
     "bin": "2016911",
@@ -24237,11 +24261,11 @@
     ]
    },
    {
-    "bin": "3116695",
-    "address": "171 LINDEN BOULEVARD",
+    "bin": "3426648",
+    "address": "779 47 STREET",
     "borough": "Brooklyn",
-    "block": "5085",
-    "lot": "94",
+    "block": "759",
+    "lot": "44",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 6,
@@ -24272,31 +24296,27 @@
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 34375,
+    "ecbBalance": 7500,
     "freshHaz": {
-     "daysAgo": 10,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "ATOI, OBSERVED FAILURE TO COMPLY WITH THE COMMISSIONER'S ORDER TO FILE A CERTIFICATE OF CORRECTION WITH THE DEPARTMENT OF BUILDINGS FOR NOTICE OF VIOL"
+     "daysAgo": 34,
+     "hazardous": true,
+     "severity": "CLASS - 1",
+     "desc": "BC 907.2.8. FAILURE TO PROVIDE FIRE ALARM SYSTEM CLASS \"J\" FOR TRANSIENT USE AT APT 6A. REMEDY: DISCONTINUE ILLEGAL OCCUPANCY."
     },
-    "nextHearing": "2026-11-04",
+    "nextHearing": "2026-10-07",
     "urgencyScore": 12,
-    "zip": "11226",
+    "zip": "11220",
     "multifamily": true,
     "agent": {
-     "company": "THE GARDEN GROUP MANAGEMENT INC.",
+     "company": "ON BOARD NY LLC",
      "role": "Managing agent (HPD registration)",
-     "address": "670 FLUSHING AVENUE, 216, Brooklyn NY 11206",
+     "address": "238 50TH ST, Brooklyn NY 11220",
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6528,
-     -73.9521
-    ]
+    "fresh": []
    },
    {
     "bin": "2007615",
@@ -24529,6 +24549,68 @@
     "ll": [
      40.7562,
      -73.9653
+    ]
+   },
+   {
+    "bin": "3116695",
+    "address": "171 LINDEN BOULEVARD",
+    "borough": "Brooklyn",
+    "block": "5085",
+    "lot": "94",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 6,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 6
+     },
+     {
+      "kind": "CHRONIC_NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 6
+     }
+    ],
+    "score": 5,
+    "lastStatus": "No Report Filed",
+    "lastCycle": "9",
+    "lastFiling": null,
+    "priorQewi": null,
+    "owner": null,
+    "finesOwed": 0,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 34375,
+    "freshHaz": {
+     "daysAgo": 10,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "ATOI, OBSERVED FAILURE TO COMPLY WITH THE COMMISSIONER'S ORDER TO FILE A CERTIFICATE OF CORRECTION WITH THE DEPARTMENT OF BUILDINGS FOR NOTICE OF VIOL"
+    },
+    "nextHearing": "2026-11-04",
+    "urgencyScore": 12,
+    "zip": "11226",
+    "multifamily": true,
+    "agent": {
+     "company": "THE GARDEN GROUP MANAGEMENT INC.",
+     "role": "Managing agent (HPD registration)",
+     "address": "670 FLUSHING AVENUE, 216, Brooklyn NY 11206",
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6528,
+     -73.9521
     ]
    },
    {
@@ -28102,76 +28184,6 @@
     "ll": [
      40.6633,
      -73.9423
-    ]
-   },
-   {
-    "bin": "3002642",
-    "address": "110 LIVINGSTON STREET",
-    "borough": "Brooklyn",
-    "block": "269",
-    "lot": "7501",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 6,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 6
-     },
-     {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
-      "monthsLeft": 6
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-21",
-    "priorQewi": "LANE ENGINEERING CONSULTING, P.C.",
-    "owner": "TWO TREES MANAGEMENT COMPANY",
-    "finesOwed": 6250,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": null,
-    "filing": {
-     "filed": "2025-05-08",
-     "daysSince": 486,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": true,
-     "cost": 116300,
-     "who": "INSIGHT STUDIO ARCHITECTURE PC"
-    },
-    "height": 184,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 11,
-    "zip": "11201",
-    "multifamily": true,
-    "agent": {
-     "company": "SOLSTICE RESIDENTIAL GROUP, LLC",
-     "role": "Managing agent (HPD registration)",
-     "address": "120 BROADWAY, 22 FL, New York NY 10004",
-     "portfolio": 4,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6908,
-     -73.99
     ]
    },
    {
@@ -58711,26 +58723,6 @@
    "isNew": true
   },
   {
-   "id": "20260828008",
-   "kind": "INTENT",
-   "agency": "Fire Department",
-   "title": "05727Y0653-Pin # 712 - ASAP Unit",
-   "category": "Goods",
-   "method": "Request for Information",
-   "date": "2026-09-04",
-   "dueDate": "2026-09-15T14:00:00.000",
-   "daysLeft": 7,
-   "epin": "05727Y0653",
-   "submitTo": "PASSPort",
-   "scope": "Pursuant to Section 3-05 of the NYC Procurement Policy Board Rules the New York City Fire Department (FDNY) intends to enter into sole source negotiations with Alternative Support Apparatus LLC (ASAP) to provide FDNY ASAP Off-Road Ambulance Vehicles. Please note that further information can be found",
-   "contact": {
-    "name": "Anthony Chan",
-    "phone": "(718) 999-1235",
-    "email": "anthony.chan@fdny.nyc.gov"
-   },
-   "isNew": true
-  },
-  {
    "id": "20260828010",
    "kind": "INTENT",
    "agency": "Fire Department",
@@ -58747,6 +58739,26 @@
     "name": null,
     "phone": null,
     "email": null
+   },
+   "isNew": true
+  },
+  {
+   "id": "20260828008",
+   "kind": "INTENT",
+   "agency": "Fire Department",
+   "title": "05727Y0653-Pin # 712 - ASAP Unit",
+   "category": "Goods",
+   "method": "Request for Information",
+   "date": "2026-09-04",
+   "dueDate": "2026-09-15T14:00:00.000",
+   "daysLeft": 7,
+   "epin": "05727Y0653",
+   "submitTo": "PASSPort",
+   "scope": "Pursuant to Section 3-05 of the NYC Procurement Policy Board Rules the New York City Fire Department (FDNY) intends to enter into sole source negotiations with Alternative Support Apparatus LLC (ASAP) to provide FDNY ASAP Off-Road Ambulance Vehicles. Please note that further information can be found",
+   "contact": {
+    "name": "Anthony Chan",
+    "phone": "(718) 999-1235",
+    "email": "anthony.chan@fdny.nyc.gov"
    },
    "isNew": true
   },
