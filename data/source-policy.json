@@ -1,162 +1,171 @@
 [
- {
-  "id": "nyc-opendata",
-  "host": "data.cityofnewyork.us",
-  "verdict": "ALLOWED",
-  "license": "NYC Open Data — 'Open Data belongs to all New Yorkers. There are no restrictions on the use of Open Data' (portal FAQ).",
-  "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, the City Record (solicitations, intents and awards), Local Law 152 gas-piping violations, newly permitted food service, ACRIS index (monthly batch).",
-  "publisher": "NYC Open Data",
-  "datasets": [
-   [
-    "DOB NOW — Facade Compliance Filings",
-    "xubg-57si",
-    "FISP cycle status, sub-cycle deadlines, prior engineer",
-    "facades"
-   ],
-   [
-    "DOB NOW — Approved Permits",
-    "rbx6-tga4",
-    "Active sheds and scaffolds: who is already on site",
-    "permits"
-   ],
-   [
-    "DOB NOW — Job Application Filings",
-    "w9ak-ipjd",
-    "Facade work already filed, its stage and declared cost",
-    "jobs"
-   ],
-   [
-    "ECB / OATH Violations",
-    "6bgk-3dad",
-    "Open violations, unpaid balances, hearing dates",
-    "ecb"
-   ],
-   [
-    "DOB NOW — Elevator Compliance",
-    "e5aq-a4j2",
-    "Per-device CAT1 and CAT5 filing years: which buildings skipped an annual test cycle",
-    "elevatorCompliance"
-   ],
-   [
-    "HPD Registrations and Contacts",
-    "tesw-yqqr · feu5-w2e2",
-    "Managing agent of record and business address",
-    "hpd"
-   ],
-   [
-    "ACRIS deeds — open-data batch",
-    "bnx9-e6tj · 8h5j-fqxa",
-    "Ownership changes",
-    "acrisThrough"
-   ],
-   [
-    "City Record Online",
-    "dg92-zbpx",
-    "Open solicitations with a bid deadline and the agency officer named on the notice, sole-source intents, and awards",
-    "awards"
-   ],
-   [
-    "DOB Safety Violations",
-    "855j-jady",
-    "Local Law 152 gas-piping and Local Law 97 emissions non-filers, their sub-cycle and the next deadline",
-    "mandates"
-   ],
-   [
-    "DOHMH Restaurant Inspection Results",
-    "43nn-pn8j",
-    "Food service permitted but never inspected: venues that have not opened yet, with the number on the permit",
-    "dohmh"
-   ],
-   [
-    "MapPLUTO (open-data extract)",
-    "64uk-42ks",
-    "Tax-lot centroid coordinates for the facade register's map, plus floors and units",
-    "pluto"
-   ],
-   [
-    "LL84 Energy and Water Disclosure",
-    "5zyy-y8am",
-    "Reported CY2024 emissions for the carbon register's estimated-exposure figure",
-    "ll84"
-   ],
-   [
-    "DOB NOW — Limited Alteration Applications",
-    "xxbr-ypig",
-    "Gas plumbing work on record: which LL152 buildings already engaged a plumber",
-    "laa"
-   ]
-  ]
- },
- {
-  "id": "ny-opendata",
-  "host": "data.ny.gov",
-  "verdict": "ALLOWED",
-  "license": "data.ny.gov open data portal; anonymous API access.",
-  "notes": "SLA pending liquor licenses.",
-  "publisher": "New York State Open Data",
-  "datasets": [
-   [
-    "Liquor License Applications",
-    "f8i8-k2gm",
-    "Venues opening in two to four months",
-    "sla"
-   ]
-  ]
- },
- {
-  "id": "acris-web",
-  "host": "a836-acris.nyc.gov",
-  "verdict": "DENIED",
-  "license": "ACRIS Bandwidth Policy (checked 2026-08-26): 'Further access to ACRIS is denied... detection of automated scripts/robots... contact the City Register (212-487-6300) to learn about our subscription data services. ACRIS index data can be obtained from NYC Open Data.'",
-  "notes": "Robots explicitly prohibited. Real-time deeds = City Register subscription data service (official, paid). Do not scrape; do not evade detection. Deed data in this product comes from the NYC Open Data ACRIS batch (~monthly).",
-  "publisher": "ACRIS web portal",
-  "datasets": []
- },
- {
-  "id": "enrich-stub",
-  "host": "stub",
-  "verdict": "ALLOWED",
-  "license": "No external calls. The built-in stub returns nothing and exists so contact enrichment has a default that cannot leak data.",
-  "notes": "Default ENRICH_PROVIDER. Returns confidence 'none' for every lookup.",
-  "publisher": "Contact enrichment (built-in stub)",
-  "datasets": []
- },
- {
-  "id": "serper",
-  "host": "google.serper.dev",
-  "publisher": "Serper.dev",
-  "verdict": "ALLOWED",
-  "license": "Paid API. Checked against the published Terms of Use on 2026-08-31: they contain NO clause restricting redistribution, republication, storage, caching or resale. The only restrictions on \"the Data returned from the API\" are to not \"misrepresent the ownership or the source\", not \"obscure, remove or change any copyright, trademark, or other proprietary notices\", and not \"falsify or delete any author attributions, legal notices, or other labels of the origin or source of material\". Every published contact therefore carries its source.",
-  "checked": "2026-08-31",
-  "notes": "Search API used to LOCATE a company's own contact page. The number itself is never returned by the API: lib/enrich.mjs fetches the company's own page and reads it from there, so it is not part of the provider's Data at all. Numbers are only accepted from the company's own domain or a .gov record; directory listings are marked 'listed', never 'verified'. An earlier version of this entry read \"must not redistribute it publicly\" — that was this project's own conservative paraphrase, not a term the provider imposes, and it was wrong. What the terms do require, attribution, is what lib/provenance.mjs enforces on every published row."
- },
- {
-  "id": "brave-search",
-  "host": "api.search.brave.com",
-  "publisher": "Brave Software",
-  "verdict": "ALLOWED",
-  "license": "Paid API with a free tier. NOT re-checked: the redistribution position could not be established from the public terms on 2026-08-31, so it is treated as restrictive until it is. Nothing is published from a cache built with this provider without checking its terms first.",
-  "checked": "2026-08-31",
-  "notes": "Alternative to Serper; identical acceptance rules."
- },
- {
-  "id": "geosearch",
-  "host": "geosearch.planninglabs.nyc",
-  "publisher": "NYC Department of City Planning — GeoSearch",
-  "verdict": "ALLOWED",
-  "license": "The city's own open geocoder, built by Planning Labs on open data (PAD/Geosupport). Public API, no key, no stated redistribution restriction; the coordinates it returns are city records.",
-  "checked": "2026-08-31",
-  "notes": "Used only to geocode the ~40 State Liquor Authority venues per build, because the SLA file carries an address and no coordinates. One request per venue, cached in the feed.",
-  "datasets": []
- },
- {
-  "id": "openfreemap",
-  "host": "tiles.openfreemap.org",
-  "publisher": "OpenFreeMap (OpenStreetMap data)",
-  "verdict": "ALLOWED",
-  "license": "Open-source map hosting of OpenStreetMap data (ODbL). Free for any use, no key, no request limit; attribution to OpenStreetMap contributors is required and is rendered by the map control itself.",
-  "checked": "2026-08-31",
-  "notes": "Vector tiles and the Positron style for the register map. Loaded by the visitor's browser, not by the collector.",
-  "datasets": []
- }
+  {
+    "id": "nyc-opendata",
+    "host": "data.cityofnewyork.us",
+    "verdict": "ALLOWED",
+    "license": "NYC Open Data — 'Open Data belongs to all New Yorkers. There are no restrictions on the use of Open Data' (portal FAQ).",
+    "notes": "DOB NOW facades, HPD registrations/contacts, ECB violations, permits, elevator compliance, the City Record (solicitations, intents and awards), Local Law 152 gas-piping violations, newly permitted food service, ACRIS index (monthly batch).",
+    "publisher": "NYC Open Data",
+    "datasets": [
+      [
+        "DOB NOW — Facade Compliance Filings",
+        "xubg-57si",
+        "FISP cycle status, sub-cycle deadlines, prior engineer",
+        "facades"
+      ],
+      [
+        "DOB NOW — Approved Permits",
+        "rbx6-tga4",
+        "Active sheds and scaffolds: who is already on site",
+        "permits"
+      ],
+      [
+        "DOB NOW — Job Application Filings",
+        "w9ak-ipjd",
+        "Facade work already filed, its stage and declared cost",
+        "jobs"
+      ],
+      [
+        "ECB / OATH Violations",
+        "6bgk-3dad",
+        "Open violations, unpaid balances, hearing dates",
+        "ecb"
+      ],
+      [
+        "DOB NOW — Elevator Compliance",
+        "e5aq-a4j2",
+        "Per-device CAT1 and CAT5 filing years: which buildings skipped an annual test cycle",
+        "elevatorCompliance"
+      ],
+      [
+        "HPD Registrations and Contacts",
+        "tesw-yqqr · feu5-w2e2",
+        "Managing agent of record and business address",
+        "hpd"
+      ],
+      [
+        "ACRIS deeds — open-data batch",
+        "bnx9-e6tj · 8h5j-fqxa",
+        "Ownership changes",
+        "acrisThrough"
+      ],
+      [
+        "City Record Online",
+        "dg92-zbpx",
+        "Open solicitations with a bid deadline and the agency officer named on the notice, sole-source intents, and awards",
+        "awards"
+      ],
+      [
+        "DOB Safety Violations",
+        "855j-jady",
+        "Local Law 152 gas-piping and Local Law 97 emissions non-filers, their sub-cycle and the next deadline",
+        "mandates"
+      ],
+      [
+        "DOHMH Restaurant Inspection Results",
+        "43nn-pn8j",
+        "Food service permitted but never inspected: venues that have not opened yet, with the number on the permit",
+        "dohmh"
+      ],
+      [
+        "MapPLUTO (open-data extract)",
+        "64uk-42ks",
+        "Tax-lot centroid coordinates for the facade register's map, plus floors and units",
+        "pluto"
+      ],
+      [
+        "LL84 Energy and Water Disclosure",
+        "5zyy-y8am",
+        "Reported CY2024 emissions for the carbon register's estimated-exposure figure",
+        "ll84"
+      ],
+      [
+        "DOB NOW — Limited Alteration Applications",
+        "xxbr-ypig",
+        "Gas plumbing work on record: which LL152 buildings already engaged a plumber",
+        "laa"
+      ]
+    ]
+  },
+  {
+    "id": "ny-opendata",
+    "host": "data.ny.gov",
+    "verdict": "ALLOWED",
+    "license": "data.ny.gov open data portal; anonymous API access.",
+    "notes": "SLA pending liquor licenses.",
+    "publisher": "New York State Open Data",
+    "datasets": [
+      [
+        "Liquor License Applications",
+        "f8i8-k2gm",
+        "Venues opening in two to four months",
+        "sla"
+      ]
+    ]
+  },
+  {
+    "id": "acris-web",
+    "host": "a836-acris.nyc.gov",
+    "verdict": "DENIED",
+    "license": "ACRIS Bandwidth Policy (checked 2026-08-26): 'Further access to ACRIS is denied... detection of automated scripts/robots... contact the City Register (212-487-6300) to learn about our subscription data services. ACRIS index data can be obtained from NYC Open Data.'",
+    "notes": "Robots explicitly prohibited. Real-time deeds = City Register subscription data service (official, paid). Do not scrape; do not evade detection. Deed data in this product comes from the NYC Open Data ACRIS batch (~monthly).",
+    "publisher": "ACRIS web portal",
+    "datasets": []
+  },
+  {
+    "id": "enrich-stub",
+    "host": "stub",
+    "verdict": "ALLOWED",
+    "license": "No external calls. The built-in stub returns nothing and exists so contact enrichment has a default that cannot leak data.",
+    "notes": "Default ENRICH_PROVIDER. Returns confidence 'none' for every lookup.",
+    "publisher": "Contact enrichment (built-in stub)",
+    "datasets": []
+  },
+  {
+    "id": "serper",
+    "host": "google.serper.dev",
+    "publisher": "Serper.dev",
+    "verdict": "ALLOWED",
+    "license": "Paid API. Checked against the published Terms of Use on 2026-08-31: they contain NO clause restricting redistribution, republication, storage, caching or resale. The only restrictions on \"the Data returned from the API\" are to not \"misrepresent the ownership or the source\", not \"obscure, remove or change any copyright, trademark, or other proprietary notices\", and not \"falsify or delete any author attributions, legal notices, or other labels of the origin or source of material\". Every published contact therefore carries its source.",
+    "checked": "2026-08-31",
+    "notes": "Search API used to LOCATE a company's own contact page. The number itself is never returned by the API: lib/enrich.mjs fetches the company's own page and reads it from there, so it is not part of the provider's Data at all. Numbers are only accepted from the company's own domain or a .gov record; directory listings are marked 'listed', never 'verified'. An earlier version of this entry read \"must not redistribute it publicly\" — that was this project's own conservative paraphrase, not a term the provider imposes, and it was wrong. What the terms do require, attribution, is what lib/provenance.mjs enforces on every published row."
+  },
+  {
+    "id": "serpapi",
+    "host": "serpapi.com",
+    "publisher": "SerpApi, LLC",
+    "verdict": "ALLOWED",
+    "license": "Paid API. Checked against the published legal terms on 2026-09-08: they prohibit reselling the SERVICE (\"You agree not to reproduce, duplicate, copy, sell, resell or exploit any portion of the Service\") but contain no clause restricting the storage, caching or republication of data the API returns, and impose no attribution requirement. On responsibility the terms are explicit: \"SerpApi assumes liability for the lawful collection of public search data (scraping, parsing, and related actions), but not for how that data is ultimately used\" — so downstream use is this project's own duty, which is what lib/provenance.mjs enforces.",
+    "checked": "2026-09-08",
+    "notes": "Same role as serper: the API is used only to LOCATE a company's own contact page. The telephone number is never part of the API's response — lib/enrich.mjs fetches the company's own page and reads it there — so nothing this provider returns is republished. Numbers are accepted only from the company's own domain or a .gov record; directory listings stay 'listed', never 'verified'. Recorded because a key issued by serpapi.com is 64 hex characters, exactly like a serper.dev key, and was mistaken for one."
+  },
+  {
+    "id": "brave-search",
+    "host": "api.search.brave.com",
+    "publisher": "Brave Software",
+    "verdict": "ALLOWED",
+    "license": "Paid API with a free tier. NOT re-checked: the redistribution position could not be established from the public terms on 2026-08-31, so it is treated as restrictive until it is. Nothing is published from a cache built with this provider without checking its terms first.",
+    "checked": "2026-08-31",
+    "notes": "Alternative to Serper; identical acceptance rules."
+  },
+  {
+    "id": "geosearch",
+    "host": "geosearch.planninglabs.nyc",
+    "publisher": "NYC Department of City Planning — GeoSearch",
+    "verdict": "ALLOWED",
+    "license": "The city's own open geocoder, built by Planning Labs on open data (PAD/Geosupport). Public API, no key, no stated redistribution restriction; the coordinates it returns are city records.",
+    "checked": "2026-08-31",
+    "notes": "Used only to geocode the ~40 State Liquor Authority venues per build, because the SLA file carries an address and no coordinates. One request per venue, cached in the feed.",
+    "datasets": []
+  },
+  {
+    "id": "openfreemap",
+    "host": "tiles.openfreemap.org",
+    "publisher": "OpenFreeMap (OpenStreetMap data)",
+    "verdict": "ALLOWED",
+    "license": "Open-source map hosting of OpenStreetMap data (ODbL). Free for any use, no key, no request limit; attribution to OpenStreetMap contributors is required and is rendered by the map control itself.",
+    "checked": "2026-08-31",
+    "notes": "Vector tiles and the Positron style for the register map. Loaded by the visitor's browser, not by the collector.",
+    "datasets": []
+  }
 ]

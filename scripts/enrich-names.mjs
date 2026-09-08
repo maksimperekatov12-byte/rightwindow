@@ -44,6 +44,32 @@ const parseName = (line) => {
 };
 
 const names = [...new Set(readFileSync(namesFile, 'utf8').split('\n').map(parseName).filter(Boolean))].slice(0, limit);
+
+// A lookup that ran without a working provider is cached as "nothing found"
+// for thirty days, so the first run after a key is fixed would return the same
+// nothing. --refresh drops the EMPTY entries for these names only; resolved
+// contacts are never discarded.
+if (process.argv.includes('--refresh')) {
+  const CACHE = new URL('../data/enrich-cache.json', import.meta.url);
+  try {
+    const cache = JSON.parse(readFileSync(CACHE, 'utf8'));
+    const want = new Set(names.map((n) => n.toUpperCase().replace(/[^A-Z0-9]/g, '')));
+    let dropped = 0;
+    for (const [k, v] of Object.entries(cache)) {
+      const val = v?.value || {};
+      if (val.phone || val.email) continue;
+      const co = String(val.company || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (co && want.has(co)) {
+        delete cache[k];
+        dropped += 1;
+      }
+    }
+    writeFileSync(CACHE, JSON.stringify(cache));
+    console.log(`--refresh: dropped ${dropped} empty cache entries`);
+  } catch (e) {
+    console.warn(`--refresh: ${String(e.message).slice(0, 80)}`);
+  }
+}
 console.log(`${names.length} names · provider ${enrichmentProvider()}${enrichmentReady() ? '' : ' (no key: cache only)'}`);
 
 const csv = (v) => {
