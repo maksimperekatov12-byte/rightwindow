@@ -55,6 +55,25 @@ async function fetchAll(dataset, params, pageSize = 50000) {
   return rows;
 }
 
+// An enrichment source that dies must not take the register with it. On
+// 2026-09-08 one ACRIS page hung through all four retries and the uncaught
+// TimeoutError killed a 26-minute run — the whole feed went stale over a
+// "Just sold" chip. The facade filings are the product; ACRIS, ECB and
+// elevator counters are context: ONE degraded stage logs and the run
+// continues (the next hour refills it), TWO means the city's API is down and
+// a stale feed is more honest than a hollow one.
+const degradedStages = [];
+async function stage(name, fn) {
+  try {
+    await fn();
+  } catch (e) {
+    degradedStages.push(name);
+    console.warn(`STAGE DEGRADED: ${name} — ${String(e.message || e).slice(0, 200)}. Continuing without it.`);
+    if (degradedStages.length >= 2)
+      throw new Error(`${degradedStages.length} enrichment stages degraded (${degradedStages.join(', ')}) — refusing to publish a hollow feed`);
+  }
+}
+
 function prevFeed() {
   try {
     return JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
@@ -276,6 +295,7 @@ function businessDaysTo(d) {
 // ECB violations for candidate bins: fresh hazardous events + open penalty balances + next hearings
 console.log('Fetching ECB violations for top candidates...');
 const ecbByBin = new Map();
+await stage('ecb', async () => {
 for (let i = 0; i < top.length; i += 50) {
   const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
   const rows = await fetchAll(
@@ -303,6 +323,7 @@ for (let i = 0; i < top.length; i += 50) {
     ecbByBin.set(r.bin, agg);
   }
 }
+});
 console.log(`ECB data for ${ecbByBin.size} buildings`);
 
 // Chain: ownership change (ACRIS). Monthly open-data batch lags ~2-4 weeks; a 90-day
@@ -310,6 +331,8 @@ console.log(`ECB data for ${ecbByBin.size} buildings`);
 console.log('Fetching recent ACRIS deeds...');
 const deedSince = new Date(TODAY - 180 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 const recentDeeds = new Map();
+const ownerByKey = new Map();
+await stage('acris', async () => {
 {
   const rows = await fetchAll('bnx9-e6tj', {
     $where: `doc_type='DEED' and recorded_datetime>='${deedSince}T00:00:00'`,
@@ -318,7 +341,6 @@ const recentDeeds = new Map();
   for (const r of rows) recentDeeds.set(r.document_id, r);
 }
 const BOro = { Manhattan: 1, Bronx: 2, Brooklyn: 3, Queens: 4 };
-const ownerByKey = new Map();
 for (const [boroName, boroNum] of Object.entries(BOro)) {
   const blocks = [...new Set(top.filter((c) => c.borough === boroName).map((c) => parseInt(c.block, 10)).filter(Boolean))];
   for (let i = 0; i < blocks.length; i += 60) {
@@ -335,11 +357,13 @@ for (const [boroName, boroNum] of Object.entries(BOro)) {
     }
   }
 }
+});
 console.log(`Ownership changes matched: ${ownerByKey.size} block-lots`);
 
 // Chain: elevator compliance (CAT1 annual, CAT5 five-year) for candidate bins
 console.log('Fetching elevator compliance...');
 const elevByBin = new Map();
+await stage('elevators', async () => {
 for (let i = 0; i < top.length; i += 50) {
   const bins = top.slice(i, i + 50).map((c) => `'${c.bin}'`).join(',');
   const rows = await fetchAll(
@@ -362,6 +386,7 @@ for (let i = 0; i < top.length; i += 50) {
     elevByBin.set(r.bin, agg);
   }
 }
+});
 console.log(`Elevator data for ${elevByBin.size} buildings`);
 
 // Chain: active sidewalk sheds / scaffolds from DOB NOW approved permits.
