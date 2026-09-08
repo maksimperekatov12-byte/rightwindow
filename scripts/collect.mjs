@@ -639,7 +639,11 @@ for (const c of top) {
       hits++;
     }
   }
-  console.log(`Contacts resolved: ${hits} (verified ${byLevel.verified || 0}, listed ${byLevel.listed || 0})`);
+  const { searchesSpent, servedBy } = await import('../lib/enrich.mjs');
+  console.log(
+    `Contacts resolved: ${hits} (verified ${byLevel.verified || 0}, listed ${byLevel.listed || 0})` +
+      (live ? ` · ${searchesSpent()} searches spent${servedBy ? ` via ${servedBy}` : ''}` : ''),
+  );
   // Second pass, free and offline: a holding LLC inherits the contact of the
   // firm whose head officer signs for both, labelled as reaching that firm.
   const viaHpd = resolveAffiliates(cards);

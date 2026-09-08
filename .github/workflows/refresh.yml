@@ -34,7 +34,13 @@ jobs:
         # it does today. The provider is detected from the key's own format.
         env:
           ENRICH_API_KEY: ${{ secrets.ENRICH_API_KEY }}
-        run: node scripts/collect.mjs
+          # Without this the shared contact cache never arrives and every run
+          # re-resolves companies already known — which spent a whole month of
+          # a search plan in a single hour on 2026-09-08.
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          npm i --no-save @vercel/blob > /dev/null 2>&1
+          node scripts/collect.mjs
       - name: Rotate personal signals
         if: always()
         env:
