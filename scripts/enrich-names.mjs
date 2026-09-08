@@ -35,6 +35,11 @@ const parseName = (line) => {
   const cell = raw.startsWith('|') ? raw.split('|')[1] || '' : raw;
   const name = cell.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
   if (!name || /^-+$/.test(name) || /^(компания|company|name)$/i.test(name)) return null;
+  // The list lives in a prose document, so a sentence must not become a
+  // lookup — but "Sato Construction Co. Inc." must survive, which rules out
+  // judging by punctuation. A company name is short and has no Cyrillic.
+  if (!/[A-Za-z]{3}/.test(name) || /[\u0400-\u04FF]/.test(name)) return null;
+  if (name.split(/\s+/).length > 8 || name.length > 70) return null;
   return name;
 };
 
@@ -46,7 +51,57 @@ const csv = (v) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
-const rows = [['name', 'website', 'phone', 'email', 'trust', 'source', 'via']];
+// The city licenses contractors and prints their telephone number in the
+// licence record. That is a city record — better than anything a search
+// provider can offer — so it runs FIRST, needs no key, and is why this CLI is
+// useful before the search provider is configured.
+// Legal suffixes vary between the DOB permit and the DCWP licence for the same
+// firm ("Corp." vs "CORP" vs nothing); everything else must match exactly.
+// Loose matching is how "Premier Construction" became "Premier Roofing" — a
+// wrong phone number on an outreach list is worse than an empty cell.
+const SUFFIX = /\b(inc|llc|l\.l\.c|corp|corporation|co|ltd|limited|company|group|llp|lp)\b/gi;
+const normName = (n) =>
+  String(n || '')
+    .toUpperCase()
+    .replace(/&/g, ' AND ')
+    .replace(SUFFIX, ' ')
+    .replace(/[^A-Z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const dcwpFmt = (p) => {
+  const d = String(p || '').replace(/\D/g, '');
+  return d.length === 10 ? `+1-${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}` : p || '';
+};
+
+async function fromCityLicence(name) {
+  const want = normName(name);
+  if (want.length < 5) return null;
+  // Search on the first two significant words, then accept only a row whose
+  // normalised name equals ours or is ours plus trailing words.
+  const probe = want.split(' ').slice(0, 2).join(' ');
+  const url =
+    'https://data.cityofnewyork.us/resource/w7w3-xahh.json?$where=' +
+    encodeURIComponent(`upper(business_name) like '%${probe.replace(/'/g, '')}%'`) +
+    '&$select=business_name,contact_phone,address_building,address_street_name,address_zip&$limit=25';
+  try {
+    const rows = await (await fetch(url, { signal: AbortSignal.timeout(20000) })).json();
+    const hit = rows.find((r) => {
+      const got = normName(r.business_name);
+      return got === want || got.startsWith(want + ' ') || want.startsWith(got + ' ');
+    });
+    if (!hit?.contact_phone) return null;
+    return {
+      phone: dcwpFmt(hit.contact_phone),
+      matched: hit.business_name,
+      address: [hit.address_building, hit.address_street_name, hit.address_zip].filter(Boolean).join(' '),
+    };
+  } catch {
+    return null;
+  }
+}
+
+const rows = [['name', 'website', 'phone', 'email', 'trust', 'source', 'via', 'city_licence_name', 'city_address']];
 let found = 0;
 for (const [i, name] of names.entries()) {
   let r = { phone: null, email: null, confidence: 'none', source: null, via: null };
@@ -57,8 +112,23 @@ for (const [i, name] of names.entries()) {
   } catch (e) {
     console.warn(`  ${name}: ${String(e.message || e).slice(0, 80)}`);
   }
-  if (r.phone || r.email) found += 1;
-  rows.push([name, r.source ? `https://${r.source}` : '', r.phone || '', r.email || '', r.confidence || 'none', r.source || '', r.via || '']);
+  // City record first: a licence phone is published by the city and needs no
+  // provider. The search pipeline only fills what the city did not.
+  const lic = await fromCityLicence(name);
+  const phone = r.phone || lic?.phone || '';
+  const trust = r.phone ? r.confidence : lic?.phone ? 'city-licence' : r.confidence || 'none';
+  if (phone || r.email) found += 1;
+  rows.push([
+    name,
+    r.source ? `https://${r.source}` : '',
+    phone,
+    r.email || '',
+    trust,
+    r.source || (lic ? 'nyc.gov · DCWP licence' : ''),
+    r.via || '',
+    lic?.matched || '',
+    lic?.address || '',
+  ]);
   process.stdout.write(`  ${i + 1}/${names.length} ${found} resolved\r`);
 }
 writeFileSync(outFile, rows.map((r) => r.map(csv).join(',')).join('\n') + '\n');
