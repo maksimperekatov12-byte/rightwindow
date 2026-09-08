@@ -94,4 +94,46 @@ if (touched.size)
     for (const [uid, fields] of touched) if (doc[uid]) Object.assign(doc[uid], fields);
     return doc;
   });
-console.log(`send-digest: email=${mail} slack=${slack} skipped=${skipped} of ${everyone.length}`);
+
+// Pilots started from the site are their own list: a trade and a set of ZIPs,
+// with no device behind them. They get exactly their territory — that is what
+// was promised in the confirmation, and it is the whole product for them.
+const { allPilots } = await import('../lib/pilots.mjs');
+let pilotMail = 0;
+let pilotSkipped = 0;
+for (const p of await allPilots()) {
+  const email = String(p.email || '').toLowerCase();
+  if (!email || suppressed.has(email)) { pilotSkipped++; continue; }
+  if (p.until && new Date(p.until) < new Date()) { pilotSkipped++; continue; }
+  if (!process.env.RESEND_API_KEY) { pilotSkipped++; continue; }
+
+  const zips = new Set(p.zips || []);
+  const inTerritory = (c) => !zips.size || zips.has(String(c.zip || ''));
+  const items = matchFor(feed, p.trade || 'qewi', { onlyNew: true }).filter(inTerritory).slice(0, 6);
+  if (!items.length) { pilotSkipped++; continue; }
+
+  // The link back is the link they arrived on — their trade, their ZIPs.
+  const link = new URL(SITE);
+  if (p.trade) link.searchParams.set('trade', p.trade);
+  if (p.zips?.length) link.searchParams.set('zips', p.zips.join(','));
+  if (p.reg && p.reg !== 'facades') link.searchParams.set('reg', p.reg);
+  if (p.ref) link.searchParams.set('ref', p.ref);
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      from: FROM,
+      to: [email],
+      subject: `${items.length} new window${items.length > 1 ? 's' : ''}${p.zips?.length ? ` in ${p.zips.join(', ')}` : ''} — Right Window`,
+      ...mailHeaders(email),
+      html:
+        html(items, p.trade || 'your trade') +
+        `<p style="font-family:-apple-system,sans-serif;font-size:13px"><a href="${link}" style="color:#14594A">Open your list</a></p>` +
+        `<p style="font-size:12px;color:#5F6F69;font-family:-apple-system,sans-serif"><a href="${unsubUrl(email)}" style="color:#5F6F69">Unsubscribe</a></p>`,
+    }),
+  });
+  if (res.ok) pilotMail++;
+}
+
+console.log(`send-digest: email=${mail} slack=${slack} skipped=${skipped} of ${everyone.length} · pilots sent=${pilotMail} skipped=${pilotSkipped}`);

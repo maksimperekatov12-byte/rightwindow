@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useDeferredVa
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import feedLite from './data/feed-lite.json';
 import { feedPromise } from './feed-loader.js';
+import { readInvite, syncInvite } from './invite.js';
+import { track, setTrackContext } from './track.js';
+import { TERRITORY_MONTHLY, ONE_TIME_LIST, STRIPE_LIST_URL, PILOT_DAYS, money as planMoney } from './plans.js';
 import MapSkeleton from './MapSkeleton.jsx';
 import DataPage from './Data.jsx';
 import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
@@ -1128,11 +1131,18 @@ export default function App() {
     return 'feed';
   };
   const initialRoute = routeFromHash();
+  // The cold-email link. Read once: it seeds the profile, the territory and
+  // the register, so a contractor lands on HIS list with no modal in the way.
+  const invite = useRef(readInvite()).current;
   const hashTrade = (location.hash.match(/^#t\/([a-z]+)$/) || [])[1] || null;
   const [route, setRoute] = useState(initialRoute);
   const deepLinked = useRef(Boolean(location.hash.match(/^#(b|c|g|e|k|o)\//)));
   const [profileKey, setProfileKey] = useState(() =>
-    hashTrade && PROFILES[hashTrade] ? hashTrade : loadLS('rw.profile', null),
+    invite.trade && PROFILES[invite.trade]
+      ? invite.trade
+      : hashTrade && PROFILES[hashTrade]
+        ? hashTrade
+        : loadLS('rw.profile', null),
   );
   // Never open on arrival. A stranger gives this page twenty seconds, and a
   // modal over a blurred feed asks them to classify themselves before showing
@@ -1149,7 +1159,9 @@ export default function App() {
     }).catch(() => {});
     return () => { dead = true; };
   }, []);
-  const [vertical, setVertical] = useState('facades');
+  // ?reg= names the register; a trade-specific link implies one (a plumber's
+  // page is Gas piping). Seeded here so the first paint is already right.
+  const [vertical, setVertical] = useState(() => invite.reg || 'facades');
   // Six tabs of equal weight is an unmade decision. With no trade chosen the
   // row holds the three registers that pass the bar — figure rests on a city
   // record, buyer is a building-services contractor, deadline is real and
@@ -1166,7 +1178,9 @@ export default function App() {
   const [openId, setOpenId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
-  const [query, setQuery] = useState('');
+  // ?zips= is the same thing as typing the ZIPs into the search box — one
+  // filter path, so the feed, the map and the money block all follow.
+  const [query, setQuery] = useState(() => invite.zips.join(' '));
   const [boro, setBoroRaw] = useState(() => loadLS('rw.boro', 'all'));
   const setBoro = (b) => { setBoroRaw(b); saveLS('rw.boro', b); };
   const [onlyNew, setOnlyNew] = useState(false);
@@ -1193,6 +1207,10 @@ export default function App() {
   const [mine, setMine] = useState({});
   const [live, setLive] = useState(null);
   const [emailSaved, setEmailSaved] = useState(false);
+  // A pilot is the session's own state: reserved cards and CSV unlock the
+  // moment it starts, without a reload and without asking anybody.
+  const [pilot, setPilot] = useState(() => loadLS('rw.pilot', null));
+  const [pilotState, setPilotState] = useState('idle');
   const [claimTaken, setClaimTaken] = useState(null);
   const [slackHook, setSlackHook] = useState(() => loadLS('rw.slack', ''));
   const [slackState, setSlackState] = useState('idle');
@@ -1314,7 +1332,10 @@ export default function App() {
       saveLS('rw.fb', n);
       // A dismissed card leaves the list at once, so the only place left to ask
       // why is a strip above the feed.
-      if (st === 'dismissed') setJustDismissed(undoing || !card ? null : { k, card });
+      if (st === 'dismissed') {
+        if (!undoing) track('dismiss', { card: String(k).slice(2) });
+        setJustDismissed(undoing || !card ? null : { k, card });
+      }
       return n;
     });
   };
@@ -1428,6 +1449,7 @@ export default function App() {
     if (theme) r.dataset.theme = theme;
     else delete r.dataset.theme;
   }, [theme]);
+
 
   // The attribute above lands in an effect, so the colours are re-read after it.
   useEffect(() => {
@@ -1545,7 +1567,12 @@ export default function App() {
   const forcedVert = useRef(null);
   if (forcedVert.current === null) {
     const m = location.hash.match(/^#(b|c|g|e|k|o)\//);
-    forcedVert.current = m ? { b: 'facades', g: 'gas', e: 'elevators', k: 'carbon', c: 'contracts', o: 'openings' }[m[1]] : '';
+    // A card link pins its register; so does an invitation that names one —
+    // otherwise the "open where the work is" rule would bounce a plumber off
+    // the gas register the email promised him.
+    forcedVert.current = m
+      ? { b: 'facades', g: 'gas', e: 'elevators', k: 'carbon', c: 'contracts', o: 'openings' }[m[1]]
+      : invite.reg || '';
   }
   // "No facade, no contracts, no openings" used to mean "exploring" — until
   // the elevator trade became mandates-only and got classified as a tourist.
@@ -2150,6 +2177,45 @@ export default function App() {
   }, [live, now]);
   const dataAt = live?.changedAt || pulled.getTime();
   const agoLabel = ago(dataAt);
+  // What the greeting line counts: the rows actually on screen for the ZIPs the
+  // invitation named. Computed from the same list the feed renders, so the
+  // sentence cannot disagree with the page under it.
+  const inviteZips = invite.zips;
+  const preparedCount = (visibleForReasons || []).length;
+  const preparedNoun =
+    vertical === 'contracts' ? 'notices' : vertical === 'openings' ? 'venues' : 'buildings';
+
+  // Who came, and from which email. One line on arrival, then one per thing
+  // they actually did — see lib/pilots.mjs for what is and is not recorded.
+  useEffect(() => {
+    setTrackContext({
+      ref: invite.ref,
+      trade: profileKey || invite.trade || null,
+      zips: invite.zips,
+      reg: vertical,
+      sid: uid.current,
+    });
+  }, [profileKey, vertical]);
+  useEffect(() => {
+    track('visit');
+    // Once per load, on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The link stays shareable while the visitor works: filtering rewrites the
+  // query, clearing the filters drops it. Only for invited sessions — a bare
+  // visit keeps its bare URL.
+  useEffect(() => {
+    if (!invite.trade && !invite.zips.length && !invite.ref && !invite.reg) return;
+    syncInvite({
+      trade: profileKey && profileKey !== 'explore' ? profileKey : '',
+      zips: zipsIn(deferredQuery) || [],
+      reg: vertical === 'facades' ? '' : vertical,
+      ref: invite.ref,
+      forName: invite.for,
+    });
+  }, [profileKey, deferredQuery, vertical]);
+
   const isDark = theme ? theme === 'dark' : systemDark;
   const toggleTheme = () => {
     const next = isDark ? 'light' : 'dark';
@@ -2321,6 +2387,7 @@ export default function App() {
   }, [showOnboard, profileKey, portfolioOpen, menuFor]);
 
   const toggleCard = (type, id, wasOpen) => {
+    if (!wasOpen) track('card_expanded', { card: String(id) });
     setOpenId(wasOpen ? null : id);
     try {
       history.replaceState(null, '', wasOpen ? location.pathname : `#${type}/${id}`);
@@ -2328,6 +2395,7 @@ export default function App() {
   };
 
   const copy = (id, text) => {
+    track('copy_opener', { card: String(id) });
     navigator.clipboard?.writeText(text).then(() => {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 1600);
@@ -2352,6 +2420,7 @@ export default function App() {
   };
 
   const exportCurrent = () => {
+    track('export_csv');
     if (vertical === 'facades') {
       downloadCsv(
         'right-window-buildings.csv',
@@ -3263,6 +3332,17 @@ export default function App() {
         </div>
       </LayoutGroup>
 
+      {/* One line, once: the person in the email sees their own name, their
+          own count and how fresh it is — then the product speaks for itself.
+          The value is rendered, never stored: a name from a prospect list has
+          no business persisting on somebody's device. */}
+      {invite.for && (
+        <div className="prepared-for">
+          Prepared for {invite.for}
+          {inviteZips.length ? ` · ${preparedCount} ${preparedNoun} in ${inviteZips.join(', ')}` : ''} · updated{' '}
+          {agoLabel}
+        </div>
+      )}
       <div className="lede">
         <section className="hero">
           {vertical === 'facades' ? (
@@ -3522,6 +3602,77 @@ export default function App() {
           ) : null}
           {winStats.total > 0 && (
             <p className="recorded-line">{fmtMoney(winStats.total)} recorded through Right Window</p>
+          )}
+          {/* The self-serve pilot. Offered where the list is already personal —
+              a territory on screen — because "this list, every morning" is only
+              a real sentence once the visitor can see which list. Nobody is in
+              the loop: it stores, confirms and schedules by itself. */}
+          {pilot ? (
+            <p className="pilot-live">
+              Pilot active until {String(pilot.until).slice(0, 10)} · your morning list covers{' '}
+              {pilot.zips?.length ? pilot.zips.join(', ') : 'this register'} · three cards stay reserved to you
+            </p>
+          ) : (
+            zipsIn(deferredQuery)?.length > 0 && (
+              <form
+                className="pilot-start"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const f = e.target.elements;
+                  const payload = {
+                    email: f.pemail.value.trim(),
+                    company: f.pcompany.value.trim() || null,
+                    trade: profileKey && profileKey !== 'explore' ? profileKey : invite.trade || null,
+                    zips: f.pzips.value,
+                    reg: vertical,
+                    ref: invite.ref,
+                    sid: uid.current,
+                  };
+                  setPilotState('saving');
+                  fetch('/api/pilot', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify(payload),
+                  })
+                    .then(async (r) => ({ ok: r.ok, j: await r.json().catch(() => ({})) }))
+                    .then(({ ok, j }) => {
+                      if (!ok || !j.ok) {
+                        setPilotState('fail');
+                        return;
+                      }
+                      const rec = { until: j.until, zips: (payload.zips.match(/\d{5}/g) || []), email: payload.email };
+                      setPilot(rec);
+                      saveLS('rw.pilot', rec);
+                      setPilotState(j.confirmation ? 'ok' : 'ok-nomail');
+                      track('pilot_started');
+                    })
+                    .catch(() => setPilotState('fail'));
+                }}
+              >
+                <b>Get this list every morning — free for {PILOT_DAYS} days</b>
+                <div className="pilot-fields">
+                  <input name="pemail" type="email" required placeholder="Work email" aria-label="Work email" />
+                  <input name="pcompany" type="text" placeholder="Company" aria-label="Company" defaultValue={invite.for || ''} />
+                  <input
+                    name="pzips"
+                    type="text"
+                    placeholder="ZIPs"
+                    aria-label="ZIP codes"
+                    defaultValue={(zipsIn(deferredQuery) || []).join(' ')}
+                  />
+                  <button className="btn solid" type="submit" disabled={pilotState === 'saving'}>
+                    {pilotState === 'saving' ? 'Starting…' : 'Start'}
+                  </button>
+                </div>
+                <span className="pilot-note">
+                  {pilotState === 'fail'
+                    ? 'That did not save on our side — try again, or write to us.'
+                    : pilotState === 'ok-nomail'
+                      ? 'Started. The confirmation email did not go out; your list is live regardless.'
+                      : `One email each morning with what the city published overnight for these ZIPs — nothing on a quiet day.`}
+                </span>
+              </form>
+            )
           )}
 
         </section>
@@ -4118,7 +4269,7 @@ export default function App() {
                                 const ct = contactOf(c, contacts[c.bin]);
                                 if (ct?.phone)
                                   return (
-                                    <a className="btn solid big" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
+                                    <a className="btn solid big" onClick={() => track('call_clicked', { card: String(c.bin || c.id) })} href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
                                       Call {ct.phone}
                                     </a>
                                   );
@@ -4384,7 +4535,7 @@ export default function App() {
                     {/* the city prints this contact so bidders can use it; no
                         search and no guessing */}
                     {isOpenNotice(c) && c.contact?.phone && (
-                      <a className="btn ghost" href={`tel:${c.contact.phone.replace(/[^\d+]/g, '')}`}>
+                      <a className="btn ghost" onClick={() => track('call_clicked', { card: String(c.id) })} href={`tel:${c.contact.phone.replace(/[^\d+]/g, '')}`}>
                         {c.contact.phone}
                       </a>
                     )}
@@ -4515,7 +4666,7 @@ export default function App() {
                     </div>
                     {ct.phone && (
                       <div className="call-block">
-                        <a className="btn solid" href={`tel:${String(ct.phone).replace(/[^+\d]/g, '')}`}>Call {ct.phone}</a>
+                        <a className="btn solid" onClick={() => track('call_clicked', { card: String(c.id || c.bin) })} href={`tel:${String(ct.phone).replace(/[^+\d]/g, '')}`}>Call {ct.phone}</a>
                       </div>
                     )}
                     <FeedbackRow k={vertPrefix + c.id} card={null} fbOf={fbOf} mark={mark} reasonOf={reasonOf} markReason={markReason} noteOf={noteOf} markNote={markNote} amountOf={amountOf} markAmount={markAmount} feedForReasons={visibleForReasons} />
@@ -4591,7 +4742,7 @@ export default function App() {
                           have one, an inbox if we do not, the text to paste if
                           we have neither */}
                       {ct?.phone ? (
-                        <a className="btn solid" href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
+                        <a className="btn solid" onClick={() => track('call_clicked', { card: String(c.bin || c.id) })} href={`tel:${ct.phone.replace(/[^+\d]/g, '')}`}>
                           Call {ct.phone}
                         </a>
                       ) : mailAddr(ct?.email) ? (
@@ -4759,7 +4910,7 @@ export default function App() {
                     {/* the permit record carries the establishment's own line, so
                         this register can be dialled rather than searched */}
                     {c.phone ? (
-                      <a className="btn solid" href={`tel:${c.phone}`}>
+                      <a className="btn solid" onClick={() => track('call_clicked', { card: String(c.id) })} href={`tel:${c.phone}`}>
                         Call {c.phone.replace(/^(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3')}
                       </a>
                     ) : null}
@@ -4976,7 +5127,32 @@ export default function App() {
               Add to Apple Wallet
             </a>
           )}
-          <a href={`mailto:${CONTACT.email}?subject=Right%20Window%20pilot`}>Request a pilot</a>
+        </div>
+        {/* Three lines a stranger can read without asking anybody. The two
+            amounts live in src/plans.js; until they are set, this says so
+            rather than inventing a price, and the one-time row hides itself
+            when no Stripe link is configured. */}
+        <div className="plans">
+          <div className="plan">
+            <b>Open pool</b>
+            <i>free</i>
+            <span>every card, shared; three reserved for you at a time</span>
+          </div>
+          <div className="plan">
+            <b>Territory</b>
+            <i>{planMoney(TERRITORY_MONTHLY) ? `${planMoney(TERRITORY_MONTHLY)}/mo` : 'on request'}</i>
+            <span>one trade, one borough, every signal yours alone; first {PILOT_DAYS} days free</span>
+          </div>
+          {STRIPE_LIST_URL && (
+            <div className="plan">
+              <b>One-time list</b>
+              <i>{planMoney(ONE_TIME_LIST) || 'on request'}</i>
+              <span>
+                today's cards for your ZIPs as CSV, no subscription ·{' '}
+                <a href={STRIPE_LIST_URL} onClick={() => track('export_csv', { card: 'one-time' })}>buy</a>
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
