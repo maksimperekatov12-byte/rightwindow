@@ -29,6 +29,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Collect all sources
+        # With a search key present the collector resolves managing agents it
+        # has never seen; without one it reads the cache and stops, exactly as
+        # it does today. The provider is detected from the key's own format.
+        env:
+          ENRICH_API_KEY: ${{ secrets.ENRICH_API_KEY }}
         run: node scripts/collect.mjs
       - name: Rotate personal signals
         if: always()
