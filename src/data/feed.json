@@ -1,7 +1,7 @@
 {
- "generatedAt": "2026-09-13T16:07:14.517Z",
+ "generatedAt": "2026-09-13T18:45:33.237Z",
  "sources": {
-  "facades": "2026-09-12",
+  "facades": "2026-09-13",
   "hpd": "2026-08-12",
   "ecb": "2026-09-12",
   "elevators": "2026-09-12",
@@ -26,8 +26,8 @@
  },
  "facades": {
   "totals": {
-   "candidates": 12245,
-   "nonFilers10A": 4716,
+   "candidates": 12244,
+   "nonFilers10A": 4715,
    "swarmpCarryover": 5401,
    "unsafePrior": 1002
   },
@@ -213,91 +213,6 @@
     ]
    },
    {
-    "bin": "2078917",
-    "address": "280 LONGSTREET AVENUE",
-    "borough": "Bronx",
-    "block": "05519",
-    "lot": "0091",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2026-09-04",
-    "priorQewi": "JOSE M. LANDAURO, P.E.",
-    "owner": "280 LONGSTREET, LLC",
-    "finesOwed": 743800,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "active",
-     "ageDays": 1659,
-     "since": "2022-02-28",
-     "until": "2027-03-01",
-     "type": "Sidewalk Shed",
-     "who": "TOTAL NY CONSTRUCTION COR",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 41252,
-    "freshHaz": {
-     "daysAgo": 24,
-     "hazardous": true,
-     "severity": "CLASS - 1",
-     "desc": "FAILURE TO MAINTAIN ELEVATOR IN CODE COMPLAINT MANNER AS PER BC 3001.2 & 27-987 CLASS 1 VIOLATION: EMERGENCY COMMUNICATION DEVICE INOPERATIVE, THIS A"
-    },
-    "nextHearing": "2026-10-16",
-    "urgencyScore": 23,
-    "zip": "10465",
-    "multifamily": true,
-    "agent": {
-     "company": "LANGSAM PROP. SER. CORP.",
-     "role": "Managing agent (HPD registration)",
-     "address": "1601 BRONXDALE AVE, 201, Bronx NY 10462",
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.8216,
-     -73.807
-    ]
-   },
-   {
     "bin": "2110145",
     "address": "3535 KINGS COLLEGE PLACE",
     "borough": "Bronx",
@@ -390,6 +305,91 @@
     "ll": [
      40.881,
      -73.8758
+    ]
+   },
+   {
+    "bin": "2078917",
+    "address": "280 LONGSTREET AVENUE",
+    "borough": "Bronx",
+    "block": "05519",
+    "lot": "0091",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2026-09-04",
+    "priorQewi": "JOSE M. LANDAURO, P.E.",
+    "owner": "280 LONGSTREET, LLC",
+    "finesOwed": 770400,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "active",
+     "ageDays": 1659,
+     "since": "2022-02-28",
+     "until": "2027-03-01",
+     "type": "Sidewalk Shed",
+     "who": "TOTAL NY CONSTRUCTION COR",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 41252,
+    "freshHaz": {
+     "daysAgo": 24,
+     "hazardous": true,
+     "severity": "CLASS - 1",
+     "desc": "FAILURE TO MAINTAIN ELEVATOR IN CODE COMPLAINT MANNER AS PER BC 3001.2 & 27-987 CLASS 1 VIOLATION: EMERGENCY COMMUNICATION DEVICE INOPERATIVE, THIS A"
+    },
+    "nextHearing": "2026-10-16",
+    "urgencyScore": 23,
+    "zip": "10465",
+    "multifamily": true,
+    "agent": {
+     "company": "LANGSAM PROP. SER. CORP.",
+     "role": "Managing agent (HPD registration)",
+     "address": "1601 BRONXDALE AVE, 201, Bronx NY 10462",
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.8216,
+     -73.807
     ]
    },
    {
@@ -17740,7 +17740,7 @@
     "lastFiling": "2021-02-25",
     "priorQewi": "WRG ENGINEERING, P.C.",
     "owner": "Kings & Queens Holdings, LLC",
-    "finesOwed": 751400,
+    "finesOwed": 776950,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
@@ -49635,86 +49635,6 @@
     ]
    },
    {
-    "bin": "3029254",
-    "address": "753 CLASSON AVENUE",
-    "borough": "Brooklyn",
-    "block": "1168",
-    "lot": "6",
-    "subCycle": "10B",
-    "deadline": "2028-02-21",
-    "monthsLeft": 17,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 17
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 17
-     },
-     {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
-      "monthsLeft": 17
-     }
-    ],
-    "score": 6,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2025-12-31",
-    "priorQewi": "ARCHITECTURAL PRESERVATION STUDIO,",
-    "owner": "753 CLASSON AVENUE HOUSING COMPANY",
-    "finesOwed": 110860,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 2139,
-     "since": "2020-11-05",
-     "until": "2026-12-03",
-     "type": "Sidewalk Shed",
-     "who": "SPRING SCAFFOLDING LLC",
-     "longStanding": true
-    },
-    "filing": {
-     "filed": "2026-03-13",
-     "daysSince": 185,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": true,
-     "cost": 4161376,
-     "who": "ARCHITECTURAL PRESERVATION STUDIO,"
-    },
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 7556,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 9,
-    "zip": "11238",
-    "multifamily": true,
-    "agent": {
-     "company": "NEW BEDFORD MANAGEMENT CORP.",
-     "role": "Managing agent (HPD registration)",
-     "address": "210 EAST 23RD STREET, 5FL, New York NY 10010",
-     "confidence": "verified",
-     "contactSource": "nbmgmt.com",
-     "portfolio": 33,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6745,
-     -73.9598
-    ]
-   },
-   {
     "bin": "3122175",
     "address": "176 SEELEY STREET",
     "borough": "Brooklyn",
@@ -49880,6 +49800,86 @@
     "ll": [
      40.6903,
      -73.985
+    ]
+   },
+   {
+    "bin": "3029254",
+    "address": "753 CLASSON AVENUE",
+    "borough": "Brooklyn",
+    "block": "1168",
+    "lot": "6",
+    "subCycle": "10B",
+    "deadline": "2028-02-21",
+    "monthsLeft": 17,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 17
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 17
+     },
+     {
+      "kind": "FILING_STALLED",
+      "urgency": 3,
+      "monthsLeft": 17
+     }
+    ],
+    "score": 6,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2025-12-31",
+    "priorQewi": "ARCHITECTURAL PRESERVATION STUDIO,",
+    "owner": "753 CLASSON AVENUE HOUSING COMPANY",
+    "finesOwed": 118840,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 2139,
+     "since": "2020-11-05",
+     "until": "2026-12-03",
+     "type": "Sidewalk Shed",
+     "who": "SPRING SCAFFOLDING LLC",
+     "longStanding": true
+    },
+    "filing": {
+     "filed": "2026-03-13",
+     "daysSince": 185,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": 4161376,
+     "who": "ARCHITECTURAL PRESERVATION STUDIO,"
+    },
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 7556,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 9,
+    "zip": "11238",
+    "multifamily": true,
+    "agent": {
+     "company": "NEW BEDFORD MANAGEMENT CORP.",
+     "role": "Managing agent (HPD registration)",
+     "address": "210 EAST 23RD STREET, 5FL, New York NY 10010",
+     "confidence": "verified",
+     "contactSource": "nbmgmt.com",
+     "portfolio": 33,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6745,
+     -73.9598
     ]
    },
    {
@@ -59597,26 +59597,6 @@
    "isNew": false
   },
   {
-   "id": "20260810049",
-   "kind": "SOLICITATION",
-   "agency": "Design and Construction",
-   "title": "PV279ACON New York City Center Chiller Replacement",
-   "category": "Construction Related Services",
-   "method": "Competitive Sealed Bids",
-   "date": "2026-08-14",
-   "dueDate": "2026-09-17T14:00:00.000",
-   "daysLeft": 4,
-   "epin": "85026B0114",
-   "submitTo": ".",
-   "scope": "Responses to this CSB must be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at the following website: https://passport.cityofnewyork.us/page.aspx/en/rfp/request_browse_public . Click on the 'Search Funding Opportunities in PASSPort' blue box. Thi",
-   "contact": {
-    "name": "Karen General",
-    "phone": "(718) 391-2410",
-    "email": "csb_projectinquiries@ddc.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
    "id": "20260729003",
    "kind": "SOLICITATION",
    "agency": "Housing Authority",
@@ -59633,6 +59613,26 @@
     "name": "Alexander Davila",
     "phone": "(212) 306-4512",
     "email": "professionalservices.procurement@nycha.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260810049",
+   "kind": "SOLICITATION",
+   "agency": "Design and Construction",
+   "title": "PV279ACON New York City Center Chiller Replacement",
+   "category": "Construction Related Services",
+   "method": "Competitive Sealed Bids",
+   "date": "2026-08-14",
+   "dueDate": "2026-09-17T14:00:00.000",
+   "daysLeft": 4,
+   "epin": "85026B0114",
+   "submitTo": ".",
+   "scope": "Responses to this CSB must be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at the following website: https://passport.cityofnewyork.us/page.aspx/en/rfp/request_browse_public . Click on the 'Search Funding Opportunities in PASSPort' blue box. Thi",
+   "contact": {
+    "name": "Karen General",
+    "phone": "(718) 391-2410",
+    "email": "csb_projectinquiries@ddc.nyc.gov"
    },
    "isNew": false
   },
@@ -59897,26 +59897,6 @@
    "isNew": true
   },
   {
-   "id": "20260728022",
-   "kind": "SOLICITATION",
-   "agency": "Environmental Protection",
-   "title": "CAT-506-CM: Construction Management Services for Water Supply Resource Recovery Facilities Rotating Biological Contactors Replacements.",
-   "category": "Construction Related Services",
-   "method": "Competitive Sealed Proposals",
-   "date": "2026-08-04",
-   "dueDate": "2026-09-22T16:00:00.000",
-   "daysLeft": 7,
-   "epin": "82626P0028",
-   "submitTo": null,
-   "scope": "This Request for Proposal ('RFx) is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at https://www.nyc.gov/site/mocs/passport/about-passport",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
-   },
-   "isNew": false
-  },
-  {
    "id": "20260821030",
    "kind": "SOLICITATION",
    "agency": "Brooklyn Bridge Park",
@@ -59933,6 +59913,26 @@
     "name": "Lindsey Ross",
     "phone": "(000) 000-0000",
     "email": "proposals@bbp.nyc"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260728022",
+   "kind": "SOLICITATION",
+   "agency": "Environmental Protection",
+   "title": "CAT-506-CM: Construction Management Services for Water Supply Resource Recovery Facilities Rotating Biological Contactors Replacements.",
+   "category": "Construction Related Services",
+   "method": "Competitive Sealed Proposals",
+   "date": "2026-08-04",
+   "dueDate": "2026-09-22T16:00:00.000",
+   "daysLeft": 7,
+   "epin": "82626P0028",
+   "submitTo": null,
+   "scope": "This Request for Proposal ('RFx) is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at https://www.nyc.gov/site/mocs/passport/about-passport",
+   "contact": {
+    "name": null,
+    "phone": null,
+    "email": null
    },
    "isNew": false
   },
@@ -60417,26 +60417,6 @@
    "isNew": false
   },
   {
-   "id": "20260811020",
-   "kind": "SOLICITATION",
-   "agency": "Campaign Finance Board",
-   "title": "Community and Stakeholder Mapping within Priority Neighborhoods",
-   "category": "Services (other than human services)",
-   "method": "M/WBE Noncompetitive Small Purchase",
-   "date": "2026-08-18",
-   "dueDate": "2026-09-30T17:00:00.000",
-   "daysLeft": 13,
-   "epin": "004202700003",
-   "submitTo": "100 Church Street, 12th Floor, New York, NY 10007",
-   "scope": "The NYC Campaign Finance Board (CFB) is seeking a vendor to provide services covering market researching, neighborhood surveying and community and stakeholder mapping within the agency's identified priority neighborhoods to strengthen the agency's voter, contributor, and candidate engagement strateg",
-   "contact": {
-    "name": "Michele Archbald",
-    "phone": "(212) 409-1800",
-    "email": "contracts@nyccfb.info"
-   },
-   "isNew": false
-  },
-  {
    "id": "20260825023",
    "kind": "SOLICITATION",
    "agency": "NYC Health + Hospitals",
@@ -60453,6 +60433,26 @@
     "name": "Raffaella Glasser",
     "phone": "(646) 815-3747",
     "email": "rfp_contacts@nychhc.org"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260811020",
+   "kind": "SOLICITATION",
+   "agency": "Campaign Finance Board",
+   "title": "Community and Stakeholder Mapping within Priority Neighborhoods",
+   "category": "Services (other than human services)",
+   "method": "M/WBE Noncompetitive Small Purchase",
+   "date": "2026-08-18",
+   "dueDate": "2026-09-30T17:00:00.000",
+   "daysLeft": 13,
+   "epin": "004202700003",
+   "submitTo": "100 Church Street, 12th Floor, New York, NY 10007",
+   "scope": "The NYC Campaign Finance Board (CFB) is seeking a vendor to provide services covering market researching, neighborhood surveying and community and stakeholder mapping within the agency's identified priority neighborhoods to strengthen the agency's voter, contributor, and candidate engagement strateg",
+   "contact": {
+    "name": "Michele Archbald",
+    "phone": "(212) 409-1800",
+    "email": "contracts@nyccfb.info"
    },
    "isNew": false
   },
@@ -60517,6 +60517,26 @@
    "isNew": true
   },
   {
+   "id": "20260821023",
+   "kind": "SOLICITATION",
+   "agency": "Transportation",
+   "title": "84126P0016-In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada",
+   "category": "Construction Related Services",
+   "method": "Competitive Sealed Proposals",
+   "date": "2026-08-31",
+   "dueDate": "2026-10-01T14:00:00.000",
+   "daysLeft": 14,
+   "epin": "84126P0016",
+   "submitTo": null,
+   "scope": "The services to be procured are the In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada. This Procurement is subject to participation goals for Minority-Owned Business Enterprises (MBEs) as required by Section 6-129 of the New York Administrative Cod",
+   "contact": {
+    "name": null,
+    "phone": null,
+    "email": null
+   },
+   "isNew": false
+  },
+  {
    "id": "20260514019",
    "kind": "SOLICITATION",
    "agency": "Citywide Administrative Services",
@@ -60553,26 +60573,6 @@
     "name": "Karen General",
     "phone": "(718) 391-2410",
     "email": "csb_projectinquiries@ddc.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
-   "id": "20260821023",
-   "kind": "SOLICITATION",
-   "agency": "Transportation",
-   "title": "84126P0016-In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada",
-   "category": "Construction Related Services",
-   "method": "Competitive Sealed Proposals",
-   "date": "2026-08-31",
-   "dueDate": "2026-10-01T14:00:00.000",
-   "daysLeft": 14,
-   "epin": "84126P0016",
-   "submitTo": null,
-   "scope": "The services to be procured are the In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada. This Procurement is subject to participation goals for Minority-Owned Business Enterprises (MBEs) as required by Section 6-129 of the New York Administrative Cod",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
    },
    "isNew": false
   },
@@ -60777,26 +60777,6 @@
    "isNew": false
   },
   {
-   "id": "20260824042",
-   "kind": "SOLICITATION",
-   "agency": "Citywide Administrative Services",
-   "title": "85727B0006 - DOC - Cereals",
-   "category": "Goods",
-   "method": "Competitive Sealed Bids",
-   "date": "2026-09-01",
-   "dueDate": "2026-10-02T11:00:00.000",
-   "daysLeft": 15,
-   "epin": "85727B0006",
-   "submitTo": ".",
-   "scope": "All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort account. Please visit the PASSPort Public RFx Site (aka 'Procurement Navigator') at: https://passport.cityo",
-   "contact": {
-    "name": "Mailynn Lewis",
-    "phone": "(212) 386-5362",
-    "email": "malewis@dcas.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
    "id": "20260824043",
    "kind": "SOLICITATION",
    "agency": "Citywide Administrative Services",
@@ -60813,6 +60793,26 @@
     "name": "Jordan Williams",
     "phone": "(212) 386-5012",
     "email": "jorwilliams@dcas.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260824042",
+   "kind": "SOLICITATION",
+   "agency": "Citywide Administrative Services",
+   "title": "85727B0006 - DOC - Cereals",
+   "category": "Goods",
+   "method": "Competitive Sealed Bids",
+   "date": "2026-09-01",
+   "dueDate": "2026-10-02T11:00:00.000",
+   "daysLeft": 15,
+   "epin": "85727B0006",
+   "submitTo": ".",
+   "scope": "All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort account. Please visit the PASSPort Public RFx Site (aka 'Procurement Navigator') at: https://passport.cityo",
+   "contact": {
+    "name": "Mailynn Lewis",
+    "phone": "(212) 386-5362",
+    "email": "malewis@dcas.nyc.gov"
    },
    "isNew": false
   },
@@ -61397,26 +61397,6 @@
    "isNew": false
   },
   {
-   "id": "20260623051",
-   "kind": "SOLICITATION",
-   "agency": "Citywide Administrative Services",
-   "title": "Correction: 85726B0062-2600057 - Apparatus, 100 Rear Mount Aerial - FDNY - BID OPENING",
-   "category": "Goods",
-   "method": "Competitive Sealed Bids",
-   "date": "2026-06-30",
-   "dueDate": "2026-10-21T10:00:00.000",
-   "daysLeft": 28,
-   "epin": "85726B0062",
-   "submitTo": "1 Centre Street, 17th Floor, New York, NY 10007",
-   "scope": "*Addendum 2 Released in PASSPort* *Round 2 of Bidding Released in PASSPort* *Addendum 1 released on PASSPort* The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for APPARATUS, Apparatus, 100' Rear Mount Aerial. This will be a 5-Year Req",
-   "contact": {
-    "name": "Christopher Likokas",
-    "phone": "(212) 386-0424",
-    "email": "clikokas@dcas.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
    "id": "20260824050",
    "kind": "SOLICITATION",
    "agency": "Environmental Protection",
@@ -61433,6 +61413,26 @@
     "name": null,
     "phone": null,
     "email": null
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260623051",
+   "kind": "SOLICITATION",
+   "agency": "Citywide Administrative Services",
+   "title": "Correction: 85726B0062-2600057 - Apparatus, 100 Rear Mount Aerial - FDNY - BID OPENING",
+   "category": "Goods",
+   "method": "Competitive Sealed Bids",
+   "date": "2026-06-30",
+   "dueDate": "2026-10-21T10:00:00.000",
+   "daysLeft": 28,
+   "epin": "85726B0062",
+   "submitTo": "1 Centre Street, 17th Floor, New York, NY 10007",
+   "scope": "*Addendum 2 Released in PASSPort* *Round 2 of Bidding Released in PASSPort* *Addendum 1 released on PASSPort* The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for APPARATUS, Apparatus, 100' Rear Mount Aerial. This will be a 5-Year Req",
+   "contact": {
+    "name": "Christopher Likokas",
+    "phone": "(212) 386-0424",
+    "email": "clikokas@dcas.nyc.gov"
    },
    "isNew": false
   },
@@ -61857,6 +61857,26 @@
    "isNew": false
   },
   {
+   "id": "20250328002",
+   "kind": "SOLICITATION",
+   "agency": "Health and Mental Hygiene",
+   "title": "OPEN-ENDED ' JUSTICE INVOLVED SUPPORTIVE HOUSING (JISH)",
+   "category": "Human Services/Client Services",
+   "method": "Competitive Sealed Proposals/Pre-Qualified List",
+   "date": "2025-04-10",
+   "dueDate": "2034-12-29T23:59:00.000",
+   "daysLeft": 400,
+   "epin": "81622P0004",
+   "submitTo": "42-09 28th Street, 17th Floor, WS 17-89, Long Island City, NY 11101-4132",
+   "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
+   "contact": {
+    "name": "Richard Cheung",
+    "phone": "(347) 396-6658",
+    "email": "rfp@health.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
    "id": "20241017006",
    "kind": "SOLICITATION",
    "agency": "Health and Mental Hygiene",
@@ -61884,26 +61904,6 @@
    "category": "Human Services/Client Services",
    "method": "Competitive Sealed Proposals/Pre-Qualified List",
    "date": "2025-02-12",
-   "dueDate": "2034-12-29T23:59:00.000",
-   "daysLeft": 400,
-   "epin": "81622P0004",
-   "submitTo": "42-09 28th Street, 17th Floor, WS 17-89, Long Island City, NY 11101-4132",
-   "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
-   "contact": {
-    "name": "Richard Cheung",
-    "phone": "(347) 396-6658",
-    "email": "rfp@health.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
-   "id": "20250328002",
-   "kind": "SOLICITATION",
-   "agency": "Health and Mental Hygiene",
-   "title": "OPEN-ENDED ' JUSTICE INVOLVED SUPPORTIVE HOUSING (JISH)",
-   "category": "Human Services/Client Services",
-   "method": "Competitive Sealed Proposals/Pre-Qualified List",
-   "date": "2025-04-10",
    "dueDate": "2034-12-29T23:59:00.000",
    "daysLeft": 400,
    "epin": "81622P0004",
