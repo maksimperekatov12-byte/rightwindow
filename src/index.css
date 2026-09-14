@@ -158,6 +158,27 @@ a.logo { color: inherit; text-decoration: none; }
 .pulled > span { white-space: nowrap; min-width: 0; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); }
 
+/* ---------- the thesis: what the product is, before which register ---------- */
+/* Sits above the tabs because it answers the question that comes first. The
+   register headline under the tabs names one list; this names the product. */
+.thesis { margin: 26px 0 4px; }
+.thesis-line {
+  margin: 0; font-family: var(--display); font-weight: 400;
+  font-size: clamp(28px, 3.1vw, 40px);
+  line-height: 1.08; letter-spacing: -0.012em;
+  color: var(--ink); max-width: 36ch; text-wrap: balance;
+}
+.thesis-line em { font-style: italic; color: var(--brand); }
+.thesis-sub {
+  margin: 12px 0 0; font-size: 15.5px; line-height: 1.55;
+  color: var(--ink-2); max-width: 66ch; text-wrap: pretty;
+}
+@media (max-width: 767px) {
+  .thesis { margin: 20px 0 2px; }
+  .thesis-line { max-width: none; }
+  .thesis-sub { font-size: 14.5px; margin-top: 10px; }
+}
+
 /* ---------- verticals ---------- */
 .verticals {
   display: flex; gap: 4px; margin: 18px 0 0; flex-wrap: wrap;

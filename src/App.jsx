@@ -3288,6 +3288,19 @@ export default function App() {
         </div>
       </header>
 
+      {/* What the product is, stated once, above the register tabs. The
+          per-register headline below says what THIS list is; a stranger who
+          arrives from a cold email needs the sentence before that one. */}
+      <motion.section className="thesis" aria-label="What Right Window does" {...fade(0)}>
+        <p className="thesis-line">
+          Right Window turns public data into <em>timing-based sales opportunities</em>.
+        </p>
+        <p className="thesis-sub">
+          Right Window turns public compliance data into actionable sales signals for contractors, engineers,
+          inspectors, and other service providers. Know who may need your service, why they need it, and why now.
+        </p>
+      </motion.section>
+
       <LayoutGroup>
         <div className="verticals" role="tablist" aria-label="Pick a register">
           {visibleVerts.map((v) => (
