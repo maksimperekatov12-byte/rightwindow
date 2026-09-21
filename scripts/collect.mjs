@@ -11,6 +11,7 @@
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCache } from '../lib/enrich.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
+import { sourceStamps, newestStamp } from '../lib/sources.mjs';
 import { resolveAffiliates } from '../lib/affiliate.mjs';
 import { resolveIdentities } from '../lib/personal.mjs';
 
@@ -1735,31 +1736,21 @@ const whatsNew = {
 };
 console.log("What's new (48h):", whatsNew);
 
-// Real per-source freshness, shown in the UI instead of promises.
-async function sourceMeta(id, host = 'data.cityofnewyork.us') {
-  try {
-    const r = await getJson(`https://${host}/api/views/${id}.json`);
-    return new Date(r.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
-  } catch {
-    return null;
-  }
-}
+// Real per-source freshness, shown in the UI instead of promises. The clocks
+// are the publishers' own rowsUpdatedAt (lib/sources.mjs), kept to the minute
+// in sourcesAt for the header's "city published" figure and to the day in
+// sources for the "as of" lines on the cards.
 const acrisThrough = [...recentDeeds.values()].reduce((m, r) => (r.recorded_datetime > m ? r.recorded_datetime : m), '').slice(0, 10) || null;
+const sourcesAt = await sourceStamps(getJson);
+const day = (t) => (t ? new Date(t).toISOString().slice(0, 10) : null);
 const sources = {
-  facades: await sourceMeta('xubg-57si'),
-  hpd: await sourceMeta('tesw-yqqr'),
-  ecb: await sourceMeta('6bgk-3dad'),
-  elevators: await sourceMeta('e5aq-a4j2'),
-  permits: await sourceMeta('rbx6-tga4'),
-  jobs: await sourceMeta('w9ak-ipjd'),
-  awards: await sourceMeta(CROL),
-  sla: await sourceMeta('f8i8-k2gm', 'data.ny.gov'),
-  dohmh: await sourceMeta('43nn-pn8j'),
-  mandates: await sourceMeta('855j-jady'),
-  elevatorCompliance: await sourceMeta('e5aq-a4j2'),
+  ...Object.fromEntries(Object.entries(sourcesAt).map(([k, t]) => [k, day(t)])),
+  elevatorCompliance: day(sourcesAt.elevators),
   acrisThrough,
 };
+const city = newestStamp(sourcesAt);
 console.log('Source freshness:', sources);
+console.log('City published:', city ? `${new Date(city.at).toISOString()} (${city.key})` : 'unknown');
 
 // A managing agent rarely runs one building. Counting how many buildings across
 // every register sit with the same firm turns four separate lists into one
@@ -1866,6 +1857,9 @@ if (registers.gas?.feed?.length) await laaGasJoin(registers.gas.feed);
 const out = {
   generatedAt: TODAY.toISOString(),
   sources,
+  sourcesAt,
+  cityAt: city?.at || null,
+  cityBy: city?.key || null,
   whatsNew,
   facades: {
     totals: {

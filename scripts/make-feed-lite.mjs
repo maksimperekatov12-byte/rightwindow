@@ -20,6 +20,9 @@ const lite = {
   lite: true,
   generatedAt: d.generatedAt,
   sources: d.sources,
+  sourcesAt: d.sourcesAt || null,
+  cityAt: d.cityAt || null,
+  cityBy: d.cityBy || null,
   whatsNew: d.whatsNew,
   // Register-scope figures the UI must quote correctly BEFORE the full feed
   // lands — a lead line computed from a 24-row slice would be wrong on screen.

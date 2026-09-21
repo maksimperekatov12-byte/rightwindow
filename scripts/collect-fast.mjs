@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { readDoc, CLAIMS } from '../lib/store.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
+import { SOURCES, sourceStamps, newestStamp } from '../lib/sources.mjs';
 
 assertCollectable('data.cityofnewyork.us');
 assertCollectable('data.ny.gov');
@@ -41,7 +42,7 @@ const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(t
 const since = new Date(TODAY - 14 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 const qs = new URLSearchParams({
   $where: `type_of_notice_description='Award' and start_date>='${since}'`,
-  $order: 'start_date DESC',
+  $order: 'start_date DESC, request_id DESC',
   $limit: '2000',
   $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
 });
@@ -72,7 +73,7 @@ const contracts = [...keptAwards.values()]
 // openings
 const qs2 = new URLSearchParams({
   $where: `premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review' and received_date >= '${new Date(TODAY - 150 * 86400000).toISOString().slice(0, 10)}'`,
-  $order: 'received_date DESC',
+  $order: 'received_date DESC, application_id DESC',
   $limit: '60',
   $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
 });
@@ -109,22 +110,35 @@ let prevLive = null;
 try { prevLive = JSON.parse(readFileSync(outPath, 'utf8')); } catch {}
 const prevContracts = prevLive?.contracts || feed.contracts || [];
 const prevOpenings = prevLive?.openings || feed.openings || [];
-const changed =
-  JSON.stringify(strip(contracts)) !== JSON.stringify(strip(prevContracts)) ||
-  JSON.stringify(strip(openings)) !== JSON.stringify(strip(prevOpenings));
+// "Changed" means a notice arrived or was corrected. Rows also leave these
+// lists — the awards window is 14 days and slides at midnight UTC, a licence
+// stops being 'Under Review' — and a departure is not news: counting it
+// announced a new signal at 00:04 every night. Keyed by id, so the server's
+// order among ties cannot register as a change either.
+const byId = (arr) => new Map(strip(arr).map((r) => [r.id, JSON.stringify(r)]));
+const arrived = (cur, prev) => {
+  const was = byId(prev);
+  return [...byId(cur)].some(([id, row]) => was.get(id) !== row);
+};
+const changed = arrived(contracts, prevContracts) || arrived(openings, prevOpenings);
+const tick = Number(process.env.TICK || 0);
 
-let awardsDate = feed.sources?.awards || null;
-try {
-  const m = await getJson('https://data.cityofnewyork.us/api/views/qyyg-4tf5.json');
-  awardsDate = new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
-} catch {}
-// The venue card prints an "as of" date; publishing the awards date but not this
-// one left it showing whatever the last hourly run happened to bake in.
-let slaDate = feed.sources?.sla || null;
-try {
-  const m = await getJson('https://data.ny.gov/api/views/f8i8-k2gm.json');
-  slaDate = new Date(m.rowsUpdatedAt * 1000).toISOString().slice(0, 10);
-} catch {}
+// The publishers' clocks, one per record the product reads (lib/sources.mjs).
+// This is what the header's "city published" figure is: the newest
+// rowsUpdatedAt among them, not whether our two lists moved. Read every third
+// tick — the stamp is the city's own timestamp, so sampling later never makes
+// it wrong, only up to fifteen minutes late — and a failed metadata call keeps
+// the previous stamp rather than dropping the record.
+const META_EVERY = Number(process.env.META_REFRESH_TICKS || 3);
+let sourcesAt = prevLive?.sourcesAt || {};
+if (!prevLive?.sourcesAt || tick % META_EVERY === 0) {
+  const fresh = await sourceStamps(getJson);
+  sourcesAt = Object.fromEntries(Object.keys(SOURCES).map((k) => [k, fresh[k] ?? sourcesAt[k] ?? null]));
+}
+const city = newestStamp(sourcesAt);
+// The award and venue cards print an "as of" date each; the day of the clock
+// above, with the hourly feed's date when the clock could not be read.
+const asOf = (key) => (sourcesAt[key] ? new Date(sourcesAt[key]).toISOString().slice(0, 10) : feed.sources?.[key] || null);
 
 // Rolling proof of life: every check is recorded, every change is labelled.
 const DAY = 24 * 3600 * 1000;
@@ -144,7 +158,6 @@ const recentChanges = changeLog.filter((c) => nowMs - c.at < 7 * DAY).slice(-60)
 // blob read for them. Claims move on human timescales, so re-reading the store
 // every third tick (15 minutes) is enough; the claimer sees their own instantly.
 const CLAIM_EVERY = Number(process.env.CLAIM_REFRESH_TICKS || 6);
-const tick = Number(process.env.TICK || 0);
 let claims = prevLive?.claims || {};
 if (process.env.BLOB_READ_WRITE_TOKEN && (!prevLive || tick % CLAIM_EVERY === 0)) {
   try {
@@ -167,7 +180,10 @@ writeFileSync(outPath, JSON.stringify({
     contracts: contracts.filter((c) => c.isNew).length,
     openings: openings.filter((o) => o.isNew).length,
   },
-  sources: { awards: awardsDate, sla: slaDate },
+  sources: { awards: asOf('awards'), sla: asOf('sla') },
+  sourcesAt,
+  cityAt: city?.at || null,
+  cityBy: city?.key || null,
   claims,
 }));
 // seen memory is committed by the hourly lane; keep it fresh locally when we can
@@ -178,4 +194,5 @@ console.log(
   changed
     ? `fast: updated — contracts new=${contracts.filter((c) => c.isNew).length}, openings new=${openings.filter((o) => o.isNew).length}`
     : `fast: no changes (checked ${new Date(nowMs).toISOString().slice(11, 19)}Z)`,
+  city ? `· city published ${new Date(city.at).toISOString().slice(0, 16)}Z (${SOURCES[city.key].label})` : '· city clock unknown',
 );

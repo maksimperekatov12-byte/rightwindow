@@ -9,6 +9,7 @@ import MapSkeleton from './MapSkeleton.jsx';
 import DataPage from './Data.jsx';
 import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtBy, describeRules, title } from './learn.js';
 import { resolveMoney, defaultCapacity, medianOf } from '../lib/deal-basis.mjs';
+import { SOURCES, newestStamp } from '../lib/sources.mjs';
 import TradesPage from './Trades.jsx';
 
 const YEAR = new Date().getFullYear();
@@ -2300,8 +2301,17 @@ export default function App() {
     }
     return days;
   }, [live, now]);
-  const dataAt = live?.changedAt || pulled.getTime();
+  // "City published" is the city's clock, not ours: the newest rowsUpdatedAt
+  // among the records the product reads, as the publishers stamp them. It used
+  // to be changedAt — the last tick on which our two intraday lists moved —
+  // which on a Monday morning claimed 57 hours of silence while DOB had
+  // refreshed four datasets the evening before. The five-minute document is
+  // read first; the hourly feed covers a document built before it carried
+  // clocks; changedAt is the last resort, never the meaning.
+  const cityClock = newestStamp({ ...(data.sourcesAt || {}), ...(live?.sourcesAt || {}) });
+  const dataAt = cityClock?.at || live?.changedAt || pulled.getTime();
   const agoLabel = ago(dataAt);
+  const cityByLabel = cityClock ? SOURCES[cityClock.key]?.label || cityClock.key : null;
   // What the greeting line counts: the rows actually on screen for the ZIPs the
   // invitation named. Computed from the same list the feed renders, so the
   // sentence cannot disagree with the page under it.
@@ -3410,7 +3420,13 @@ export default function App() {
               animate={reduce ? {} : { opacity: [1, 0.35, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
-            <span title={`We check every 5 minutes and sweep the buildings hourly; the second figure is when a city department last published something new, which is their cadence and not ours. Last build: ${pulled.toLocaleString('en-US')}`}>
+            <span
+              title={
+                `We check every 5 minutes and sweep the buildings hourly; the second figure is when a public record we read was last updated by its publisher, which is their cadence and not ours.` +
+                (cityClock ? ` Newest: ${cityByLabel}, ${new Date(cityClock.at).toLocaleString('en-US', { timeZone: 'America/New_York' })} ET.` : '') +
+                ` Last build: ${pulled.toLocaleString('en-US')}`
+              }
+            >
               {checkedAt || live?.checkedAt
                 ? `checked ≤${ago(live?.checkedAt || checkedAt)} · city published ${agoLabel}`
                 : `city published ${agoLabel}`}
