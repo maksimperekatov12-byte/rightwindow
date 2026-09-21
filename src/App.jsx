@@ -36,6 +36,24 @@ const isOpenNotice = (c) => c.kind === 'SOLICITATION' || c.kind === 'INTENT';
 const noticeLabel = (c) => (c.kind === 'INTENT' ? 'Intent to award' : 'Open for bids');
 
 const CONSTR = /construction|architect|engineer/i;
+// An open notice is a facade trade's to bid on only when the scope is the
+// building envelope; a sewer, a sidewalk or a boiler is construction too, and
+// it filled the register. Awards keep the category test — the pitch there is
+// to the winner, whatever they won.
+const ENVELOPE = /fa[cç]ade|roof|waterproof|masonry|brick|pointing|parapet|exterior|envelope|window|storefront|general construction|building projects|scaffold|sidewalk shed/i;
+const facadeBid = (c) => CONSTR.test(c.category || '') && (c.kind === 'AWARD' || ENVELOPE.test(`${c.title || ''} ${c.scope || ''}`));
+// A human-services renewal to a settlement house posts no performance bond and
+// hires no crew — the bonding pitch is true only of construction winners.
+const constrAward = (c) => c.kind === 'AWARD' && CONSTR.test(c.category || '');
+// A liquor licence names a venue only when the licensee is one: a distributor,
+// an importer, a brand owner or a chain pharmacy adding beer is not a room
+// about to open its doors, and none of them pick a launch agency or cost a menu.
+const NOT_A_VENUE = /^(Wholesale|Importer|Brand Owner|Drug Store)/i;
+const VENUE_KIND = /restaurant|food|beverage|\bbar\b|tavern|club|cabaret|hotel|cater|cafe|brew|winery/i;
+const isVenue = (o) => o.src === 'dohmh' || VENUE_KIND.test(o.kind || '');
+// Nine in ten venue rows are Health Department permits, not licence applications.
+const sawRecord = (c) =>
+  c.src === 'dohmh' ? `saw the new Health Department permit for ${c.address}` : `saw the license application for ${c.address}`;
 
 function signalStory(c) {
   if (c.payingForNothing)
@@ -90,7 +108,9 @@ const PROFILES = {
         `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
     cNeed: (c) => `A ${money(c.amount)} construction award usually means inspections and special-inspection sign-offs down the line.`,
-    cFilter: (c) => CONSTR.test(c.category || ''),
+    cFilter: facadeBid,
+    cOpener: (c) =>
+      `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. Construction awards carry special-inspection and engineer sign-off requirements; we can be your inspecting engineer from day one.`,
     oNeed: null,
   },
   restoration: {
@@ -116,7 +136,9 @@ const PROFILES = {
             : `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. We can walk the scope and price it this week.`,
     },
     cNeed: (c) => `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.`,
-    cFilter: (c) => CONSTR.test(c.category || ''),
+    cFilter: facadeBid,
+    cOpener: (c) =>
+      `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If any exterior, masonry or facade scope is going out to subs, we can walk it and price it this week.`,
     oNeed: null,
   },
   lender: {
@@ -139,10 +161,20 @@ const PROFILES = {
       opener: (c) =>
         `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
     },
+    mOpener: {
+      gas: (c) =>
+        `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation with a filing due ${usDate(c.deadline)}. Mandated work like this is financeable before the penalty meter starts; happy to walk through the options.`,
+      carbon: (c) =>
+        `Re: ${title(c.address)} — the building is named on a Local Law 97 violation, which usually means a retrofit budget nobody planned for. C-PACE can fund it against the building; worth fifteen minutes before the next filing?`,
+    },
     cNeed: (c) => `Mobilizing a ${money(c.amount)} contract takes working capital — payroll and equipment come before the city's first payment.`,
     // Working capital is lent to a winner, not to a bid notice — awards only.
     cFilter: (c) => c.kind === 'AWARD',
+    cOpener: (c) =>
+      `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. The city pays on its own calendar; if payroll and mobilization come first, we can have working capital in place this month.`,
     oNeed: () => `Build-outs run on borrowed money — kitchen equipment and fit-out financing get arranged in exactly this window.`,
+    oOpener: (c) =>
+      `Re: ${venueName(c)} — ${sawRecord(c)}. Kitchen equipment and fit-out usually get financed in exactly these weeks; we can quote terms before the build-out starts.`,
   },
   elevator: {
     cohorts: ['lifts', 'callable'],
@@ -155,6 +187,37 @@ const PROFILES = {
     mandates: {
       elevators: (c) =>
         `${c.devices === 1 ? 'One device' : `${c.devices} devices`} that last filed for ${c.lastCat1 || 'no year on record'} — a skipped cycle, so the backlog and this year's test are one visit.`,
+    },
+    cNeed: null,
+    oNeed: null,
+  },
+  // Two trades the pilot copy already sells territories to ("one licensed
+  // master plumber per borough", "one retrofit partner per borough") used to
+  // arrive through the invite aliases as a facade engineer and a lender.
+  plumber: {
+    cohorts: ['callable'],
+    label: 'Licensed master plumber',
+    tile: 'Plumbing / gas-piping inspections',
+    facade: null,
+    mandates: {
+      gas: (c) =>
+        c.laa
+          ? `Gas work is on file here, but the Local Law 152 inspection itself is still owed — one visit closes the violation and the ${usDate(c.deadline)} filing.`
+          : `No gas work on record — no plumber has this building yet, and the open violation must be cured before ${usDate(c.deadline)}.`,
+    },
+    cNeed: null,
+    oNeed: null,
+  },
+  retrofit: {
+    cohorts: ['callable'],
+    label: 'Energy retrofit contractor',
+    tile: 'Energy retrofits / Local Law 97',
+    facade: null,
+    mandates: {
+      carbon: (c) =>
+        c.ghg?.usd > 0
+          ? `The building's own benchmarking prices its exposure at about ${money(c.ghg.usd)} a year — a retrofit scope with a number already attached.`
+          : `A named Local Law 97 violation is capital work the owner has not scoped yet — the retrofit conversation starts here.`,
     },
     cNeed: null,
     oNeed: null,
@@ -185,12 +248,12 @@ const PROFILES = {
     // The pitch above is to the WINNER. A solicitation has no vendor yet, and
     // an eight-point-hat notice in front of a surety broker is somebody else's
     // card — awards only.
-    cFilter: (c) => c.kind === 'AWARD',
+    cFilter: constrAward,
     cOpener: (c) =>
       `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or COIs lined up before mobilization, we can quote it this week.`,
     oNeed: () => `A new venue needs general liability and liquor liability before the doors open — and underwriting takes weeks.`,
     oOpener: (c) =>
-      `Re: ${venueName(c)} — saw the license application for ${c.address}. GL and liquor liability take a few weeks to bind; we can have you covered before opening day.`,
+      `Re: ${venueName(c)} — ${sawRecord(c)}. ${c.src === 'dohmh' ? 'GL and property coverage' : 'GL and liquor liability'} take a few weeks to bind; we can have you covered before opening day.`,
   },
   pos: {
     label: 'POS / payments',
@@ -199,7 +262,7 @@ const PROFILES = {
     cNeed: null,
     oNeed: () => `POS and payments get chosen during build-out — before opening day, not after. This venue is deciding right now.`,
     oOpener: (c) =>
-      `Re: ${venueName(c)} — saw the license application for ${c.address}. If you're still picking a POS, we can have you set up and trained before the doors open.`,
+      `Re: ${venueName(c)} — ${sawRecord(c)}. If you're still picking a POS, we can have you set up and trained before the doors open.`,
   },
   fnb: {
     label: 'F&B supplier',
@@ -207,16 +270,17 @@ const PROFILES = {
     facade: null,
     cNeed: null,
     oNeed: () => `Opening menus are being costed right now — supplier lists lock in before the first delivery, not after.`,
-    oOpener: (c) => `Re: ${venueName(c)} — saw the license application for ${c.address}. We supply venues like yours; happy to quote your opening order before the rush.`,
+    oFilter: isVenue,
+    oOpener: (c) => `Re: ${venueName(c)} — ${sawRecord(c)}. We supply venues like yours; happy to quote your opening order before the rush.`,
   },
   staffing: {
     label: 'Staffing',
     tile: 'Staffing / recruiting',
     facade: null,
-    cNeed: (c) => `${c.vendor} needs crews to deliver ${money(c.amount)} of new work — hiring happens in the first weeks after an award.`,
+    cNeed: (c) => `${c.vendor} needs people to deliver ${money(c.amount)} of new work — hiring happens in the first weeks after an award.`,
     // Hiring happens after the award, as the line above says — awards only.
     cFilter: (c) => c.kind === 'AWARD',
-    cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted crews ready this month.`,
+    cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted candidates ready this month.`,
     oNeed: () => `A venue opening in 2–4 months hires its whole team in the last six weeks — the search starts now.`,
     oOpener: (c) => `Re: ${venueName(c)} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
   },
@@ -240,15 +304,16 @@ const PROFILES = {
     },
     cNeed: (c) => `Delivering ${money(c.amount)} of new work usually means renting equipment in the first weeks — before the city's first payment lands.`,
     cFilter: (c) => CONSTR.test(c.category || ''),
+    cOpener: (c) =>
+      `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If the scope needs sheds, scaffolding or hoists in the first weeks, we can have them on site before mobilization.`,
     oNeed: null,
   },
   propmgmt: {
     cohorts: ['sold', 'owes', 'callable'],
-    mandates: {
-      gas: (c) => `The building has been carrying this violation for ${Math.round((c.openDays || 0) / 30)} months and owes another filing by ${usDate(c.deadline)}.`,
-      elevators: (c) => `${c.devices === 1 ? 'The lift' : 'The lifts'} here skipped a test cycle outright, which is a management gap rather than a scheduling one.`,
-      carbon: () => `An emissions report is the managing agent's filing, and this one is late enough that DOB has written it down.`,
-    },
+    // No gas, elevators or carbon: the only phone number on those cards is the
+    // incumbent managing agent's — this trade's competitor — and the top card
+    // was another firm's twelve-building portfolio. A management company sees
+    // the buildings whose owner or agent just changed, full stop.
     label: 'Property management',
     tile: 'Property management',
     facade: {
@@ -269,6 +334,14 @@ const PROFILES = {
       gas: (c) => `An uncured LL152 violation is an OATH matter with a penalty attached, and a second deadline lands ${usDate(c.deadline)}.`,
       elevators: () => `A skipped CAT1 cycle is what an elevator violation is written from — this is the stage before the hearing.`,
       carbon: () => `Local Law 97 penalties are assessed per tonne over the cap, and the unfiled report is the first thing to answer.`,
+    },
+    mOpener: {
+      gas: (c) =>
+        `Re: ${title(c.address)} — DOB shows an open Local Law 152 gas-piping violation with a filing due ${usDate(c.deadline)}. Uncured, it becomes a hearing with a penalty attached; we handle cures, dismissals and the hearing itself.`,
+      elevators: (c) =>
+        `Re: ${title(c.address)} — the elevator${c.devices > 1 ? 's' : ''} here skipped a CAT1 cycle, which is what an elevator violation is written from. We can get the backlog certified and the record cleaned before it reaches a hearing.`,
+      carbon: (c) =>
+        `Re: ${title(c.address)} — the building is named on a Local Law 97 violation. Penalties run per ton over the cap; we handle the filing, the adjustment applications and any hearing.`,
     },
     label: 'Code attorney / expeditor',
     tile: 'Code attorneys / expeditors',
@@ -296,6 +369,12 @@ const PROFILES = {
       gas: (c) => `An open gas-piping violation on a building you already farm — a reason to call that is not "are you selling?".`,
       carbon: () => `A named Local Law 97 violation is a capital bill the owner has not budgeted for, which is the polite version of motivated.`,
     },
+    mOpener: {
+      gas: (c) =>
+        `Re: ${title(c.address)} — no ask, just context: the building carries an open gas-piping violation with a filing due ${usDate(c.deadline)}. If a quiet valuation is ever useful, happy to run one.`,
+      carbon: (c) =>
+        `Re: ${title(c.address)} — no ask, just context: a Local Law 97 violation is a capital bill most owners have not budgeted. Buildings carrying it are trading at interesting numbers; a quiet valuation is on offer if useful.`,
+    },
     cohorts: ['wholeBuilding', 'owes', 'sold'],
     label: 'CRE broker / investor',
     tile: 'CRE brokerage / investment',
@@ -320,6 +399,7 @@ const PROFILES = {
     tile: 'Marketing / launch PR',
     facade: null,
     cNeed: null,
+    oFilter: isVenue,
     oNeed: () => `Opening night happens once — launch campaigns, socials and local press get planned six to eight weeks out. This venue is picking who runs that right now.`,
     oOpener: (c) =>
       `Re: ${venueName(c)} — saw the filing for ${c.address}. Opening night only happens once; we build launch campaigns for new venues. Want the neighborhood talking before the doors open?`,
@@ -850,17 +930,12 @@ const TICKET = {
   qewi: { facades: 12000, contracts: 9000, gas: 1800, elevators: 2600, openings: 3500 /* ESTIMATED */ },
   restoration: { facades: 180000, contracts: 120000, openings: 40000 /* ESTIMATED: a storefront scope */ },
   equipment: { facades: 45000, contracts: 30000, openings: 20000 /* ESTIMATED */ },
-  elevator: { facades: 25000, elevators: 9000, contracts: 60000 /* ESTIMATED */, openings: 35000 /* ESTIMATED */ },
+  elevator: { elevators: 9000 },
+  plumber: { gas: 10000 /* ESTIMATED: inspection plus the repair it opens */ },
+  retrofit: { carbon: 350000 /* ESTIMATED: one retrofit scope */ },
   insurance: { facades: 12000, contracts: 18000, openings: 9000 },
   lender: { facades: 200000, contracts: 150000, openings: 120000, gas: 90000, carbon: 350000 },
-  propmgmt: {
-    facades: 50000,
-    gas: 4000,
-    elevators: 6500,
-    carbon: 12000,
-    contracts: 30000 /* ESTIMATED */,
-    openings: 9000 /* ESTIMATED */,
-  },
+  propmgmt: { facades: 50000 },
   legal: {
     facades: 7500,
     gas: 6000,
@@ -879,8 +954,15 @@ const TICKET = {
   // we can honestly put a number on, so the block does not appear for them.
   explore: {},
 };
-const homeVertical = (k) =>
-  PROFILES[k]?.facade ? 'facades' : PROFILES[k]?.cNeed ? 'contracts' : PROFILES[k]?.oNeed ? 'openings' : 'facades';
+const homeVertical = (k) => {
+  const p = PROFILES[k];
+  if (p?.facade) return 'facades';
+  if (p?.cNeed) return 'contracts';
+  if (p?.oNeed) return 'openings';
+  // A mandates-only trade (elevator, plumber, retrofit) lives in its register,
+  // not in facades — this used to seed the elevator trade's ticket with 25000.
+  return Object.keys(p?.mandates || {})[0] || 'facades';
+};
 // Exact, with no fallback in either direction. Borrowing another profile's
 // number would put a restoration contractor's figure in front of an inspector;
 // borrowing the same profile's figure from another register is the same error
@@ -1176,6 +1258,11 @@ export default function App() {
   };
   const [shown, setShown] = useState(7);
   const [openId, setOpenId] = useState(null);
+  // The card a shared link asked for, kept in the list past the trade's own
+  // filter: a property manager who opens a colleague's #b/ link to a building
+  // with no ownership change used to get the register, everything revealed,
+  // and no card — the exact case the filter reset below was written against.
+  const [linkedId, setLinkedId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
   // ?zips= is the same thing as typing the ZIPs into the search box — one
@@ -1560,6 +1647,11 @@ export default function App() {
 
   const profile = PROFILES[profileKey] || PROFILES.explore;
   const fv = profile.facade || GENERIC_FACADE;
+  // The "why it matches you" line on a gas, elevator or carbon card was
+  // already the trade's; the email under it was still the plumber's / the
+  // lift mechanic's / the retrofit firm's. A profile with its own mOpener
+  // writes its own.
+  const mOpener = (k, c) => profile.mOpener?.[k]?.(c) || MANDATES[k].opener(c);
   const [sortMode, setSortMode] = useState('profile');
   const [showTop, setShowTop] = useState(false);
   const searchRef = useRef(null);
@@ -1635,7 +1727,7 @@ export default function App() {
     else setShowOnboard(false);
     setShown(7);
     const p = PROFILES[k];
-    setVertical(p?.facade ? 'facades' : p?.cNeed ? 'contracts' : p?.oNeed ? 'openings' : 'facades');
+    setVertical(homeVertical(k));
     setSortMode('profile');
   };
 
@@ -1765,8 +1857,8 @@ export default function App() {
     money: (a, b) => (b.ecbBalance || 0) + (b.finesOwed || 0) - (a.ecbBalance || 0) - (a.finesOwed || 0),
   };
   const facadeFeed = useMemo(
-    () => data.facades.feed.filter(fv.fFilter || (() => true)).sort(SORTS[sortMode] || SORTS.profile),
-    [data, profileKey, sortMode, contacts],
+    () => data.facades.feed.filter((c) => c.bin === linkedId || (fv.fFilter || (() => true))(c)).sort(SORTS[sortMode] || SORTS.profile),
+    [data, profileKey, sortMode, contacts, linkedId],
   );
   // The one register-wide money figure that grows in every hourly build: what
   // DOB has already assessed. It rises as the city works, not as we estimate.
@@ -1830,7 +1922,10 @@ export default function App() {
   // under the same kind, and one sat in the feed reading "closes in 2 days".
   const noCancel = (rows) => rows.filter((c) => !/^\s*cancell/i.test(c.title || ''));
   const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts)), [data, live]);
-  const liveOpenings = useMemo(() => mergeLive(data.openings, live?.openings), [data, live]);
+  const liveOpenings = useMemo(
+    () => mergeLive(data.openings, live?.openings).filter((o) => o.src !== 'sla' || !NOT_A_VENUE.test(o.kind || '')),
+    [data, live],
+  );
   // The liquour file dates its applications and the health file does not, so
   // there is no single number both sources can be ordered by: comparing them
   // directly put all 350 undated rows below all 39 dated ones and called it
@@ -1849,7 +1944,16 @@ export default function App() {
     }
     return (o) => rank.get(o.id) ?? 1;
   }, [liveOpenings]);
-  const contractsBase = useMemo(() => liveContracts.filter(profile.cFilter || (() => true)), [profileKey, liveContracts]);
+  const contractsBase = useMemo(
+    () => liveContracts.filter((c) => c.id === linkedId || (profile.cFilter || (() => true))(c)),
+    [profileKey, liveContracts, linkedId],
+  );
+  // Same rule as contracts: a trade that only sells to rooms about to open
+  // (food supply, launch marketing) never sees a grocery or a liquor store.
+  const openingsBase = useMemo(
+    () => liveOpenings.filter((o) => o.id === linkedId || (profile.oFilter || (() => true))(o)),
+    [profileKey, liveOpenings, linkedId],
+  );
   const contractsList = useMemo(
     () =>
       contractsBase.filter((c) => {
@@ -1967,7 +2071,7 @@ export default function App() {
   const mandateList = useMemo(() => mandateRows.flatMap((r) => (r.group ? r.cards : [r])), [mandateRows]);
   const openingsNoBoro = useMemo(
     () =>
-      liveOpenings.filter((o) => {
+      openingsBase.filter((o) => {
         if (showHidden !== isDismissed('o:' + o.id)) return false;
         if (!showHidden && taughtAway('o:', o)) return false;
         if (onlyWatch && !isWatched('o:' + o.id)) return false;
@@ -1978,7 +2082,7 @@ export default function App() {
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
       }),
-    [liveOpenings, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
+    [openingsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort],
   );
   const openingsCounts = useMemo(() => {
     const m = { all: openingsNoBoro.length };
@@ -2056,7 +2160,7 @@ export default function App() {
     // search box must never make a tab disappear.
     ...Object.fromEntries(mandateKeys.map((k) => [k, (data[k]?.feed || []).length])),
     contracts: contractsBase.length,
-    openings: liveOpenings.length,
+    openings: openingsBase.length,
   };
   // THE pool every register-level chip and count reads from — the same rows
   // the body prices. Raw data.* is never counted directly by the UI again:
@@ -2069,7 +2173,7 @@ export default function App() {
         ? data[k]?.feed || []
         : k === 'contracts'
           ? contractsBase
-          : liveOpenings;
+          : openingsBase;
 
   const matchedVerts = VERTICALS.filter(
     (v) =>
@@ -2119,7 +2223,7 @@ export default function App() {
       const p = PROFILES[k];
       const f = p.facade ? data.facades.feed.filter(p.facade.fFilter || (() => true)).length : 0;
       const c = p.cNeed ? liveContracts.filter(p.cFilter || (() => true)).length : 0;
-      const o = p.oNeed ? liveOpenings.length : 0;
+      const o = p.oNeed ? liveOpenings.filter(p.oFilter || (() => true)).length : 0;
       // The building registers count too, or the picker ranks a trade by the
       // one register it happens to share with everyone else.
       const mand = mandateKeys.reduce((n, key) => n + (p.mandates?.[key] ? (data[key]?.feed || []).length : 0), 0);
@@ -2147,8 +2251,29 @@ export default function App() {
   const isWorking = (k) => ['contacted', 'won'].includes(fb[k]?.s);
   const workingCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && isWorking(k)).length;
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, gas: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
-  const hasNew =
-    wn.buildings + wn.signals + wn.contracts + wn.openings + mandateKeys.reduce((n, k) => n + (wn[k] || 0), 0) > 0;
+  // Scoped to the registers this trade can see and to its own pools: a POS shop
+  // used to read "5 fresh signals · 27 contracts" on the openings register, and
+  // an awards-only broker was told 27 contracts were new when its base held 25.
+  const myVerts = new Set(matchedVertKeys);
+  const newContracts = contractsBase.filter((c) => c.isNew).length;
+  const newParts = [
+    myVerts.has('facades') && wn.buildings && wn.buildings < data.facades.feed.length
+      ? `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`
+      : null,
+    myVerts.has('facades') && wn.signals ? `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}` : null,
+    // A register cannot be a hundred per cent new in forty-eight hours. If the
+    // count equals the register, it is a first build being announced as news.
+    ...mandateKeys.map((k) => {
+      if (!myVerts.has(k)) return null;
+      const n = wn[k] || 0;
+      const size = (data[k]?.feed || []).length;
+      if (!n || n >= size) return null;
+      return `${n} ${MANDATES[k].noun || 'building'}${n > 1 ? 's' : ''} on ${MANDATES[k].label.toLowerCase()}`;
+    }),
+    myVerts.has('contracts') && newContracts ? `${newContracts} contract${newContracts > 1 ? 's' : ''}` : null,
+    myVerts.has('openings') && wn.openings ? `${wn.openings} venue filing${wn.openings > 1 ? 's' : ''}` : null,
+  ].filter(Boolean);
+  const hasNew = newParts.length > 0;
   const pulled = new Date(data.generatedAt);
   const ago = (t) => {
     const m = Math.max(0, Math.round((now - t) / 60000));
@@ -2251,6 +2376,7 @@ export default function App() {
       keepShown.current = Math.max(7, idx + 1);
       setVertical(vert);
       setOpenId(targetId);
+      setLinkedId(id);
       setShown(keepShown.current);
       const scroll = () => document.getElementById(`rw-${targetId}`)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
       setTimeout(() => {
@@ -2456,7 +2582,7 @@ export default function App() {
           profile.mandates?.[vertical]?.(c) || m.whoWins,
           c.agent?.company ? title(c.agent.company) : '',
           c.agent?.address ? title(c.agent.address) : '',
-          m.opener(c),
+          mOpener(vertical, c),
           `${location.origin}/#${m.prefix[0]}/${c.bin}`,
         ]),
       );
@@ -2685,7 +2811,11 @@ export default function App() {
     const awards = awardRows.reduce((s, c) => s + (c.amount || 0), 0);
     return { open: open.length, nearest, awards, awardN: awardRows.length };
   }, [data, contractsBase]);
-  const openingsPhones = useMemo(() => liveOpenings.filter((o) => o.phone).length, [liveOpenings]);
+  const openingsPhones = useMemo(() => openingsBase.filter((o) => o.phone).length, [openingsBase]);
+  // A trade whose contracts filter keeps only winners (lender, insurance,
+  // staffing) does not bid on anything: the headline, the subline and the
+  // scene caption say so, or the page contradicts its own cards.
+  const awardsOnly = vertical === 'contracts' && contractHook.open === 0 && contractHook.awardN > 0;
   const monthsToDec26 = Math.max(0, Math.round((new Date('2026-12-31') - now) / (30.44 * 86400000)));
 
   const heroText =
@@ -2698,7 +2828,9 @@ export default function App() {
           : vertical === 'carbon'
             ? 'Buildings the city has *named on carbon*'
         : vertical === 'contracts'
-          ? 'City work you can still *bid on today*'
+          ? awardsOnly
+            ? 'City contracts *just awarded* — the winners are named'
+            : 'City work you can still *bid on today*'
           : 'Venues that will open their doors *in a few months*';
 
   const heroSub =
@@ -2712,7 +2844,9 @@ export default function App() {
           : vertical === 'carbon'
             ? 'Local Law 97 covers tens of thousands of buildings and DOB has cited about four thousand for not filing an emissions report. These are the cited buildings whose own benchmarking lets us price the exposure — reported CO2e against an estimated cap, at \u0024268 a ton over.'
         : vertical === 'contracts'
-          ? 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
+          ? awardsOnly
+            ? 'Awards from the City Record with the winning vendor and the agency named on every notice. Each winner has about two weeks to line up bonding, working capital, subs and crews before mobilization.'
+            : 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
           : 'Two records, both public. A liquor licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
@@ -2849,7 +2983,7 @@ export default function App() {
                   })}
                 </Suspense>
               ))}
-            {vertical === 'contracts' && <span className="massing-cap">{HEROES[vertical].cap}</span>}
+            {vertical === 'contracts' && <span className="massing-cap">{awardsOnly ? 'Award just filed · winner named' : HEROES[vertical].cap}</span>}
           </div>
       )}
     </>
@@ -3511,8 +3645,10 @@ export default function App() {
                 </b>
               ) : vertical === 'contracts' ? (
                 <b className="pipe-lead">
-                  {myPipeline.openNotices.toLocaleString('en-US')} notices open
-                  {myPipeline.nearestClose != null
+                  {awardsOnly
+                    ? `${contractHook.awardN.toLocaleString('en-US')} awards placed in the last window`
+                    : `${myPipeline.openNotices.toLocaleString('en-US')} notices open`}
+                  {!awardsOnly && myPipeline.nearestClose != null
                     ? ` — the nearest closes ${myPipeline.nearestClose === 0 ? 'today' : `in ${myPipeline.nearestClose} business day${myPipeline.nearestClose === 1 ? '' : 's'}`}`
                     : ''}{' '}
                   · {fmtMoney(myPipeline.awardsSum)} in awards placed in the last window — the winners' money.
@@ -3553,16 +3689,30 @@ export default function App() {
                 </span>
               )}
               <span className="pipe-note">
-                {vertical === 'gas' ? (
-                  <b className="pipe-win">
-                    {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)} reaches you, in contracts — and
-                    LL152 brings the same buildings back every four years.
-                  </b>
-                ) : vertical === 'elevators' ? (
-                  <b className="pipe-win">
-                    {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)} a year reaches you, in contracts —
-                    and a service contract renews every year.
-                  </b>
+                {vertical === 'gas' || vertical === 'elevators' ? (
+                  // The sentence used to be the plumber's / the lift mechanic's for
+                  // everyone on the register: a lawyer read that "a service contract
+                  // renews every year", and "Just exploring" got a funnel with no
+                  // trade to hang it on. Recurrence and denomination now follow the
+                  // trade's own unit; no unit, no money.
+                  myPipeline.avg > 0 ? (
+                    <b className="pipe-win">
+                      {workClause(myPipeline)} — about {fmtMoney(myPipeline.expected)}
+                      {myPipeline.recurring === 'year' ? ' a year' : ''} reaches you, in{' '}
+                      {profileKey === 'legal' ? 'fees' : profileKey === 'cre' ? 'commissions' : 'contracts'}
+                      {myPipeline.recurring === 'four years'
+                        ? ' — and LL152 brings the same buildings back every four years.'
+                        : myPipeline.recurring === 'year'
+                          ? ' — and it renews every year.'
+                          : '.'}
+                    </b>
+                  ) : (
+                    <b className="pipe-win">
+                      {vertical === 'gas'
+                        ? 'Every building here owes a gas-piping filing on a date — what that is worth depends on what you sell. Pick your trade above.'
+                        : 'Every lift here skipped a test cycle — what that is worth depends on what you sell. Pick your trade above.'}
+                    </b>
+                  )
                 ) : vertical === 'contracts' ? (
                   myPipeline.avg > 0 ? (
                     <b className="pipe-win">
@@ -3713,25 +3863,7 @@ export default function App() {
                 <b>
                   {feedStale ? `New in the week to ${usShort(data.generatedAt.slice(0, 10))}:` : 'New this week:'}
                 </b>{' '}
-                {[
-                  wn.buildings && wn.buildings < data.facades.feed.length
-                    ? `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`
-                    : null,
-                  wn.signals && `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}`,
-                  // A register cannot be a hundred per cent new in forty-eight
-                  // hours. If the count equals the register, it is a first build
-                  // being announced as news and is not shown.
-                  ...mandateKeys.map((k) => {
-                    const n = wn[k] || 0;
-                    const size = (data[k]?.feed || []).length;
-                    if (!n || n >= size) return null;
-                    return `${n} ${MANDATES[k].noun || 'building'}${n > 1 ? 's' : ''} on ${MANDATES[k].label.toLowerCase()}`;
-                  }),
-                  wn.contracts && `${wn.contracts} contract${wn.contracts > 1 ? 's' : ''}`,
-                  wn.openings && `${wn.openings} venue filing${wn.openings > 1 ? 's' : ''}`,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
+                {newParts.join(' · ')}
               </>
             ) : (
               <>
@@ -4761,7 +4893,7 @@ export default function App() {
                       ) : mailAddr(ct?.email) ? (
                         <a
                           className="btn solid"
-                          href={`mailto:${mailAddr(ct.email)}?subject=${encodeURIComponent(title(c.address))}&body=${encodeURIComponent(m.opener(c))}`}
+                          href={`mailto:${mailAddr(ct.email)}?subject=${encodeURIComponent(title(c.address))}&body=${encodeURIComponent(mOpener(vertical, c))}`}
                         >
                           Email {ct.email}
                         </a>
@@ -4775,7 +4907,7 @@ export default function App() {
                           Find the number
                         </a>
                       ) : (
-                        <button className="btn solid" onClick={() => copy(c.bin, m.opener(c))}>
+                        <button className="btn solid" onClick={() => copy(c.bin, mOpener(vertical, c))}>
                           {copiedId === c.bin ? 'Copied' : 'Copy opener'}
                         </button>
                       )}
@@ -4808,7 +4940,7 @@ export default function App() {
 
       {vertical === 'openings' && (
         <>
-          {miniToolbar(openingsList, liveOpenings.length, { boroughs: true, counts: openingsCounts })}
+          {miniToolbar(openingsList, openingsBase.length, { boroughs: true, counts: openingsCounts })}
           {mapPanel(openingsList)}
           <SimpleFeed
             items={openingsList.slice(0, shown)}
@@ -5391,7 +5523,7 @@ const defaultCOpener = (c) => {
     return `Re: ${c.title}${c.epin ? ` (PIN ${c.epin})` : ''} — we saw the intent-to-award notice. We can perform this scope and would like to be considered; what is the process for filing an objection before ${usDate(c.dueDate)}?`;
   if (c.kind === 'SOLICITATION')
     return `Re: ${c.title}${c.epin ? ` (PIN ${c.epin})` : ''} — we intend to bid before the ${usDate(c.dueDate)} deadline. Could you confirm where the bid documents are posted and whether a pre-bid conference is scheduled?`;
-  return `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you need bonding or coverage lined up before mobilization, we can quote it this week.`;
+  return `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. The first weeks after an award are when subs, suppliers and services get chosen; we'd like to be on that list — what does mobilization look like?`;
 };
 const defaultOOpener = (c) =>
   c.src === 'dohmh'

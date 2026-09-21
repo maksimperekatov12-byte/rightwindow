@@ -11,7 +11,11 @@ export default function TradesPage({ profiles, primary, other, volume, onPick, o
     const v = volume?.[k] || {};
     const parts = [
       [v.facades, 'building', 'buildings'],
-      [v.contracts, 'award', 'awards'],
+      // The gas, elevator and carbon registers — the whole feed for an elevator
+      // contractor or a plumber; this card used to tell them "nothing open today".
+      [v.mandates, 'building on a compliance clock', 'buildings on a compliance clock'],
+      // Facade trades count open bids as well as awards, so "awards" was wrong for them.
+      [v.contracts, 'city contract', 'city contracts'],
       [v.openings, 'opening', 'openings'],
     ]
       .filter(([n]) => n >= MIN)

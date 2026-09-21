@@ -12,8 +12,8 @@ export const TRADE_ALIASES = {
   qewi: 'qewi',
   restoration: 'restoration',
   elevator: 'elevator',
-  plumber: 'qewi', // LL152 filings are a plumber's work; the gas register is his page
-  retrofit: 'lender',
+  plumber: 'plumber',
+  retrofit: 'retrofit',
   equipment: 'equipment',
   insurance: 'insurance',
   lender: 'lender',

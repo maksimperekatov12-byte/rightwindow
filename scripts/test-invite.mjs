@@ -31,7 +31,7 @@ assert.equal(readInvite('?ref=Tribute%20Co!').ref, 'tributeco');
 
 // Every alias points at a profile the app actually has.
 const PROFILE_IDS = new Set([
-  'qewi', 'restoration', 'equipment', 'elevator', 'insurance', 'lender',
+  'qewi', 'restoration', 'equipment', 'elevator', 'plumber', 'retrofit', 'insurance', 'lender',
   'propmgmt', 'legal', 'cre', 'staffing', 'pos', 'fnb', 'marketing', 'signage',
 ]);
 for (const [alias, id] of Object.entries(TRADE_ALIASES))

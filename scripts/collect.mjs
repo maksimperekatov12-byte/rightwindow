@@ -488,7 +488,44 @@ for (let i = 0; i < top.length; i += 40) {
     }
   }
 }
-console.log(`Facade filings for ${filingByBin.size} buildings`);
+// The job-application dataset above holds ~95k rows and misses most of the
+// city: it found ONE facade filing among 800 candidates on 2026-09-21, while
+// the approved-permits dataset (rbx6-tga4, already read for sheds) showed a
+// General Construction facade permit on 169 of the 277 buildings the site was
+// calling "shed up, no repair filed". A permit issued is the strongest
+// possible "somebody is on it" — it wins over an application.
+const PERMIT_RE = /FACADE|FISP|LOCAL LAW 11|LL ?11|PARAPET|EXTERIOR WALL|EXTERIOR MASONRY|MASONRY|BRICK|POINTING|LINTEL|TERRA ?COTTA|CORNICE|WATERPROOF/i;
+const permitSince = new Date(TODAY - 730 * 86400000).toISOString().slice(0, 10);
+let permitHits = 0;
+for (let i = 0; i < top.length; i += 40) {
+  const bins = top.slice(i, i + 40).map((c) => `'${c.bin}'`).join(',');
+  const rows = await fetchAll(
+    'rbx6-tga4',
+    {
+      $where: `bin in(${bins}) and work_type='General Construction' and permit_status in('Permit Issued','Signed-off') and issued_date > '${permitSince}'`,
+      $select: 'bin,job_filing_number,job_description,issued_date,approved_date,estimated_job_costs,applicant_business_name',
+    },
+    5000,
+  );
+  for (const r of rows) {
+    if (!PERMIT_RE.test(r.job_description || '')) continue;
+    const issued = parseYmd(r.issued_date);
+    if (!issued) continue;
+    const cur = filingByBin.get(r.bin);
+    if (cur?.permitted && cur.filed >= issued) continue;
+    filingByBin.set(r.bin, {
+      filed: issued,
+      status: 'Permit Issued',
+      approved: parseYmd(r.approved_date) || issued,
+      permitted: true,
+      cost: Number(r.estimated_job_costs || 0),
+      who: r.applicant_business_name || null,
+      height: cur?.height || 0,
+    });
+    permitHits += 1;
+  }
+}
+console.log(`Facade filings for ${filingByBin.size} buildings (${permitHits} from issued permits)`);
 
 // HPD registration change watcher: the registration dataset updates daily, so a change
 // in registrationid or managing-agent company is a days-fresh, fully-open proxy for a

@@ -15,7 +15,7 @@ import { updateDoc, PREFS } from '../lib/store.mjs';
 const SLACK_HOOK = /^https:\/\/hooks\.slack\.com\/services\/[\w/+-]+$/;
 const EMAIL = /^[^@\s]{1,64}@[^@\s]{1,190}\.[a-z]{2,24}$/i;
 const PROFILES = new Set([
-  'qewi', 'restoration', 'lender', 'elevator', 'insurance', 'pos', 'fnb', 'staffing',
+  'qewi', 'restoration', 'lender', 'elevator', 'plumber', 'retrofit', 'insurance', 'pos', 'fnb', 'staffing',
   'equipment', 'propmgmt', 'legal', 'cre', 'marketing', 'signage', 'explore',
 ]);
 const BOROS = new Set(['all', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx']);
