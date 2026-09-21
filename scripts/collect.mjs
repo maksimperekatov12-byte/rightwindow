@@ -25,20 +25,52 @@ console.log('Source gate: data.cityofnewyork.us ALLOWED, data.ny.gov ALLOWED, a8
 const BASE = 'https://data.cityofnewyork.us/resource';
 const TODAY = new Date();
 
-async function getJson(url, tries = 4) {
+// Socrata answers a request in the middle of a 40-minute run with a 503 a few
+// times a week (2026-09-11, -12, -19: all "Service unavailable", all gone by
+// the next hour). Four quick retries covered ten seconds of that; this waits
+// about a minute and a half, backs off on the server's own Retry-After when
+// it sends one, and does not retry a 4xx — a bad query is not an outage.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const RETRY_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+async function getJson(url, tries = 7) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
+    let wait = Math.min(40000, 1500 * 2 ** i);
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(45000) });
-      if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
-      return await res.json();
+      if (res.ok) return await res.json();
+      const err = new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
+      err.upstream = RETRY_STATUS.has(res.status);
+      const after = Number(res.headers.get('retry-after'));
+      if (after > 0) wait = Math.min(60000, after * 1000);
+      throw err;
     } catch (e) {
+      // Timeouts and refused connections are the city's problem, not ours.
+      if (e.upstream === undefined) e.upstream = true;
       lastErr = e;
-      if (i < tries - 1) await new Promise((r) => setTimeout(r, 1500 * 2 ** i));
+      if (!e.upstream) break;
+      if (i < tries - 1) await sleep(wait);
     }
   }
   throw lastErr;
 }
+
+// A run this script cannot finish because the city's API is down should not
+// page anyone while the feed on disk is still recent: the site keeps serving
+// the last good build and the next hour tries again. Only an outage that
+// outlasts the feed's freshness is a failure worth an email.
+const STALE_HOURS = 6;
+process.on('uncaughtException', (e) => {
+  const prev = prevFeed();
+  const ageH = prev?.generatedAt ? (Date.now() - new Date(prev.generatedAt)) / 3.6e6 : Infinity;
+  if (e?.upstream && ageH < STALE_HOURS) {
+    console.warn(`UPSTREAM UNAVAILABLE: ${String(e.message || e).slice(0, 200)}`);
+    console.warn(`Keeping the feed from ${prev.generatedAt} (${ageH.toFixed(1)} h old); the next hourly run retries.`);
+    process.exit(0);
+  }
+  console.error(e);
+  process.exit(1);
+});
 
 async function fetchAll(dataset, params, pageSize = 50000) {
   const rows = [];
@@ -69,8 +101,11 @@ async function stage(name, fn) {
   } catch (e) {
     degradedStages.push(name);
     console.warn(`STAGE DEGRADED: ${name} — ${String(e.message || e).slice(0, 200)}. Continuing without it.`);
-    if (degradedStages.length >= 2)
-      throw new Error(`${degradedStages.length} enrichment stages degraded (${degradedStages.join(', ')}) — refusing to publish a hollow feed`);
+    if (degradedStages.length >= 2) {
+      const err = new Error(`${degradedStages.length} enrichment stages degraded (${degradedStages.join(', ')}) — refusing to publish a hollow feed`);
+      err.upstream = true;
+      throw err;
+    }
   }
 }
 
