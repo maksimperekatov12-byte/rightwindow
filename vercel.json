@@ -5,6 +5,12 @@
       "data": false
     }
   },
+  "rewrites": [
+    {
+      "source": "/status",
+      "destination": "/status.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/:path*",

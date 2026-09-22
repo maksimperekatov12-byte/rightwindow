@@ -12,6 +12,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCache } from '../lib/enrich.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 import { sourceStamps, newestStamp } from '../lib/sources.mjs';
+import { recorder, writeHealth } from '../lib/health.mjs';
 import { resolveAffiliates } from '../lib/affiliate.mjs';
 import { resolveIdentities } from '../lib/personal.mjs';
 
@@ -33,14 +34,23 @@ const TODAY = new Date();
 // it sends one, and does not retry a 4xx — a bad query is not an outage.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const RETRY_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+// Every request is attributed to its record in the run report (lib/health.mjs),
+// which is how /status names the source that fell off instead of "the run".
+const health = recorder('hourly');
 async function getJson(url, tries = 7) {
   let lastErr;
+  const t0 = Date.now();
   for (let i = 0; i < tries; i++) {
     let wait = Math.min(40000, 1500 * 2 ** i);
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(45000) });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const json = await res.json();
+        health.request(url, { ok: true, ms: Date.now() - t0, rows: Array.isArray(json) ? json.length : 0, retries: i, status: lastErr?.status ?? null });
+        return json;
+      }
       const err = new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
+      err.status = res.status;
       err.upstream = RETRY_STATUS.has(res.status);
       const after = Number(res.headers.get('retry-after'));
       if (after > 0) wait = Math.min(60000, after * 1000);
@@ -53,6 +63,7 @@ async function getJson(url, tries = 7) {
       if (i < tries - 1) await sleep(wait);
     }
   }
+  health.request(url, { ok: false, ms: Date.now() - t0, retries: tries - 1, status: lastErr?.status ?? null, error: lastErr?.message || String(lastErr) });
   throw lastErr;
 }
 
@@ -64,7 +75,16 @@ const STALE_HOURS = 6;
 process.on('uncaughtException', (e) => {
   const prev = prevFeed();
   const ageH = prev?.generatedAt ? (Date.now() - new Date(prev.generatedAt)) / 3.6e6 : Infinity;
-  if (e?.upstream && ageH < STALE_HOURS) {
+  const quiet = e?.upstream && ageH < STALE_HOURS;
+  // The report is written before anything else: a run that dies without one
+  // is invisible on /status, and a quiet exit is exactly the case that used to
+  // leave no trace anywhere.
+  try {
+    writeHealth(health.finish({ outcome: quiet ? 'upstream' : 'failed', error: e?.message || String(e), feedAt: prev?.generatedAt || null }));
+  } catch (w) {
+    console.error('health report not written:', w?.message || w);
+  }
+  if (quiet) {
     console.warn(`UPSTREAM UNAVAILABLE: ${String(e.message || e).slice(0, 200)}`);
     console.warn(`Keeping the feed from ${prev.generatedAt} (${ageH.toFixed(1)} h old); the next hourly run retries.`);
     process.exit(0);
@@ -1949,6 +1969,24 @@ writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(
 // changes permanently, because the "previous" state has already passed them.
 writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 1));
 writeFileSync(mgmtLogPath, JSON.stringify(mgmtLog, null, 1));
+// The run report, for /status. "Degraded" is a stage that failed and was
+// carried by the previous hour's data — the feed is real, one chip on it is
+// not fresh — and the sources map says which one.
+writeHealth(
+  health.finish({
+    outcome: degradedStages.length ? 'degraded' : 'ok',
+    error: degradedStages.length ? `carried by the previous hour: ${degradedStages.join(', ')}` : null,
+    feedAt: out.generatedAt,
+    counts: {
+      facades: feed.length,
+      ...Object.fromEntries(Object.entries(registers).map(([k, r]) => [k, r.feed.length])),
+      contracts: contracts.length,
+      openings: openings.length,
+      permits: permitHits,
+      new: whatsNew,
+    },
+  }),
+);
 console.log(
   `Written: facades ${feed.length}, ` +
     Object.entries(registers).map(([k, r]) => `${k} ${r.feed.length}`).join(', ') +

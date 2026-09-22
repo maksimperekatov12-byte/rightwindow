@@ -10,23 +10,35 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { readDoc, CLAIMS } from '../lib/store.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 import { SOURCES, sourceStamps, newestStamp } from '../lib/sources.mjs';
+import { recorder, foldIncidents } from '../lib/health.mjs';
 
 assertCollectable('data.cityofnewyork.us');
 assertCollectable('data.ny.gov');
 
 const TODAY = new Date();
+// Every request is attributed to its record (lib/health.mjs): /status names
+// the source that fell off, and one source failing no longer loses the tick.
+const health = recorder('fast');
 async function getJson(url, tries = 3) {
   let last;
+  const t0 = Date.now();
   for (let i = 0; i < tries; i++) {
     try {
       const r = await fetch(url, { signal: AbortSignal.timeout(30000) });
-      if (!r.ok) throw new Error(`${r.status}`);
-      return await r.json();
+      if (!r.ok) {
+        const e = new Error(`${r.status}`);
+        e.status = r.status;
+        throw e;
+      }
+      const json = await r.json();
+      health.request(url, { ok: true, ms: Date.now() - t0, rows: Array.isArray(json) ? json.length : 0, retries: i });
+      return json;
     } catch (e) {
       last = e;
       if (i < tries - 1) await new Promise((s) => setTimeout(s, 1200 * 2 ** i));
     }
   }
+  health.request(url, { ok: false, ms: Date.now() - t0, retries: tries - 1, status: last?.status ?? null, error: last?.message || String(last) });
   throw last;
 }
 
@@ -38,6 +50,19 @@ const NEW_WINDOW_MS = 48 * 3600 * 1000;
 const nowIso = TODAY.toISOString();
 const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
 
+// The previous published document is the local working copy of the data branch,
+// so continuity of the pulse and the change log costs nothing to read — and it
+// is what a query that fails this tick falls back to, so one record's outage
+// does not empty the other's list or lose the tick.
+const outDir = process.env.DATA_DIR || new URL('../.data', import.meta.url).pathname;
+const outPath = `${outDir}/intraday.json`;
+const strip = (arr) => arr.map(({ daysAgo, isNew, ...rest }) => rest);
+let prevLive = null;
+try { prevLive = JSON.parse(readFileSync(outPath, 'utf8')); } catch {}
+const prevContracts = prevLive?.contracts || feed.contracts || [];
+const prevOpenings = prevLive?.openings || feed.openings || [];
+const carried = [];
+
 // contracts
 const since = new Date(TODAY - 14 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 const qs = new URLSearchParams({
@@ -46,16 +71,22 @@ const qs = new URLSearchParams({
   $limit: '2000',
   $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
 });
-const awardsRaw = await getJson(`https://data.cityofnewyork.us/resource/qyyg-4tf5.json?${qs}`);
+let awardsRaw = null;
+try {
+  awardsRaw = await getJson(`https://data.cityofnewyork.us/resource/qyyg-4tf5.json?${qs}`);
+} catch (e) {
+  carried.push('awards');
+  console.log(`fast: awards unreadable (${e.message}) — carrying the previous list`);
+}
 // The trade filters run downstream of this cap, so a plain top-20 starves the
 // construction trades: only 9 of the 141 awards in a 14-day window are construction.
 // Take the most recent 20, then top up with every construction award in the window.
 const CONSTR_CAT = /construction|architect|engineer/i;
-const eligible = awardsRaw.filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name);
+const eligible = (awardsRaw || []).filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name);
 const keptAwards = new Map();
 for (const a of [...eligible.slice(0, 20), ...eligible.filter((a) => CONSTR_CAT.test(a.category_description || ''))])
   keptAwards.set(a.request_id, a);
-const contracts = [...keptAwards.values()]
+const contracts = awardsRaw === null ? prevContracts.map((r) => ({ ...r })) : [...keptAwards.values()]
   .map((a) => ({
     id: a.request_id,
     vendor: a.vendor_name,
@@ -77,8 +108,14 @@ const qs2 = new URLSearchParams({
   $limit: '60',
   $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
 });
-const slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs2}`);
-const openings = slaRaw.slice(0, 40).map((o) => ({
+let slaRaw = null;
+try {
+  slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs2}`);
+} catch (e) {
+  carried.push('sla');
+  console.log(`fast: SLA unreadable (${e.message}) — carrying the previous list`);
+}
+const openings = slaRaw === null ? prevOpenings.map((r) => ({ ...r })) : slaRaw.slice(0, 40).map((o) => ({
   id: o.application_id,
   name: o.dba || o.legalname,
   legal: o.legalname,
@@ -101,15 +138,6 @@ if (seen) {
   }
 }
 
-// The previous published document is the local working copy of the data branch,
-// so continuity of the pulse and the change log costs nothing to read.
-const outDir = process.env.DATA_DIR || new URL('../.data', import.meta.url).pathname;
-const outPath = `${outDir}/intraday.json`;
-const strip = (arr) => arr.map(({ daysAgo, isNew, ...rest }) => rest);
-let prevLive = null;
-try { prevLive = JSON.parse(readFileSync(outPath, 'utf8')); } catch {}
-const prevContracts = prevLive?.contracts || feed.contracts || [];
-const prevOpenings = prevLive?.openings || feed.openings || [];
 // "Changed" means a notice arrived or was corrected. Rows also leave these
 // lists — the awards window is 14 days and slides at midnight UTC, a licence
 // stops being 'Under Review' — and a departure is not news: counting it
@@ -131,9 +159,15 @@ const tick = Number(process.env.TICK || 0);
 // the previous stamp rather than dropping the record.
 const META_EVERY = Number(process.env.META_REFRESH_TICKS || 3);
 let sourcesAt = prevLive?.sourcesAt || {};
+// What happened, as the city did it: each time a record's clock advances, one
+// line — "DOB elevator compliance loaded rows at 20:32" — kept for a week.
+const publications = (prevLive?.health?.publications || []).filter((p) => Date.now() - p.seenAt < 7 * 24 * 3600 * 1000);
 if (!prevLive?.sourcesAt || tick % META_EVERY === 0) {
   const fresh = await sourceStamps(getJson);
-  sourcesAt = Object.fromEntries(Object.keys(SOURCES).map((k) => [k, fresh[k] ?? sourcesAt[k] ?? null]));
+  for (const [k, t] of Object.entries(fresh)) {
+    if (t && sourcesAt[k] && t > sourcesAt[k]) publications.push({ at: t, source: k, seenAt: Date.now() });
+  }
+  sourcesAt = Object.fromEntries(Object.entries(fresh).map(([k, t]) => [k, t ?? sourcesAt[k] ?? null]));
 }
 const city = newestStamp(sourcesAt);
 // The award and venue cards print an "as of" date each; the day of the clock
@@ -185,6 +219,19 @@ writeFileSync(outPath, JSON.stringify({
   cityAt: city?.at || null,
   cityBy: city?.key || null,
   claims,
+  health: (() => {
+    // This tick's report and the rolling incidents, in the same shape as the
+    // hourly lane's data/health.json, so /status reads both the same way.
+    const report = health.finish({ outcome: carried.length ? 'degraded' : 'ok', error: carried.length ? `carried the previous list: ${carried.join(', ')}` : null });
+    return {
+      at: nowMs,
+      tick,
+      outcome: report.outcome,
+      sources: report.sources,
+      incidents: foldIncidents(prevLive?.health?.incidents, report, 40),
+      publications: publications.slice(-120),
+    };
+  })(),
 }));
 // seen memory is committed by the hourly lane; keep it fresh locally when we can
 if (seen && changed) {

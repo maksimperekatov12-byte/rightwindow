@@ -95,13 +95,19 @@ jobs:
         run: |
           git config user.email "maxim122090@gmail.com"
           git config user.name "Maxim Perekatov"
-          git add src/data/feed.json data/hpd-baseline.json data/mgmt-changes.json data/seen.json data/unresolved-contacts.json
+          # data/health.json is the run's report for /status — written whether
+          # the collector finished or died, which is why this step runs always.
+          git add src/data/feed.json data/hpd-baseline.json data/mgmt-changes.json data/seen.json data/unresolved-contacts.json data/health.json
           if git diff --cached --quiet; then
             echo "No data changes"
           else
-            git commit -m "data: refresh feed"
+            if git diff --cached --quiet -- src/data/feed.json; then
+              git commit -m "data: run report"
+            else
+              git commit -m "data: refresh feed"
+              echo "PUSH_PASSES=1" >> "$GITHUB_ENV"
+            fi
             for i in 1 2 3; do git pull --rebase && git push && break || sleep 5; done
-            echo "PUSH_PASSES=1" >> "$GITHUB_ENV"
           fi
       - name: Notify Wallet passes
         if: env.PUSH_PASSES == '1'
