@@ -106,7 +106,12 @@ Three passes keep it current as new buildings arrive:
 cache        contacts already resolved, shared through the private store so a
              CI run inherits them and never re-queries
 provider     ENRICH_PROVIDER + ENRICH_API_KEY — searches, opens the candidate
-             page, and reads the number off the page rather than the snippet
+             page, and reads the number off the page rather than the snippet.
+             Serper (2,500 free at sign-up) or Brave (about 1,000 a month on
+             its credit) are recorded ALLOWED; Google's Custom Search is
+             recorded DENIED — its terms forbid automated queries. Spend is
+             capped per run (ENRICH_BUDGET, 40) and per day across every run
+             (ENRICH_DAILY_BUDGET, 60), the second read off the cache itself
 HPD          free and offline: where two companies share a head officer on a
              city filing, the contact propagates as `via`, evidenced by the
              filing itself

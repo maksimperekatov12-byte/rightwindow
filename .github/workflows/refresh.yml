@@ -34,6 +34,11 @@ jobs:
         # it does today. The provider is detected from the key's own format.
         env:
           ENRICH_API_KEY: ${{ secrets.ENRICH_API_KEY }}
+          # Optional repository variables: the provider id when the key's shape
+          # is ambiguous (serper / serpapi / brave-search), and the day's cap
+          # on searches across all runs (lib/enrich.mjs, default 60).
+          ENRICH_PROVIDER: ${{ vars.ENRICH_PROVIDER }}
+          ENRICH_DAILY_BUDGET: ${{ vars.ENRICH_DAILY_BUDGET }}
           # Without this the shared contact cache never arrives and every run
           # re-resolves companies already known — which spent a whole month of
           # a search plan in a single hour on 2026-09-08.

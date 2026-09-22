@@ -144,9 +144,19 @@
     "host": "api.search.brave.com",
     "publisher": "Brave Software",
     "verdict": "ALLOWED",
-    "license": "Paid API with a free tier. NOT re-checked: the redistribution position could not be established from the public terms on 2026-08-31, so it is treated as restrictive until it is. Nothing is published from a cache built with this provider without checking its terms first.",
-    "checked": "2026-08-31",
-    "notes": "Alternative to Serper; identical acceptance rules."
+    "license": "Paid API; the Search plan carries $5 of credit a month (about 1,000 queries) and needs a card on file that is not charged inside the credit. Checked against the published API Terms of Service on 2026-09-22: the customer may not \"store, cache, or create a database of Search Results, in whole or in part, other than transient storage required for operation of Customer Applications\", and storage rights are a separate plan. lib/enrich.mjs holds a result set in memory only for the seconds it takes to open the pages it points at, and nothing from the response is written anywhere: the cache and every published row carry a telephone number and a domain read from the company's own page, which is not the provider's Content. That is the transient use the terms permit, so the earlier \"treated as restrictive\" caution is withdrawn.",
+    "checked": "2026-09-22",
+    "notes": "Alternative to Serper; identical acceptance rules. Key prefix BS is what lib/enrich.mjs recognises. The monthly credit resets, unlike Serper's one-time allowance, which makes it the steadier free option if a card on file is acceptable."
+  },
+  {
+    "id": "google-cse",
+    "host": "www.googleapis.com/customsearch",
+    "publisher": "Google — Programmable Search Engine / Custom Search JSON API",
+    "verdict": "DENIED",
+    "license": "Free for 100 queries a day, then $5 per 1,000 — the largest free allowance of any Google-results API, which is why it was reviewed. Checked against the Programmable Search Engine Terms of Service on 2026-09-22 and refused: queries \"must originate from the Site\" (1.1); the customer may not \"directly or indirectly generate queries ... through any automated ... means\" (1.4(i)); may not \"cache information obtained from the Service (including, but not limited to, Results, or any part, copy or derivative thereof)\" or \"store ... information obtained from the Service ... in any non-transitory manner\" (1.4(l)); and the search box \"shall conspicuously display a graphic that indicates that the Service is provided by Google\" (2.3). A collector that issues queries from a workflow, with no search box and no end user, is outside every one of those.",
+    "checked": "2026-09-22",
+    "notes": "Recorded so nobody wires it in later because it is free. The Custom Search JSON API Additional Terms incorporate the Programmable Search Engine terms above.",
+    "datasets": []
   },
   {
     "id": "geosearch",

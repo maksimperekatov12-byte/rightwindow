@@ -4,6 +4,7 @@
 // still tells the truth when a collector dies before it can write a report.
 import { fetchLive } from '../lib/live-source.mjs';
 import { SOURCES } from '../lib/sources.mjs';
+import { isSignedIn } from '../lib/status-auth.mjs';
 
 const REPO = () => process.env.DATA_REPO || 'maksimperekatov12-byte/rightwindow';
 const WORKFLOWS = new Set(['refresh-data', 'pinger', 'daily-digest', 'fast-refresh']);
@@ -17,19 +18,34 @@ async function json(url, headers = {}) {
   }
 }
 
+// The response is per-session now, so the edge must not cache it — and the
+// runs API, unauthenticated, allows 60 reads an hour per address. A warm
+// instance remembers the last answer for a minute instead; a token raises the
+// ceiling if one is set.
+let ghCache = { at: 0, value: null };
+async function githubRuns() {
+  if (Date.now() - ghCache.at < 60000) return ghCache.value;
+  const token = process.env.GITHUB_STATUS_TOKEN;
+  const value = await json(`https://api.github.com/repos/${REPO()}/actions/runs?per_page=40`, {
+    accept: 'application/vnd.github+json',
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+  });
+  if (value) ghCache = { at: Date.now(), value };
+  return value || ghCache.value;
+}
+
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'private, no-store');
+  // The operator's page, and only theirs — lib/status-auth.mjs.
+  if (!isSignedIn(req)) {
+    res.statusCode = 404;
+    return res.end('Not found');
+  }
   // The report is committed to main by the hourly workflow whether the run
   // finished or died. raw.githubusercontent caches for about five minutes,
   // which is the staleness the page declares.
   const health = json(`https://raw.githubusercontent.com/${REPO()}/main/data/health.json`);
-  // Unauthenticated the runs API allows 60 reads an hour per address; the edge
-  // cache below keeps this well under. A token raises the ceiling if one is set.
-  const token = process.env.GITHUB_STATUS_TOKEN;
-  const runs = json(`https://api.github.com/repos/${REPO()}/actions/runs?per_page=40`, {
-    accept: 'application/vnd.github+json',
-    ...(token ? { authorization: `Bearer ${token}` } : {}),
-  });
-  const [live, hourly, gh] = await Promise.all([fetchLive(), health, runs]);
+  const [live, hourly, gh] = await Promise.all([fetchLive(), health, githubRuns()]);
 
   const workflows = gh?.workflow_runs
     ? gh.workflow_runs
@@ -46,9 +62,6 @@ export default async function handler(req, res) {
         }))
     : null;
 
-  // Nothing here is personal; the whole document is public by design, like
-  // the data branch it is read from.
-  res.setHeader('Cache-Control', live ? 's-maxage=60, stale-while-revalidate=300' : 'no-store');
   res.json({
     at: Date.now(),
     repo: REPO(),

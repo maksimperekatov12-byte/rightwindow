@@ -175,6 +175,7 @@
           <svg id="theme-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
         </button>
         <a class="chip" href="/">← The feed</a>
+        <a class="chip" href="/status?signout=1" title="Forget this browser">Sign out</a>
       </div>
     </header>
 
@@ -204,7 +205,7 @@
       Two lanes read the city. A five-minute lane re-checks contract awards and liquor licences and reads every record's
       clock; an hourly lane rebuilds the whole feed. Each request is attributed to its record, so a failure here names the
       source, not the run. The five-minute figures are at most a minute old; the hourly report is committed to the repository and
-      can be up to five minutes behind. Times are New York. <code>/api/status</code> is the same data as JSON.
+      can be up to five minutes behind. Times are New York. <code>/api/status</code> is the same data as JSON, behind the same key.
     </p>
   </div>
 

@@ -5,10 +5,16 @@
       "data": false
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/refresh",
+      "schedule": "7 * * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/status",
-      "destination": "/status.html"
+      "destination": "/api/status-page"
     }
   ],
   "redirects": [

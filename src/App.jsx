@@ -5351,10 +5351,6 @@ export default function App() {
           <button className="foot-toggle" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources}>
             {showSources ? 'Hide source dates' : 'Source dates'}
           </button>
-          <span className="foot-sep" aria-hidden="true">·</span>
-          <a className="foot-toggle" href="/status">
-            Status
-          </a>
         </div>
         {showSources && (
           <p className="foot-detail">
