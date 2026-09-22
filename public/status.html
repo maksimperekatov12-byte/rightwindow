@@ -311,7 +311,10 @@
       const openIncidents = [...(hourly?.incidents || []), ...(live?.health?.incidents || [])].filter((i) => !i.resolvedAt);
       const pingerLate = !live?.checkedAt || now - live.checkedAt > PINGER_LATE_MS;
       const feedAt = t(last?.feedAt) || 0;
-      const feedStale = !feedAt || now - feedAt > FEED_STALE_MS;
+      // Before the first report exists GitHub's run history stands in; no
+      // history at all is unknown, not stale.
+      const lastSweepAt = feedAt || t(lastRefresh?.startedAt) || 0;
+      const feedStale = lastSweepAt ? now - lastSweepAt > FEED_STALE_MS : false;
       const refreshFailed = lastRefresh?.conclusion === 'failure' || lastRefresh?.conclusion === 'timed_out';
       const runFailed = last?.outcome === 'failed';
 
@@ -321,7 +324,7 @@
       // The search provider is not the city: a spent quota is a warning with a name, not an outage.
       for (const r of extras) if (r.state === 'down') problems.push({ level: r.key === 'enrichment' ? 'warn' : 'bad', head: `${r.label} ${r.key === 'enrichment' ? 'refused' : 'is failing'}`, text: `${r.label}: ${r.why}` });
       if (pingerLate) problems.push({ level: 'bad', head: 'the five-minute lane has gone quiet', text: `the five-minute lane last checked ${ago(live?.checkedAt, now)}` });
-      if (feedStale) problems.push({ level: 'bad', head: 'the feed is stale', text: `the feed was last rebuilt ${feedAt ? ago(feedAt, now) : 'never'}` });
+      if (feedStale) problems.push({ level: 'bad', head: 'the feed is stale', text: `the feed was last rebuilt ${ago(lastSweepAt, now)}` });
       if (runFailed) problems.push({ level: 'bad', head: 'the hourly sweep crashed', text: `the last hourly sweep crashed: ${last.error || 'no message'}` });
       if (refreshFailed && !runFailed) problems.push({ level: 'bad', head: 'the last hourly run failed on GitHub', text: `GitHub reports the last hourly run as ${lastRefresh.conclusion}` });
       for (const r of shown) if (r.state === 'stale') problems.push({ level: 'warn', head: `${r.label} has gone quiet at the publisher`, text: `${r.label}: ${r.why}` });
@@ -388,6 +391,7 @@
 
       const outcome = last?.outcome;
       const hourlyPill = v.feedStale || outcome === 'failed' ? '<span class="pill bad">' + (outcome === 'failed' ? 'crashed' : 'stale') + '</span>'
+        : !last ? (v.lastRefresh?.status === 'in_progress' ? '<span class="pill ok">sweeping now</span>' : '<span class="pill mute">no report yet</span>')
         : outcome === 'upstream' ? '<span class="pill warn">city unavailable</span>'
         : outcome === 'degraded' ? '<span class="pill warn">degraded</span>'
         : v.lastRefresh?.status === 'in_progress' ? '<span class="pill ok">sweeping now</span>'
