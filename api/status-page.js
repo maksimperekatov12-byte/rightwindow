@@ -4,6 +4,10 @@
 //   GET  without a session  → the sign-in form (a page that admits to existing
 //                             but shows nothing)
 //   POST key                → cookie + redirect to /status
+//   GET  ?key=…             → the same, as one link that works on a phone. The
+//                             key then sits in Vercel's request log, which only
+//                             the project owner reads; the form is the way in
+//                             when even that is too much.
 //   GET  with a session     → the page
 //   GET  ?signout=1         → cookie cleared
 import PAGE from '../lib/status-page.generated.mjs';
@@ -71,6 +75,17 @@ export default async function handler(req, res) {
     res.statusCode = 401;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.end(FORM('That is not the key.'));
+  }
+
+  const linkKey = url.searchParams.get('key');
+  if (linkKey != null) {
+    if (keyMatches(linkKey.trim())) res.setHeader('Set-Cookie', cookieHeader(linkKey.trim()));
+    else await new Promise((r) => setTimeout(r, 500));
+    // Always leave the key behind: the redirect lands on the clean address
+    // whether the key was right (page) or wrong (form).
+    res.statusCode = 303;
+    res.setHeader('Location', '/status');
+    return res.end();
   }
 
   if (url.searchParams.get('signout') === '1') {
