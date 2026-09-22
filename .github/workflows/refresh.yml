@@ -97,7 +97,8 @@ jobs:
           git config user.name "Maxim Perekatov"
           # data/health.json is the run's report for /status — written whether
           # the collector finished or died, which is why this step runs always.
-          git add src/data/feed.json data/hpd-baseline.json data/mgmt-changes.json data/seen.json data/unresolved-contacts.json data/health.json
+          git add src/data/feed.json data/hpd-baseline.json data/mgmt-changes.json data/seen.json data/unresolved-contacts.json
+          [ -f data/health.json ] && git add data/health.json
           if git diff --cached --quiet; then
             echo "No data changes"
           else
