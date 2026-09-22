@@ -303,8 +303,9 @@
         const h = last?.sources?.[key]; const f = live?.health?.sources?.[key];
         if (!h && !f) return null;
         const openInc = [...(hourly?.incidents || []), ...(live?.health?.incidents || [])].find((i) => i.source === key && !i.resolvedAt) || null;
-        const state = openInc ? 'down' : (h?.ok === false || f?.ok === false) ? 'down' : 'ok';
-        const why = state === 'down' ? `${(h || f)?.error || ''}`.slice(0, 120) : '';
+        const failing = openInc || h?.ok === false || f?.ok === false;
+        const state = !failing ? 'ok' : key === 'enrichment' ? 'refused' : 'down';
+        const why = failing ? `${(h || f)?.error || ''}`.slice(0, 120) : '';
         return { key, label: EXTRA[key], agency: key === 'enrichment' ? 'licensed provider' : 'infrastructure', clock: 0, h, f, state, why, openInc, extra: true };
       }).filter(Boolean);
 
@@ -322,7 +323,7 @@
       const problems = [];
       for (const r of shown) if (r.state === 'down') problems.push({ level: 'bad', head: `${r.label} is unreachable`, text: `${r.label}: ${r.why}` });
       // The search provider is not the city: a spent quota is a warning with a name, not an outage.
-      for (const r of extras) if (r.state === 'down') problems.push({ level: r.key === 'enrichment' ? 'warn' : 'bad', head: `${r.label} ${r.key === 'enrichment' ? 'refused' : 'is failing'}`, text: `${r.label}: ${r.why}` });
+      for (const r of extras) if (r.state !== 'ok') problems.push({ level: r.state === 'refused' ? 'warn' : 'bad', head: `${r.label} ${r.state === 'refused' ? 'refused' : 'is failing'}`, text: `${r.label}: ${r.why}` });
       if (pingerLate) problems.push({ level: 'bad', head: 'the five-minute lane has gone quiet', text: `the five-minute lane last checked ${ago(live?.checkedAt, now)}` });
       if (feedStale) problems.push({ level: 'bad', head: 'the feed is stale', text: `the feed was last rebuilt ${ago(lastSweepAt, now)}` });
       if (runFailed) problems.push({ level: 'bad', head: 'the hourly sweep crashed', text: `the last hourly sweep crashed: ${last.error || 'no message'}` });
@@ -425,9 +426,9 @@
       document.getElementById('pipeline-note').textContent = v.wf.length ? '' : 'GitHub run history unavailable (rate limit) — the two lanes report for themselves';
     }
 
-    const PILL = { ok: '<span class="pill ok">ok</span>', stale: '<span class="pill warn">publisher quiet</span>', retried: '<span class="pill warn">retried</span>', down: '<span class="pill bad">down</span>', unknown: '<span class="pill mute">not read</span>' };
+    const PILL = { ok: '<span class="pill ok">ok</span>', stale: '<span class="pill warn">publisher quiet</span>', retried: '<span class="pill warn">retried</span>', refused: '<span class="pill warn">refused</span>', down: '<span class="pill bad">down</span>', unknown: '<span class="pill mute">not read</span>' };
     function renderSources(v, now) {
-      const order = { down: 0, stale: 1, retried: 2, unknown: 3, ok: 4 };
+      const order = { down: 0, refused: 1, stale: 2, retried: 3, unknown: 4, ok: 5 };
       const rows = [...v.rows, ...v.extras].sort((a, b) => order[a.state] - order[b.state] || (a.lookup ? 1 : 0) - (b.lookup ? 1 : 0));
       const tb = document.querySelector('#sources tbody');
       tb.innerHTML = rows.map((r) => {
