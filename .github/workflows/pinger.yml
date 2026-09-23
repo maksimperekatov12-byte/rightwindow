@@ -8,6 +8,14 @@ name: pinger
 # write per tick is 288 advanced operations a day against a 2,000/month
 # allowance, which suspended the store on 2026-08-28. Reads of the data branch
 # cost nothing. vercel.json keeps that branch from triggering deployments.
+#
+# The loop is also the full sweep's clock. GitHub's own schedule for
+# refresh-data asks hourly and starts it every two to five hours; this loop
+# already keeps five-minute time, so on every tick it asks whether the last
+# sweep started 55 minutes ago (scripts/sweep-due.mjs) and, if so, dispatches
+# one. Every sweep restarts this workflow — that is how the loop picks up new
+# code — and says when it began, so the new loop cannot dispatch again for 55
+# minutes whatever GitHub's run list shows.
 on:
   schedule:
     - cron: '11 */5 * * *'
@@ -17,9 +25,16 @@ on:
         description: How long this run should keep pinging (minutes)
         required: false
         default: '330'
+      sweep_at:
+        description: When the sweep that restarted this run began (epoch seconds)
+        required: false
+        default: ''
 
 permissions:
   contents: write
+  # Dispatching refresh-data. GITHUB_TOKEN may start workflow_dispatch runs;
+  # refresh-data restarts this workflow the same way.
+  actions: write
 
 concurrency:
   group: pinger
@@ -95,11 +110,18 @@ jobs:
           # Through the environment, not expanded into the script: a dispatch
           # value containing a quote would otherwise run as shell in this job.
           MINUTES_INPUT: ${{ inputs.minutes }}
+          SWEEP_AT_INPUT: ${{ inputs.sweep_at }}
         run: |
           MINUTES="${MINUTES_INPUT:-330}"
           case "$MINUTES" in ''|*[!0-9]*) MINUTES=330 ;; esac
           END=$(( $(date +%s) + MINUTES * 60 ))
           TICK=0
+          # The last sweep this loop knows of: the one that restarted it, or
+          # none. The guard below holds on this alone, so a dispatch cannot
+          # repeat within 55 minutes even if GitHub's run list lags behind.
+          LAST_SWEEP="${SWEEP_AT_INPUT:-0}"
+          case "$LAST_SWEEP" in ''|*[!0-9]*) LAST_SWEEP=0 ;; esac
+          SWEEP_EVERY=$(( 55 * 60 ))
           REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           while [ "$(date +%s)" -lt "$END" ]; do
             TICK=$((TICK + 1))
@@ -138,6 +160,20 @@ jobs:
 
             if [ $((TICK % NOTIFY_EVERY)) -eq 0 ]; then
               node scripts/notify.mjs || echo "notify failed, continuing"
+            fi
+
+            # The hourly sweep. Asked on every tick rather than every twelfth:
+            # this loop restarts with each sweep and on its own schedule, and
+            # a fixed tick would count an hour from whichever restart came
+            # last. sweep-due exits 0 only when GitHub shows no sweep started
+            # in the last 55 minutes; when it cannot tell, nothing is sent.
+            if [ $(( $(date +%s) - LAST_SWEEP )) -ge "$SWEEP_EVERY" ] && node scripts/sweep-due.mjs 55; then
+              if gh workflow run refresh-data --repo "$GITHUB_REPOSITORY" --ref main; then
+                LAST_SWEEP=$(date +%s)
+                echo "dispatched refresh-data"
+              else
+                echo "could not dispatch refresh-data, continuing"
+              fi
             fi
 
             REMAIN=$(( END - $(date +%s) ))

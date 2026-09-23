@@ -14,8 +14,11 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
 const SITE = process.env.SITE || 'https://rightwindow.nyc';
 const { unsubUrl, mailHeaders } = await import('../lib/unsub.mjs');
 const { suppressedSet } = await import('../lib/leads.mjs');
-// Unsubscribed means unsubscribed here too.
-const suppressed = await suppressedSet();
+// Unsubscribed means unsubscribed here too. Read when the first email is about
+// to go, not on every run: it is a list() of the store, an advanced operation
+// against a 2,000-a-month allowance, and this runs every half hour — about
+// 1,400 a month on its own — while most runs send nothing.
+let suppressed = null;
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 const MAX_PER_RUN = 3;
 
@@ -72,14 +75,15 @@ for (const pref of Object.values(prefsDoc)) {
     sent.add(`${it.kind}:${it.id}`);
   }
 
+  const addr = String(email || '').toLowerCase();
   if (
     !slack &&
     email &&
     process.env.RESEND_API_KEY &&
-    !suppressed.has(String(email).toLowerCase()) &&
-    !mailed.has(String(email).toLowerCase())
+    !mailed.has(addr) &&
+    !(suppressed ||= await suppressedSet()).has(addr)
   ) {
-    mailed.add(String(email).toLowerCase());
+    mailed.add(addr);
     const rows = hits
       .map(
         (i) =>

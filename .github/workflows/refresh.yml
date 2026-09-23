@@ -1,4 +1,9 @@
 name: refresh-data
+# The pinger's loop dispatches this about once an hour (pinger.yml,
+# lib/sweep-clock.mjs). GitHub's own schedule stays as the backstop for a
+# pinger that is down: it asks hourly and actually starts every two to five
+# hours, and when it lands within 45 minutes of another sweep the gate below
+# lets it step aside instead of sweeping twice.
 on:
   schedule:
     - cron: '7 * * * *'
@@ -15,17 +20,60 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  collect:
+  # Only a scheduled run is gated. A dispatch is a decision someone already
+  # made — the pinger after its own 55-minute check, the Vercel cron after the
+  # same, or the owner by hand — and skips this job.
+  gate:
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
+    outputs:
+      sweep: ${{ steps.gate.outputs.sweep }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # The pinger pins its code at checkout, so a fresh hourly run also refreshes it.
+      - id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 3 is "not due". Anything else sweeps: a history GitHub cannot
+          # serve is no reason to skip the backstop.
+          code=0
+          node scripts/sweep-due.mjs 45 || code=$?
+          if [ "$code" = 3 ]; then
+            echo "another sweep started less than 45 minutes ago — this scheduled run steps aside"
+            echo "sweep=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "sweep=1" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Skipped only when the gate said "0". A skipped gate (a dispatch) or one
+  # that failed to run leaves the output empty, and the sweep goes ahead. A
+  # skipped collect job is also how the pinger and the cron recognise a run
+  # that swept nothing (lib/sweep-clock.mjs), so the job keeps its name.
+  collect:
+    needs: gate
+    if: ${{ !cancelled() && needs.gate.outputs.sweep != '0' }}
+    runs-on: ubuntu-latest
+    steps:
+      # main as it is now, not the commit this run was queued at: a run that
+      # waited behind another in data-writes would otherwise collect from the
+      # tree before that run's commit and lose its own to a rebase conflict.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # The pinger pins its code at checkout, so a fresh hourly run also
+      # refreshes it. It is told when this sweep began, so the new loop does
+      # not dispatch another for 55 minutes.
       - name: Restart pinger with current code
         if: always()
-        run: gh workflow run pinger --repo "$GITHUB_REPOSITORY" || echo "could not restart pinger"
+        run: gh workflow run pinger --repo "$GITHUB_REPOSITORY" -f sweep_at="$(date +%s)" || echo "could not restart pinger"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Collect all sources
@@ -113,7 +161,17 @@ jobs:
               git commit -m "data: refresh feed"
               echo "PUSH_PASSES=1" >> "$GITHUB_ENV"
             fi
-            for i in 1 2 3; do git pull --rebase && git push && break || sleep 5; done
+            # A push that never lands must fail the run: the old loop ended
+            # green after three failed attempts, with this run's feed and
+            # report lost. The abort needs its `|| true` — with no rebase in
+            # progress it exits 128, which under bash -e ends the retries.
+            ok=0
+            for i in 1 2 3; do
+              if git pull --rebase && git push; then ok=1; break; fi
+              git rebase --abort 2>/dev/null || true
+              sleep 5
+            done
+            [ "$ok" = 1 ] || { echo "::error::the data commit was not pushed"; exit 1; }
           fi
       - name: Notify Wallet passes
         if: env.PUSH_PASSES == '1'

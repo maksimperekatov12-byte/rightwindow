@@ -152,13 +152,22 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
   console.log('push-contacts: no blob token, private store skipped');
 } else {
   try {
+    let existing = null;
     const kept = await refuseShrink('private', all, async () => {
       const { readJsonSoft } = await import('../lib/store.mjs');
-      return await readJsonSoft('contacts.json');
+      return (existing = await readJsonSoft('contacts.json'));
     });
     if (kept) Object.assign(all, kept);
-    await writeJson('contacts.json', all);
-    console.log(`push-contacts: ${Object.keys(all).length} written to the private store`);
+    // A put is an advanced operation against a 2,000-a-month allowance, and
+    // at one sweep an hour most runs resolve the same set. The read above is
+    // already paid for; an identical set is not written again.
+    const canonical = (o) => JSON.stringify(Object.keys(o).sort().map((k) => [k, o[k]]));
+    if (existing && canonical(existing) === canonical(all)) {
+      console.log(`push-contacts: the private store already holds these ${Object.keys(all).length} rows — not rewritten`);
+    } else {
+      await writeJson('contacts.json', all);
+      console.log(`push-contacts: ${Object.keys(all).length} written to the private store`);
+    }
   } catch (e) {
     console.log(`push-contacts: store unavailable (${e.message}) — the data branch still carries the public set`);
   }
