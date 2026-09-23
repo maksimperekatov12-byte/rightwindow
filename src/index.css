@@ -1,3 +1,54 @@
+/* Fallback faces sized to the web fonts. The web fonts arrive after first
+   paint on a cold phone, and the fallbacks they replaced wrap differently: the
+   condensed Instrument Serif set the thesis in two lines where Iowan/Georgia
+   took three, and Public Sans ran a line longer than SF, so the register tabs
+   jumped 30px up and the headline 25px down under a reader's thumb (CLS
+   0.26-0.40). These are Georgia and Arial scaled to the web fonts' measured
+   advance widths, ascents and descents (Chrome, a 700-character sample of the
+   page's own copy; the widths agree to 0.01%, the line boxes exactly), so the
+   swap repaints the glyphs without moving a line. Android has neither face;
+   there the stack falls through to the generic families as before. */
+@font-face {
+  font-family: 'Instrument Serif Fallback';
+  src: local('Georgia');
+  font-style: normal;
+  font-weight: 400;
+  size-adjust: 76.11%;
+  ascent-override: 130.07%;
+  descent-override: 40.73%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Instrument Serif Fallback';
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  font-style: italic;
+  font-weight: 400;
+  size-adjust: 78.85%;
+  ascent-override: 125.55%;
+  descent-override: 39.31%;
+  line-gap-override: 0%;
+}
+/* Two faces so bold text is Arial Bold sized to Public Sans 700, not a
+   synthesised bold of the regular. */
+@font-face {
+  font-family: 'Public Sans Fallback';
+  src: local('Arial'), local('ArialMT');
+  font-weight: 100 549;
+  size-adjust: 104.18%;
+  ascent-override: 91.19%;
+  descent-override: 22.08%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Public Sans Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 550 900;
+  size-adjust: 98.8%;
+  ascent-override: 96.15%;
+  descent-override: 23.28%;
+  line-gap-override: 0%;
+}
+
 :root {
   --bg-0: #F1EFE9;
   --grid: rgba(18, 26, 22, 0.05);
@@ -30,8 +81,8 @@
      for a product that reads government records. Instrument Serif carries the
      headlines, because New York arguments are made in broadsheet type. IBM Plex
      Mono is for anything the city published: numbers, dates, register names. */
-  --sans: 'Public Sans', -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --sans: 'Public Sans', 'Public Sans Fallback', -apple-system, 'Segoe UI', sans-serif;
+  --display: 'Instrument Serif', 'Instrument Serif Fallback', 'Iowan Old Style', Georgia, serif;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --r: 10px;
   --r-sm: 6px;
