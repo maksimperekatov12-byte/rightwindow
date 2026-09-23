@@ -517,7 +517,7 @@ for (let i = 0; i < top.length; i += 40) {
 // possible "somebody is on it" — it wins over an application.
 const PERMIT_RE = /FACADE|FISP|LOCAL LAW 11|LL ?11|PARAPET|EXTERIOR WALL|EXTERIOR MASONRY|MASONRY|BRICK|POINTING|LINTEL|TERRA ?COTTA|CORNICE|WATERPROOF/i;
 const permitSince = new Date(TODAY - 730 * 86400000).toISOString().slice(0, 10);
-let permitHits = 0;
+const permitBins = new Set(); // shortlist buildings whose facade filing came from an issued permit
 for (let i = 0; i < top.length; i += 40) {
   const bins = top.slice(i, i + 40).map((c) => `'${c.bin}'`).join(',');
   const rows = await fetchAll(
@@ -543,10 +543,10 @@ for (let i = 0; i < top.length; i += 40) {
       who: r.applicant_business_name || null,
       height: cur?.height || 0,
     });
-    permitHits += 1;
+    permitBins.add(r.bin);
   }
 }
-console.log(`Facade filings for ${filingByBin.size} buildings (${permitHits} from issued permits)`);
+console.log(`Facade filings for ${filingByBin.size} buildings (${permitBins.size} from issued permits)`);
 
 // HPD registration change watcher: the registration dataset updates daily, so a change
 // in registrationid or managing-agent company is a days-fresh, fully-open proxy for a
@@ -1982,7 +1982,10 @@ writeHealth(
       ...Object.fromEntries(Object.entries(registers).map(([k, r]) => [k, r.feed.length])),
       contracts: contracts.length,
       openings: openings.length,
-      permits: permitHits,
+      // Shipped facade cards with a permit, counted like the figures around
+      // it. It used to count permit rows over the 2,200-building shortlist —
+      // 762 beside 800 cards, when 73 of them had one.
+      permits: feed.filter((c) => c.filing?.permitted).length,
       new: whatsNew,
     },
   }),

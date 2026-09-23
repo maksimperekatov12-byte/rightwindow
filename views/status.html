@@ -195,7 +195,7 @@
       <th>Record</th><th>City published</th><th>Hourly sweep</th><th>5-minute probe</th><th>State</th>
     </tr></thead><tbody></tbody></table></div>
 
-    <h2>Incidents <small>30 days · a source whose last read failed opens one; the next good read closes it</small></h2>
+    <h2>Incidents <small>30 days · a failed read of a record's rows opens one; the next clean read closes it</small></h2>
     <div class="list" id="incidents"></div>
 
     <h2>Activity <small id="activity-note">last 48 hours, newest first</small></h2>
@@ -204,7 +204,8 @@
     <p class="foot">
       Two lanes read the city. A five-minute lane re-checks contract awards and liquor licences and reads every record's
       clock; an hourly lane rebuilds the whole feed. Each request is attributed to its record, so a failure here names the
-      source, not the run. The five-minute figures are at most a minute old; the hourly report is committed to the repository and
+      source, not the run. A clock read is shown beside its record but never decides its state: only a failed read of the rows
+      opens an incident. The five-minute figures are at most a minute old; the hourly report is committed to the repository and
       can be up to five minutes behind. Times are New York. <code>/api/status</code> is the same data as JSON, behind the same key.
     </p>
   </div>
@@ -278,7 +279,12 @@
       const live = d.live, hourly = d.hourly, last = hourly?.last || null;
       const wf = d.workflows || [];
       const runsOf = (name) => wf.filter((r) => r.name === name);
-      const refreshRuns = runsOf('refresh-data');
+      // A scheduled run that lands within 45 minutes of another sweep steps
+      // aside in seconds (refresh.yml, the gate job). It is not a sweep and
+      // must not stand in for the last one. A real sweep takes minutes, and
+      // one that dies in seconds concludes as a failure, not a success.
+      const steppedAside = (r) => r.event === 'schedule' && r.conclusion === 'success' && t(r.updatedAt) - t(r.startedAt) < 2 * 60000;
+      const refreshRuns = runsOf('refresh-data').filter((r) => !steppedAside(r));
       const lastRefresh = refreshRuns[0] || null;
       const lastDigest = runsOf('daily-digest')[0] || null;
       const pingerRunning = runsOf('pinger').some((r) => r.status === 'in_progress' || r.status === 'queued');
@@ -289,9 +295,14 @@
         const clock = t(stamps[key]) || 0;
         const h = last?.sources?.[key] || null;
         const f = live?.health?.sources?.[key] || null;
+        // The latest read of the publisher's clock, whichever lane made it.
+        const clockRead = [h?.clock, f?.clock].filter(Boolean).sort((a, b) => t(b.at) - t(a.at))[0] || null;
         const openInc = [...(hourly?.incidents || []), ...(live?.health?.incidents || [])].find((i) => i.source === key && !i.resolvedAt) || null;
         let state = 'ok', why = '';
         if (openInc) { state = 'down'; why = `HTTP ${openInc.status ?? '—'} since ${etStamp(openInc.at, now)} · ${openInc.lane} lane`; }
+        // An unread clock leaves the last stamp standing; calling that "the
+        // publisher has gone quiet" would be our miss told as theirs.
+        else if (!s.lookup && clockRead?.ok === false) { state = 'noclock'; why = `the publisher's clock did not answer ${ago(clockRead.at, now)} (HTTP ${clockRead.status ?? '—'}) — the stamp shown is the last one read`; }
         else if (!s.lookup && clock && s.staleAfter && now - clock > s.staleAfter * HOUR) { state = 'stale'; why = `the publisher has not loaded rows for ${Math.floor((now - clock) / DAY)}d — their side, not ours`; }
         else if ((h?.retries || 0) > 0 || (f?.retries || 0) > 0) { state = 'retried'; why = `answered after ${(h?.retries || 0) + (f?.retries || 0)} retr${(h?.retries || 0) + (f?.retries || 0) === 1 ? 'y' : 'ies'}`; }
         else if (!clock && !h && !f) { state = 'unknown'; why = 'not read yet'; }
@@ -329,6 +340,7 @@
       if (feedStale) problems.push({ level: 'bad', head: 'the feed is stale', text: `the feed was last rebuilt ${ago(lastSweepAt, now)}` });
       if (runFailed) problems.push({ level: 'bad', head: 'the hourly sweep crashed', text: `the last hourly sweep crashed: ${last.error || 'no message'}` });
       if (refreshFailed && !runFailed) problems.push({ level: 'bad', head: 'the last hourly run failed on GitHub', text: `GitHub reports the last hourly run as ${lastRefresh.conclusion}` });
+      for (const r of shown) if (r.state === 'noclock') problems.push({ level: 'warn', head: `${r.label}'s clock did not answer`, text: `${r.label}: ${r.why}` });
       for (const r of shown) if (r.state === 'stale') problems.push({ level: 'warn', head: `${r.label} has gone quiet at the publisher`, text: `${r.label}: ${r.why}` });
       if (last?.outcome === 'upstream') problems.push({ level: 'warn', head: 'the last sweep stopped early', text: `the last hourly sweep stopped early — the city's API was unavailable — and kept the previous feed` });
       if (last?.outcome === 'degraded') problems.push({ level: 'warn', head: 'the last sweep carried one stage', text: `the last hourly sweep ${last.error || 'carried one stage from the previous hour'}` });
@@ -415,7 +427,7 @@
           <div class="k"><span>Every hour · full sweep</span>${hourlyPill}</div>
           <div class="v">${v.feedAt ? esc(ago(v.feedAt, now)) : '—'}<small>feed rebuilt</small></div>
           <div class="l">${last ? `Last run ${esc(etStamp(last.startedAt, now))} · ${esc(dur(last.ms))} · <b>${esc(outcome)}</b>${failed.length ? ` · failed: <b>${esc(failed.join(', '))}</b>` : ''}` : 'No run report yet — the first report lands with the next hourly run.'}</div>
-          <div class="l">${c.facades ? `${n(c.facades)} facade buildings · ${n(c.permits)} permits · ${n(c.gas)} gas · ${n(c.elevators)} elevators · ${n(c.carbon)} carbon · ${n(c.contracts)} contracts · ${n(c.openings)} openings` : ''}</div>
+          <div class="l">${c.facades ? `${n(c.facades)} facade buildings · ${n(c.permits)} with a facade permit · ${n(c.gas)} gas · ${n(c.elevators)} elevators · ${n(c.carbon)} carbon · ${n(c.contracts)} contracts · ${n(c.openings)} openings` : ''}</div>
           <div class="l mono">${starts ? `GitHub started sweeps at ${esc(starts)}` : 'run history unavailable'}${v.lastRefresh?.status === 'in_progress' ? ' · one is running now' : ''}</div>
         </div>
         <div class="card">
@@ -427,16 +439,20 @@
       document.getElementById('pipeline-note').textContent = v.wf.length ? '' : 'GitHub run history unavailable (rate limit) — the two lanes report for themselves';
     }
 
-    const PILL = { ok: '<span class="pill ok">ok</span>', stale: '<span class="pill warn">publisher quiet</span>', retried: '<span class="pill warn">retried</span>', refused: '<span class="pill warn">refused</span>', down: '<span class="pill bad">down</span>', unknown: '<span class="pill mute">not read</span>' };
+    const PILL = { ok: '<span class="pill ok">ok</span>', noclock: '<span class="pill warn">clock unread</span>', stale: '<span class="pill warn">publisher quiet</span>', retried: '<span class="pill warn">retried</span>', refused: '<span class="pill warn">refused</span>', down: '<span class="pill bad">down</span>', unknown: '<span class="pill mute">not read</span>' };
     function renderSources(v, now) {
-      const order = { down: 0, refused: 1, stale: 2, retried: 3, unknown: 4, ok: 5 };
+      const order = { down: 0, refused: 1, noclock: 2, stale: 3, retried: 4, unknown: 5, ok: 6 };
       const rows = [...v.rows, ...v.extras].sort((a, b) => order[a.state] - order[b.state] || (a.lookup ? 1 : 0) - (b.lookup ? 1 : 0));
       const tb = document.querySelector('#sources tbody');
       tb.innerHTML = rows.map((r) => {
         const link = r.id ? `<a class="ds" href="https://${esc(r.host || 'data.cityofnewyork.us')}/d/${esc(r.id)}" target="_blank" rel="noopener">${esc(r.id)}</a>` : '';
         const h = r.h, f = r.f;
-        const hCell = h ? (h.ok ? `${n(h.rows)} rows · ${h.calls} call${h.calls === 1 ? '' : 's'}${h.retries ? ` · ${h.retries} retr${h.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(h.status ?? '—')}</span> ${esc(h.error || '')}`) : (r.lookup ? 'not needed this run' : '—');
-        const fCell = f ? (f.ok ? `ok ${esc(ago(f.lastOkAt, now))}${f.retries ? ` · ${f.retries} retr${f.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(f.status ?? '—')}</span> ${esc(ago(f.failedAt, now))}`) : '—';
+        // Rows first; the clock read rides beside them and only speaks alone
+        // for a record whose rows this lane does not read (ok is null).
+        const clockCell = (c) => (!c ? '—' : c.ok ? `clock ok ${esc(ago(c.lastOkAt, now))}` : `<span class="pill warn">clock HTTP ${esc(c.status ?? '—')}</span> ${esc(ago(c.failedAt, now))}`);
+        const clockBit = (c) => (c && c.ok === false ? ` · <span class="pill warn">clock HTTP ${esc(c.status ?? '—')}</span>` : '');
+        const hCell = h ? (h.ok === null ? clockCell(h.clock) : (h.ok ? `${n(h.rows)} rows · ${h.calls} call${h.calls === 1 ? '' : 's'}${h.retries ? ` · ${h.retries} retr${h.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(h.status ?? '—')}</span> ${esc(h.error || '')}`) + clockBit(h.clock)) : (r.lookup ? 'not needed this run' : '—');
+        const fCell = f ? (f.ok === null ? clockCell(f.clock) : (f.ok ? `ok ${esc(ago(f.lastOkAt, now))}${f.retries ? ` · ${f.retries} retr${f.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(f.status ?? '—')}</span> ${esc(ago(f.failedAt, now))}`) + clockBit(f.clock)) : '—';
         return `<tr>
           <td><div class="name">${esc(r.label)}</div><div class="agency">${esc(r.agency)}${link ? ' · ' + link : ''}${r.lookup ? ' · lookup' : ''}</div></td>
           <td class="mono nowrap">${r.clock ? `${esc(ago(r.clock, now))}<span class="note">${esc(etStamp(r.clock, now))}</span>` : (r.lookup || r.extra ? '—' : '<span class="pill mute">unknown</span>')}</td>
@@ -476,7 +492,7 @@
         const c = r.counts || {};
         const level = r.outcome === 'ok' ? 'ok' : r.outcome === 'failed' ? 'bad' : 'warn';
         const what = r.outcome === 'ok' ? `Feed rebuilt` : r.outcome === 'degraded' ? `Feed rebuilt, one stage carried` : r.outcome === 'upstream' ? `Sweep stopped early — city unavailable — previous feed kept` : `Sweep crashed`;
-        const detail = c.facades ? `${n(c.facades)} facade buildings · ${n(c.permits)} permits · ${n(c.contracts)} contracts · ${n(c.openings)} openings${c.new ? ` · new this week: ${n(c.new.buildings)} buildings, ${n(c.new.contracts)} contracts, ${n(c.new.openings)} openings` : ''}` : (r.error || '');
+        const detail = c.facades ? `${n(c.facades)} facade buildings · ${n(c.permits)} with a facade permit · ${n(c.contracts)} contracts · ${n(c.openings)} openings${c.new ? ` · new this week: ${n(c.new.buildings)} buildings, ${n(c.new.contracts)} contracts, ${n(c.new.openings)} openings` : ''}` : (r.error || '');
         items.push({ at: t(r.at), level, lane: 'hourly', what: `${what} · ${dur(r.ms)}${r.failed?.length ? ` · failed: ${r.failed.map((k) => labelOf(S, k)).join(', ')}` : ''}`, detail });
       }
       for (const p of v.live?.health?.publications || []) items.push({ at: t(p.at), level: 'ok', lane: 'city', what: `${S[p.source]?.label || p.source} loaded rows`, detail: `the publisher's clock moved to ${etStamp(p.at, now)} · noticed ${ago(p.seenAt, now)}` });
