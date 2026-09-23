@@ -85,7 +85,7 @@ const GENERIC_FACADE = {
   sort: byUrgency,
   why: (c) => signalStory(c),
   opener: (c) =>
-    `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. Worth a quick conversation before the penalty meter starts.`,
+    `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${usDate(c.deadline)} deadline. Worth a quick conversation before the penalty meter starts.`,
 };
 
 const PROFILES = {
@@ -107,7 +107,7 @@ const PROFILES = {
         return `${title(c.priorQewi || 'The last engineer')} filed Cycle 9 and has not been re-engaged.`;
       },
       opener: (c) =>
-        `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
+        `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${usDate(c.deadline)}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
     cNeed: (c) => `A ${money(c.amount)} construction award usually means inspections and special-inspection sign-offs down the line.`,
     cFilter: facadeBid,
@@ -135,7 +135,7 @@ const PROFILES = {
           ? `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`
           : has(c, 'UNSAFE_PRIOR')
             ? `Re: ${title(c.address)} — the facade is on file as UNSAFE, so the repair is mandatory. We can walk the scope and price it this week.`
-            : `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. We can walk the scope and price it this week.`,
+            : `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${usDate(c.deadline)} deadline. We can walk the scope and price it this week.`,
     },
     cNeed: (c) => `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.`,
     cFilter: facadeBid,
@@ -161,7 +161,7 @@ const PROFILES = {
         return `${owed ? `${money(owed)} owed. ` : ''}Non-deferrable capex — financeable, with a legal reason to spend.`;
       },
       opener: (c) =>
-        `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
+        `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${usDate(c.deadline)} deadline. C-PACE can fund it before the penalty meter starts.`,
     },
     mOpener: {
       gas: (c) =>
@@ -283,7 +283,7 @@ const PROFILES = {
     // Hiring happens after the award, as the line above says — awards only.
     cFilter: (c) => c.kind === 'AWARD',
     cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted candidates ready this month.`,
-    oNeed: () => `A venue opening in 2–4 months hires its whole team in the last six weeks — the search starts now.`,
+    oNeed: () => `A venue hires its whole team in the last six weeks before it opens — if this one has not opened yet, the search starts now.`,
     oOpener: (c) => `Re: ${venueName(c)} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
   },
   equipment: {
@@ -360,7 +360,7 @@ const PROFILES = {
             ? `${money(c.ecbBalance)} unpaid — dismissals and settlements are on the table.`
             : 'Active violations need certified correction.',
       opener: (c) =>
-        `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${c.nextHearing}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
+        `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${usDate(c.nextHearing)}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
       fFilter: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0 || has(c, 'UNSAFE_PRIOR')),
     },
     cNeed: null,
@@ -1125,10 +1125,40 @@ const mailAddr = (e) => {
   return /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i.test(s) ? s : null;
 };
 
+// City Record fills a blank field with a placeholder rather than leaving it
+// empty: '.', 'N/A', a dash, or (000) 000-0000. Printed as data those read
+// "Bids to: .", an officer called "." who is "named on the notice", and an
+// Email button addressed to "mailto:.". A placeholder is treated as absent.
+const realText = (v) => {
+  const t = String(v ?? '').trim();
+  return t && !/^[\s.\-\u2013\u2014]*$|^n\/?a$/i.test(t) ? t : null;
+};
+const realPhone = (p) => (/[1-9]/.test(String(p || '').replace(/\D/g, '')) ? String(p).trim() : null);
+// Some notices list several inboxes in one field ("a@x.gov; b@x.gov"); the
+// first one that passes mailAddr is the one the button writes to.
+const firstMail = (e) => String(e || '').split(/[;,\s]+/).map(mailAddr).find(Boolean) || null;
+
+// An HPD registration has to be renewed every year. Where the last one ran
+// out, the agent it names is the last one on record rather than, necessarily,
+// the firm running the building today, and the card says so with the month it
+// lapsed. The feed carries agent.regEnd ('YYYY-MM-DD') and agent.lapsed only
+// from the build that added them; before that the role reads as it always has.
+const lapsedOn = (a) => {
+  if (a?.lapsed !== true) return null;
+  const m = /^(\d{4})-(\d{2})-\d{2}/.exec(String(a.regEnd || ''));
+  const mon = m ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m[2]) - 1] : null;
+  return mon ? `lapsed ${mon} ${m[1]}` : 'lapsed';
+};
+const agentRole = (a) => {
+  const lapsed = lapsedOn(a);
+  return lapsed ? `Managing agent (last HPD registration, ${lapsed})` : a?.role;
+};
+
 function contactOf(c, resolved) {
   const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
-  const base = { name: a.name, company: a.company, from: 'HPD registration' };
+  const lapsed = lapsedOn(c.agent);
+  const base = { name: a.name, company: a.company, from: lapsed ? `the last HPD registration, ${lapsed}` : 'HPD registration' };
 
   // Tested first, because it is the one case where the number is right but the
   // NAME is not: the registered entity is a holding company and this reaches the
@@ -1988,12 +2018,27 @@ export default function App() {
     const counts = {};
     for (const key of mandateKeys) {
       const pre = MANDATES[key].prefix;
+      // A grouped row ("N buildings · one call", below) is dismissed, watched
+      // and marked under its own 'grp-…' key, but this filter only ever sees the
+      // members. Each member honours its group's key as well as its own: without
+      // that a dismissed group stayed on screen, and the Hidden, Watchlist and
+      // Working chips counted a row their lists never showed. The grouping below
+      // takes its id from this same function, so the two cannot drift apart.
+      const groupIdOf = (c) => {
+        if (key !== 'carbon' && key !== 'gas') return null;
+        const ph = contacts[c.bin]?.phone || c.phone || c.contact?.phone || null;
+        if (!c.agent?.company || !ph || !c.zip) return null;
+        const nk = String(c.agent.company).toUpperCase().replace(/[^A-Z]/g, '').replace(/(LLC|INC|CORP|CO|LP|LLP)$/, '');
+        return 'grp-' + `${nk}|${ph}|${c.zip}`.replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+      };
       // Borough excluded here so the chips can count faceted — see filteredNoBoro.
       const noBoro = (data[key]?.feed || []).filter((c) => {
-        if (showHidden !== isDismissed(pre + c.bin)) return false;
+        const g = groupIdOf(c);
+        const ks = g ? [pre + c.bin, pre + g] : [pre + c.bin];
+        if (showHidden !== ks.some(isDismissed)) return false;
         if (!showHidden && taughtAway(pre, c)) return false;
-        if (onlyWatch && !isWatched(pre + c.bin)) return false;
-        if (onlyWorking && !['contacted', 'won'].includes(fb[pre + c.bin]?.s)) return false;
+        if (onlyWatch && !ks.some(isWatched)) return false;
+        if (onlyWorking && !ks.some((k) => ['contacted', 'won'].includes(fb[k]?.s))) return false;
         if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
         if (!q) return true;
         if (zips) return Boolean(c.zip) && zips.includes(c.zip);
@@ -2046,7 +2091,7 @@ export default function App() {
           const pricedMembers = cards.filter((m) => m.ghg?.usd > 0).length;
           grouped.push({
             group: true,
-            id: 'grp-' + gk.replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
+            id: groupIdOf(cards[0]),
             cards,
             company: cards[0].agent.company,
             phone: ph,
@@ -2112,12 +2157,21 @@ export default function App() {
   // what makes it different.
   // A bare urgency score means nothing to someone reading their first card. What
   // they can act on is where it sits against the rest of the register.
+  // One direction throughout: "top" counts from the most urgent, "bottom" from
+  // the least. The old label printed the rank-from-top as a percentile, so the
+  // least urgent cards read "98th percentile" (and "31th", "62th" on the way).
+  // Ties count in the card's favour at the top and against it at the bottom.
   const urgencyRank = useMemo(() => {
-    const scores = facadeFeed.map((c) => c.urgencyScore).sort((a, b) => b - a);
+    const scores = facadeFeed.map((c) => c.urgencyScore);
+    const n = scores.length || 1;
     return (score) => {
       const above = scores.filter((x) => x > score).length;
-      const pct = Math.max(1, Math.round((100 * (above + 1)) / (scores.length || 1)));
-      return pct <= 25 ? `top ${pct}%` : `${pct}th percentile`;
+      const top = Math.max(1, Math.round((100 * (above + 1)) / n));
+      if (top <= 25) return `top ${top}%`;
+      if (top <= 50) return 'top half';
+      const atOrBelow = scores.filter((x) => x <= score).length;
+      const bottom = Math.max(1, Math.round((100 * atOrBelow) / n));
+      return bottom <= 25 ? `bottom ${bottom}%` : 'bottom half';
     };
   }, [facadeFeed]);
 
@@ -2593,19 +2647,28 @@ export default function App() {
       );
     } else if (MANDATES[vertical]) {
       const m = MANDATES[vertical];
-      const factKeys = mandateList.length ? m.facts(mandateList[0]).map(([k]) => k) : [];
+      // Facts vary per row (carbon's emissions, exposure and meter lines come
+      // and go; an elevator adds its last CAT5 only when there is one), so the
+      // columns are the union across the list and each row is written by key.
+      // Taking the first row's facts and spreading every row by position put
+      // the managing agent under "Why now" on most carbon rows.
+      const factKeys = [];
+      for (const c of mandateList) for (const [k] of m.facts(c)) if (!factKeys.includes(k)) factKeys.push(k);
       downloadCsv(
         `right-window-${vertical}.csv`,
         ['Address', 'Borough', 'ZIP', 'BIN', ...factKeys, 'Why now', 'Managing agent', 'Agent address', 'Suggested opener', 'Link'],
-        mandateList.map((c) => [
-          title(c.address), c.borough, c.zip || '', c.bin,
-          ...m.facts(c).map(([, v]) => v),
-          profile.mandates?.[vertical]?.(c) || m.whoWins,
-          c.agent?.company ? title(c.agent.company) : '',
-          c.agent?.address ? title(c.agent.address) : '',
-          mOpener(vertical, c),
-          `${location.origin}/#${m.prefix[0]}/${c.bin}`,
-        ]),
+        mandateList.map((c) => {
+          const byKey = Object.fromEntries(m.facts(c));
+          return [
+            title(c.address), c.borough, c.zip || '', c.bin,
+            ...factKeys.map((k) => byKey[k] ?? ''),
+            profile.mandates?.[vertical]?.(c) || m.whoWins,
+            c.agent?.company ? title(c.agent.company) : '',
+            c.agent?.address ? title(c.agent.address) : '',
+            mOpener(vertical, c),
+            `${location.origin}/#${m.prefix[0]}/${c.bin}`,
+          ];
+        }),
       );
     } else if (vertical === 'contracts') {
       downloadCsv(
@@ -2616,7 +2679,7 @@ export default function App() {
           isOpenNotice(c) ? c.title : c.vendor,
           c.amount ?? '', c.agency, c.title, c.date ?? '', c.daysAgo ?? '',
           c.dueDate ? c.dueDate.slice(0, 10) : '', c.daysLeft ?? '', c.epin || '',
-          c.contact?.name || '', c.contact?.phone || '', c.contact?.email || '',
+          realText(c.contact?.name) || '', realPhone(c.contact?.phone) || '', realText(c.contact?.email) || '',
           isOpenNotice(c)
             ? c.scope || `${c.category} · ${c.method}`
             : profile.cNeed?.(c) || 'Winner is mobilizing: subs, bonding, insurance, staffing, equipment.',
@@ -2631,7 +2694,7 @@ export default function App() {
         ['Venue', 'Type', 'County', 'Premises', 'Legal name', 'Filed', 'Why you', 'Suggested opener', 'Link'],
         openingsList.map((o) => [
           venueName(o), o.kind, o.county, o.address, o.legal || '', o.received || '',
-          profile.oNeed?.(o) || 'Opening in 2–4 months: POS, insurance, suppliers, furniture, marketing get chosen now.',
+          profile.oNeed?.(o) || 'If it has not opened yet: POS, insurance, suppliers, furniture and marketing get chosen now.',
           (profile.oOpener || defaultOOpener)(o),
           `${location.origin}/#o/${o.id}`,
         ]),
@@ -2868,7 +2931,7 @@ export default function App() {
           ? awardsOnly
             ? 'Awards from the City Record with the winning vendor and the agency named on every notice. Each winner has about two weeks to line up bonding, working capital, subs and crews before mobilization.'
             : 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
-          : 'Two records, both public. A liquor licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
+          : 'Two records, both public. A liquor licence often comes before an opening — about a third of new licences are issued before the doors open. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
   const deadlineIso = '2027-02-21';
@@ -3533,7 +3596,7 @@ export default function App() {
           {vertical === 'facades' ? (
             <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
               <b>{(data.facades.totals.nonFilers10A || 0).toLocaleString('en-US')}</b>
-              <i>buildings citywide</i>
+              <i>buildings in four boroughs</i>
               <span>
                 have not filed their sub-cycle 10A facade report. The deadline is {usDate(deadlineIso)} —{' '}
                 <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
@@ -4278,7 +4341,7 @@ export default function App() {
                           <div className="sig">
                             <div className="sig-k">
                               Why now
-                              <span className="score" title={`Urgency ${c.urgencyScore}, ranked against the other ${facadeFeed.length} buildings in this register`}>
+                              <span className="score" title={`Urgency ${c.urgencyScore}, ranked against all ${facadeFeed.length} buildings in this view`}>
                                 {urgencyRank(c.urgencyScore)}
                               </span>
                             </div>
@@ -4342,7 +4405,7 @@ export default function App() {
                                     <>
                                       <div className="k">Registration changed</div>
                                       <div className="v">
-                                        detected {c.mgmtChange.detected}
+                                        detected {usDate(c.mgmtChange.detected)}
                                         {c.mgmtChange.prevCompany ? ` · was ${title(c.mgmtChange.prevCompany)}` : ''} · HPD daily
                                       </div>
                                     </>
@@ -4685,10 +4748,10 @@ export default function App() {
                       </div>
                     </div>
                   )}
-                  {isOpenNotice(c) && c.submitTo && (
+                  {isOpenNotice(c) && realText(c.submitTo) && (
                     <div className="fact">
                       <div className="k">Bids to</div>
-                      <div className="v">{c.submitTo}</div>
+                      <div className="v">{realText(c.submitTo)}</div>
                     </div>
                   )}
                   {c.vendorAddress && (
@@ -4708,10 +4771,10 @@ export default function App() {
                 <div className="na-cap">Next action</div>
                 <div className="call-block">
                   <div className="call-who">
-                    <b>{isOpenNotice(c) ? c.contact?.name || c.agency : c.vendor}</b>
+                    <b>{isOpenNotice(c) ? realText(c.contact?.name) || c.agency : c.vendor}</b>
                     <span>
                       {isOpenNotice(c)
-                        ? c.contact?.name
+                        ? realText(c.contact?.name)
                           ? `${c.agency} — named on the notice`
                           : 'No officer named on this notice'
                         : `Opener written for ${profile.cNeed ? profile.label : 'this window'}`}
@@ -4723,13 +4786,13 @@ export default function App() {
                     </button>
                     {/* the city prints this contact so bidders can use it; no
                         search and no guessing */}
-                    {isOpenNotice(c) && c.contact?.phone && (
-                      <a className="btn ghost" onClick={() => track('call_clicked', { card: String(c.id) })} href={`tel:${c.contact.phone.replace(/[^\d+]/g, '')}`}>
-                        {c.contact.phone}
+                    {isOpenNotice(c) && realPhone(c.contact?.phone) && (
+                      <a className="btn ghost" onClick={() => track('call_clicked', { card: String(c.id) })} href={`tel:${realPhone(c.contact.phone).replace(/[^\d+]/g, '')}`}>
+                        {realPhone(c.contact.phone)}
                       </a>
                     )}
-                    {isOpenNotice(c) && c.contact?.email && (
-                      <a className="btn ghost" href={`mailto:${c.contact.email}?subject=${encodeURIComponent(c.title || '')}`}>
+                    {isOpenNotice(c) && firstMail(c.contact?.email) && (
+                      <a className="btn ghost" href={`mailto:${firstMail(c.contact.email)}?subject=${encodeURIComponent(c.title || '')}`}>
                         Email ↗
                       </a>
                     )}
@@ -4888,7 +4951,7 @@ export default function App() {
                       <div className="fact">
                         <div className="k">Managing agent</div>
                         <div className="v">
-                          {c.agent.company ? title(c.agent.company) : c.agent.role}
+                          {c.agent.company ? title(c.agent.company) : agentRole(c.agent)}
                           {c.agent.address ? ` — ${title(c.agent.address)}` : ''}
                           {c.agent.portfolio > 1 && (
                             <>
@@ -4923,7 +4986,7 @@ export default function App() {
                           : 'No managing agent named on the HPD registration'}
                       </b>
                       <span>
-                        {ct?.level ? `${c.agent.role} · ${ct.level}` : c.agent ? c.agent.role : 'The building registers itself'}
+                        {ct?.level ? `${agentRole(c.agent)} · ${ct.level}` : c.agent ? agentRole(c.agent) : 'The building registers itself'}
                       </span>
                     </div>
                     <div className="call-actions">
@@ -5034,8 +5097,8 @@ export default function App() {
                       </>
                     ) : (
                       <>
-                        {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — opens in 2–4 months,
-                        choosing vendors now.
+                        {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — about a third of new licences
+                        come before the venue opens, while its vendors are still being chosen.
                       </>
                     )}
                   </div>
