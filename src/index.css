@@ -800,10 +800,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 
 /* ---------- the block ---------- */
 /* The model is the subject of the product, not decoration, so it gets the half
-   of the hero the eye lands on second. On a phone the live map never loads —
-   battery — but the slot stays: the static outline with the dots baked in is
-   thirty kilobytes and reviewers open links on phones. Contracts' built 3D
-   scene has no static fallback, so that slot alone stays desktop-only. */
+   of the hero the eye lands on second. On a phone the live map loads only once
+   the slot has been scrolled into view; until then the static outline with
+   the dots baked in holds it — thirty kilobytes, and reviewers open links on
+   phones. Contracts' built 3D scene has no static fallback, so that slot alone
+   stays desktop-only (and App never mounts the scene below 980px). */
 .massing-slot { display: block; position: relative; min-height: 48vh; margin: 4px 0 6px; }
 @media (max-width: 979px) {
   .massing-slot .citymap-wrap { position: absolute; inset: 0; margin: 0; }
@@ -1167,6 +1168,12 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 @media (max-width: 979px) {
   .mapskel { inset: 0; }
+  /* Once the live map has mounted, tuck the outline under its canvas as on
+     desktop: stretched to the slot's foot, the outline's caption printed over
+     the map's own ("… cards mapped · map loading" on top of "… cards mapped ·
+     filters and the cut above move it"). With reduced motion or no WebGL the
+     live map never mounts, and the outline keeps the whole slot and caption. */
+  .massing-slot:has(.citymap-wrap) .mapskel { inset: 0 0 30px 0; }
 }
 .massing-slot .citymap-cap { position: absolute; left: 2px; right: 0; bottom: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

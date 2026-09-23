@@ -1332,14 +1332,37 @@ export default function App() {
   const [themeColors, setThemeColors] = useState(readThemeColors);
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
   const reduce = useReducedMotion();
-  // Mounts the register's scene only once the page is idle, and never on a
-  // narrow viewport, under reduced motion, or without WebGL.
+  // Mounts the register's scene only once the page is idle, and never under
+  // reduced motion or without WebGL.
   // The map loads on phones too now: WebGL is there, MapLibre handles touch,
   // and the register is geocoded — the one place the product's strongest
   // visual was missing was the device reviewers open links on. Still idle-
   // gated so the feed is interactive first; the static outline holds the
   // space and remains the honest fallback where WebGL truly is absent.
   const sceneReady = useSceneReady(!reduce);
+  // On a phone the hero slot starts below the fold, and the live map behind it
+  // is most of a megabyte (MapLibre, its worker, the sprite, the tiles) that
+  // used to download on every visit whether or not anyone scrolled that far.
+  // There it mounts once half the slot has actually been on screen; until then
+  // the static outline IS the map, dots and taps included. Half, not "any":
+  // before the feed renders the slot's top edge peeks into the first screen.
+  const heroSlot = useRef(null);
+  const [heroSeen, setHeroSeen] = useState(false);
+  useEffect(() => {
+    if (wide || heroSeen || !sceneReady) return;
+    const el = heroSlot.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setHeroSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting && e.intersectionRatio >= 0.45)) setHeroSeen(true);
+    }, { threshold: [0.45, 0.5] });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [wide, heroSeen, sceneReady, vertical]);
+  const heroScene = sceneReady && (wide || heroSeen);
   const uid = useRef(null);
   const secret = useRef(null);
   if (uid.current === null) {
@@ -2950,16 +2973,16 @@ export default function App() {
   const mapSlot = (
     <>
       {HEROES[vertical] && (
-          <div className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
+          <div ref={heroSlot} className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
             {/* Registers with coordinates put the register ITSELF in the hero:
                 the live map of the filtered list, not an illustration of the
                 kind of thing the list contains. Contracts keep their built
                 scene — a solicitation has no address to stand on. The skeleton
                 is the same outline twice over: the loading state before
-                MapLibre arrives, and the whole map on a phone, where MapLibre
-                never loads at all. */}
-            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} onPick={mapPick} />}
-            {sceneReady &&
+                MapLibre arrives, and the whole map on a phone until the slot
+                has been scrolled into view (heroScene). */}
+            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={heroScene} onPick={mapPick} />}
+            {heroScene &&
               (vertical !== 'contracts' ? (
                 <Suspense fallback={null}>
                   <CityMap
@@ -2972,6 +2995,9 @@ export default function App() {
                   />
                 </Suspense>
               ) : (
+                // CSS hides this slot under 980px; mounting the scene there
+                // downloaded three.js (220 kB) into a box nobody can see.
+                wide && (
                 <Suspense fallback={null}>
                   {React.createElement(HEROES[vertical].Scene, {
                     colors: themeColors,
@@ -2980,6 +3006,7 @@ export default function App() {
                     ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
                   })}
                 </Suspense>
+                )
               ))}
             {vertical === 'contracts' && <span className="massing-cap">{awardsOnly ? 'Award just filed · winner named' : HEROES[vertical].cap}</span>}
           </div>
