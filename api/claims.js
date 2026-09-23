@@ -23,11 +23,13 @@ const readBody = (req) =>
 // claim. Requiring the secret would not stop that: an attacker sends any string.
 // What a script cannot mint freely is a source address, so new claims are
 // capped per address per rolling day. A real rep marks a few dozen cards a day
-// at the very most; the cap is an env var so it can be lifted for a room full of
-// people on one venue Wi-Fi without touching code.
+// at the very most, but a pitch room shares one venue Wi-Fi and so one
+// address: the default leaves room for a hundred people marking a few cards
+// each, and still stops a script from painting 2,500 cards. An env var lifts it
+// further without touching code.
 const PER_IP_PER_DAY = (() => {
   const n = Number(process.env.CLAIMS_PER_IP_PER_DAY);
-  return Number.isFinite(n) && n > 0 ? n : 60;
+  return Number.isFinite(n) && n > 0 ? n : 300;
 })();
 
 // An IPv6 client is usually handed a whole /64 and can walk through it at will,

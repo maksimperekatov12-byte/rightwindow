@@ -8,7 +8,7 @@
 //
 // The numbers below are made up for the fixtures and belong to nobody we know.
 import assert from 'node:assert/strict';
-import { acceptPage, pageShowsAddress } from '../lib/enrich.mjs';
+import { acceptPage, pageShowsAddress, phoneNearAddress } from '../lib/enrich.mjs';
 
 const company = 'IMPERIAL CONSULTING GROUP';
 const address = '118-09 83RD AVE, KEW GARDENS NY 11415';
@@ -63,4 +63,22 @@ assert.equal(
   null,
 );
 
-console.log('test-enrich-accept: directory numbers need the filing\'s address');
+// The tie is local. A directory results page that carries the filing's ZIP
+// in one entry and a same-name firm's number in another must not pair them —
+// the search query itself contains the ZIP, so such pages are what it returns.
+const resultsPage =
+  'Imperial Consulting Group · East Meadow, NY 11554 · (212) 708-3889 ' +
+  'x'.repeat(900) +
+  ' People also viewed: businesses near Kew Gardens, NY 11415';
+assert.equal(phoneNearAddress(resultsPage, ['+1-212-708-3889'], address), null);
+assert.equal(
+  acceptPage({ company, address, url: 'https://www.yellowpages.com/search?q=imperial', page: resultsPage }),
+  null,
+);
+// Two listings on one page: the number beside the filing's ZIP is the one taken.
+const twoListings =
+  'Imperial Consulting Group 118-09 83rd Ave, Kew Gardens NY 11415 (718) 555-2310 · ' +
+  'Imperial Consulting Group East Meadow NY 11554 (212) 708-3889';
+assert.equal(phoneNearAddress(twoListings, ['+1-718-555-2310', '+1-212-708-3889'], address), '+1-718-555-2310');
+
+console.log('test-enrich-accept: directory numbers need the filing\'s address, in the same listing');

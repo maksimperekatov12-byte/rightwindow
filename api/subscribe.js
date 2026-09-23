@@ -124,7 +124,9 @@ export default async function handler(req, res) {
     const recent = Boolean(prevUpdated) && Date.now() - Date.parse(prevUpdated) < 864e5;
 
     const mail = suppressed || recent ? { sent: false } : await confirm(email, profile);
-    return res.status(200).json({ ok: true, already, confirmation: mail.sent, note: mail.reason || undefined });
+    // "Does not change" has to include this field: a suppressed address
+    // answers as a first sign-up would.
+    return res.status(200).json({ ok: true, already, confirmation: suppressed || mail.sent, note: suppressed ? undefined : mail.reason || undefined });
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'That did not save on our side.' });
   }

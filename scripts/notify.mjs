@@ -69,7 +69,7 @@ for (const pref of Object.values(prefsDoc)) {
 
   for (const it of hits) {
     if (slack) {
-      const ok = await postToSlack(slack, signalBlocks(it, TRADE_LABELS[pref.profile] || pref.profile), `${it.title} — ${it.urgent || it.why}`);
+      const ok = await postToSlack(slack, signalBlocks(it, Object.hasOwn(TRADE_LABELS, pref.profile) ? TRADE_LABELS[pref.profile] : 'your list'), `${it.title} — ${it.urgent || it.why}`);
       if (ok) slackSent++;
     }
     sent.add(`${it.kind}:${it.id}`);

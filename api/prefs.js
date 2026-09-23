@@ -13,7 +13,9 @@
 import { updateDoc, PREFS } from '../lib/store.mjs';
 
 const SLACK_HOOK = /^https:\/\/hooks\.slack\.com\/services\/[\w/+-]+$/;
-const EMAIL = /^[^@\s]{1,64}@[^@\s]{1,190}\.[a-z]{2,24}$/i;
+// No markup or quote characters: the address is echoed into pages and mail.
+// Apostrophes stay — o'brien@ is a real mailbox.
+const EMAIL = /^[^@\s<>"`\\]{1,64}@[^@\s<>"`\\]{1,190}\.[a-z]{2,24}$/i;
 const PROFILES = new Set([
   'qewi', 'restoration', 'lender', 'elevator', 'plumber', 'retrofit', 'insurance', 'pos', 'fnb', 'staffing',
   'equipment', 'propmgmt', 'legal', 'cre', 'marketing', 'signage', 'explore',

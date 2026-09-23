@@ -119,7 +119,9 @@ export default async function handler(req, res) {
     const link = inviteLink({ trade, zips, reg, ref });
     const mail = suppressed || recent ? { sent: false } : await confirm({ email, zips, link, until });
     logEvent({ kind: 'pilot_started', ref, trade, zips, reg, sid: clean(body?.sid, 40) || null }).catch(() => {});
-    return res.status(200).json({ ok: true, already, until, link, confirmation: mail.sent, note: mail.reason || undefined });
+    // A suppressed address answers exactly as a first sign-up would, or the
+    // reply alone would tell a stranger who has unsubscribed.
+    return res.status(200).json({ ok: true, already, until, link, confirmation: suppressed || mail.sent, note: suppressed ? undefined : mail.reason || undefined });
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'That did not save on our side.' });
   }

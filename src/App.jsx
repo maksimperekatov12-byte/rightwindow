@@ -1136,7 +1136,7 @@ const realText = (v) => {
   const t = String(v ?? '').trim();
   return t && !/^[\s.\-\u2013\u2014]*$|^n\/?a$/i.test(t) ? t : null;
 };
-const realPhone = (p) => (/[1-9]/.test(String(p || '').replace(/\D/g, '')) ? String(p).trim() : null);
+const realPhone = (p) => (/[1-9]/.test(String(p || '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '')) ? String(p).trim() : null);
 // Some notices list several inboxes in one field ("a@x.gov; b@x.gov"); the
 // first one that passes mailAddr is the one the button writes to.
 const firstMail = (e) => String(e || '').split(/[;,\s]+/).map(mailAddr).find(Boolean) || null;
@@ -2165,9 +2165,13 @@ export default function App() {
     if (cohort && !chips.includes(cohort)) setCohort(null);
     // A borough this register draws no chip for (Staten Island, picked on
     // openings) filtered it to nothing with no chip lit — and it is saved, so
-    // the next visit opened on "Nothing matches".
+    // the next visit opened on "Nothing matches". Only once the page has
+    // landed on a register this trade actually shows: on mount the vertical is
+    // still the seeded facades, and an openings trade's saved Staten Island
+    // was wiped a beat before "open where the work is" moved it to openings.
     const offered = boroughsOn(vertical);
-    if (boro !== 'all' && offered && !offered.includes(boro)) setBoro('all');
+    const landed = visibleVerts.some((v) => v.key === vertical);
+    if (landed && boro !== 'all' && offered && !offered.includes(boro)) setBoro('all');
   }, [vertical, profileKey]);
 
   // Two shapes of the same list: the feed renders the grouped rows, everything
@@ -2513,6 +2517,11 @@ export default function App() {
   // of deep link, and the boolean meant the FIRST click opened a card and every
   // later one was silently swallowed.
   const lastDeepLink = useRef(null);
+  // Where a link resolved against the lite slice left the visitor: the
+  // register and the card it opened. The re-resolve on the full feed is for a
+  // visitor still looking at that card, not one who moved on in the second
+  // before the feed landed — that re-run yanked them back to the linked tab.
+  const liteLink = useRef(null);
   useEffect(() => {
     const m = location.hash.match(/^#(b|c|g|e|k|o)\/(.+)$/);
     if (!m) {
@@ -2522,6 +2531,15 @@ export default function App() {
     // Settled for this link — or, against the lite slice, settled until the
     // full feed arrives (see open()).
     if (lastDeepLink.current === location.hash || (data.lite && lastDeepLink.current === `${location.hash}|lite`)) return;
+    if (
+      lastDeepLink.current === `${location.hash}|lite` &&
+      liteLink.current &&
+      (openId !== liteLink.current.target || vertical !== liteLink.current.vert)
+    ) {
+      lastDeepLink.current = location.hash;
+      liteLink.current = null;
+      return;
+    }
     const [, t, id] = m;
     // idx must be the card's position in the list AS RENDERED — the same sort,
     // the same grouping — or "show idx rows" reveals the wrong slice and the
@@ -2536,6 +2554,7 @@ export default function App() {
       // register is settled only until the full feed arrives (data is a dep),
       // and then resolved again against the whole register.
       lastDeepLink.current = sliced(vert) ? `${location.hash}|lite` : location.hash;
+      liteLink.current = sliced(vert) ? { vert, target: targetId } : null;
       keepShown.current = Math.max(7, idx + 1);
       setVertical(vert);
       setOpenId(targetId);
@@ -3100,7 +3119,11 @@ export default function App() {
       setOpenId(targetId);
       try {
         history.replaceState(null, '', `#${vertPrefix.replace(':', '')}/${id}`);
-        lastDeepLink.current = location.hash;
+        // A pick against the lite slice is provisional in the same way a
+        // pasted link is: settled only until the full register arrives.
+        const provisional = sliced(vertical);
+        lastDeepLink.current = provisional ? `${location.hash}|lite` : location.hash;
+        liteLink.current = provisional ? { vert: vertical, target: targetId } : null;
       } catch {}
       // Instant jump, retried until the row mounts: a smooth scroll is an
       // animation and dies against a list that is still rendering.
@@ -3132,7 +3155,7 @@ export default function App() {
                 is the same outline twice over: the loading state before
                 MapLibre arrives, and the whole map on a phone until the slot
                 has been scrolled into view (heroScene). */}
-            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={heroScene} onPick={mapPick} />}
+            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={heroScene} onPick={mapPick} total={sliced(vertical) ? regSize(vertical) : null} />}
             {heroScene &&
               (vertical !== 'contracts' ? (
                 <Suspense fallback={null}>
@@ -4776,7 +4799,7 @@ export default function App() {
                     <span className="badge">Won {money(c.amount)}</span>
                   )}
                   {isOpenNotice(c) && <span className="boro">{c.agency}</span>}
-                  <ContactHint phone={c.contact?.phone} mail={Boolean(c.contact?.email)} />
+                  <ContactHint phone={realPhone(c.contact?.phone)} mail={Boolean(firstMail(c.contact?.email))} />
                 </span>
                 <span className="head-side">
                   <span

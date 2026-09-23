@@ -9,7 +9,12 @@ const SITE = process.env.SITE || 'https://rightwindow.nyc';
 const FROM = process.env.DIGEST_FROM || 'Right Window <onboarding@resend.dev>';
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 // The trade as the page names it, not the internal id ("qewi").
-const labelOf = (profile) => (profile === 'explore' ? 'every register' : TRADE_LABELS[profile] || profile);
+// A trade id arrives from an unauthenticated form. Only one the product knows
+// may put its name into a mail the brand signs; anything else — including
+// 'constructor' or '__proto__', which a plain lookup resolves on Object — reads
+// as the visitor's own list.
+const labelOf = (profile) =>
+  profile === 'explore' ? 'every register' : Object.hasOwn(TRADE_LABELS, profile) ? TRADE_LABELS[profile] : 'your list';
 
 function html(items, profile) {
   const rows = items
