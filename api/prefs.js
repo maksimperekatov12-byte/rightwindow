@@ -59,12 +59,31 @@ function clean(data) {
   return out;
 }
 
+// The cap stays generous on purpose. The app posts its whole feedback map, and
+// each entry carries the rep's note (up to 400 characters), reason and deal size
+// — none of which clean() keeps — so a cap sized to the STORED record would
+// throw away the entire save of anyone who writes notes. What is stored is
+// bounded by clean(); what the shared document may grow to is bounded below.
+//
+// An oversize body used to destroy the socket without settling the promise, so
+// the function hung until the platform timed it out.
 const readBody = (req) =>
   new Promise((resolve) => {
     let d = '';
-    req.on('data', (c) => { d += c; if (d.length > 60000) req.destroy(); });
+    req.on('data', (c) => { d += c; if (d.length > 60000) { req.destroy(); resolve(null); } });
     req.on('end', () => { try { resolve(JSON.parse(d || '{}')); } catch { resolve(null); } });
+    req.on('error', () => resolve(null));
   });
+
+// Every uid lives in ONE document that every save reads twice and rewrites, and
+// the notifier and the digest read whole. The uid is minted by the client, so a
+// script posting fresh uids could grow that document without end — about 68 KB
+// per request — until each save moved tens of megabytes and the store's quota
+// went with it, taking claims and subscribers down too. A visitor's record is a
+// few hundred bytes, so past this size a brand-new uid is refused while every
+// existing one keeps saving. It is a circuit breaker for the store, set far
+// above anything real traffic reaches, not a limit anyone should meet.
+const MAX_DOC_BYTES = 8e6;
 
 // The uid is also sent as a query parameter to /api/live, so it leaks through
 // Referer headers, CDN logs and shared links — it identifies, it does not
@@ -79,9 +98,15 @@ export default async function handler(req, res) {
   if (!/^[0-9a-f-]{36}$/.test(uid) || !body?.data) return res.status(400).json({ error: 'bad request' });
   if (!secretOk(secret)) return res.status(400).json({ error: 'bad request' });
   let denied = false;
+  let full = false;
   try {
     await updateDoc(PREFS, (doc) => {
       const prev = doc[uid];
+      full = false;
+      if (!prev && JSON.stringify(doc).length > MAX_DOC_BYTES) {
+        full = true;
+        return null;
+      }
       // First write for this uid claims it; later writes must present the same
       // secret, so knowing somebody's uid is not enough to overwrite them.
       if (prev?.secret && prev.secret !== secret) {
@@ -96,6 +121,8 @@ export default async function handler(req, res) {
       return doc;
     });
     if (denied) return res.status(403).json({ error: 'not yours' });
+    // The app ignores a failed save and keeps everything on the device.
+    if (full) return res.status(503).json({ error: 'store full' });
     return res.json({ ok: true });
   } catch (e) {
     console.error('prefs write failed', e.message);
