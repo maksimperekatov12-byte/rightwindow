@@ -13,8 +13,19 @@ import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCach
 import { assertCollectable } from '../lib/policy.mjs';
 import { sourceStamps, newestStamp } from '../lib/sources.mjs';
 import { recorder, writeHealth } from '../lib/health.mjs';
-import { resolveAffiliates } from '../lib/affiliate.mjs';
+import { resolveAffiliates, VIA_EVIDENCE } from '../lib/affiliate.mjs';
 import { resolveIdentities } from '../lib/personal.mjs';
+import {
+  BOROUGH_OF,
+  NEW_WINDOW_MS,
+  isFreshSeen,
+  withinWindow as withinWindowAt,
+  isNewAward,
+  isNewOpening,
+  slaQuery,
+  slaRow,
+  plausibleAward,
+} from '../lib/notices.mjs';
 
 // Source gate (same rule as Signal): a source without an ALLOWED verdict in
 // data/source-policy.json does not get fetched. web-ACRIS is DENIED by the city's
@@ -282,7 +293,7 @@ async function hpdJoin(binList) {
   const regByBin = new Map();
   for (let i = 0; i < binList.length; i += 50) {
     const bins = binList.slice(i, i + 50).map((b) => `'${b}'`).join(',');
-    const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate,zip' }, 1000);
+    const rows = await fetchAll('tesw-yqqr', { $where: `bin in(${bins})`, $select: 'bin,registrationid,lastregistrationdate,registrationenddate,zip' }, 1000);
     for (const r of rows) {
       const cur = regByBin.get(r.bin);
       if (!cur || (r.lastregistrationdate || '') > (cur.lastregistrationdate || '')) regByBin.set(r.bin, r);
@@ -319,6 +330,9 @@ const agentCard = (agent, reg, headByReg) =>
         name: [agent.firstname, agent.lastname].filter(Boolean).join(' ') || null,
         role: agent.type === 'Agent' ? 'Managing agent (HPD registration)' : 'Site manager (HPD registration)',
         headOfficer: (reg && headByReg.get(reg.registrationid)) || null,
+        // When the registration this agent comes from runs out. Whether it has
+        // lapsed is decided once the HPD file's own load date is known, below.
+        regEnd: reg?.registrationenddate ? String(reg.registrationenddate).slice(0, 10) : null,
         address: [
           [agent.businesshousenumber, agent.businessstreetname].filter(Boolean).join(' '),
           agent.businessapartment,
@@ -509,12 +523,42 @@ for (let i = 0; i < top.length; i += 40) {
     }
   }
 }
-// The job-application dataset above holds ~95k rows and misses most of the
-// city: it found ONE facade filing among 800 candidates on 2026-09-21, while
-// the approved-permits dataset (rbx6-tga4, already read for sheds) showed a
-// General Construction facade permit on 169 of the 277 buildings the site was
-// calling "shed up, no repair filed". A permit issued is the strongest
-// possible "somebody is on it" — it wins over an application.
+// A source can answer 200 with part of its table, and stage() only catches a
+// request that fails. The job-application dataset above did exactly that from
+// 2026-09-20 21:25 to 09-22 00:09: facade filings on the feed went from about
+// 186 to none with no change on our side, and 278 cards told subscribers "shed
+// up, no repair filed" — 86 of them had shown a filing three hours earlier.
+// So the answer is held against the last feed, building for building: of the
+// buildings that had an application filing on the last run and are still on
+// the shortlist, a filing from the last two years does not vanish between
+// runs. When fewer than half of them still have one, the stage is degraded and
+// the last run's answer is carried, the same way a failed stage is carried.
+const prevFacades = prevFeed()?.facades?.feed || [];
+const carriedCards = new Map();
+let filingsHollow = false;
+{
+  const topBins = new Set(top.map((c) => c.bin));
+  const hadApp = prevFacades.filter((c) => topBins.has(c.bin) && c.filing && c.filing.status !== 'Permit Issued');
+  const kept = hadApp.filter((c) => filingByBin.has(c.bin)).length;
+  if (hadApp.length >= 20 && kept < hadApp.length * 0.5) {
+    filingsHollow = true;
+    degradedStages.push('jobs');
+    console.warn(
+      `STAGE DEGRADED: jobs — ${kept} of the ${hadApp.length} application filings on the last feed came back; ` +
+        "carrying the last run's filings rather than calling those buildings unfiled.",
+    );
+    for (const c of prevFacades) carriedCards.set(c.bin, c);
+  }
+}
+
+// The job-application dataset holds 959,861 rows (counted 2026-09-23). A note
+// here once put it at ~95k and said it missed most of the city; that was most
+// likely the hollow answer above, read as the dataset's real size. The
+// approved-permits dataset (rbx6-tga4, already read for sheds) is read on top
+// of it all the same: on 2026-09-21, inside that gap, it showed a General
+// Construction facade permit on 169 of the 277 buildings the site was calling
+// "shed up, no repair filed". A permit issued is the strongest possible
+// "somebody is on it" — it wins over an application.
 const PERMIT_RE = /FACADE|FISP|LOCAL LAW 11|LL ?11|PARAPET|EXTERIOR WALL|EXTERIOR MASONRY|MASONRY|BRICK|POINTING|LINTEL|TERRA ?COTTA|CORNICE|WATERPROOF/i;
 const permitSince = new Date(TODAY - 730 * 86400000).toISOString().slice(0, 10);
 let permitHits = 0;
@@ -564,24 +608,44 @@ try { if (existsSync(baselinePath)) baseline = JSON.parse(readFileSync(baselineP
 let mgmtLog = {};
 try { if (existsSync(mgmtLogPath)) mgmtLog = JSON.parse(readFileSync(mgmtLogPath, 'utf8')); } catch {}
 
-let freshMgmt = 0;
+// The contacts file can answer 200 with part of its table like any other. Two
+// guards keep a partial load from pinning "new management" — +4, a badge and
+// an instant alert — on hundreds of buildings for ninety days:
+//
+//  - Same registration and no agent row this run means the agent is unknown,
+//    not changed. Without this, an empty answer would log every one of the
+//    1,459 baseline buildings with an agent, and the recovery would log them
+//    all again.
+//  - Hundreds of changes in one run is a partial load, not a market. HPD
+//    reloads monthly and not one real change was seen from 08-26 to 09-23; a
+//    renewal keeps its registrationid. Past the cap the run's detections are
+//    dropped and the stage reads degraded, but the baseline still advances, so
+//    the watcher heals on the next run instead of freezing on the bad one.
+const freshLog = {};
 const newBaseline = { ...baseline };
 for (const c of top) {
   const reg = regByBin.get(c.bin);
   if (!reg) continue;
   const agent = agentByReg.get(reg.registrationid);
-  const nowState = { registrationid: reg.registrationid, agentCompany: agent?.corporationname || null };
   const prev = baseline[c.bin];
+  const kept = prev && prev.registrationid === reg.registrationid ? prev.agentCompany : null;
+  const nowState = { registrationid: reg.registrationid, agentCompany: agent?.corporationname || kept || null };
   if (prev && (prev.registrationid !== nowState.registrationid || (prev.agentCompany || '') !== (nowState.agentCompany || ''))) {
-    mgmtLog[c.bin] = {
+    freshLog[c.bin] = {
       prevCompany: prev.agentCompany || null,
       newCompany: nowState.agentCompany || null,
       detected: TODAY.toISOString().slice(0, 10),
     };
-    freshMgmt++;
   }
   newBaseline[c.bin] = nowState;
 }
+let freshMgmt = Object.keys(freshLog).length;
+const MGMT_CAP = Math.max(25, Math.round(Object.keys(baseline).length * 0.02));
+if (freshMgmt > MGMT_CAP) {
+  degradedStages.push('hpd-contacts');
+  console.warn(`STAGE DEGRADED: hpd-contacts — ${freshMgmt} management changes in one run (cap ${MGMT_CAP}); not logging them.`);
+  freshMgmt = 0;
+} else Object.assign(mgmtLog, freshLog);
 // Age the log out rather than letting it grow for ever.
 for (const [bin, entry] of Object.entries(mgmtLog)) {
   const age = (TODAY - new Date(entry.detected)) / 86400000;
@@ -617,11 +681,21 @@ for (const c of top) {
   const sh = shedByBin.get(c.bin);
   let shed = null;
   if (sh && sh.jobs.size) {
+    // The shed standing today is dated from the jobs still live today. 'Permit
+    // Issued' stays on a permit after it expires — 31,837 sidewalk-shed rows
+    // carry it with an expiry already past — so taking the earliest job of any
+    // kind dated a rig first permitted 29 days ago from a 2018 permit on the
+    // same building. On 2026-09-23, 10 of the 66 "shed up over a year, no
+    // repair filed" cards had no live job a year old. A shed with no live job
+    // keeps the old reading, so a lapsed card still has a since.
     let first = null, last = null, type = null, who = null;
+    let firstAny = null, typeAny = null, whoAny = null;
     for (const j of sh.jobs.values()) {
-      if (!first || j.first < first) { first = j.first; type = j.type; who = j.who; }
+      if (!firstAny || j.first < firstAny) { firstAny = j.first; typeAny = j.type; whoAny = j.who; }
+      if (j.last && j.last >= TODAY && (!first || j.first < first)) { first = j.first; type = j.type; who = j.who; }
       if (j.last && (!last || j.last > last)) last = j.last;
     }
+    if (!first) { first = firstAny; type = typeAny; who = whoAny; }
     const ageDays = Math.round((TODAY - first) / 86400000);
     const active = last && last >= TODAY;
     shed = {
@@ -636,6 +710,11 @@ for (const c of top) {
   }
 
   const fl = filingByBin.get(c.bin);
+  // While the job applications answer hollow, the last run's answer stands in
+  // for this one's: its filing where it had one, its "none filed" where it had
+  // none, and "unknown" for a building it did not carry at all.
+  const was = filingsHollow && !fl ? carriedCards.get(c.bin) : null;
+  const filingUnknown = filingsHollow && !fl && !was;
   const filing = fl
     ? {
         filed: fl.filed.toISOString().slice(0, 10),
@@ -646,11 +725,14 @@ for (const c of top) {
         cost: fl.cost > 50000 ? fl.cost : null,
         who: fl.who,
       }
-    : null;
-  const height = fl?.height > 0 ? fl.height : null;
+    : was?.filing
+      ? { ...was.filing, daysSince: Math.round((TODAY - new Date(was.filing.filed)) / 86400000) }
+      : null;
+  const height = fl?.height > 0 ? fl.height : was?.height || null;
 
   // The prize: a shed standing over a year with nobody filed to do the repair.
-  const payingForNothing = Boolean(shed?.state === 'active' && shed.longStanding && !filing);
+  // Not claimed on a building whose filings this run could not read.
+  const payingForNothing = Boolean(shed?.state === 'active' && shed.longStanding && !filing && !filingUnknown);
   const occupied = Boolean(filing?.permitted || (shed?.state === 'active' && !shed.longStanding && filing));
 
   const mgmtChange = mgmtChangeByBin.get(c.bin) || null;
@@ -706,22 +788,32 @@ for (const c of top) {
 {
   // CI has no cache on disk — it lives in the private store, so a run inherits
   // everything resolved before it and only pays for genuinely new companies.
+  //
+  // A pull that failed is not an empty store. With nothing on disk, a run that
+  // took it for one spent its searches re-resolving firms the store already
+  // held and then pushed those few entries over the whole store. So without a
+  // good read this run searches nothing and pushes nothing; the cards still get
+  // whatever is on disk, and the next run tries the store again.
+  let storeRead = !process.env.BLOB_READ_WRITE_TOKEN;
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
       const { readJson } = await import('../lib/store.mjs');
       const got = await pullCache(readJson);
+      storeRead = true;
+      health.note('store', { ok: true });
       console.log(`Contact cache: pulled ${got} entries from the private store`);
     } catch (e) {
-      console.log(`Contact cache: could not pull (${e.message}) — starting from what is on disk`);
+      health.note('store', { ok: false, error: `contact cache read failed: ${e.message}` });
+      console.log(`Contact cache: could not pull (${e.message}) — no searches and no push this run, so the shared store is left as it is`);
     }
   }
-  const live = enrichmentReady();
+  const live = enrichmentReady() && storeRead;
   console.log(live ? `Enriching contacts via ${enrichmentProvider()}...` : 'Enrichment: reading cached contacts only');
   let hits = 0;
   const byLevel = { verified: 0, listed: 0 };
   for (const c of cards.slice(0, SHORTLIST)) {
     if (!c.agent?.company) continue;
-    const e = await enrichContact({ company: c.agent.company, name: c.agent.name, address: c.agent.address });
+    const e = await enrichContact({ company: c.agent.company, name: c.agent.name, address: c.agent.address, cacheOnly: !storeRead });
     if (e.confidence !== 'none') {
       c.agent.phone = e.phone;
       c.agent.email = e.email;
@@ -744,7 +836,7 @@ for (const c of top) {
 
   // The queue that used to be written here now covers every register and is
   // built once they all exist, further down.
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (process.env.BLOB_READ_WRITE_TOKEN && storeRead) {
     try {
       const { writeJson } = await import('../lib/store.mjs');
       const n = await pushCache(writeJson);
@@ -820,13 +912,14 @@ try {
 const awardsRaw = await fetchAll(CROL, {
   $where: `type_of_notice_description='Award' and start_date>='${since}'`,
   $order: 'start_date DESC',
-  $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
+  $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description,pin',
 }, 2000);
 // The trade filters run downstream of this cap, so a plain top-20 starves the
 // construction trades: only 9 of the 141 awards in a 14-day window are construction.
 // Take the most recent 20, then top up with every construction award in the window.
+// An amount that is really the PIN never gets that far (lib/notices.mjs).
 const CONSTR_CAT = /construction|architect|engineer/i;
-const eligible = awardsRaw.filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name);
+const eligible = awardsRaw.filter(plausibleAward);
 const keptAwards = new Map();
 for (const a of [...eligible.slice(0, 20), ...eligible.filter((a) => CONSTR_CAT.test(a.category_description || ''))])
   keptAwards.set(a.request_id, a);
@@ -906,25 +999,10 @@ console.log(
 console.log('Fetching SLA pending licenses (NYC counties)...');
 let openings = [];
 try {
-const qs = new URLSearchParams({
-  $where: `premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review' and received_date >= '${new Date(TODAY - 150 * 86400000).toISOString().slice(0, 10)}'`,
-  $order: 'received_date DESC',
-  $limit: '60',
-  $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
-});
-const slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs}`);
-openings = slaRaw.slice(0, 40).map((o) => ({
-  id: o.application_id,
-  name: o.dba || o.legalname,
-  legal: o.legalname,
-  kind: o.description,
-  address: `${o.actual_address_of_premises || ''}, ${o.city || ''}`.trim(),
-  county: o.premises_county,
-  zip: String(o.zip_code || '').trim().slice(0, 5) || null,
-  received: o.received_date?.slice(0, 10),
-  daysAgo: o.received_date ? Math.max(0, Math.round((TODAY - new Date(o.received_date)) / 86400000)) : null,
-}));
-openings = openings.map((o) => ({ ...o, src: 'sla' }));
+// The query and the row are shared with the five-minute lane (lib/notices.mjs),
+// which lays its rows over these on the site.
+const slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${slaQuery(TODAY)}`);
+openings = slaRaw.slice(0, 40).map((o) => slaRow(o, TODAY));
 } catch (e) {
   console.log(`SLA unavailable (${e.message}) — keeping previous data`);
   openings = (prevFeed()?.openings || []).filter((o) => o.src === 'sla');
@@ -1034,16 +1112,9 @@ async function dcwpPremisesNames() {
 
 // The two sources name the same place differently: the liquour file prints the
 // legal county (Kings, New York, Richmond) and the health file prints the
-// borough. One list showing both is the register contradicting itself.
-const BOROUGH_OF = {
-  Kings: 'Brooklyn',
-  'New York': 'Manhattan',
-  Richmond: 'Staten Island',
-  Bronx: 'Bronx',
-  Queens: 'Queens',
-  Brooklyn: 'Brooklyn',
-  Manhattan: 'Manhattan',
-};
+// borough. One list showing both is the register contradicting itself. The
+// table lives in lib/notices.mjs, where the five-minute lane reads it too; rows
+// carried from an older feed pass through it again here.
 for (const o of openings) o.county = BOROUGH_OF[o.county] || o.county;
 
 // The register says it shows businesses, so a name is printed only when
@@ -1645,7 +1716,10 @@ try {
     const a = c.agent;
     if (!a?.company || a.phone || a.email) return;
     const k = a.company.toUpperCase().trim();
-    const cur = gap.get(k) || { company: a.company, addr: a.address || '', headOfficer: a.headOfficer || null, cards: 0, registers: [] };
+    // No head officer here. This file is committed to the public repo every
+    // run, it carried 1,001 people's names that nothing ever read back, and the
+    // redaction below — which removes the same field from the feed — never saw it.
+    const cur = gap.get(k) || { company: a.company, addr: a.address || '', cards: 0, registers: [] };
     cur.cards++;
     if (!cur.registers.includes(where)) cur.registers.push(where);
     gap.set(k, cur);
@@ -1678,8 +1752,9 @@ try {
 // Seven days, not forty-eight hours. The city's own files land a day or two
 // behind — DOB NOW and ECB were both a day stale on the build that measured
 // this — so a two-day window from now can never catch anything and the counter
-// reads zero on a week where the city published plenty.
-const NEW_WINDOW_MS = 7 * 24 * 3600 * 1000;
+// reads zero on a week where the city published plenty. NEW_WINDOW_MS and the
+// tests below live in lib/notices.mjs: the five-minute lane marks the same
+// award and venue rows new, and the site shows whichever lane spoke last.
 const seenPath = new URL('../data/seen.json', import.meta.url);
 let seen = null;
 try { if (existsSync(seenPath)) seen = JSON.parse(readFileSync(seenPath, 'utf8')); } catch {}
@@ -1691,7 +1766,7 @@ const nowIso = TODAY.toISOString();
 // baseline: the first run records that it existed, and only the run after that
 // can call anything new.
 const stamp = (bucket) => (bucket && Object.keys(bucket).length ? nowIso : 'baseline');
-const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
+const isFreshTs = (ts) => isFreshSeen(ts, TODAY);
 
 // "New" has to mean the city published something, not that our sampler first
 // looked at this building. The shortlist is 2,200 of 12,323 candidates and it
@@ -1702,11 +1777,7 @@ const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(t
 // A record is new when the youngest date the city itself put on it falls inside
 // the window. Where a register carries no usable date, first-seen still stands
 // in, because there is nothing better to use.
-const withinWindow = (iso) => {
-  if (!iso) return false;
-  const t = new Date(iso).getTime();
-  return Number.isFinite(t) && TODAY - t <= NEW_WINDOW_MS && t <= TODAY.getTime() + 86400000;
-};
+const withinWindow = (iso) => withinWindowAt(iso, TODAY);
 const cityDated = (...dates) => dates.some((d) => withinWindow(d));
 const daysAgoWithin = (n) => Number.isFinite(n) && n * 86400000 <= NEW_WINDOW_MS;
 
@@ -1724,12 +1795,12 @@ for (const c of cards) {
 const contractsSeen = { ...seen.contracts };
 for (const c of contracts) {
   seen.contracts[c.id] ||= stamp(contractsSeen);
-  c.isNew = isFreshTs(seen.contracts[c.id]) && cityDated(c.date);
+  c.isNew = isNewAward(seen.contracts[c.id], c.date, TODAY);
 }
 const openingsSeen = { ...seen.openings };
 for (const o of openings) {
   seen.openings[o.id] ||= stamp(openingsSeen);
-  o.isNew = isFreshTs(seen.openings[o.id]) && (o.received ? cityDated(o.received) : true);
+  o.isNew = isNewOpening(seen.openings[o.id], o.received, TODAY);
 }
 for (const [key, reg] of Object.entries(registers)) {
   seen[key] ||= {};
@@ -1771,6 +1842,25 @@ const sources = {
 const city = newestStamp(sourcesAt);
 console.log('Source freshness:', sources);
 console.log('City published:', city ? `${new Date(city.at).toISOString()} (${city.key})` : 'unknown');
+
+// Has the registration an agent comes from run out? Judged against the day the
+// HPD file was last loaded, never against today. Registrations run a year and
+// most end on 1 September; the file reloads monthly, so on the 2026-08-12 load
+// the September renewals were not in it yet and 88% of cards showed an end
+// date before today. Against the load date 242 of 2,477 did — registrations
+// that ended a year before the city last looked, like the slide-3 building's
+// (ended 2025-09-01). An unknown load date claims nothing.
+{
+  const hpdDay = sources.hpd || prevFeed()?.sources?.hpd || null;
+  let lapsed = 0;
+  for (const c of [...feed, ...Object.values(registers).flatMap((r) => r.feed)]) {
+    if (!c.agent) continue;
+    c.agent.regEnd ??= null;
+    c.agent.lapsed = Boolean(hpdDay && c.agent.regEnd && c.agent.regEnd < hpdDay);
+    if (c.agent.lapsed) lapsed++;
+  }
+  console.log(`HPD registrations lapsed before the ${hpdDay || 'unknown'} load: ${lapsed} agent cards`);
+}
 
 // A managing agent rarely runs one building. Counting how many buildings across
 // every register sit with the same firm turns four separate lists into one
@@ -1957,6 +2047,11 @@ if (!PUBLISH_CONTACTS) {
     // Used by the affiliate pass above, which has already run. It is a person's
     // name on a city filing and has no business in a public repo.
     delete c.agent.headOfficer;
+    // The affiliate evidence used to spell that same name out ("HPD names <a
+    // person> as head officer for both") and walked past the line above on 55
+    // cards. lib/affiliate.mjs no longer writes it; a register carried from an
+    // older feed may still hold it, so it is rewritten here as well.
+    if (c.agent.viaEvidence) c.agent.viaEvidence = VIA_EVIDENCE;
   }
   console.log(
     `Public feed redacted: ${contacts} contacts and ${names} personal names withheld ` +
