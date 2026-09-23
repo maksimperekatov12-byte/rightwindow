@@ -1,0 +1,870 @@
+// Backtest: when the register says a building is in its window, does the
+// building then buy?
+//
+// That is the question an investor asks of a sales-timing product, and the
+// public record can answer it looking backwards. Take a signal that was
+// visible on a past date, follow the building forward, and count who bought
+// what the signal says they will: a facade repair permit (the job a
+// restoration contractor sells) or a facade report (the job an engineer
+// sells). Buildings whose report came back SAFE are the control.
+//
+// Everything is re-derived from three DOB NOW datasets on NYC Open Data and
+// written to data/evidence.json, each figure with its denominator, window and
+// definition — including the figures that say what does NOT hold, such as the
+// register's own ranking, because a number nobody can check is worth nothing
+// on a stage. Aggregates only: no building, firm or person leaves this script.
+//
+//   npm run backtest     about twenty requests; a rerun within a day makes none
+//
+// The cache lives outside the repo ($TMPDIR/rw-backtest-cache, or
+// BACKTEST_CACHE) and an entry is reused for BACKTEST_MAX_AGE_H hours (24 by
+// default; 0 refetches). Not in prebuild: a build must never need the network.
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { assertCollectable } from '../lib/policy.mjs';
+
+const HOST = 'data.cityofnewyork.us';
+const DAY = 86400000;
+const M6 = 183;
+const M12 = 365;
+const M24 = 730;
+const LOOKBACK = 180;
+// The register leaves Staten Island out (collect.mjs), so every replay of its
+// rules does too. The cohort and market figures are citywide facts and keep it.
+const BOROUGHS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'];
+const CEILING = 800;
+
+// What counts as buying facade work: a DOB NOW General Construction permit
+// with filing reason "Initial Permit" (a renewal is the same job again) whose
+// work location names the facade, or whose description does. The collector's
+// own PERMIT_RE is wider — masonry, brick, waterproofing — because there it
+// only has to notice that somebody is already on site; an outcome measure has
+// to stay narrow, or roof and interior masonry would count as facade sales.
+// The conservative variant keeps DOB's own work-location field alone.
+const FACADE_WORDS = ['FACADE', 'FISP', 'LOCAL LAW 11', 'LL11', 'LL 11', 'PARAPET', 'EXTERIOR WALL', 'POINTING', 'LINTEL', 'TERRA COTTA', 'CORNICE'];
+const WORDS_RE = new RegExp(FACADE_WORDS.join('|'), 'i');
+export const DEFINITIONS = {
+  regex: {
+    test: (p) => /Facade/.test(p.work_on_floor || '') || WORDS_RE.test(p.job_description || ''),
+    text:
+      "DOB NOW Approved Permits (rbx6-tga4): work_type 'General Construction', filing_reason 'Initial Permit', same BIN, " +
+      `work_on_floor contains 'Facade' OR job_description contains any of ${FACADE_WORDS.join(', ')} (case-insensitive). ` +
+      'One job counts once (job number before the dash), dated by its earliest issued_date.',
+  },
+  workOnFloor: {
+    test: (p) => /Facade/.test(p.work_on_floor || ''),
+    text: "As the regex definition, but only permits whose work_on_floor (DOB's own work-location field) contains 'Facade'.",
+  },
+};
+const PERMIT_WHERE =
+  "work_type='General Construction' and filing_reason='Initial Permit' and (work_on_floor like '%Facade%' or " +
+  FACADE_WORDS.map((w) => `upper(job_description) like '%${w}%'`).join(' or ') +
+  ')';
+
+// Windows. DOB NOW General Construction permits begin 2020-12-27 and reach a
+// steady volume by 2021-08, so a report has to fall on or after 2022-02-01 for
+// its 180-day look-back to sit inside that coverage, and on or before
+// 2024-09-21 to have 24 months of follow-up. They are fixed rather than
+// relative to today, so a rerun moves a figure only when the city's data does.
+const COHORT = { from: '2022-02-01', to: '2024-09-21' };
+const MARKET_FROM = '2022-01-01';
+// Cycle 9, one cycle behind the register's cycle 10 (collect.mjs subCycle):
+// the sub-cycle is the last digit of the tax block. Each replay date is a
+// deadline minus six months, the moment the register's NON_FILER urgency peaks.
+const SUB9 = [
+  { sub: '9A', digits: '4569', opens: '2020-02-21', deadline: '2022-02-21', at: '2021-08-21' },
+  { sub: '9B', digits: '078', opens: '2021-02-21', deadline: '2023-02-21', at: '2022-08-21' },
+  { sub: '9C', digits: '123', opens: '2022-02-21', deadline: '2024-02-21', at: '2023-08-21' },
+];
+// Sheds. The cohort starts when permit coverage is steady and ends three years
+// before the data, so most sheds have had time to come down. A replay date
+// needs its two-year look-back for a repair permit inside coverage (on or after
+// 2023-08) and two years of follow-up after it (on or before 2024-09).
+const SHED_COHORT = { from: '2021-08-01', to: '2023-09-21' };
+const SHED_REPLAY = ['2023-09-21', '2024-03-21'];
+
+const CACHE = process.env.BACKTEST_CACHE || join(tmpdir(), 'rw-backtest-cache');
+const MAX_AGE_H = Number(process.env.BACKTEST_MAX_AGE_H ?? 24);
+const PAUSE_MS = 400;
+const OUT = new URL('../data/evidence.json', import.meta.url);
+
+// ---------------------------------------------------------------- dates, stats
+
+export const ymd = (s) => (s ? new Date(`${String(s).slice(0, 10)}T00:00:00Z`) : null);
+const iso = (d) => d.toISOString().slice(0, 10);
+const days = (ms) => Math.round(ms / DAY);
+const round1 = (x) => Math.round(x * 10) / 10;
+
+export function share(num, den, window, definition) {
+  return { value: den ? round1((100 * num) / den) : null, num, den, window, definition };
+}
+
+function quantile(sorted, p) {
+  if (!sorted.length) return null;
+  const i = (sorted.length - 1) * p;
+  const lo = Math.floor(i);
+  const hi = Math.ceil(i);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+}
+
+export function spread(values, unit, window, definition, { total = false, p90 = false } = {}) {
+  const a = values.slice().sort((x, y) => x - y);
+  const r = (x) => (x == null ? null : Math.round(x));
+  const out = { n: a.length, median: r(quantile(a, 0.5)), p25: r(quantile(a, 0.25)), p75: r(quantile(a, 0.75)) };
+  if (p90) out.p90 = r(quantile(a, 0.9));
+  if (total) out.total = Math.round(a.reduce((s, x) => s + x, 0));
+  return { ...out, unit, window, definition };
+}
+
+// How split a market is: the share the ten busiest firms hold, and the share
+// of the single busiest. Keys are held in memory only to be counted.
+export function concentration(keys, window, definition) {
+  const counts = new Map();
+  let unattributed = 0;
+  for (const k of keys) {
+    if (!k) unattributed++;
+    else counts.set(k, (counts.get(k) || 0) + 1);
+  }
+  const v = [...counts.values()].sort((a, b) => b - a);
+  const total = v.reduce((a, b) => a + b, 0);
+  const top = (k) => v.slice(0, k).reduce((a, b) => a + b, 0);
+  return {
+    jobs: total,
+    distinct: counts.size,
+    withOneJob: v.filter((x) => x === 1).length,
+    unattributed,
+    top10: share(top(10), total, window, `jobs held by the ten busiest of ${definition}`),
+    top1: share(top(1), total, window, `jobs held by the single busiest of ${definition}`),
+    hhi: total ? Math.round(v.reduce((s, x) => s + ((100 * x) / total) ** 2, 0)) : null,
+    window,
+    definition,
+  };
+}
+
+// Counting engineering firms needs their names in memory; none is written out.
+// Punctuation and a trailing entity suffix are folded, so "Acme Engineering,
+// P.C." and "ACME ENGINEERING PC" count once.
+const firmKey = (s) =>
+  String(s || '')
+    .toUpperCase()
+    .replace(/[.,&']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/ (INC|LLC|PLLC|LLP|CORP|CORPORATION|CO|LTD|PC|P C|DPC)$/, '') || null;
+
+const jobKey = (n) => String(n || '').split('-')[0];
+
+function sub9(block) {
+  const x = String(block || '').trim().slice(-1);
+  return (x && SUB9.find((s) => s.digits.includes(x))) || null;
+}
+
+// The register's own deal-out (collect.mjs balancedByBorough): one card per
+// borough in turn, so an under-filled borough releases its share as it goes.
+function balancedByBorough(rows, total) {
+  const boroughs = [...new Set(rows.map((r) => r.borough))].filter(Boolean);
+  const pools = new Map(boroughs.map((b) => [b, rows.filter((r) => r.borough === b)]));
+  const taken = new Map(boroughs.map((b) => [b, 0]));
+  const picked = [];
+  let progress = true;
+  while (picked.length < total && progress) {
+    progress = false;
+    for (const b of boroughs) {
+      if (picked.length >= total) break;
+      const i = taken.get(b);
+      if (i >= pools.get(b).length) continue;
+      picked.push(pools.get(b)[i]);
+      taken.set(b, i + 1);
+      progress = true;
+    }
+  }
+  return picked;
+}
+
+// ---------------------------------------------------------------- the record
+
+// Facade permits by building: each job once, dated by its earliest Initial
+// Permit, with the declared cost and the permittee's licence of that permit.
+export function permitIndex(rows, test) {
+  const byJob = new Map();
+  for (const p of rows) {
+    const t = ymd(p.issued_date);
+    if (!p.bin || !t || !test(p)) continue;
+    const key = jobKey(p.job_filing_number) || `${p.bin}@${iso(t)}`;
+    const cur = byJob.get(key);
+    if (cur && cur.t <= t) continue;
+    byJob.set(key, {
+      bin: p.bin,
+      t,
+      job: p.job_filing_number || null,
+      cost: Number(p.estimated_job_costs) || 0,
+      lic: String(p.applicant_license || '').trim() || null,
+      gc: p.permittee_s_license_type === 'GC',
+    });
+  }
+  const byBin = new Map();
+  for (const p of byJob.values()) (byBin.get(p.bin) || byBin.set(p.bin, []).get(p.bin)).push(p);
+  for (const a of byBin.values()) a.sort((x, y) => x.t - y.t);
+  return { jobs: [...byJob.values()], byBin };
+}
+
+// A cycle's first report per building: its earliest dated Initial filing.
+// "Auto-Generated / No Report Filed" rows are not reports (8,652 of the 11,723
+// cycle-9 buildings carrying one also filed an Initial), so they never count.
+export function firstReports(filings, cycle) {
+  const out = new Map();
+  for (const r of filings) {
+    if (r.cycle !== cycle || r.filing_type !== 'Initial' || !r.filing_date || !r.bin) continue;
+    const cur = out.get(r.bin);
+    if (!cur || r.filing_date < cur.filing_date) out.set(r.bin, r);
+  }
+  return out;
+}
+
+// Buildings whose first report had `status` and fell inside [from, to], each
+// followed for 24 months: did a facade permit follow, how soon, for how much,
+// and to whom. A permit in the 180 days before the report is counted apart:
+// that building was already buying when the report landed.
+export function cohort(reports, byBin, status, from, to) {
+  const c = { n: 0, pre: 0, in12: 0, in24: 0, lags: [], costs: [], licences: [], hits: [], byBorough: {} };
+  for (const [bin, r] of reports) {
+    const t = ymd(r.filing_date);
+    if (r.filing_status !== status || t < from || t > to) continue;
+    c.n++;
+    const b = (c.byBorough[String(r.borough || '').trim() || 'Unknown'] ||= { n: 0, in24: 0 });
+    b.n++;
+    const ps = byBin.get(bin) || [];
+    if (ps.some((p) => p.t < t && t - p.t <= LOOKBACK * DAY)) c.pre++;
+    const post = ps.find((p) => p.t >= t && p.t - t <= M24 * DAY);
+    if (!post) continue;
+    const lag = days(post.t - t);
+    c.in24++;
+    b.in24++;
+    if (lag <= M12) c.in12++;
+    c.lags.push(lag);
+    if (post.cost > 0) c.costs.push(post.cost);
+    c.licences.push(post.lic);
+    c.hits.push({ job: post.job, report: t, issued: post.t });
+  }
+  return c;
+}
+
+// The cycle-8 and cycle-9 record of every building as it stood on date T:
+// only filings dated on or before T are visible, and each filing speaks with
+// its own filing_status — current_status is today's word, not T's. An undated
+// cycle-9 row is an auto-generated placeholder nobody could have read.
+function stateAt(filings, T) {
+  const L = new Map();
+  for (const r of filings) {
+    if (!r.bin || (r.cycle !== '8' && r.cycle !== '9')) continue;
+    const dt = r.cycle === '8' ? r.filing_date || r.submitted_on || '' : r.filing_date || '';
+    if (r.cycle === '9' && !dt) continue;
+    if (dt && ymd(dt) > T) continue;
+    const rec = L.get(r.bin) || { borough: String(r.borough || '').trim(), block: r.block, c8: null, c9: null };
+    const slot = r.cycle === '8' ? 'c8' : 'c9';
+    if (!rec[slot] || dt > rec[slot].dt) rec[slot] = { status: r.filing_status, dt };
+    L.set(r.bin, rec);
+  }
+  return L;
+}
+
+function outcome(bins, byBin, T, label, def) {
+  let in12 = 0;
+  let in24 = 0;
+  for (const bin of bins) {
+    const p = (byBin.get(bin) || []).find((x) => x.t > T && x.t - T <= M24 * DAY);
+    if (!p) continue;
+    in24++;
+    if (p.t - T <= M12 * DAY) in12++;
+  }
+  const w = `${label}; permit issued within N days after ${iso(T)}`;
+  return {
+    n: bins.length,
+    within12: share(in12, bins.length, w.replace('N', '365'), def),
+    within24: share(in24, bins.length, w.replace('N', '730'), def),
+  };
+}
+
+// The register's facade rules (collect.mjs, "Build candidate signals") replayed
+// one cycle back: cycle 8 plays cycle 9 and cycle 9 plays cycle 10. The score
+// is the rules' urgency sum. The fines point is left out — the penalty columns
+// repeat on every row of a building and carry no date, so what was owed on a
+// past date cannot be read — and so are the enrichment points (ECB, HPD,
+// deeds, sheds), which cannot be seen as they stood on a past date either.
+// As in the collector, only NON_FILER waits for the sub-cycle to open: the
+// carry-over rules fire on a building whose window has not opened yet, so
+// those buildings stay in the pool and in the baseline (they matter only on
+// the first date, when 9C had not opened).
+function replay(filings, byBin, T) {
+  const L = stateAt(filings, T);
+  const groups = { FLAGGED: [], NOT_FLAGGED: [], NOT_FLAGGED_FILED_UNSAFE: [], NON_FILER: [], SWARMP_CARRYOVER: [], UNSAFE_PRIOR: [], CHRONIC_NON_FILER: [] };
+  const pool = [];
+  for (const [bin, { borough, block, c8: a, c9: b }] of L) {
+    if (!BOROUGHS.includes(borough)) continue;
+    const sc = sub9(block);
+    if (!sc) continue;
+    const m = Math.round((ymd(sc.deadline) - T) / (30.44 * DAY));
+    const sig = [];
+    if (!b && ymd(sc.opens) <= T) sig.push(['NON_FILER', m <= 7 ? 3 : m <= 18 ? 2 : 1]);
+    if (a?.status === 'SWARMP' && (!b || b.status !== 'SAFE')) sig.push(['SWARMP_CARRYOVER', m <= 7 ? 3 : 2]);
+    if (a?.status === 'UNSAFE' && !b) sig.push(['UNSAFE_PRIOR', 3]);
+    if (a?.status === 'No Report Filed' && !b) sig.push(['CHRONIC_NON_FILER', 2]);
+    if (!sig.length) {
+      groups.NOT_FLAGGED.push(bin);
+      // Filed this cycle and came back UNSAFE: no rule fires on it, and it is
+      // the cohort above — the buyer the register does not show.
+      if (b?.status === 'UNSAFE') groups.NOT_FLAGGED_FILED_UNSAFE.push(bin);
+      continue;
+    }
+    groups.FLAGGED.push(bin);
+    for (const [k] of sig) groups[k].push(bin);
+    pool.push({ bin, borough, score: sig.reduce((s, [, u]) => s + u, 0), monthsLeft: m });
+  }
+  pool.sort((x, y) => y.score - x.score || x.monthsLeft - y.monthsLeft);
+  const top = new Set(balancedByBorough(pool, CEILING).map((c) => c.bin));
+  const def = 'facade repair permit (definitions.facadePermit.regex)';
+  const where = `four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on ${iso(T)}`;
+  return {
+    at: iso(T),
+    groups: Object.fromEntries(Object.entries(groups).map(([k, bins]) => [k, outcome(bins, byBin, T, `${k}, ${where}`, def)])),
+    ranking: {
+      top: outcome([...top], byBin, T, `the ${CEILING} flagged buildings the register's score would show first (balanced by borough)`, def),
+      rest: outcome(pool.filter((c) => !top.has(c.bin)).map((c) => c.bin), byBin, T, 'the rest of the flagged pool', def),
+    },
+  };
+}
+
+// Engineers: buildings that had not filed their cycle-9 report six months
+// before their sub-cycle's deadline. How many hired an engineer (the report is
+// filed by one) within six and twelve months, and how many firms shared that.
+function nonFilers(filings, firstC9, v) {
+  const T = ymd(v.at);
+  let n = 0;
+  let in6 = 0;
+  let in12 = 0;
+  const firms = [];
+  for (const [bin, rec] of stateAt(filings, T)) {
+    if (!BOROUGHS.includes(rec.borough) || !rec.c8 || rec.c9 || sub9(rec.block)?.sub !== v.sub) continue;
+    n++;
+    const r = firstC9.get(bin);
+    const lag = r ? days(ymd(r.filing_date) - T) : null;
+    if (lag == null || lag <= 0) continue;
+    if (lag <= M6) in6++;
+    if (lag <= M12) {
+      in12++;
+      firms.push(firmKey(r.qewi_bus_name));
+    }
+  }
+  const w = `sub-cycle ${v.sub} (deadline ${v.deadline}), buildings with a cycle-8 record and no cycle-9 filing on ${v.at}, four register boroughs`;
+  const def = "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date";
+  return {
+    sub: v.sub,
+    at: v.at,
+    deadline: v.deadline,
+    nonFilers: n,
+    within6: share(in6, n, `${w}; filed within ${M6} days`, def),
+    within12: share(in12, n, `${w}; filed within ${M12} days`, def),
+    engineers: concentration(firms, `${w}; reports filed within ${M12} days`, 'QEWI firms (qewi_bus_name, suffixes folded) on those reports'),
+  };
+}
+
+// ---------------------------------------------------------------- fetching
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const RETRY = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+// Polite: one request at a time with a pause between them, backing off on the
+// server's own Retry-After, and never retrying a 4xx — a bad query is not an outage.
+async function getJson(url, tries = 6) {
+  let last;
+  for (let i = 0; i < tries; i++) {
+    let wait = Math.min(60000, 2000 * 2 ** i);
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(180000) });
+      if (res.ok) return await res.json();
+      last = new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
+      if (!RETRY.has(res.status)) throw Object.assign(last, { fatal: true });
+      const after = Number(res.headers.get('retry-after'));
+      if (after > 0) wait = Math.min(120000, after * 1000);
+    } catch (e) {
+      if (e.fatal) throw e;
+      last = e;
+    }
+    if (i < tries - 1) await sleep(wait);
+  }
+  throw last;
+}
+
+const meta = new Map();
+async function datasetMeta(id) {
+  if (!meta.has(id)) {
+    const m = await getJson(`https://${HOST}/api/views/${id}.json`);
+    meta.set(id, { name: m.name, rowsUpdatedAt: m.rowsUpdatedAt ? new Date(m.rowsUpdatedAt * 1000).toISOString() : null });
+    await sleep(PAUSE_MS);
+  }
+  return meta.get(id);
+}
+
+// Every read is cached with the publisher's rowsUpdatedAt as it stood when the
+// rows were fetched, so evidence.json names the load it was computed from even
+// when a rerun is served from disk.
+const reads = [];
+async function read(id, label, params, { pageSize = 50000, describe } = {}) {
+  const key = createHash('sha1').update(`${id}?${new URLSearchParams(params)}`).digest('hex').slice(0, 16);
+  const file = join(CACHE, `${id}-${key}.json`);
+  let hit = null;
+  try {
+    hit = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {}
+  const cached = Boolean(hit && Date.now() - Date.parse(hit.fetchedAt) < MAX_AGE_H * 3.6e6);
+  if (!cached) {
+    const m = await datasetMeta(id);
+    const rows = [];
+    for (let offset = 0; ; offset += pageSize) {
+      // Paging without $order can skip or repeat rows between requests.
+      const qs = new URLSearchParams({ $order: ':id', ...params, $limit: String(pageSize), $offset: String(offset) });
+      const page = await getJson(`https://${HOST}/resource/${id}.json?${qs}`);
+      rows.push(...page);
+      await sleep(PAUSE_MS);
+      if (page.length < pageSize) break;
+    }
+    hit = { id, name: m.name, rowsUpdatedAt: m.rowsUpdatedAt, fetchedAt: new Date().toISOString(), rows };
+    mkdirSync(CACHE, { recursive: true });
+    writeFileSync(file, JSON.stringify(hit));
+  }
+  reads.push({ id, name: hit.name, label, where: describe || params.$where, rows: hit.rows.length, rowsUpdatedAt: hit.rowsUpdatedAt, fetchedAt: hit.fetchedAt });
+  console.log(`  ${id} ${label}: ${hit.rows.length} rows${cached ? ' (cache)' : ''}`);
+  return hit.rows;
+}
+
+// One entry per dataset; a dataset read at two moments reports the older load.
+function sourcesTable() {
+  const out = new Map();
+  for (const r of reads) {
+    const s = out.get(r.id) || { id: r.id, name: r.name, host: HOST, rowsUpdatedAt: r.rowsUpdatedAt, fetchedAt: r.fetchedAt, queries: [] };
+    if (r.rowsUpdatedAt && (!s.rowsUpdatedAt || r.rowsUpdatedAt < s.rowsUpdatedAt)) s.rowsUpdatedAt = r.rowsUpdatedAt;
+    if (r.fetchedAt < s.fetchedAt) s.fetchedAt = r.fetchedAt;
+    const q = s.queries.find((x) => x.label === r.label);
+    if (q) {
+      q.rows += r.rows;
+      q.requests += 1;
+    } else s.queries.push({ label: r.label, where: r.where, rows: r.rows, requests: 1 });
+    out.set(r.id, s);
+  }
+  return [...out.values()];
+}
+
+// ---------------------------------------------------------------- the run
+
+const fmt = (n) => Number(n).toLocaleString('en-US');
+const usd = (n) => (n >= 1e6 ? `$${round1(n / 1e6)}M` : `$${Math.round(n / 1000)}k`);
+const range = (xs) => {
+  const v = xs.filter((x) => x != null);
+  const lo = Math.min(...v);
+  const hi = Math.max(...v);
+  return lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+};
+
+async function main() {
+  assertCollectable(HOST);
+  console.log(`Backtest: reading ${HOST} (cache ${CACHE})`);
+  const lastShedDay = iso(new Date(+ymd(SHED_REPLAY.at(-1)) + DAY));
+  const filings = await read('xubg-57si', 'facade filings, cycles 8-10', {
+    $where: "cycle in('8','9','10')",
+    $select: 'cycle,filing_type,bin,borough,block,filing_date,submitted_on,filing_status,qewi_bus_name',
+  });
+  const permitRows = await read('rbx6-tga4', 'facade Initial Permits, General Construction', {
+    $where: PERMIT_WHERE,
+    $select: 'job_filing_number,bin,work_on_floor,job_description,issued_date,estimated_job_costs,applicant_license,permittee_s_license_type',
+  });
+  const shedJobs = await read('w9ak-ipjd', 'sidewalk-shed jobs', {
+    $where: `shed='YES' and first_permit_date < '${lastShedDay}'`,
+    $select: 'job_filing_number,bin,first_permit_date,signoff_date',
+  });
+  const shedPermits = await read('rbx6-tga4', 'sidewalk-shed permits, every filing reason and status', {
+    $where: `work_type='Sidewalk Shed' and issued_date < '${lastShedDay}'`,
+    $select: 'job_filing_number,bin,issued_date,expired_date',
+  });
+
+  // The data horizon is the oldest load among the datasets read: nothing after
+  // it can be seen in all of them.
+  const stamps = reads.map((r) => r.rowsUpdatedAt).filter(Boolean).sort();
+  if (!stamps.length) throw new Error('no rowsUpdatedAt on any dataset — refusing to date the evidence');
+  const asOf = ymd(stamps[0]);
+  if (+ymd(COHORT.to) + M24 * DAY > +asOf) throw new Error(`data through ${iso(asOf)} cannot follow the ${COHORT.to} cohort for 24 months`);
+
+  const idx = { regex: permitIndex(permitRows, DEFINITIONS.regex.test), workOnFloor: permitIndex(permitRows, DEFINITIONS.workOnFloor.test) };
+  const byBin = idx.regex.byBin;
+  const c9 = firstReports(filings, '9');
+  const c10 = firstReports(filings, '10');
+  const fisp = new Map();
+  for (const r of filings) if (r.bin && !fisp.has(r.bin)) fisp.set(r.bin, String(r.borough || '').trim());
+
+  // (a) The purchase after the report.
+  const from = ymd(COHORT.from);
+  const to = ymd(COHORT.to);
+  const W = `citywide, each building's first cycle-9 report filed ${COHORT.from}..${COHORT.to}`;
+  const cohorts = {};
+  const raw = {};
+  for (const def of ['regex', 'workOnFloor']) {
+    cohorts[def] = {};
+    const d = `facade repair permit (definitions.facadePermit.${def})`;
+    for (const status of ['UNSAFE', 'SWARMP', 'SAFE']) {
+      const c = cohort(c9, idx[def].byBin, status, from, to);
+      raw[`${def}.${status}`] = c;
+      cohorts[def][status] = {
+        buildings: c.n,
+        within12: share(c.in12, c.n, `${W}, report status ${status}; permit issued 0-${M12} days after the report`, d),
+        within24: share(c.in24, c.n, `${W}, report status ${status}; permit issued 0-${M24} days after the report`, d),
+        alreadyBefore: share(c.pre, c.n, `${W}, report status ${status}; permit issued 1-${LOOKBACK} days before the report`, d),
+        lagDays: spread(c.lags, 'days', `${W}, report status ${status}; buildings with a permit within ${M24} days`, `report filing_date to the first ${d} issued on or after it`),
+        jobCost: spread(c.costs, 'USD', `${W}, report status ${status}; that first permit, when it declares a cost`, 'estimated_job_costs declared on the permit application', { total: true }),
+        contractors: concentration(c.licences, `${W}, report status ${status}; that first permit`, 'permittees (applicant_license)'),
+        within24ByBorough: Object.fromEntries(
+          Object.entries(c.byBorough)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([b, x]) => [b, share(x.in24, x.n, `${W}, report status ${status}, ${b}; permit within ${M24} days`, d)]),
+        ),
+      };
+    }
+    const u = raw[`${def}.UNSAFE`];
+    const s = raw[`${def}.SAFE`];
+    cohorts[def].liftUnsafeOverSafe = {
+      within12: s.in12 ? round1(u.in12 / u.n / (s.in12 / s.n)) : null,
+      within24: s.in24 ? round1(u.in24 / u.n / (s.in24 / s.n)) : null,
+      definition: 'UNSAFE share divided by SAFE share, same window and permit definition',
+    };
+  }
+
+  // Where the time goes between an UNSAFE report and its permit: the repair
+  // job's own filing date, from the job-applications dataset (same number).
+  const hits = raw['regex.UNSAFE'].hits.filter((h) => h.job);
+  const ids = [...new Set(hits.map((h) => h.job))].sort();
+  const filed = new Map();
+  for (let i = 0; i < ids.length; i += 100) {
+    const list = ids.slice(i, i + 100).map((j) => `'${j.replace(/'/g, "''")}'`).join(',');
+    const rows = await read(
+      'w9ak-ipjd',
+      "repair jobs behind the UNSAFE cohort's permits",
+      { $where: `job_filing_number in(${list})`, $select: 'job_filing_number,filing_date' },
+      { pageSize: 1000, describe: 'job_filing_number in (the jobs of those permits, 100 per request)' },
+    );
+    for (const r of rows) if (r.filing_date) filed.set(r.job_filing_number, ymd(r.filing_date));
+  }
+  const found = hits.filter((h) => filed.has(h.job));
+  const before = found.filter((h) => filed.get(h.job) < h.report);
+  const WJ = `${W}, report status UNSAFE; its first facade repair permit within ${M24} days (regex definition)`;
+  const jobTiming = {
+    joined: share(found.length, hits.length, WJ, 'permits whose job_filing_number is found in w9ak-ipjd'),
+    jobFiledBeforeReport: share(before.length, found.length, WJ, 'repair job filed (w9ak-ipjd filing_date) before the UNSAFE report was filed'),
+    reportToJobFiled: spread(
+      found.filter((h) => filed.get(h.job) >= h.report).map((h) => days(filed.get(h.job) - h.report)),
+      'days',
+      `${WJ}; job filed on or after the report`,
+      'report filing_date to repair job filing_date',
+    ),
+    jobFiledToPermit: spread(found.map((h) => days(h.issued - filed.get(h.job))), 'days', WJ, 'repair job filing_date to permit issued_date'),
+  };
+
+  // (c) The whole facade market since 2022: who pulls the permits.
+  const WM = `citywide, facade Initial Permits issued ${MARKET_FROM}..${iso(asOf)}`;
+  const market = {};
+  for (const def of ['regex', 'workOnFloor']) {
+    const jobs = idx[def].jobs.filter((p) => p.t >= ymd(MARKET_FROM) && p.t <= asOf);
+    const gc = jobs.filter((p) => p.gc);
+    market[def] = {
+      jobs: jobs.length,
+      gcPermittee: share(gc.length, jobs.length, WM, "permittee_s_license_type 'GC': the licence on the permit is the contractor's, not the filing engineer's"),
+      contractors: concentration(gc.map((p) => p.lic), WM, `GC licences (applicant_license) on permits meeting definitions.facadePermit.${def}; one job counted once`),
+    };
+  }
+
+  // (b) The engineer's purchase, and the engineering market as a whole.
+  const vintages = SUB9.map((v) => nonFilers(filings, c9, v));
+  const allReports = filings.filter((r) => r.cycle === '9' && r.filing_type === 'Initial');
+  const qewiMarket = concentration(allReports.map((r) => firmKey(r.qewi_bus_name)), 'citywide, every cycle-9 Initial report', 'QEWI firms (qewi_bus_name, suffixes folded)');
+
+  // What does not hold: the register's rules and ranking replayed.
+  const replays = SUB9.map((v) => replay(filings, byBin, ymd(v.at)));
+
+  // (d) Sheds. The cohort reads the job-applications dataset, whose sign-off
+  // (Letter of Completion) is the day the shed came down; a permit's
+  // expired_date is only the end of its term.
+  const signoff = new Map();
+  for (const j of shedJobs) signoff.set(jobKey(j.job_filing_number), ymd(j.signoff_date));
+  const inFisp = (bin) => BOROUGHS.includes(fisp.get(bin));
+  const WS = `sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted ${SHED_COHORT.from}..${SHED_COHORT.to} at FISP buildings, four register boroughs`;
+  const sj = shedJobs.filter((j) => {
+    const t = ymd(j.first_permit_date);
+    return inFisp(j.bin) && t >= ymd(SHED_COHORT.from) && t <= ymd(SHED_COHORT.to);
+  });
+  let withRepair = 0;
+  let removedNoRepair = 0;
+  let standingNoRepair = 0;
+  const shedLags = [];
+  for (const j of sj) {
+    const s = ymd(j.first_permit_date);
+    const e = ymd(j.signoff_date) || asOf;
+    const p = (byBin.get(j.bin) || []).find((x) => x.t >= s - 90 * DAY && x.t <= e);
+    if (p) {
+      withRepair++;
+      shedLags.push(days(p.t - s));
+    } else if (j.signoff_date) removedNoRepair++;
+    else standingNoRepair++;
+  }
+  const signed = sj.filter((j) => j.signoff_date);
+  const repairDef = `facade repair permit (definitions.facadePermit.regex) issued from 90 days before the shed's first permit to its sign-off, or to ${iso(asOf)} if never signed off`;
+  const shedCohort = {
+    jobs: sj.length,
+    signedOff: share(signed.length, sj.length, WS, `signoff_date recorded by ${iso(asOf)}`),
+    daysToSignoff: spread(signed.map((j) => days(ymd(j.signoff_date) - ymd(j.first_permit_date))).filter((x) => x >= 0), 'days', `${WS}; signed off`, 'first_permit_date to signoff_date', { p90: true }),
+    endedWithRepairPermit: share(withRepair, sj.length, WS, repairDef),
+    shedToRepairPermitDays: spread(shedLags, 'days', `${WS}; with a repair permit`, "shed's first permit to the repair permit (negative: the repair permit came first)"),
+    removedWithNoRepairPermit: share(removedNoRepair, sj.length, WS, 'signed off with no such repair permit'),
+    neverSignedOffNoRepairPermit: share(standingNoRepair, sj.length, WS, 'no sign-off and no such repair permit'),
+  };
+
+  // The replay of SHED_NO_REPAIR reads what the collector reads — shed permits
+  // — with the age taken from the first permit of the job that is live on the
+  // date, not of any job the building ever had (a 2018 shed and a 2026 shed
+  // are two sheds). A job whose sign-off precedes the date is down.
+  const shedJobsByBin = new Map();
+  for (const p of shedPermits) {
+    const a = ymd(p.issued_date);
+    const b = ymd(p.expired_date);
+    if (!p.bin || !a || !b || !inFisp(p.bin)) continue;
+    const k = jobKey(p.job_filing_number);
+    const jobs = shedJobsByBin.get(p.bin) || shedJobsByBin.set(p.bin, new Map()).get(p.bin);
+    const j = jobs.get(k) || jobs.set(k, { first: a, spans: [] }).get(k);
+    if (a < j.first) j.first = a;
+    j.spans.push([a, b]);
+  }
+  const shedReplay = SHED_REPLAY.map((at) => {
+    const T = ymd(at);
+    const g = { SHED_NO_REPAIR: [], LONG_WITH_REPAIR: [], NEW_NO_REPAIR: [] };
+    for (const [bin, jobs] of shedJobsByBin) {
+      let first = null;
+      for (const [k, j] of jobs) {
+        const down = signoff.get(k);
+        if ((down && down <= T) || !j.spans.some(([a, b]) => a <= T && T <= b)) continue;
+        if (!first || j.first < first) first = j.first;
+      }
+      if (!first) continue;
+      const prior = (byBin.get(bin) || []).some((p) => p.t <= T && T - p.t <= M24 * DAY);
+      const long = T - first >= 365 * DAY;
+      if (long) g[prior ? 'LONG_WITH_REPAIR' : 'SHED_NO_REPAIR'].push(bin);
+      else if (!prior) g.NEW_NO_REPAIR.push(bin);
+    }
+    const lbl = {
+      SHED_NO_REPAIR: `shed permit live on ${at} for 365+ days, no facade repair permit in the ${M24} days before (the register's SHED_NO_REPAIR)`,
+      LONG_WITH_REPAIR: `shed permit live on ${at} for 365+ days, a facade repair permit already in the ${M24} days before`,
+      NEW_NO_REPAIR: `shed permit live on ${at} for under 365 days, no facade repair permit in the ${M24} days before`,
+    };
+    const def = 'facade repair permit (definitions.facadePermit.regex)';
+    return { at, groups: Object.fromEntries(Object.entries(g).map(([k, bins]) => [k, outcome(bins, byBin, T, `FISP buildings, four register boroughs, ${lbl[k]}`, def)])) };
+  });
+
+  // (e) Open windows today that the register does not show: a cycle-10 first
+  // report filed UNSAFE in the last twelve months, and no facade permit from
+  // 180 days before it. None of the register's rules fires on a fresh cycle-10
+  // UNSAFE report (NON_FILER and UNSAFE_PRIOR need no cycle-10 filing at all).
+  let feed = null;
+  try {
+    feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
+  } catch {}
+  const shown = new Set((feed?.facades?.feed || []).map((c) => String(c.bin)));
+  const openNow = {};
+  for (const status of ['UNSAFE', 'SWARMP']) {
+    const recent = [...c10.values()].filter((r) => {
+      const t = ymd(r.filing_date);
+      return r.filing_status === status && BOROUGHS.includes(String(r.borough || '').trim()) && t <= asOf && asOf - t <= M12 * DAY;
+    });
+    const open = recent.filter((r) => !(byBin.get(r.bin) || []).some((p) => p.t >= ymd(r.filing_date) - LOOKBACK * DAY));
+    const WO = `four register boroughs, first cycle-10 report filed ${status} ${iso(new Date(+asOf - M12 * DAY))}..${iso(asOf)}`;
+    const openDef = `no facade repair permit (definitions.facadePermit.regex) issued from ${LOOKBACK} days before the report to ${iso(asOf)}`;
+    // Territory is sold per borough, so the count is kept per borough too, each
+    // over that borough's own reports.
+    const openByBorough = Object.fromEntries(
+      BOROUGHS.map((b) => {
+        const here = (xs) => xs.filter((r) => String(r.borough).trim() === b).length;
+        return [b, share(here(open), here(recent), `${WO}, ${b}`, openDef)];
+      }),
+    );
+    openNow[status] = {
+      reports: recent.length,
+      open: share(open.length, recent.length, WO, openDef),
+      openByBorough,
+      inRegister: feed ? share(open.filter((r) => shown.has(String(r.bin))).length, open.length, `${WO}; open`, `on the facade register committed at ${feed.generatedAt}`) : null,
+    };
+  }
+
+  // ------------------------------------------------------------ the verdicts
+
+  const R = cohorts.regex;
+  const C = cohorts.workOnFloor;
+  const rankGap = replays.map((r) => round1(r.ranking.top.within24.value - r.ranking.rest.within24.value));
+  const base = replays.map((r) => r.groups.NOT_FLAGGED.within24.value);
+  const atOrBelow = (k) => replays.filter((r) => r.groups[k].within24.value <= r.groups.NOT_FLAGGED.within24.value).length;
+  const sr = shedReplay.map((r) => r.groups);
+  // The market headline leads with the narrow definition: DOB's own facade
+  // work location cannot be argued with, and the wider count only adds firms.
+  const mk = market.workOnFloor.contractors;
+  const mw = market.regex.contractors;
+
+  const headline = [
+    {
+      claim:
+        `Of ${fmt(R.UNSAFE.buildings)} NYC buildings whose first Cycle-9 facade report was filed UNSAFE, ` +
+        `${range([C.UNSAFE.within24.value, R.UNSAFE.within24.value])} pulled a facade repair permit within 24 months ` +
+        `(${range([C.UNSAFE.within12.value, R.UNSAFE.within12.value])} within 12), against ` +
+        `${range([C.SAFE.within24.value, R.SAFE.within24.value])} of buildings reported SAFE.`,
+      value: `${R.UNSAFE.within24.value}%`,
+      denominator: `${fmt(R.UNSAFE.buildings)} buildings`,
+      window: `first cycle-9 report filed ${COHORT.from}..${COHORT.to}, followed 730 days`,
+      definition: 'regex definition; the lower bound of each range is the work_on_floor-only definition',
+    },
+    {
+      claim: `Those permits came a median ${R.UNSAFE.lagDays.median} days after the report and declared a median ${usd(R.UNSAFE.jobCost.median)} (IQR ${usd(R.UNSAFE.jobCost.p25)}–${usd(R.UNSAFE.jobCost.p75)}), ${usd(R.UNSAFE.jobCost.total)} in all.`,
+      value: usd(R.UNSAFE.jobCost.median),
+      denominator: `${fmt(R.UNSAFE.jobCost.n)} permits declaring a cost`,
+      window: `first cycle-9 UNSAFE report filed ${COHORT.from}..${COHORT.to}; first permit within 730 days`,
+      definition: 'estimated_job_costs on the permit application; a permit is a proxy for a signed contract',
+    },
+    {
+      claim: `${fmt(R.UNSAFE.contractors.distinct)} different contractors won those ${fmt(R.UNSAFE.contractors.jobs)} jobs; the ten busiest hold ${R.UNSAFE.contractors.top10.value}%.`,
+      value: `${R.UNSAFE.contractors.top10.value}%`,
+      denominator: `${fmt(R.UNSAFE.contractors.jobs)} jobs`,
+      window: `first cycle-9 UNSAFE report filed ${COHORT.from}..${COHORT.to}`,
+      definition: 'distinct applicant_license on the first facade permit',
+    },
+    {
+      claim:
+        `Facade repair is not a concentrated market: ${fmt(mk.distinct)} licensed GCs pulled facade permits since 2022; the top 10 hold ${mk.top10.value}% and the busiest ${mk.top1.value}% ` +
+        `(${fmt(mw.distinct)} GCs and ${mw.top10.value}% on the wider definition).`,
+      value: `${mk.top10.value}%`,
+      denominator: `${fmt(mk.jobs)} facade jobs with a GC permittee`,
+      window: `Initial Permits issued ${MARKET_FROM}..${iso(asOf)}`,
+      definition: 'work_on_floor definition (the wider regex definition in parentheses); one job counted once',
+    },
+    {
+      claim:
+        `Buildings with six months left and no report filed: ${range(vintages.map((v) => v.within6.value))} filed within 6 months and ` +
+        `${range(vintages.map((v) => v.within12.value))} within 12, in each of three sub-cycles; ${fmt(qewiMarket.distinct)} engineering firms filed cycle-9 reports and the top 10 hold ${qewiMarket.top10.value}%.`,
+      value: range(vintages.map((v) => v.within12.value)),
+      denominator: vintages.map((v) => `${v.sub}: ${fmt(v.nonFilers)}`).join(', ') + ' buildings',
+      window: vintages.map((v) => v.at).join(', ') + ' (each deadline minus six months)',
+      definition: 'first cycle-9 Initial report filed after the replay date',
+    },
+    {
+      claim:
+        `${shedCohort.endedWithRepairPermit.value}% of sidewalk sheds at FISP buildings ended with a facade repair permit; ` +
+        `a shed standing over a year with none converted at ${range(sr.map((g) => g.SHED_NO_REPAIR.within24.value))} within 24 months, against ` +
+        `${range(sr.map((g) => g.NEW_NO_REPAIR.within24.value))} for a shed under a year old.`,
+      value: `${shedCohort.endedWithRepairPermit.value}%`,
+      denominator: `${fmt(shedCohort.jobs)} shed jobs`,
+      window: `first permitted ${SHED_COHORT.from}..${SHED_COHORT.to}; replays at ${SHED_REPLAY.join(', ')}`,
+      definition: 'regex definition; sign-off is w9ak-ipjd signoff_date',
+    },
+    {
+      claim:
+        `Today ${fmt(openNow.UNSAFE.open.num)} buildings have a cycle-10 report filed UNSAFE in the last 12 months and no facade repair permit since ` +
+        `(nor in the six months before it): ` +
+        Object.entries(openNow.UNSAFE.openByBorough)
+          .sort(([, a], [, b]) => b.num - a.num)
+          .map(([b, s]) => `${b} ${fmt(s.num)}`)
+          .join(', ') +
+        `${openNow.UNSAFE.inRegister ? `; ${fmt(openNow.UNSAFE.inRegister.num)} of them are on the register` : ''}.`,
+      value: fmt(openNow.UNSAFE.open.num),
+      denominator: `${fmt(openNow.UNSAFE.reports)} UNSAFE first reports`,
+      window: openNow.UNSAFE.open.window,
+      definition: 'the FRESH_UNSAFE window: not a signal the register has yet',
+    },
+  ];
+
+  const nonClaims = [
+    {
+      claim: "The register's ranking puts the buyers on top.",
+      holds: rankGap.every((g) => g >= 3),
+      evidence: `Top ${CEILING} by the register's facade score against the rest of the flagged pool, facade permit within 24 months: ` + replays.map((r, i) => `${r.at} ${r.ranking.top.within24.value}% vs ${r.ranking.rest.within24.value}% (${rankGap[i] >= 0 ? '+' : ''}${rankGap[i]} pts)`).join('; ') + '.',
+      rule: 'counted as holding only if the top beats the rest by at least 3 percentage points at every replay date',
+    },
+    {
+      claim: 'UNSAFE_PRIOR buildings (UNSAFE last cycle, nothing filed this cycle) buy more than the unflagged baseline.',
+      holds: atOrBelow('UNSAFE_PRIOR') === 0,
+      evidence: `At or below the NOT_FLAGGED baseline at ${atOrBelow('UNSAFE_PRIOR')} of ${replays.length} replay dates: ` + replays.map((r, i) => `${r.at} ${r.groups.UNSAFE_PRIOR.within24.value}% vs ${base[i]}%`).join('; ') + '.',
+      rule: 'holds only if above the baseline at every replay date',
+    },
+    {
+      claim: 'CHRONIC_NON_FILER buildings (no report last cycle, nothing this cycle) buy more than the unflagged baseline.',
+      holds: atOrBelow('CHRONIC_NON_FILER') === 0,
+      evidence: `At or below the NOT_FLAGGED baseline at ${atOrBelow('CHRONIC_NON_FILER')} of ${replays.length} replay dates: ` + replays.map((r, i) => `${r.at} ${r.groups.CHRONIC_NON_FILER.within24.value}% vs ${base[i]}%`).join('; ') + '.',
+      rule: 'holds only if above the baseline at every replay date',
+    },
+    {
+      claim: 'A long-standing shed with no repair permit (SHED_NO_REPAIR) is the best facade lead.',
+      holds: sr.every((g) => g.SHED_NO_REPAIR.within24.value >= g.NEW_NO_REPAIR.within24.value),
+      evidence: sr.map((g, i) => `${SHED_REPLAY[i]}: ${g.SHED_NO_REPAIR.within24.value}% within 24 months vs ${g.NEW_NO_REPAIR.within24.value}% for a shed under a year old`).join('; ') + '. It reads as a stuck owner, not a ready buyer.',
+      rule: 'holds only if it converts at least as well as a new shed at every replay date',
+    },
+    {
+      claim: 'A facade permit is a signed contract, and its declared cost is the contract value.',
+      holds: false,
+      evidence: "A permit is the public trace of a hired contractor; the cost is the applicant's own estimate on the permit application.",
+    },
+    {
+      claim: 'Venue openings (SLA licences, DOHMH) or City Record award timing are backtested here.',
+      holds: false,
+      evidence: 'This script measures facades and sheds only. A pending liquor application has no key to the licence it becomes, so its lag can only be logged going forward; make no timing claim for venues or awards from this file.',
+    },
+  ];
+
+  const caveats = [
+    'A permit is a proxy for a purchase: it shows a licensed contractor was hired, not the price agreed. The declared cost is the estimate on the permit application.',
+    'DOB NOW General Construction permits begin 2020-12-27; work permitted in the older BIS system before that is invisible, which is why every look-back starts in 2021-08 or later.',
+    'Outcomes join on BIN. Joining on BBL as well added about 3 percentage points to the UNSAFE cohort when checked once by hand (81 of 2,543 buildings; not re-derived here) and is left out, so the conversion shares are slightly low rather than high.',
+    `The regex definition is narrower than the collector's own PERMIT_RE (no masonry, brick or waterproofing); the work_on_floor definition is narrower still. Both are reported and the claims quote the range.`,
+    'A share of UNSAFE buildings already had a facade permit in the 180 days before the report (alreadyBefore); they are kept in the denominator, and their later permits are new jobs.',
+    'The replays use each filing\'s own filing_status as of its date, not current_status. The register\'s enrichment points (ECB, HPD, deeds, sheds, fines) cannot be replayed as they stood on a past date, so the ranking test uses the facade score alone. Cycle-9 auto-generated "No Report Filed" rows carry no date, so the replay cannot tell when one appeared and ignores them; the collector, reading them today, stops calling a building a NON_FILER once one does. Cycle 8 was closed by every replay date, so its auto-generated rows are read as they stand (CHRONIC_NON_FILER).',
+    `The unflagged baseline includes buildings that filed this cycle and came back UNSAFE (NOT_FLAGGED_FILED_UNSAFE, ${range(replays.map((r) => r.groups.NOT_FLAGGED_FILED_UNSAFE.within24.value))} within 24 months): the strongest buyers, and no register rule flags them.`,
+    'Shed removal is the job\'s sign-off (Letter of Completion); a job never signed off is treated as standing. The shed replay reads shed permits live on the date, aged from the first permit of the live job; a permit\'s expired_date is the end of its term, not the day the shed came down.',
+    'The shed replay is SHED_NO_REPAIR as it should read, not as the collector computes it today: the collector also counts scaffolds, dates a shed from the earliest job the building ever had (so a shed re-erected after a gap looks years old), and treats a wider set of permits (masonry, brick, waterproofing) or a filed job as "repair".',
+    `Open windows (openNow) are a snapshot on ${iso(asOf)}: some of those buildings may already have a repair job filed and waiting for its permit (the median job-to-permit time is in facades.jobTiming).`,
+    'Open data is revised: rerun `npm run backtest` before quoting a figure, and quote it with the dataset loads in `sources`.',
+  ];
+
+  const evidence = {
+    generatedAt: new Date().toISOString(),
+    asOf: iso(asOf),
+    script: 'scripts/backtest.mjs',
+    question: "When the public record says a building's facade window is open, does the building then buy the work?",
+    sources: sourcesTable(),
+    definitions: {
+      facadePermit: { regex: DEFINITIONS.regex.text, workOnFloor: DEFINITIONS.workOnFloor.text },
+      firstReport: "A building's earliest xubg-57si filing with filing_type 'Initial' and a filing_date in the cycle; its filing_status is the report's status.",
+      subCycle9: SUB9.map(({ sub, digits, opens, deadline }) => ({ sub, blockLastDigit: digits.split(''), opens, deadline })),
+      months: { 6: `${M6} days`, 12: `${M12} days`, 24: `${M24} days` },
+    },
+    headline,
+    facades: { cohorts, jobTiming, market },
+    engineers: { nonFilers: vintages, market: qewiMarket },
+    replay: replays,
+    sheds: { cohort: shedCohort, replay: shedReplay },
+    openNow,
+    nonClaims,
+    caveats,
+  };
+  writeFileSync(OUT, JSON.stringify(evidence, null, 2) + '\n');
+  console.log(`\nWrote data/evidence.json (data through ${iso(asOf)})`);
+  for (const h of headline) console.log(`- ${h.claim}`);
+  for (const n of nonClaims) console.log(`${n.holds ? 'HOLDS' : 'does not hold'}: ${n.claim}`);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

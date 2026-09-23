@@ -1,0 +1,1848 @@
+{
+  "generatedAt": "2026-09-23T10:39:34.047Z",
+  "asOf": "2026-09-22",
+  "script": "scripts/backtest.mjs",
+  "question": "When the public record says a building's facade window is open, does the building then buy the work?",
+  "sources": [
+    {
+      "id": "xubg-57si",
+      "name": "DOB NOW: Safety – Facades Compliance Filings",
+      "host": "data.cityofnewyork.us",
+      "rowsUpdatedAt": "2026-09-22T17:32:43.000Z",
+      "fetchedAt": "2026-09-23T10:39:06.298Z",
+      "queries": [
+        {
+          "label": "facade filings, cycles 8-10",
+          "where": "cycle in('8','9','10')",
+          "rows": 55575,
+          "requests": 1
+        }
+      ]
+    },
+    {
+      "id": "rbx6-tga4",
+      "name": "DOB NOW: Build – Approved Permits",
+      "host": "data.cityofnewyork.us",
+      "rowsUpdatedAt": "2026-09-22T18:42:28.000Z",
+      "fetchedAt": "2026-09-23T10:39:14.682Z",
+      "queries": [
+        {
+          "label": "facade Initial Permits, General Construction",
+          "where": "work_type='General Construction' and filing_reason='Initial Permit' and (work_on_floor like '%Facade%' or upper(job_description) like '%FACADE%' or upper(job_description) like '%FISP%' or upper(job_description) like '%LOCAL LAW 11%' or upper(job_description) like '%LL11%' or upper(job_description) like '%LL 11%' or upper(job_description) like '%PARAPET%' or upper(job_description) like '%EXTERIOR WALL%' or upper(job_description) like '%POINTING%' or upper(job_description) like '%LINTEL%' or upper(job_description) like '%TERRA COTTA%' or upper(job_description) like '%CORNICE%')",
+          "rows": 19761,
+          "requests": 1
+        },
+        {
+          "label": "sidewalk-shed permits, every filing reason and status",
+          "where": "work_type='Sidewalk Shed' and issued_date < '2024-03-22'",
+          "rows": 76170,
+          "requests": 1
+        }
+      ]
+    },
+    {
+      "id": "w9ak-ipjd",
+      "name": "DOB NOW: Build – Job Application Filings",
+      "host": "data.cityofnewyork.us",
+      "rowsUpdatedAt": "2026-09-22T20:37:02.000Z",
+      "fetchedAt": "2026-09-23T10:39:17.694Z",
+      "queries": [
+        {
+          "label": "sidewalk-shed jobs",
+          "where": "shed='YES' and first_permit_date < '2024-03-22'",
+          "rows": 39807,
+          "requests": 1
+        },
+        {
+          "label": "repair jobs behind the UNSAFE cohort's permits",
+          "where": "job_filing_number in (the jobs of those permits, 100 per request)",
+          "rows": 1272,
+          "requests": 13
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "facadePermit": {
+      "regex": "DOB NOW Approved Permits (rbx6-tga4): work_type 'General Construction', filing_reason 'Initial Permit', same BIN, work_on_floor contains 'Facade' OR job_description contains any of FACADE, FISP, LOCAL LAW 11, LL11, LL 11, PARAPET, EXTERIOR WALL, POINTING, LINTEL, TERRA COTTA, CORNICE (case-insensitive). One job counts once (job number before the dash), dated by its earliest issued_date.",
+      "workOnFloor": "As the regex definition, but only permits whose work_on_floor (DOB's own work-location field) contains 'Facade'."
+    },
+    "firstReport": "A building's earliest xubg-57si filing with filing_type 'Initial' and a filing_date in the cycle; its filing_status is the report's status.",
+    "subCycle9": [
+      {
+        "sub": "9A",
+        "blockLastDigit": [
+          "4",
+          "5",
+          "6",
+          "9"
+        ],
+        "opens": "2020-02-21",
+        "deadline": "2022-02-21"
+      },
+      {
+        "sub": "9B",
+        "blockLastDigit": [
+          "0",
+          "7",
+          "8"
+        ],
+        "opens": "2021-02-21",
+        "deadline": "2023-02-21"
+      },
+      {
+        "sub": "9C",
+        "blockLastDigit": [
+          "1",
+          "2",
+          "3"
+        ],
+        "opens": "2022-02-21",
+        "deadline": "2024-02-21"
+      }
+    ],
+    "months": {
+      "6": "183 days",
+      "12": "365 days",
+      "24": "730 days"
+    }
+  },
+  "headline": [
+    {
+      "claim": "Of 2,523 NYC buildings whose first Cycle-9 facade report was filed UNSAFE, 40.3–50.4% pulled a facade repair permit within 24 months (28.8–34.7% within 12), against 3.4–4.9% of buildings reported SAFE.",
+      "value": "50.4%",
+      "denominator": "2,523 buildings",
+      "window": "first cycle-9 report filed 2022-02-01..2024-09-21, followed 730 days",
+      "definition": "regex definition; the lower bound of each range is the work_on_floor-only definition"
+    },
+    {
+      "claim": "Those permits came a median 231 days after the report and declared a median $227k (IQR $100k–$540k), $630.6M in all.",
+      "value": "$227k",
+      "denominator": "1,272 permits declaring a cost",
+      "window": "first cycle-9 UNSAFE report filed 2022-02-01..2024-09-21; first permit within 730 days",
+      "definition": "estimated_job_costs on the permit application; a permit is a proxy for a signed contract"
+    },
+    {
+      "claim": "398 different contractors won those 1,272 jobs; the ten busiest hold 18.9%.",
+      "value": "18.9%",
+      "denominator": "1,272 jobs",
+      "window": "first cycle-9 UNSAFE report filed 2022-02-01..2024-09-21",
+      "definition": "distinct applicant_license on the first facade permit"
+    },
+    {
+      "claim": "Facade repair is not a concentrated market: 2,176 licensed GCs pulled facade permits since 2022; the top 10 hold 10.2% and the busiest 1.5% (3,114 GCs and 8.9% on the wider definition).",
+      "value": "10.2%",
+      "denominator": "12,041 facade jobs with a GC permittee",
+      "window": "Initial Permits issued 2022-01-01..2026-09-22",
+      "definition": "work_on_floor definition (the wider regex definition in parentheses); one job counted once"
+    },
+    {
+      "claim": "Buildings with six months left and no report filed: 39.1–44.2% filed within 6 months and 62–63.9% within 12, in each of three sub-cycles; 413 engineering firms filed cycle-9 reports and the top 10 hold 20.1%.",
+      "value": "62–63.9%",
+      "denominator": "9A: 4,971, 9B: 3,790, 9C: 3,248 buildings",
+      "window": "2021-08-21, 2022-08-21, 2023-08-21 (each deadline minus six months)",
+      "definition": "first cycle-9 Initial report filed after the replay date"
+    },
+    {
+      "claim": "64.5% of sidewalk sheds at FISP buildings ended with a facade repair permit; a shed standing over a year with none converted at 30.9–34.9% within 24 months, against 49.2–53.9% for a shed under a year old.",
+      "value": "64.5%",
+      "denominator": "5,367 shed jobs",
+      "window": "first permitted 2021-08-01..2023-09-21; replays at 2023-09-21, 2024-03-21",
+      "definition": "regex definition; sign-off is w9ak-ipjd signoff_date"
+    },
+    {
+      "claim": "Today 259 buildings have a cycle-10 report filed UNSAFE in the last 12 months and no facade repair permit since (nor in the six months before it): Manhattan 153, Brooklyn 52, Bronx 35, Queens 19; 0 of them are on the register.",
+      "value": "259",
+      "denominator": "355 UNSAFE first reports",
+      "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22",
+      "definition": "the FRESH_UNSAFE window: not a signal the register has yet"
+    }
+  ],
+  "facades": {
+    "cohorts": {
+      "regex": {
+        "UNSAFE": {
+          "buildings": 2523,
+          "within12": {
+            "value": 34.7,
+            "num": 876,
+            "den": 2523,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; permit issued 0-365 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 50.4,
+            "num": 1272,
+            "den": 2523,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; permit issued 0-730 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "alreadyBefore": {
+            "value": 10.3,
+            "num": 259,
+            "den": 2523,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; permit issued 1-180 days before the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "lagDays": {
+            "n": 1272,
+            "median": 231,
+            "p25": 119,
+            "p75": 416,
+            "unit": "days",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; buildings with a permit within 730 days",
+            "definition": "report filing_date to the first facade repair permit (definitions.facadePermit.regex) issued on or after it"
+          },
+          "jobCost": {
+            "n": 1272,
+            "median": 227107,
+            "p25": 100000,
+            "p75": 539869,
+            "total": 630562881,
+            "unit": "USD",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit, when it declares a cost",
+            "definition": "estimated_job_costs declared on the permit application"
+          },
+          "contractors": {
+            "jobs": 1272,
+            "distinct": 398,
+            "withOneJob": 209,
+            "unattributed": 0,
+            "top10": {
+              "value": 18.9,
+              "num": 241,
+              "den": 1272,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit",
+              "definition": "jobs held by the ten busiest of permittees (applicant_license)"
+            },
+            "top1": {
+              "value": 2.8,
+              "num": 36,
+              "den": 1272,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit",
+              "definition": "jobs held by the single busiest of permittees (applicant_license)"
+            },
+            "hhi": 74,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit",
+            "definition": "permittees (applicant_license)"
+          },
+          "within24ByBorough": {
+            "Bronx": {
+              "value": 41,
+              "num": 139,
+              "den": 339,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Bronx; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Brooklyn": {
+              "value": 42.7,
+              "num": 179,
+              "den": 419,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Brooklyn; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Manhattan": {
+              "value": 52,
+              "num": 757,
+              "den": 1456,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Manhattan; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Queens": {
+              "value": 64.4,
+              "num": 186,
+              "den": 289,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Queens; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Staten Island": {
+              "value": 55,
+              "num": 11,
+              "den": 20,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Staten Island; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          }
+        },
+        "SWARMP": {
+          "buildings": 4529,
+          "within12": {
+            "value": 8.6,
+            "num": 391,
+            "den": 4529,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; permit issued 0-365 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 22.8,
+            "num": 1034,
+            "den": 4529,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; permit issued 0-730 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "alreadyBefore": {
+            "value": 6,
+            "num": 271,
+            "den": 4529,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; permit issued 1-180 days before the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "lagDays": {
+            "n": 1034,
+            "median": 427,
+            "p25": 231,
+            "p75": 553,
+            "unit": "days",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; buildings with a permit within 730 days",
+            "definition": "report filing_date to the first facade repair permit (definitions.facadePermit.regex) issued on or after it"
+          },
+          "jobCost": {
+            "n": 1034,
+            "median": 180500,
+            "p25": 70000,
+            "p75": 429055,
+            "total": 394926980,
+            "unit": "USD",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit, when it declares a cost",
+            "definition": "estimated_job_costs declared on the permit application"
+          },
+          "contractors": {
+            "jobs": 1034,
+            "distinct": 352,
+            "withOneJob": 197,
+            "unattributed": 0,
+            "top10": {
+              "value": 22.1,
+              "num": 229,
+              "den": 1034,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit",
+              "definition": "jobs held by the ten busiest of permittees (applicant_license)"
+            },
+            "top1": {
+              "value": 4.7,
+              "num": 49,
+              "den": 1034,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit",
+              "definition": "jobs held by the single busiest of permittees (applicant_license)"
+            },
+            "hhi": 94,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit",
+            "definition": "permittees (applicant_license)"
+          },
+          "within24ByBorough": {
+            "Bronx": {
+              "value": 17.8,
+              "num": 81,
+              "den": 456,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Bronx; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Brooklyn": {
+              "value": 14.8,
+              "num": 88,
+              "den": 593,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Brooklyn; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Manhattan": {
+              "value": 25.9,
+              "num": 722,
+              "den": 2790,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Manhattan; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Queens": {
+              "value": 20.8,
+              "num": 138,
+              "den": 665,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Queens; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Staten Island": {
+              "value": 20,
+              "num": 5,
+              "den": 25,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Staten Island; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          }
+        },
+        "SAFE": {
+          "buildings": 3162,
+          "within12": {
+            "value": 2.2,
+            "num": 68,
+            "den": 3162,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; permit issued 0-365 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 4.9,
+            "num": 156,
+            "den": 3162,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; permit issued 0-730 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "alreadyBefore": {
+            "value": 7.7,
+            "num": 243,
+            "den": 3162,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; permit issued 1-180 days before the report",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "lagDays": {
+            "n": 156,
+            "median": 415,
+            "p25": 207,
+            "p75": 547,
+            "unit": "days",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; buildings with a permit within 730 days",
+            "definition": "report filing_date to the first facade repair permit (definitions.facadePermit.regex) issued on or after it"
+          },
+          "jobCost": {
+            "n": 156,
+            "median": 78394,
+            "p25": 21950,
+            "p75": 364214,
+            "total": 86665968,
+            "unit": "USD",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit, when it declares a cost",
+            "definition": "estimated_job_costs declared on the permit application"
+          },
+          "contractors": {
+            "jobs": 156,
+            "distinct": 115,
+            "withOneJob": 91,
+            "unattributed": 0,
+            "top10": {
+              "value": 23.7,
+              "num": 37,
+              "den": 156,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit",
+              "definition": "jobs held by the ten busiest of permittees (applicant_license)"
+            },
+            "top1": {
+              "value": 3.2,
+              "num": 5,
+              "den": 156,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit",
+              "definition": "jobs held by the single busiest of permittees (applicant_license)"
+            },
+            "hhi": 120,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit",
+            "definition": "permittees (applicant_license)"
+          },
+          "within24ByBorough": {
+            "Bronx": {
+              "value": 2.9,
+              "num": 13,
+              "den": 451,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Bronx; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Brooklyn": {
+              "value": 4.2,
+              "num": 19,
+              "den": 453,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Brooklyn; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Manhattan": {
+              "value": 5.7,
+              "num": 104,
+              "den": 1839,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Manhattan; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Queens": {
+              "value": 4.4,
+              "num": 18,
+              "den": 409,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Queens; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "Staten Island": {
+              "value": 20,
+              "num": 2,
+              "den": 10,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Staten Island; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          }
+        },
+        "liftUnsafeOverSafe": {
+          "within12": 16.1,
+          "within24": 10.2,
+          "definition": "UNSAFE share divided by SAFE share, same window and permit definition"
+        }
+      },
+      "workOnFloor": {
+        "UNSAFE": {
+          "buildings": 2523,
+          "within12": {
+            "value": 28.8,
+            "num": 726,
+            "den": 2523,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; permit issued 0-365 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "within24": {
+            "value": 40.3,
+            "num": 1018,
+            "den": 2523,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; permit issued 0-730 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "alreadyBefore": {
+            "value": 8.4,
+            "num": 211,
+            "den": 2523,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; permit issued 1-180 days before the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "lagDays": {
+            "n": 1018,
+            "median": 229,
+            "p25": 124,
+            "p75": 396,
+            "unit": "days",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; buildings with a permit within 730 days",
+            "definition": "report filing_date to the first facade repair permit (definitions.facadePermit.workOnFloor) issued on or after it"
+          },
+          "jobCost": {
+            "n": 1018,
+            "median": 225000,
+            "p25": 105000,
+            "p75": 500646,
+            "total": 484817052,
+            "unit": "USD",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit, when it declares a cost",
+            "definition": "estimated_job_costs declared on the permit application"
+          },
+          "contractors": {
+            "jobs": 1018,
+            "distinct": 349,
+            "withOneJob": 177,
+            "unattributed": 0,
+            "top10": {
+              "value": 15.8,
+              "num": 161,
+              "den": 1018,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit",
+              "definition": "jobs held by the ten busiest of permittees (applicant_license)"
+            },
+            "top1": {
+              "value": 2.1,
+              "num": 21,
+              "den": 1018,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit",
+              "definition": "jobs held by the single busiest of permittees (applicant_license)"
+            },
+            "hhi": 65,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; that first permit",
+            "definition": "permittees (applicant_license)"
+          },
+          "within24ByBorough": {
+            "Bronx": {
+              "value": 34.5,
+              "num": 117,
+              "den": 339,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Bronx; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Brooklyn": {
+              "value": 30.8,
+              "num": 129,
+              "den": 419,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Brooklyn; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Manhattan": {
+              "value": 42.5,
+              "num": 619,
+              "den": 1456,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Manhattan; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Queens": {
+              "value": 49.1,
+              "num": 142,
+              "den": 289,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Queens; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Staten Island": {
+              "value": 55,
+              "num": 11,
+              "den": 20,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE, Staten Island; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            }
+          }
+        },
+        "SWARMP": {
+          "buildings": 4529,
+          "within12": {
+            "value": 7,
+            "num": 317,
+            "den": 4529,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; permit issued 0-365 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "within24": {
+            "value": 19.2,
+            "num": 868,
+            "den": 4529,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; permit issued 0-730 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "alreadyBefore": {
+            "value": 5,
+            "num": 225,
+            "den": 4529,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; permit issued 1-180 days before the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "lagDays": {
+            "n": 868,
+            "median": 433,
+            "p25": 234,
+            "p75": 554,
+            "unit": "days",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; buildings with a permit within 730 days",
+            "definition": "report filing_date to the first facade repair permit (definitions.facadePermit.workOnFloor) issued on or after it"
+          },
+          "jobCost": {
+            "n": 868,
+            "median": 199806,
+            "p25": 80000,
+            "p75": 441990,
+            "total": 332526748,
+            "unit": "USD",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit, when it declares a cost",
+            "definition": "estimated_job_costs declared on the permit application"
+          },
+          "contractors": {
+            "jobs": 868,
+            "distinct": 293,
+            "withOneJob": 158,
+            "unattributed": 0,
+            "top10": {
+              "value": 22.8,
+              "num": 198,
+              "den": 868,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit",
+              "definition": "jobs held by the ten busiest of permittees (applicant_license)"
+            },
+            "top1": {
+              "value": 4.3,
+              "num": 37,
+              "den": 868,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit",
+              "definition": "jobs held by the single busiest of permittees (applicant_license)"
+            },
+            "hhi": 99,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP; that first permit",
+            "definition": "permittees (applicant_license)"
+          },
+          "within24ByBorough": {
+            "Bronx": {
+              "value": 16.7,
+              "num": 76,
+              "den": 456,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Bronx; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Brooklyn": {
+              "value": 11.5,
+              "num": 68,
+              "den": 593,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Brooklyn; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Manhattan": {
+              "value": 21.5,
+              "num": 601,
+              "den": 2790,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Manhattan; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Queens": {
+              "value": 17.9,
+              "num": 119,
+              "den": 665,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Queens; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Staten Island": {
+              "value": 16,
+              "num": 4,
+              "den": 25,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SWARMP, Staten Island; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            }
+          }
+        },
+        "SAFE": {
+          "buildings": 3162,
+          "within12": {
+            "value": 1.3,
+            "num": 40,
+            "den": 3162,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; permit issued 0-365 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "within24": {
+            "value": 3.4,
+            "num": 108,
+            "den": 3162,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; permit issued 0-730 days after the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "alreadyBefore": {
+            "value": 6.5,
+            "num": 207,
+            "den": 3162,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; permit issued 1-180 days before the report",
+            "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+          },
+          "lagDays": {
+            "n": 108,
+            "median": 438,
+            "p25": 307,
+            "p75": 586,
+            "unit": "days",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; buildings with a permit within 730 days",
+            "definition": "report filing_date to the first facade repair permit (definitions.facadePermit.workOnFloor) issued on or after it"
+          },
+          "jobCost": {
+            "n": 108,
+            "median": 70939,
+            "p25": 17563,
+            "p75": 245611,
+            "total": 55225041,
+            "unit": "USD",
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit, when it declares a cost",
+            "definition": "estimated_job_costs declared on the permit application"
+          },
+          "contractors": {
+            "jobs": 108,
+            "distinct": 80,
+            "withOneJob": 62,
+            "unattributed": 0,
+            "top10": {
+              "value": 27.8,
+              "num": 30,
+              "den": 108,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit",
+              "definition": "jobs held by the ten busiest of permittees (applicant_license)"
+            },
+            "top1": {
+              "value": 4.6,
+              "num": 5,
+              "den": 108,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit",
+              "definition": "jobs held by the single busiest of permittees (applicant_license)"
+            },
+            "hhi": 170,
+            "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE; that first permit",
+            "definition": "permittees (applicant_license)"
+          },
+          "within24ByBorough": {
+            "Bronx": {
+              "value": 2.7,
+              "num": 12,
+              "den": 451,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Bronx; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Brooklyn": {
+              "value": 2.2,
+              "num": 10,
+              "den": 453,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Brooklyn; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Manhattan": {
+              "value": 3.8,
+              "num": 69,
+              "den": 1839,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Manhattan; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Queens": {
+              "value": 3.7,
+              "num": 15,
+              "den": 409,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Queens; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            },
+            "Staten Island": {
+              "value": 20,
+              "num": 2,
+              "den": 10,
+              "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status SAFE, Staten Island; permit within 730 days",
+              "definition": "facade repair permit (definitions.facadePermit.workOnFloor)"
+            }
+          }
+        },
+        "liftUnsafeOverSafe": {
+          "within12": 22.7,
+          "within24": 11.8,
+          "definition": "UNSAFE share divided by SAFE share, same window and permit definition"
+        }
+      }
+    },
+    "jobTiming": {
+      "joined": {
+        "value": 100,
+        "num": 1272,
+        "den": 1272,
+        "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; its first facade repair permit within 730 days (regex definition)",
+        "definition": "permits whose job_filing_number is found in w9ak-ipjd"
+      },
+      "jobFiledBeforeReport": {
+        "value": 18.9,
+        "num": 240,
+        "den": 1272,
+        "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; its first facade repair permit within 730 days (regex definition)",
+        "definition": "repair job filed (w9ak-ipjd filing_date) before the UNSAFE report was filed"
+      },
+      "reportToJobFiled": {
+        "n": 1032,
+        "median": 172,
+        "p25": 84,
+        "p75": 311,
+        "unit": "days",
+        "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; its first facade repair permit within 730 days (regex definition); job filed on or after the report",
+        "definition": "report filing_date to repair job filing_date"
+      },
+      "jobFiledToPermit": {
+        "n": 1272,
+        "median": 83,
+        "p25": 35,
+        "p75": 178,
+        "unit": "days",
+        "window": "citywide, each building's first cycle-9 report filed 2022-02-01..2024-09-21, report status UNSAFE; its first facade repair permit within 730 days (regex definition)",
+        "definition": "repair job filing_date to permit issued_date"
+      }
+    },
+    "market": {
+      "regex": {
+        "jobs": 16780,
+        "gcPermittee": {
+          "value": 99.9,
+          "num": 16764,
+          "den": 16780,
+          "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+          "definition": "permittee_s_license_type 'GC': the licence on the permit is the contractor's, not the filing engineer's"
+        },
+        "contractors": {
+          "jobs": 16764,
+          "distinct": 3114,
+          "withOneJob": 1474,
+          "unattributed": 0,
+          "top10": {
+            "value": 8.9,
+            "num": 1484,
+            "den": 16764,
+            "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+            "definition": "jobs held by the ten busiest of GC licences (applicant_license) on permits meeting definitions.facadePermit.regex; one job counted once"
+          },
+          "top1": {
+            "value": 1.4,
+            "num": 235,
+            "den": 16764,
+            "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+            "definition": "jobs held by the single busiest of GC licences (applicant_license) on permits meeting definitions.facadePermit.regex; one job counted once"
+          },
+          "hhi": 22,
+          "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+          "definition": "GC licences (applicant_license) on permits meeting definitions.facadePermit.regex; one job counted once"
+        }
+      },
+      "workOnFloor": {
+        "jobs": 12047,
+        "gcPermittee": {
+          "value": 100,
+          "num": 12041,
+          "den": 12047,
+          "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+          "definition": "permittee_s_license_type 'GC': the licence on the permit is the contractor's, not the filing engineer's"
+        },
+        "contractors": {
+          "jobs": 12041,
+          "distinct": 2176,
+          "withOneJob": 1039,
+          "unattributed": 0,
+          "top10": {
+            "value": 10.2,
+            "num": 1231,
+            "den": 12041,
+            "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+            "definition": "jobs held by the ten busiest of GC licences (applicant_license) on permits meeting definitions.facadePermit.workOnFloor; one job counted once"
+          },
+          "top1": {
+            "value": 1.5,
+            "num": 186,
+            "den": 12041,
+            "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+            "definition": "jobs held by the single busiest of GC licences (applicant_license) on permits meeting definitions.facadePermit.workOnFloor; one job counted once"
+          },
+          "hhi": 28,
+          "window": "citywide, facade Initial Permits issued 2022-01-01..2026-09-22",
+          "definition": "GC licences (applicant_license) on permits meeting definitions.facadePermit.workOnFloor; one job counted once"
+        }
+      }
+    }
+  },
+  "engineers": {
+    "nonFilers": [
+      {
+        "sub": "9A",
+        "at": "2021-08-21",
+        "deadline": "2022-02-21",
+        "nonFilers": 4971,
+        "within6": {
+          "value": 44.2,
+          "num": 2199,
+          "den": 4971,
+          "window": "sub-cycle 9A (deadline 2022-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2021-08-21, four register boroughs; filed within 183 days",
+          "definition": "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date"
+        },
+        "within12": {
+          "value": 62.8,
+          "num": 3121,
+          "den": 4971,
+          "window": "sub-cycle 9A (deadline 2022-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2021-08-21, four register boroughs; filed within 365 days",
+          "definition": "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date"
+        },
+        "engineers": {
+          "jobs": 3121,
+          "distinct": 243,
+          "withOneJob": 62,
+          "unattributed": 0,
+          "top10": {
+            "value": 22.7,
+            "num": 709,
+            "den": 3121,
+            "window": "sub-cycle 9A (deadline 2022-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2021-08-21, four register boroughs; reports filed within 365 days",
+            "definition": "jobs held by the ten busiest of QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+          },
+          "top1": {
+            "value": 3.5,
+            "num": 109,
+            "den": 3121,
+            "window": "sub-cycle 9A (deadline 2022-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2021-08-21, four register boroughs; reports filed within 365 days",
+            "definition": "jobs held by the single busiest of QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+          },
+          "hhi": 117,
+          "window": "sub-cycle 9A (deadline 2022-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2021-08-21, four register boroughs; reports filed within 365 days",
+          "definition": "QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+        }
+      },
+      {
+        "sub": "9B",
+        "at": "2022-08-21",
+        "deadline": "2023-02-21",
+        "nonFilers": 3790,
+        "within6": {
+          "value": 39.1,
+          "num": 1482,
+          "den": 3790,
+          "window": "sub-cycle 9B (deadline 2023-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2022-08-21, four register boroughs; filed within 183 days",
+          "definition": "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date"
+        },
+        "within12": {
+          "value": 62,
+          "num": 2351,
+          "den": 3790,
+          "window": "sub-cycle 9B (deadline 2023-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2022-08-21, four register boroughs; filed within 365 days",
+          "definition": "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date"
+        },
+        "engineers": {
+          "jobs": 2351,
+          "distinct": 225,
+          "withOneJob": 53,
+          "unattributed": 0,
+          "top10": {
+            "value": 22,
+            "num": 518,
+            "den": 2351,
+            "window": "sub-cycle 9B (deadline 2023-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2022-08-21, four register boroughs; reports filed within 365 days",
+            "definition": "jobs held by the ten busiest of QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+          },
+          "top1": {
+            "value": 2.9,
+            "num": 69,
+            "den": 2351,
+            "window": "sub-cycle 9B (deadline 2023-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2022-08-21, four register boroughs; reports filed within 365 days",
+            "definition": "jobs held by the single busiest of QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+          },
+          "hhi": 111,
+          "window": "sub-cycle 9B (deadline 2023-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2022-08-21, four register boroughs; reports filed within 365 days",
+          "definition": "QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+        }
+      },
+      {
+        "sub": "9C",
+        "at": "2023-08-21",
+        "deadline": "2024-02-21",
+        "nonFilers": 3248,
+        "within6": {
+          "value": 41.2,
+          "num": 1339,
+          "den": 3248,
+          "window": "sub-cycle 9C (deadline 2024-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2023-08-21, four register boroughs; filed within 183 days",
+          "definition": "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date"
+        },
+        "within12": {
+          "value": 63.9,
+          "num": 2076,
+          "den": 3248,
+          "window": "sub-cycle 9C (deadline 2024-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2023-08-21, four register boroughs; filed within 365 days",
+          "definition": "first cycle-9 Initial report (xubg-57si filing_date) filed after the replay date"
+        },
+        "engineers": {
+          "jobs": 2076,
+          "distinct": 223,
+          "withOneJob": 56,
+          "unattributed": 0,
+          "top10": {
+            "value": 26.4,
+            "num": 549,
+            "den": 2076,
+            "window": "sub-cycle 9C (deadline 2024-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2023-08-21, four register boroughs; reports filed within 365 days",
+            "definition": "jobs held by the ten busiest of QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+          },
+          "top1": {
+            "value": 4,
+            "num": 83,
+            "den": 2076,
+            "window": "sub-cycle 9C (deadline 2024-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2023-08-21, four register boroughs; reports filed within 365 days",
+            "definition": "jobs held by the single busiest of QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+          },
+          "hhi": 129,
+          "window": "sub-cycle 9C (deadline 2024-02-21), buildings with a cycle-8 record and no cycle-9 filing on 2023-08-21, four register boroughs; reports filed within 365 days",
+          "definition": "QEWI firms (qewi_bus_name, suffixes folded) on those reports"
+        }
+      }
+    ],
+    "market": {
+      "jobs": 13548,
+      "distinct": 413,
+      "withOneJob": 64,
+      "unattributed": 0,
+      "top10": {
+        "value": 20.1,
+        "num": 2728,
+        "den": 13548,
+        "window": "citywide, every cycle-9 Initial report",
+        "definition": "jobs held by the ten busiest of QEWI firms (qewi_bus_name, suffixes folded)"
+      },
+      "top1": {
+        "value": 3.3,
+        "num": 442,
+        "den": 13548,
+        "window": "citywide, every cycle-9 Initial report",
+        "definition": "jobs held by the single busiest of QEWI firms (qewi_bus_name, suffixes folded)"
+      },
+      "hhi": 96,
+      "window": "citywide, every cycle-9 Initial report",
+      "definition": "QEWI firms (qewi_bus_name, suffixes folded)"
+    }
+  },
+  "replay": [
+    {
+      "at": "2021-08-21",
+      "groups": {
+        "FLAGGED": {
+          "n": 11952,
+          "within12": {
+            "value": 11,
+            "num": 1319,
+            "den": 11952,
+            "window": "FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 22.8,
+            "num": 2728,
+            "den": 11952,
+            "window": "FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NOT_FLAGGED": {
+          "n": 2856,
+          "within12": {
+            "value": 7,
+            "num": 200,
+            "den": 2856,
+            "window": "365OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 13.9,
+            "num": 396,
+            "den": 2856,
+            "window": "730OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NOT_FLAGGED_FILED_UNSAFE": {
+          "n": 313,
+          "within12": {
+            "value": 26.2,
+            "num": 82,
+            "den": 313,
+            "window": "365OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 32.9,
+            "num": 103,
+            "den": 313,
+            "window": "730OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NON_FILER": {
+          "n": 9249,
+          "within12": {
+            "value": 11,
+            "num": 1015,
+            "den": 9249,
+            "window": "365ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 23,
+            "num": 2124,
+            "den": 9249,
+            "window": "730ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "SWARMP_CARRYOVER": {
+          "n": 5176,
+          "within12": {
+            "value": 13.4,
+            "num": 696,
+            "den": 5176,
+            "window": "SWARMP_CARRYOVER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 27.9,
+            "num": 1444,
+            "den": 5176,
+            "window": "SWARMP_CARRYOVER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "UNSAFE_PRIOR": {
+          "n": 1261,
+          "within12": {
+            "value": 8.6,
+            "num": 108,
+            "den": 1261,
+            "window": "U365SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 14.4,
+            "num": 182,
+            "den": 1261,
+            "window": "U730SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "CHRONIC_NON_FILER": {
+          "n": 1655,
+          "within12": {
+            "value": 8,
+            "num": 132,
+            "den": 1655,
+            "window": "CHRO365IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 16.4,
+            "num": 272,
+            "den": 1655,
+            "window": "CHRO730IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        }
+      },
+      "ranking": {
+        "top": {
+          "n": 800,
+          "within12": {
+            "value": 14.6,
+            "num": 117,
+            "den": 800,
+            "window": "the 800 flagged buildings the register's score would show first (balanced by borough); permit issued within 365 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 24.8,
+            "num": 198,
+            "den": 800,
+            "window": "the 800 flagged buildings the register's score would show first (balanced by borough); permit issued within 730 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "rest": {
+          "n": 11152,
+          "within12": {
+            "value": 10.8,
+            "num": 1202,
+            "den": 11152,
+            "window": "the rest of the flagged pool; permit issued within 365 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 22.7,
+            "num": 2530,
+            "den": 11152,
+            "window": "the rest of the flagged pool; permit issued within 730 days after 2021-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        }
+      }
+    },
+    {
+      "at": "2022-08-21",
+      "groups": {
+        "FLAGGED": {
+          "n": 10525,
+          "within12": {
+            "value": 12.1,
+            "num": 1277,
+            "den": 10525,
+            "window": "FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 23.6,
+            "num": 2482,
+            "den": 10525,
+            "window": "FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NOT_FLAGGED": {
+          "n": 4441,
+          "within12": {
+            "value": 9.2,
+            "num": 410,
+            "den": 4441,
+            "window": "365OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 17.5,
+            "num": 777,
+            "den": 4441,
+            "window": "730OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NOT_FLAGGED_FILED_UNSAFE": {
+          "n": 859,
+          "within12": {
+            "value": 21.8,
+            "num": 187,
+            "den": 859,
+            "window": "365OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 32.1,
+            "num": 276,
+            "den": 859,
+            "window": "730OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NON_FILER": {
+          "n": 9507,
+          "within12": {
+            "value": 11.3,
+            "num": 1074,
+            "den": 9507,
+            "window": "365ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 22.6,
+            "num": 2149,
+            "den": 9507,
+            "window": "730ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "SWARMP_CARRYOVER": {
+          "n": 4682,
+          "within12": {
+            "value": 16.3,
+            "num": 762,
+            "den": 4682,
+            "window": "SWARMP_CARRYOVER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 29.9,
+            "num": 1398,
+            "den": 4682,
+            "window": "SWARMP_CARRYOVER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "UNSAFE_PRIOR": {
+          "n": 894,
+          "within12": {
+            "value": 7.9,
+            "num": 71,
+            "den": 894,
+            "window": "U365SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 12.6,
+            "num": 113,
+            "den": 894,
+            "window": "U730SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "CHRONIC_NON_FILER": {
+          "n": 1214,
+          "within12": {
+            "value": 8.6,
+            "num": 104,
+            "den": 1214,
+            "window": "CHRO365IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 16.6,
+            "num": 202,
+            "den": 1214,
+            "window": "CHRO730IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        }
+      },
+      "ranking": {
+        "top": {
+          "n": 800,
+          "within12": {
+            "value": 10.3,
+            "num": 82,
+            "den": 800,
+            "window": "the 800 flagged buildings the register's score would show first (balanced by borough); permit issued within 365 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 20.8,
+            "num": 166,
+            "den": 800,
+            "window": "the 800 flagged buildings the register's score would show first (balanced by borough); permit issued within 730 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "rest": {
+          "n": 9725,
+          "within12": {
+            "value": 12.3,
+            "num": 1195,
+            "den": 9725,
+            "window": "the rest of the flagged pool; permit issued within 365 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 23.8,
+            "num": 2316,
+            "den": 9725,
+            "window": "the rest of the flagged pool; permit issued within 730 days after 2022-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        }
+      }
+    },
+    {
+      "at": "2023-08-21",
+      "groups": {
+        "FLAGGED": {
+          "n": 7621,
+          "within12": {
+            "value": 12.7,
+            "num": 971,
+            "den": 7621,
+            "window": "FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 24.4,
+            "num": 1856,
+            "den": 7621,
+            "window": "FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NOT_FLAGGED": {
+          "n": 7573,
+          "within12": {
+            "value": 9.1,
+            "num": 691,
+            "den": 7573,
+            "window": "365OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 16.9,
+            "num": 1279,
+            "den": 7573,
+            "window": "730OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NOT_FLAGGED_FILED_UNSAFE": {
+          "n": 1121,
+          "within12": {
+            "value": 19.2,
+            "num": 215,
+            "den": 1121,
+            "window": "365OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 28.9,
+            "num": 324,
+            "den": 1121,
+            "window": "730OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "NON_FILER": {
+          "n": 5825,
+          "within12": {
+            "value": 11.3,
+            "num": 661,
+            "den": 5825,
+            "window": "365ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 22.6,
+            "num": 1318,
+            "den": 5825,
+            "window": "730ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "SWARMP_CARRYOVER": {
+          "n": 4005,
+          "within12": {
+            "value": 16.2,
+            "num": 647,
+            "den": 4005,
+            "window": "SWARMP_CARRYOVER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 28.6,
+            "num": 1147,
+            "den": 4005,
+            "window": "SWARMP_CARRYOVER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "UNSAFE_PRIOR": {
+          "n": 571,
+          "within12": {
+            "value": 4.9,
+            "num": 28,
+            "den": 571,
+            "window": "U365SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 26.3,
+            "num": 150,
+            "den": 571,
+            "window": "U730SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "CHRONIC_NON_FILER": {
+          "n": 829,
+          "within12": {
+            "value": 7,
+            "num": 58,
+            "den": 829,
+            "window": "CHRO365IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 12.1,
+            "num": 100,
+            "den": 829,
+            "window": "CHRO730IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        }
+      },
+      "ranking": {
+        "top": {
+          "n": 800,
+          "within12": {
+            "value": 9.8,
+            "num": 78,
+            "den": 800,
+            "window": "the 800 flagged buildings the register's score would show first (balanced by borough); permit issued within 365 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 23.5,
+            "num": 188,
+            "den": 800,
+            "window": "the 800 flagged buildings the register's score would show first (balanced by borough); permit issued within 730 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        },
+        "rest": {
+          "n": 6821,
+          "within12": {
+            "value": 13.1,
+            "num": 893,
+            "den": 6821,
+            "window": "the rest of the flagged pool; permit issued within 365 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          },
+          "within24": {
+            "value": 24.5,
+            "num": 1668,
+            "den": 6821,
+            "window": "the rest of the flagged pool; permit issued within 730 days after 2023-08-21",
+            "definition": "facade repair permit (definitions.facadePermit.regex)"
+          }
+        }
+      }
+    }
+  ],
+  "sheds": {
+    "cohort": {
+      "jobs": 5367,
+      "signedOff": {
+        "value": 75.9,
+        "num": 4073,
+        "den": 5367,
+        "window": "sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted 2021-08-01..2023-09-21 at FISP buildings, four register boroughs",
+        "definition": "signoff_date recorded by 2026-09-22"
+      },
+      "daysToSignoff": {
+        "n": 4073,
+        "median": 460,
+        "p25": 264,
+        "p75": 751,
+        "p90": 1049,
+        "unit": "days",
+        "window": "sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted 2021-08-01..2023-09-21 at FISP buildings, four register boroughs; signed off",
+        "definition": "first_permit_date to signoff_date"
+      },
+      "endedWithRepairPermit": {
+        "value": 64.5,
+        "num": 3462,
+        "den": 5367,
+        "window": "sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted 2021-08-01..2023-09-21 at FISP buildings, four register boroughs",
+        "definition": "facade repair permit (definitions.facadePermit.regex) issued from 90 days before the shed's first permit to its sign-off, or to 2026-09-22 if never signed off"
+      },
+      "shedToRepairPermitDays": {
+        "n": 3462,
+        "median": 83,
+        "p25": 22,
+        "p75": 272,
+        "unit": "days",
+        "window": "sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted 2021-08-01..2023-09-21 at FISP buildings, four register boroughs; with a repair permit",
+        "definition": "shed's first permit to the repair permit (negative: the repair permit came first)"
+      },
+      "removedWithNoRepairPermit": {
+        "value": 27.3,
+        "num": 1463,
+        "den": 5367,
+        "window": "sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted 2021-08-01..2023-09-21 at FISP buildings, four register boroughs",
+        "definition": "signed off with no such repair permit"
+      },
+      "neverSignedOffNoRepairPermit": {
+        "value": 8.2,
+        "num": 442,
+        "den": 5367,
+        "window": "sidewalk-shed jobs (w9ak-ipjd shed='YES') first permitted 2021-08-01..2023-09-21 at FISP buildings, four register boroughs",
+        "definition": "no sign-off and no such repair permit"
+      }
+    },
+    "replay": [
+      {
+        "at": "2023-09-21",
+        "groups": {
+          "SHED_NO_REPAIR": {
+            "n": 1107,
+            "within12": {
+              "value": 15.4,
+              "num": 170,
+              "den": 1107,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, no facade repair permit in the 730 days before (the register's SHED_365O_REPAIR); permit issued within N days after 2023-09-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "within24": {
+              "value": 30.9,
+              "num": 342,
+              "den": 1107,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, no facade repair permit in the 730 days before (the register's SHED_730O_REPAIR); permit issued within N days after 2023-09-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          },
+          "LONG_WITH_REPAIR": {
+            "n": 863,
+            "within12": {
+              "value": 4.3,
+              "num": 37,
+              "den": 863,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, a facade repair permit already in the 730 days before; permit issued within 365 days after 2023-09-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "within24": {
+              "value": 9,
+              "num": 78,
+              "den": 863,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, a facade repair permit already in the 730 days before; permit issued within 730 days after 2023-09-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          },
+          "NEW_NO_REPAIR": {
+            "n": 989,
+            "within12": {
+              "value": 38,
+              "num": 376,
+              "den": 989,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for under 365 days, no facade repair permit in the 730 days before; permit issued within 365 days after 2023-09-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "within24": {
+              "value": 49.2,
+              "num": 487,
+              "den": 989,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for under 365 days, no facade repair permit in the 730 days before; permit issued within 730 days after 2023-09-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          }
+        }
+      },
+      {
+        "at": "2024-03-21",
+        "groups": {
+          "SHED_NO_REPAIR": {
+            "n": 1155,
+            "within12": {
+              "value": 19.6,
+              "num": 226,
+              "den": 1155,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, no facade repair permit in the 730 days before (the register's SHED_365O_REPAIR); permit issued within N days after 2024-03-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "within24": {
+              "value": 34.9,
+              "num": 403,
+              "den": 1155,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, no facade repair permit in the 730 days before (the register's SHED_730O_REPAIR); permit issued within N days after 2024-03-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          },
+          "LONG_WITH_REPAIR": {
+            "n": 875,
+            "within12": {
+              "value": 4.3,
+              "num": 38,
+              "den": 875,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, a facade repair permit already in the 730 days before; permit issued within 365 days after 2024-03-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "within24": {
+              "value": 8.7,
+              "num": 76,
+              "den": 875,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, a facade repair permit already in the 730 days before; permit issued within 730 days after 2024-03-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          },
+          "NEW_NO_REPAIR": {
+            "n": 953,
+            "within12": {
+              "value": 41.4,
+              "num": 395,
+              "den": 953,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for under 365 days, no facade repair permit in the 730 days before; permit issued within 365 days after 2024-03-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            },
+            "within24": {
+              "value": 53.9,
+              "num": 514,
+              "den": 953,
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for under 365 days, no facade repair permit in the 730 days before; permit issued within 730 days after 2024-03-21",
+              "definition": "facade repair permit (definitions.facadePermit.regex)"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "openNow": {
+    "UNSAFE": {
+      "reports": 355,
+      "open": {
+        "value": 73,
+        "num": 259,
+        "den": 355,
+        "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22",
+        "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+      },
+      "openByBorough": {
+        "Manhattan": {
+          "value": 73.2,
+          "num": 153,
+          "den": 209,
+          "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22, Manhattan",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        },
+        "Brooklyn": {
+          "value": 65.8,
+          "num": 52,
+          "den": 79,
+          "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22, Brooklyn",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        },
+        "Queens": {
+          "value": 79.2,
+          "num": 19,
+          "den": 24,
+          "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22, Queens",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        },
+        "Bronx": {
+          "value": 81.4,
+          "num": 35,
+          "den": 43,
+          "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22, Bronx",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        }
+      },
+      "inRegister": {
+        "value": 0,
+        "num": 0,
+        "den": 259,
+        "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; open",
+        "definition": "on the facade register committed at 2026-09-23T05:49:00.011Z"
+      }
+    },
+    "SWARMP": {
+      "reports": 463,
+      "open": {
+        "value": 92,
+        "num": 426,
+        "den": 463,
+        "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22",
+        "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+      },
+      "openByBorough": {
+        "Manhattan": {
+          "value": 89.1,
+          "num": 262,
+          "den": 294,
+          "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22, Manhattan",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        },
+        "Brooklyn": {
+          "value": 96.4,
+          "num": 54,
+          "den": 56,
+          "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22, Brooklyn",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        },
+        "Queens": {
+          "value": 98.2,
+          "num": 56,
+          "den": 57,
+          "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22, Queens",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        },
+        "Bronx": {
+          "value": 96.4,
+          "num": 54,
+          "den": 56,
+          "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22, Bronx",
+          "definition": "no facade repair permit (definitions.facadePermit.regex) issued from 180 days before the report to 2026-09-22"
+        }
+      },
+      "inRegister": {
+        "value": 0,
+        "num": 0,
+        "den": 426,
+        "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22; open",
+        "definition": "on the facade register committed at 2026-09-23T05:49:00.011Z"
+      }
+    }
+  },
+  "nonClaims": [
+    {
+      "claim": "The register's ranking puts the buyers on top.",
+      "holds": false,
+      "evidence": "Top 800 by the register's facade score against the rest of the flagged pool, facade permit within 24 months: 2021-08-21 24.8% vs 22.7% (+2.1 pts); 2022-08-21 20.8% vs 23.8% (-3 pts); 2023-08-21 23.5% vs 24.5% (-1 pts).",
+      "rule": "counted as holding only if the top beats the rest by at least 3 percentage points at every replay date"
+    },
+    {
+      "claim": "UNSAFE_PRIOR buildings (UNSAFE last cycle, nothing filed this cycle) buy more than the unflagged baseline.",
+      "holds": false,
+      "evidence": "At or below the NOT_FLAGGED baseline at 1 of 3 replay dates: 2021-08-21 14.4% vs 13.9%; 2022-08-21 12.6% vs 17.5%; 2023-08-21 26.3% vs 16.9%.",
+      "rule": "holds only if above the baseline at every replay date"
+    },
+    {
+      "claim": "CHRONIC_NON_FILER buildings (no report last cycle, nothing this cycle) buy more than the unflagged baseline.",
+      "holds": false,
+      "evidence": "At or below the NOT_FLAGGED baseline at 2 of 3 replay dates: 2021-08-21 16.4% vs 13.9%; 2022-08-21 16.6% vs 17.5%; 2023-08-21 12.1% vs 16.9%.",
+      "rule": "holds only if above the baseline at every replay date"
+    },
+    {
+      "claim": "A long-standing shed with no repair permit (SHED_NO_REPAIR) is the best facade lead.",
+      "holds": false,
+      "evidence": "2023-09-21: 30.9% within 24 months vs 49.2% for a shed under a year old; 2024-03-21: 34.9% within 24 months vs 53.9% for a shed under a year old. It reads as a stuck owner, not a ready buyer.",
+      "rule": "holds only if it converts at least as well as a new shed at every replay date"
+    },
+    {
+      "claim": "A facade permit is a signed contract, and its declared cost is the contract value.",
+      "holds": false,
+      "evidence": "A permit is the public trace of a hired contractor; the cost is the applicant's own estimate on the permit application."
+    },
+    {
+      "claim": "Venue openings (SLA licences, DOHMH) or City Record award timing are backtested here.",
+      "holds": false,
+      "evidence": "This script measures facades and sheds only. A pending liquor application has no key to the licence it becomes, so its lag can only be logged going forward; make no timing claim for venues or awards from this file."
+    }
+  ],
+  "caveats": [
+    "A permit is a proxy for a purchase: it shows a licensed contractor was hired, not the price agreed. The declared cost is the estimate on the permit application.",
+    "DOB NOW General Construction permits begin 2020-12-27; work permitted in the older BIS system before that is invisible, which is why every look-back starts in 2021-08 or later.",
+    "Outcomes join on BIN. Joining on BBL as well added about 3 percentage points to the UNSAFE cohort when checked once by hand (81 of 2,543 buildings; not re-derived here) and is left out, so the conversion shares are slightly low rather than high.",
+    "The regex definition is narrower than the collector's own PERMIT_RE (no masonry, brick or waterproofing); the work_on_floor definition is narrower still. Both are reported and the claims quote the range.",
+    "A share of UNSAFE buildings already had a facade permit in the 180 days before the report (alreadyBefore); they are kept in the denominator, and their later permits are new jobs.",
+    "The replays use each filing's own filing_status as of its date, not current_status. The register's enrichment points (ECB, HPD, deeds, sheds, fines) cannot be replayed as they stood on a past date, so the ranking test uses the facade score alone. Cycle-9 auto-generated \"No Report Filed\" rows carry no date, so the replay cannot tell when one appeared and ignores them; the collector, reading them today, stops calling a building a NON_FILER once one does. Cycle 8 was closed by every replay date, so its auto-generated rows are read as they stand (CHRONIC_NON_FILER).",
+    "The unflagged baseline includes buildings that filed this cycle and came back UNSAFE (NOT_FLAGGED_FILED_UNSAFE, 28.9–32.9% within 24 months): the strongest buyers, and no register rule flags them.",
+    "Shed removal is the job's sign-off (Letter of Completion); a job never signed off is treated as standing. The shed replay reads shed permits live on the date, aged from the first permit of the live job; a permit's expired_date is the end of its term, not the day the shed came down.",
+    "The shed replay is SHED_NO_REPAIR as it should read, not as the collector computes it today: the collector also counts scaffolds, dates a shed from the earliest job the building ever had (so a shed re-erected after a gap looks years old), and treats a wider set of permits (masonry, brick, waterproofing) or a filed job as \"repair\".",
+    "Open windows (openNow) are a snapshot on 2026-09-22: some of those buildings may already have a repair job filed and waiting for its permit (the median job-to-permit time is in facades.jobTiming).",
+    "Open data is revised: rerun `npm run backtest` before quoting a figure, and quote it with the dataset loads in `sources`."
+  ]
+}
