@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useDeferredVa
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import feedLite from './data/feed-lite.json';
 import { feedPromise } from './feed-loader.js';
+import { mergeLive } from './live-merge.js';
 import { readInvite, syncInvite } from './invite.js';
 import { track, setTrackContext } from './track.js';
 import { TERRITORY_MONTHLY, ONE_TIME_LIST, STRIPE_LIST_URL, PILOT_DAYS, money as planMoney } from './plans.js';
@@ -1903,28 +1904,15 @@ export default function App() {
     for (const c of filteredNoBoro) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
   }, [filteredNoBoro]);
-  // The five-minute lane re-checks a narrow slice — award notices and liquor
-  // licences — and publishes only what it saw. It must never REPLACE a register:
-  // it was still writing the old 29-award, 40-venue shape after the build moved
-  // to 156 City Record notices and 400 openings, so production was serving a
-  // third of the product and none of the open solicitations. Merge by id, keep
-  // the richer record, and let genuinely new rows through.
-  const mergeLive = (base, fresh) => {
-    if (!Array.isArray(fresh) || !fresh.length) return base;
-    const byId = new Map(base.map((r) => [r.id, r]));
-    for (const r of fresh) {
-      const had = byId.get(r.id);
-      // A fast-lane row carries fewer fields, so it may only refresh what it has.
-      byId.set(r.id, had ? { ...had, ...Object.fromEntries(Object.entries(r).filter(([, v]) => v != null)) } : r);
-    }
-    return [...byId.values()];
-  };
+  // The five-minute lane merges by id and may only refresh what moves between
+  // builds; it never overwrites the borough, the identity or a name the build
+  // withheld. The rules, and why, are in src/live-merge.js.
   // A cancellation notice is not an open solicitation; City Record files them
   // under the same kind, and one sat in the feed reading "closes in 2 days".
   const noCancel = (rows) => rows.filter((c) => !/^\s*cancell/i.test(c.title || ''));
-  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts)), [data, live]);
+  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts, 'contracts')), [data, live]);
   const liveOpenings = useMemo(
-    () => mergeLive(data.openings, live?.openings).filter((o) => o.src !== 'sla' || !NOT_A_VENUE.test(o.kind || '')),
+    () => mergeLive(data.openings, live?.openings, 'openings').filter((o) => o.src !== 'sla' || !NOT_A_VENUE.test(o.kind || '')),
     [data, live],
   );
   // The liquour file dates its applications and the health file does not, so

@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "collect": "node scripts/collect.mjs",
-    "prebuild": "node scripts/check-cycles.mjs && node scripts/test-basis.mjs && node scripts/test-stats.mjs && node scripts/test-invite.mjs && node scripts/make-feed-lite.mjs && node scripts/make-status-page.mjs",
+    "prebuild": "node scripts/check-cycles.mjs && node scripts/test-basis.mjs && node scripts/test-stats.mjs && node scripts/test-invite.mjs && node scripts/test-live-merge.mjs && node scripts/make-feed-lite.mjs && node scripts/make-status-page.mjs",
     "enrich": "node --env-file=.env.enrich scripts/enrich-names.mjs",
     "clear-demo": "node scripts/clear-demo-state.mjs"
   },
