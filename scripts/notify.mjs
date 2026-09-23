@@ -2,7 +2,8 @@
 // measured in days (fresh violations, hearings within a month, ownership flips)
 // and never repeats one — per user, per signal, forever.
 import { readDoc, updateDoc, PREFS } from '../lib/store.mjs';
-import { matchFor } from '../lib/signals.mjs';
+import { matchFor, notDismissed } from '../lib/signals.mjs';
+import { TRADE_LABELS } from '../lib/trade-filters.mjs';
 import { signalBlocks, postToSlack } from '../lib/slack.mjs';
 import { readFileSync } from 'node:fs';
 
@@ -26,7 +27,10 @@ let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0;
 const touched = new Map();
 
 for (const pref of Object.values(prefsDoc)) {
-  if (!pref?.profile) continue;
+  // Interruptions are for people who told us their trade. The daily digest
+  // covers a visitor who is only exploring; an instant alert on every register
+  // in the city is not something they asked for.
+  if (!pref?.profile || pref.profile === 'explore') continue;
   const slack = pref.channels?.slack;
   const email = pref.channels?.email;
   const instant = pref.instant !== false; // opt-out, on by default
@@ -35,7 +39,10 @@ for (const pref of Object.values(prefsDoc)) {
 
   const sent = new Set(pref.sentKeys || []);
   const portfolio = pref.portfolio?.length ? pref.portfolio : null;
+  // A dismissed card is never a candidate, so it is never seeded into sentKeys
+  // either: if the user restores it on the site, it can still alert.
   const candidates = matchFor(feed, pref.profile, { onlyNew: true, portfolio })
+    .filter(notDismissed(pref))
     .filter((i) => i.urgent || (portfolio && i.kind === 'b'))
     .filter((i) => !sent.has(`${i.kind}:${i.id}`));
 
@@ -56,7 +63,7 @@ for (const pref of Object.values(prefsDoc)) {
 
   for (const it of hits) {
     if (slack) {
-      const ok = await postToSlack(slack, signalBlocks(it, pref.profile), `${it.title} — ${it.urgent || it.why}`);
+      const ok = await postToSlack(slack, signalBlocks(it, TRADE_LABELS[pref.profile] || pref.profile), `${it.title} — ${it.urgent || it.why}`);
       if (ok) slackSent++;
     }
     sent.add(`${it.kind}:${it.id}`);
