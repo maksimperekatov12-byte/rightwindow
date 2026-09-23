@@ -8,7 +8,7 @@
 // checked on a hand-made record, the promise on the committed file.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { DEFINITIONS, cohort, concentration, firstReports, permitIndex, share, ymd } from './backtest.mjs';
+import { DEFINITIONS, cohort, concentration, firstReports, kmMedian, openReports, permitIndex, share, shedIndex, valueConcentration, ymd } from './backtest.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 
 // ------------------------------------------------------------ the counting
@@ -78,6 +78,42 @@ assert.equal(k.unattributed, 1, 'a job with no licence is reported apart, not dr
 assert.equal(k.top1.value, 66.7);
 assert.equal(share(1, 0, 'w', 'd').value, null, 'an empty denominator is no figure, not 0%');
 
+// By dollars the big firm counts for what it declared, not once per job.
+const kv = valueConcentration([['a', 900], ['b', 50], ['b', 50], [null, 1000], ['c', 0]], 'w', 'd');
+assert.equal(kv.usd, 1000, 'a job with no licence or no declared cost adds no dollars');
+assert.equal(kv.top1.value, 90);
+
+// "Is anybody on it" reads every filing. A job hired long before the report
+// (its -I1 outside the look-back) that pulled a part-2 facade permit under
+// -S1 after the report is not an open window, though as a purchase it is
+// still the old job and the cohort must not count it again.
+const later = permitIndex(
+  [permit('10', 'M010-I1', '2024-11-21'), permit('10', 'M010-S1', '2026-06-23'), permit('11', 'M011-I1', '2024-11-21')],
+  DEFINITIONS.regex.test,
+);
+assert.equal(later.byBin.get('10').length, 1, 'the -S1 filing is the same job');
+const fresh = [report('10', '2026-01-07', 'UNSAFE'), report('11', '2026-01-07', 'UNSAFE')];
+assert.deepEqual(openReports(fresh, later.issued).map((r) => r.bin), ['11'], 'a permit of any filing inside the window closes it');
+
+// A shed permit with no job number cannot be joined to its job's sign-off,
+// so it must not keep a building's shed standing.
+const sheds = shedIndex(
+  [
+    { bin: '20', job_filing_number: '', issued_date: '2023-01-01', expired_date: '2024-01-01' },
+    { bin: '21', job_filing_number: 'M021-I1', issued_date: '2022-01-01', expired_date: '2023-01-01' },
+    { bin: '21', job_filing_number: 'M021-S1', issued_date: '2023-01-01', expired_date: '2024-01-01' },
+  ],
+  () => true,
+);
+assert.ok(!sheds.has('20'), 'a jobless shed permit is left out');
+assert.equal(+sheds.get('21').get('M021').first, +ymd('2022-01-01'), "a shed is aged from its job's first permit, -S# renewals included");
+
+// A shed still standing lived at least this long: dropping it (the median of
+// the finished ones alone would be 2) makes sheds look short-lived.
+const life = [1, 2, 3].map((t) => ({ t, done: true })).concat([4, 5].map((t) => ({ t, done: false })));
+assert.equal(kmMedian(life), 3, 'Kaplan-Meier keeps the censored sheds at risk');
+assert.equal(kmMedian([{ t: 9, done: false }]), null, 'no median before half have ended');
+
 // ------------------------------------------------------------ the promise
 
 const ev = JSON.parse(readFileSync(new URL('../data/evidence.json', import.meta.url), 'utf8'));
@@ -122,5 +158,22 @@ for (const h of ev.headline) for (const f of ['claim', 'value', 'denominator', '
 // The honesty section is part of the product: it must exist and say so.
 assert.ok(ev.nonClaims.length && ev.nonClaims.every((n) => typeof n.holds === 'boolean' && n.evidence), 'nonClaims must state holds and evidence');
 assert.ok(ev.caveats.length, 'caveats must not be empty');
+
+// What an independent recompute found overstated must stay fixed. The outcome
+// is a facade-related permit, not a repair permit; the register's 800 are never
+// a slice of a tie picked by the dataset's row order; an open window says how
+// many already have a job filed; a shed's life counts the sheds still up.
+for (const h of ev.headline) assert.ok(!/repair permit/i.test(h.claim), `a headline calls the outcome a repair permit: ${h.claim.slice(0, 80)}`);
+assert.match(ev.definitions.facadePermit.regex, /not necessarily a repair/);
+for (const r of ev.replay) {
+  assert.ok(!('top' in r.ranking), `${r.at}: the ranking must not quote a row-order slice of the top tier`);
+  assert.ok(r.ranking.topTier && r.ranking.shownWithRandomTies.draws >= 100, `${r.at}: the ranking needs the whole top tier and the random tie-breaks`);
+}
+for (const [status, o] of Object.entries(ev.openNow).filter(([k]) => k !== 'register')) {
+  if (!o.open.num) continue;
+  assert.ok(o.facadeJobFiled && o.nothingFiled && o.reportUnder180Days, `openNow.${status}: an open window must say how many already have a job filed`);
+  assert.ok(o.nothingFiled.num <= o.open.num, `openNow.${status}: nothing filed cannot exceed open`);
+}
+assert.ok(ev.sheds.cohort.shedLifeDays.median >= ev.sheds.cohort.daysToSignoff.median, 'a shed life counting the standing sheds cannot be shorter than the signed-off median');
 
 console.log(`test-backtest: counting rules hold; evidence.json carries ${shares} shares and ${spreads} distributions, each with its window and definition`);
