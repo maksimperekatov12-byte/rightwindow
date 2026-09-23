@@ -7,9 +7,14 @@ import outline from './data/nyc-outline.json';
 // It exists for two moments. On desktop it holds the map's space from first
 // paint until the real map arrives, so the best position on the screen is never
 // an empty white rectangle and nothing shifts when tiles land. Under 980px the
-// real map never loads at all — phones are how reviewers open links — so this
-// same drawing IS the map there: a static register-on-the-city, no worker, no
+// real map waits until its slot is half on screen — phones are how reviewers
+// open links, and MapLibre is most of a megabyte — so until then this same
+// drawing IS the map there: a static register-on-the-city, no worker, no
 // tiles, thirty kilobytes of borough rings that were already in the bundle.
+//
+// `total` is the register's size when the cards passed in are only the lite
+// shell's first rows: the caption then says the drawing is a preview rather
+// than counting the slice as the city.
 const LON = [-74.27, -73.68];
 const LAT = [40.49, 40.925];
 const W = 600;
@@ -23,7 +28,7 @@ const BOROS = outline.map((b) =>
     .join(''),
 );
 
-export default function MapSkeleton({ cards = [], loading = false, onPick = null }) {
+export default function MapSkeleton({ cards = [], loading = false, onPick = null, total = null }) {
   const dots = useMemo(
     () =>
       cards
@@ -70,9 +75,11 @@ export default function MapSkeleton({ cards = [], loading = false, onPick = null
         ))}
       </svg>
       <span className="mapskel-cap">
-        {dots.length < cards.length
-          ? `${dots.length.toLocaleString('en-US')} of ${cards.length.toLocaleString('en-US')} cards mapped`
-          : `${dots.length.toLocaleString('en-US')} cards on the city`}
+        {total && total > cards.length
+          ? `first ${dots.length.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} · loading the rest`
+          : dots.length < cards.length
+            ? `${dots.length.toLocaleString('en-US')} of ${cards.length.toLocaleString('en-US')} cards mapped`
+            : `${dots.length.toLocaleString('en-US')} cards on the city`}
         {loading ? ' · map loading' : ' · tap a dot to open its card'}
       </span>
     </div>

@@ -4,6 +4,7 @@
 //  - keeps every active user holding up to 3 exclusive, profile-matched, unclaimed signals
 import { readDoc, writeJson, CLAIMS, PREFS } from '../lib/store.mjs';
 import { readFileSync } from 'node:fs';
+import { TRADE_REGISTERS } from '../lib/trade-filters.mjs';
 
 if (!process.env.BLOB_READ_WRITE_TOKEN) {
   console.log('assign: skipped, no blob token');
@@ -14,16 +15,18 @@ const PER_USER = 3;
 const now = Date.now();
 const feed = JSON.parse(readFileSync(new URL('../src/data/feed.json', import.meta.url), 'utf8'));
 
-const FACADE = new Set(['qewi', 'restoration', 'elevator', 'insurance', 'lender', 'equipment', 'propmgmt', 'legal', 'cre']);
-const fMatch = {
-  elevator: (c) => Boolean(c.elevator),
-  propmgmt: (c) => Boolean(c.ownerChange || c.mgmtChange),
-  legal: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0),
-  equipment: (c) => c.signals.some((s) => ['SWARMP_CARRYOVER', 'UNSAFE_PRIOR'].includes(s.kind)) || Boolean(c.shed),
-};
+// Which facade buildings a trade may be handed: the same table the site and
+// the digest read (lib/trade-filters.mjs). This file kept its own copy, and it
+// had drifted — elevator firms were handed facade buildings the site no longer
+// shows them, and legal lost the UNSAFE orders the site lists.
+const fMatch = Object.fromEntries(
+  Object.entries(TRADE_REGISTERS)
+    .filter(([k, regs]) => k !== 'explore' && regs.facades)
+    .map(([k, regs]) => [k, regs.facades]),
+);
 
 const users = Object.values(await readDoc(PREFS))
-  .filter((r) => r?.uid && r.profile && FACADE.has(r.profile))
+  .filter((r) => r?.uid && r.profile && Object.hasOwn(fMatch, r.profile))
   .map((r) => ({ uid: r.uid, profile: r.profile }));
 const claimed = new Set(Object.keys(await readDoc(CLAIMS)));
 
@@ -43,7 +46,7 @@ for (const a of Object.values(idx)) held[a.uid] = (held[a.uid] || 0) + 1;
 const assignedKeys = new Set(Object.keys(idx));
 let added = 0;
 for (const u of users) {
-  const m = fMatch[u.profile] || (() => true);
+  const m = fMatch[u.profile];
   const pool = feed.facades.feed
     .filter((c) => m(c))
     .map((c) => 'b:' + c.bin)

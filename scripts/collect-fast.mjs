@@ -11,6 +11,8 @@ import { readDoc, CLAIMS } from '../lib/store.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 import { SOURCES, sourceStamps, newestStamp } from '../lib/sources.mjs';
 import { recorder, foldIncidents } from '../lib/health.mjs';
+import { carryIdentities } from '../lib/personal.mjs';
+import { BOROUGH_OF, slaQuery, slaRow, plausibleAward, isNewAward, isNewOpening, newAcross } from '../lib/notices.mjs';
 
 assertCollectable('data.cityofnewyork.us');
 assertCollectable('data.ny.gov');
@@ -46,9 +48,7 @@ const feedPath = new URL('../src/data/feed.json', import.meta.url);
 const seenPath = new URL('../data/seen.json', import.meta.url);
 const feed = JSON.parse(readFileSync(feedPath, 'utf8'));
 const seen = existsSync(seenPath) ? JSON.parse(readFileSync(seenPath, 'utf8')) : null;
-const NEW_WINDOW_MS = 48 * 3600 * 1000;
 const nowIso = TODAY.toISOString();
-const isFreshTs = (ts) => Boolean(ts) && ts !== 'baseline' && TODAY - new Date(ts) <= NEW_WINDOW_MS;
 
 // The previous published document is the local working copy of the data branch,
 // so continuity of the pulse and the change log costs nothing to read — and it
@@ -69,7 +69,7 @@ const qs = new URLSearchParams({
   $where: `type_of_notice_description='Award' and start_date>='${since}'`,
   $order: 'start_date DESC, request_id DESC',
   $limit: '2000',
-  $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description',
+  $select: 'request_id,start_date,agency_name,short_title,category_description,contract_amount,vendor_name,vendor_address,selection_method_description,pin',
 });
 let awardsRaw = null;
 try {
@@ -81,8 +81,9 @@ try {
 // The trade filters run downstream of this cap, so a plain top-20 starves the
 // construction trades: only 9 of the 141 awards in a 14-day window are construction.
 // Take the most recent 20, then top up with every construction award in the window.
+// An amount that is really the PIN never gets that far (lib/notices.mjs).
 const CONSTR_CAT = /construction|architect|engineer/i;
-const eligible = (awardsRaw || []).filter((a) => Number(a.contract_amount) >= 100000 && a.vendor_name);
+const eligible = (awardsRaw || []).filter(plausibleAward);
 const keptAwards = new Map();
 for (const a of [...eligible.slice(0, 20), ...eligible.filter((a) => CONSTR_CAT.test(a.category_description || ''))])
   keptAwards.set(a.request_id, a);
@@ -101,46 +102,46 @@ const contracts = awardsRaw === null ? prevContracts.map((r) => ({ ...r })) : [.
   }))
   .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.amount - a.amount);
 
-// openings
-const qs2 = new URLSearchParams({
-  $where: `premises_county in('Kings','Queens','New York','Bronx','Richmond') and status='Under Review' and received_date >= '${new Date(TODAY - 150 * 86400000).toISOString().slice(0, 10)}'`,
-  $order: 'received_date DESC, application_id DESC',
-  $limit: '60',
-  $select: 'application_id,premises_county,description,legalname,dba,actual_address_of_premises,city,zip_code,received_date',
-});
+// openings — the same query and the same row as the hourly build
+// (lib/notices.mjs): the site lays these rows over the hourly ones, so a field
+// named or valued differently here replaces the hourly one on the card. It did,
+// for the borough ("Kings" where the hourly printed "Brooklyn") and the New
+// badge.
 let slaRaw = null;
 try {
-  slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${qs2}`);
+  slaRaw = await getJson(`https://data.ny.gov/resource/f8i8-k2gm.json?${slaQuery(TODAY)}`);
 } catch (e) {
   carried.push('sla');
   console.log(`fast: SLA unreadable (${e.message}) — carrying the previous list`);
 }
-const openings = slaRaw === null ? prevOpenings.map((r) => ({ ...r })) : slaRaw.slice(0, 40).map((o) => ({
-  id: o.application_id,
-  name: o.dba || o.legalname,
-  legal: o.legalname,
-  kind: o.description,
-  address: `${o.actual_address_of_premises || ''}, ${o.city || ''}`.trim(),
-  county: o.premises_county,
-  received: o.received_date?.slice(0, 10),
-  daysAgo: o.received_date ? Math.max(0, Math.round((TODAY - new Date(o.received_date)) / 86400000)) : null,
-}));
+// A carried list written before the rows were shared still says "Kings".
+const openings =
+  slaRaw === null
+    ? prevOpenings.map((r) => ({ ...r, county: BOROUGH_OF[r.county] || r.county }))
+    : slaRaw.slice(0, 40).map((o) => slaRow(o, TODAY));
+
+// A licensee's name is published only where the hourly build found evidence it
+// is a business (lib/personal.mjs). This lane used to publish every name as the
+// file printed it, which put back — on the data branch, through /api/live and
+// on the card — the names the hourly build had withheld. It runs after the rows
+// are built so the carried list, which may predate this rule, is held to it too.
+carryIdentities(openings, feed.openings || []);
 
 // stamp newness against seen memory (only if a baseline already exists)
 if (seen) {
   for (const c of contracts) {
     seen.contracts[c.id] ||= nowIso;
-    c.isNew = isFreshTs(seen.contracts[c.id]);
+    c.isNew = isNewAward(seen.contracts[c.id], c.date, TODAY);
   }
   for (const o of openings) {
     seen.openings[o.id] ||= nowIso;
-    o.isNew = isFreshTs(seen.openings[o.id]);
+    o.isNew = isNewOpening(seen.openings[o.id], o.received, TODAY);
   }
 }
 
 // "Changed" means a notice arrived or was corrected. Rows also leave these
 // lists — the awards window is 14 days and slides at midnight UTC, a licence
-// stops being 'Under Review' — and a departure is not news: counting it
+// moves on to approval — and a departure is not news: counting it
 // announced a new signal at 00:04 every night. Keyed by id, so the server's
 // order among ties cannot register as a change either.
 const byId = (arr) => new Map(strip(arr).map((r) => [r.id, JSON.stringify(r)]));
@@ -210,9 +211,12 @@ writeFileSync(outPath, JSON.stringify({
   changeLog: recentChanges,
   contracts,
   openings,
+  // The site puts these counts over the hourly ones, so they cover the whole
+  // register it shows — the hourly rows with this lane's laid over them — and
+  // not just the slice re-read here.
   whatsNew: {
-    contracts: contracts.filter((c) => c.isNew).length,
-    openings: openings.filter((o) => o.isNew).length,
+    contracts: newAcross(feed.contracts, contracts),
+    openings: newAcross(feed.openings, openings),
   },
   sources: { awards: asOf('awards'), sla: asOf('sla') },
   sourcesAt,

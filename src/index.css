@@ -1,3 +1,54 @@
+/* Fallback faces sized to the web fonts. The web fonts arrive after first
+   paint on a cold phone, and the fallbacks they replaced wrap differently: the
+   condensed Instrument Serif set the thesis in two lines where Iowan/Georgia
+   took three, and Public Sans ran a line longer than SF, so the register tabs
+   jumped 30px up and the headline 25px down under a reader's thumb (CLS
+   0.26-0.40). These are Georgia and Arial scaled to the web fonts' measured
+   advance widths, ascents and descents (Chrome, a 700-character sample of the
+   page's own copy; the widths agree to 0.01%, the line boxes exactly), so the
+   swap repaints the glyphs without moving a line. Android has neither face;
+   there the stack falls through to the generic families as before. */
+@font-face {
+  font-family: 'Instrument Serif Fallback';
+  src: local('Georgia');
+  font-style: normal;
+  font-weight: 400;
+  size-adjust: 76.11%;
+  ascent-override: 130.07%;
+  descent-override: 40.73%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Instrument Serif Fallback';
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  font-style: italic;
+  font-weight: 400;
+  size-adjust: 78.85%;
+  ascent-override: 125.55%;
+  descent-override: 39.31%;
+  line-gap-override: 0%;
+}
+/* Two faces so bold text is Arial Bold sized to Public Sans 700, not a
+   synthesised bold of the regular. */
+@font-face {
+  font-family: 'Public Sans Fallback';
+  src: local('Arial'), local('ArialMT');
+  font-weight: 100 549;
+  size-adjust: 104.18%;
+  ascent-override: 91.19%;
+  descent-override: 22.08%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Public Sans Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 550 900;
+  size-adjust: 98.8%;
+  ascent-override: 96.15%;
+  descent-override: 23.28%;
+  line-gap-override: 0%;
+}
+
 :root {
   --bg-0: #F1EFE9;
   --grid: rgba(18, 26, 22, 0.05);
@@ -30,8 +81,8 @@
      for a product that reads government records. Instrument Serif carries the
      headlines, because New York arguments are made in broadsheet type. IBM Plex
      Mono is for anything the city published: numbers, dates, register names. */
-  --sans: 'Public Sans', -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --sans: 'Public Sans', 'Public Sans Fallback', -apple-system, 'Segoe UI', sans-serif;
+  --display: 'Instrument Serif', 'Instrument Serif Fallback', 'Iowan Old Style', Georgia, serif;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --r: 10px;
   --r-sm: 6px;
@@ -199,6 +250,10 @@ a.logo { color: inherit; text-decoration: none; }
 .verticals button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .verticals button.on { color: #fff; }
 .verticals .vpill { position: absolute; inset: 0; background: var(--pill); border-radius: 9px; z-index: 0; }
+/* The tablist is an inner row so that "+3 more", which is not a tab, can sit
+   beside it inside the same strip. It lays its tabs out exactly as the strip
+   did. */
+.verticals .vtabs { display: flex; gap: inherit; flex-wrap: inherit; }
 .tlabel { position: relative; z-index: 1; }
 
 /* ---------- hero + stats: desktop side by side ---------- */
@@ -306,6 +361,9 @@ a.logo { color: inherit; text-decoration: none; }
 
 .card-row { display: flex; align-items: stretch; }
 .card-row .card-head { flex: 1 1 auto; min-width: 0; }
+/* Each card head is wrapped in an h3 (h3 > button, the accordion pattern) so a
+   screen reader can step card to card. The heading itself draws nothing. */
+.card-h { display: flex; flex: 1 1 auto; min-width: 0; margin: 0; font: inherit; letter-spacing: inherit; color: inherit; }
 .card-head {
   display: flex; align-items: center; gap: 12px; width: 100%;
   padding: 13px 14px; min-height: 56px;
@@ -800,10 +858,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 
 /* ---------- the block ---------- */
 /* The model is the subject of the product, not decoration, so it gets the half
-   of the hero the eye lands on second. On a phone the live map never loads —
-   battery — but the slot stays: the static outline with the dots baked in is
-   thirty kilobytes and reviewers open links on phones. Contracts' built 3D
-   scene has no static fallback, so that slot alone stays desktop-only. */
+   of the hero the eye lands on second. On a phone the live map loads only once
+   the slot has been scrolled into view; until then the static outline with
+   the dots baked in holds it — thirty kilobytes, and reviewers open links on
+   phones. Contracts' built 3D scene has no static fallback, so that slot alone
+   stays desktop-only (and App never mounts the scene below 980px). */
 .massing-slot { display: block; position: relative; min-height: 48vh; margin: 4px 0 6px; }
 @media (max-width: 979px) {
   .massing-slot .citymap-wrap { position: absolute; inset: 0; margin: 0; }
@@ -1167,6 +1226,12 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 @media (max-width: 979px) {
   .mapskel { inset: 0; }
+  /* Once the live map has mounted, tuck the outline under its canvas as on
+     desktop: stretched to the slot's foot, the outline's caption printed over
+     the map's own ("… cards mapped · map loading" on top of "… cards mapped ·
+     filters and the cut above move it"). With reduced motion or no WebGL the
+     live map never mounts, and the outline keeps the whole slot and caption. */
+  .massing-slot:has(.citymap-wrap) .mapskel { inset: 0 0 30px 0; }
 }
 .massing-slot .citymap-cap { position: absolute; left: 2px; right: 0; bottom: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -1294,6 +1359,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .verticals .vmore { font-size: 11px; padding: 8px 8px; }
   .verticals::-webkit-scrollbar { display: none; }
   .verticals button { white-space: nowrap; flex: none; }
+  .verticals .vtabs { flex: none; }
 
   .top { padding: 7px 12px; gap: 4px 8px; margin: 8px 0 4px; }
   .logo b { font-size: 18px; }

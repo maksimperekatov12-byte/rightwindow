@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useDeferredVa
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, animate } from 'motion/react';
 import feedLite from './data/feed-lite.json';
 import { feedPromise } from './feed-loader.js';
+import { mergeLive } from './live-merge.js';
 import { readInvite, syncInvite } from './invite.js';
 import { track, setTrackContext } from './track.js';
 import { TERRITORY_MONTHLY, ONE_TIME_LIST, STRIPE_LIST_URL, PILOT_DAYS, money as planMoney } from './plans.js';
@@ -84,7 +85,7 @@ const GENERIC_FACADE = {
   sort: byUrgency,
   why: (c) => signalStory(c),
   opener: (c) =>
-    `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. Worth a quick conversation before the penalty meter starts.`,
+    `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${usDate(c.deadline)} deadline. Worth a quick conversation before the penalty meter starts.`,
 };
 
 const PROFILES = {
@@ -106,7 +107,7 @@ const PROFILES = {
         return `${title(c.priorQewi || 'The last engineer')} filed Cycle 9 and has not been re-engaged.`;
       },
       opener: (c) =>
-        `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${c.deadline}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
+        `Re: ${title(c.address)} — DOB shows no Cycle 10 facade filing and the ${c.subCycle} deadline is ${usDate(c.deadline)}. We can inspect this month, before the $1,000/mo penalty meter starts.`,
     },
     cNeed: (c) => `A ${money(c.amount)} construction award usually means inspections and special-inspection sign-offs down the line.`,
     cFilter: facadeBid,
@@ -134,7 +135,7 @@ const PROFILES = {
           ? `Re: ${title(c.address)} — the open SWARMP from Cycle 9 becomes presumed-unsafe at the next filing. We can walk the scope and price it this week.`
           : has(c, 'UNSAFE_PRIOR')
             ? `Re: ${title(c.address)} — the facade is on file as UNSAFE, so the repair is mandatory. We can walk the scope and price it this week.`
-            : `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${c.deadline} deadline. We can walk the scope and price it this week.`,
+            : `Re: ${title(c.address)} — city records show mandated facade work ahead of the ${usDate(c.deadline)} deadline. We can walk the scope and price it this week.`,
     },
     cNeed: (c) => `${c.vendor} just took on ${money(c.amount)} of city work — subcontract scopes get placed in the first weeks.`,
     cFilter: facadeBid,
@@ -160,7 +161,7 @@ const PROFILES = {
         return `${owed ? `${money(owed)} owed. ` : ''}Non-deferrable capex — financeable, with a legal reason to spend.`;
       },
       opener: (c) =>
-        `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${c.deadline} deadline. C-PACE can fund it before the penalty meter starts.`,
+        `Re: ${title(c.address)} — this building has city-mandated facade work ahead of the ${usDate(c.deadline)} deadline. C-PACE can fund it before the penalty meter starts.`,
     },
     mOpener: {
       gas: (c) =>
@@ -282,7 +283,7 @@ const PROFILES = {
     // Hiring happens after the award, as the line above says — awards only.
     cFilter: (c) => c.kind === 'AWARD',
     cOpener: (c) => `Re: your ${money(c.amount)} award from ${c.agency} — congratulations. If you're staffing up to deliver, we can have vetted candidates ready this month.`,
-    oNeed: () => `A venue opening in 2–4 months hires its whole team in the last six weeks — the search starts now.`,
+    oNeed: () => `A venue hires its whole team in the last six weeks before it opens — if this one has not opened yet, the search starts now.`,
     oOpener: (c) => `Re: ${venueName(c)} — congrats on the upcoming opening at ${c.address}. We staff openings; want a bench of vetted candidates ready for your hiring window?`,
   },
   equipment: {
@@ -359,7 +360,7 @@ const PROFILES = {
             ? `${money(c.ecbBalance)} unpaid — dismissals and settlements are on the table.`
             : 'Active violations need certified correction.',
       opener: (c) =>
-        `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${c.nextHearing}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
+        `Re: ${title(c.address)} — city records show ${c.nextHearing ? `an OATH hearing on ${usDate(c.nextHearing)}` : 'open violations with penalties accruing'}. We handle cures, dismissals and hearings; worth 15 minutes before the date?`,
       fFilter: (c) => Boolean(c.nextHearing || c.freshHaz || (c.ecbBalance || 0) > 0 || has(c, 'UNSAFE_PRIOR')),
     },
     cNeed: null,
@@ -1016,6 +1017,9 @@ const VERTICALS = [
   { key: 'contracts', label: 'City contracts' },
   { key: 'openings', label: 'New openings' },
 ];
+// The register each kind of card link (#b/…, #g/…) belongs to.
+const CARD_REG = { b: 'facades', g: 'gas', e: 'elevators', k: 'carbon', c: 'contracts', o: 'openings' };
+const cardLinkReg = () => CARD_REG[(location.hash.match(/^#(b|c|g|e|k|o)\//) || [])[1]] || null;
 
 function CountUp({ value, prefix = '' }) {
   const ref = useRef(null);
@@ -1124,10 +1128,40 @@ const mailAddr = (e) => {
   return /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i.test(s) ? s : null;
 };
 
+// City Record fills a blank field with a placeholder rather than leaving it
+// empty: '.', 'N/A', a dash, or (000) 000-0000. Printed as data those read
+// "Bids to: .", an officer called "." who is "named on the notice", and an
+// Email button addressed to "mailto:.". A placeholder is treated as absent.
+const realText = (v) => {
+  const t = String(v ?? '').trim();
+  return t && !/^[\s.\-\u2013\u2014]*$|^n\/?a$/i.test(t) ? t : null;
+};
+const realPhone = (p) => (/[1-9]/.test(String(p || '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '')) ? String(p).trim() : null);
+// Some notices list several inboxes in one field ("a@x.gov; b@x.gov"); the
+// first one that passes mailAddr is the one the button writes to.
+const firstMail = (e) => String(e || '').split(/[;,\s]+/).map(mailAddr).find(Boolean) || null;
+
+// An HPD registration has to be renewed every year. Where the last one ran
+// out, the agent it names is the last one on record rather than, necessarily,
+// the firm running the building today, and the card says so with the month it
+// lapsed. The feed carries agent.regEnd ('YYYY-MM-DD') and agent.lapsed only
+// from the build that added them; before that the role reads as it always has.
+const lapsedOn = (a) => {
+  if (a?.lapsed !== true) return null;
+  const m = /^(\d{4})-(\d{2})-\d{2}/.exec(String(a.regEnd || ''));
+  const mon = m ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m[2]) - 1] : null;
+  return mon ? `lapsed ${mon} ${m[1]}` : 'lapsed';
+};
+const agentRole = (a) => {
+  const lapsed = lapsedOn(a);
+  return lapsed ? `Managing agent (last HPD registration, ${lapsed})` : a?.role;
+};
+
 function contactOf(c, resolved) {
   const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
-  const base = { name: a.name, company: a.company, from: 'HPD registration' };
+  const lapsed = lapsedOn(c.agent);
+  const base = { name: a.name, company: a.company, from: lapsed ? `the last HPD registration, ${lapsed}` : 'HPD registration' };
 
   // Tested first, because it is the one case where the number is right but the
   // NAME is not: the registered entity is a holding company and this reaches the
@@ -1242,9 +1276,19 @@ export default function App() {
     }).catch(() => {});
     return () => { dead = true; };
   }, []);
+  // The lite shell carries only the first rows of the building registers
+  // (meta.sliced); contracts and openings ship whole. While a register is
+  // sliced, every figure about it is read from data.meta — register-wide,
+  // built by scripts/make-feed-lite.mjs and checked against the full feed by
+  // scripts/test-lite-meta.mjs — or not shown yet. A count taken from the
+  // slice would correct itself a second after first paint.
+  const sliced = (k) => Boolean(data.lite && data.meta.sliced.includes(k));
+  const regSize = (k) => (sliced(k) ? data.meta[k] : (data[k]?.feed || []).length);
   // ?reg= names the register; a trade-specific link implies one (a plumber's
-  // page is Gas piping). Seeded here so the first paint is already right.
-  const [vertical, setVertical] = useState(() => invite.reg || 'facades');
+  // page is Gas piping), and a card link names its own. Seeded here so the
+  // first paint is already right — a #g/ link whose card is past the lite
+  // slice used to paint the facade register until the full feed arrived.
+  const [vertical, setVertical] = useState(() => cardLinkReg() || invite.reg || 'facades');
   // Six tabs of equal weight is an unmade decision. With no trade chosen the
   // row holds the three registers that pass the bar — figure rests on a city
   // record, buyer is a building-services contractor, deadline is real and
@@ -1331,14 +1375,37 @@ export default function App() {
   const [themeColors, setThemeColors] = useState(readThemeColors);
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 980px)').matches);
   const reduce = useReducedMotion();
-  // Mounts the register's scene only once the page is idle, and never on a
-  // narrow viewport, under reduced motion, or without WebGL.
+  // Mounts the register's scene only once the page is idle, and never under
+  // reduced motion or without WebGL.
   // The map loads on phones too now: WebGL is there, MapLibre handles touch,
   // and the register is geocoded — the one place the product's strongest
   // visual was missing was the device reviewers open links on. Still idle-
   // gated so the feed is interactive first; the static outline holds the
   // space and remains the honest fallback where WebGL truly is absent.
   const sceneReady = useSceneReady(!reduce);
+  // On a phone the hero slot starts below the fold, and the live map behind it
+  // is most of a megabyte (MapLibre, its worker, the sprite, the tiles) that
+  // used to download on every visit whether or not anyone scrolled that far.
+  // There it mounts once half the slot has actually been on screen; until then
+  // the static outline IS the map, dots and taps included. Half, not "any":
+  // before the feed renders the slot's top edge peeks into the first screen.
+  const heroSlot = useRef(null);
+  const [heroSeen, setHeroSeen] = useState(false);
+  useEffect(() => {
+    if (wide || heroSeen || !sceneReady) return;
+    const el = heroSlot.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setHeroSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting && e.intersectionRatio >= 0.45)) setHeroSeen(true);
+    }, { threshold: [0.45, 0.5] });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [wide, heroSeen, sceneReady, vertical]);
+  const heroScene = sceneReady && (wide || heroSeen);
   const uid = useRef(null);
   const secret = useRef(null);
   if (uid.current === null) {
@@ -1515,10 +1582,23 @@ export default function App() {
         setProfileKey(t);
         saveLS('rw.profile', t);
         setShowOnboard(false);
+        // Same statement as pickProfile: choosing a trade takes a card link's
+        // pin off, or the new trade opens on the old link's register.
+        forcedVert.current = '';
+        pickedVert.current = false;
+        setVertical(homeVertical(t));
       }
       // A card link pasted into an open tab must open that card, not just
-      // change the address bar.
-      if (/^#(b|c|g|e|k|o)\//.test(location.hash)) setHashTick((n) => n + 1);
+      // change the address bar — and pin its register like an arriving link,
+      // or "open where the work is" bounces it and the whole list mounts. Like
+      // an arriving link it also stops the auto-open, which opened the new
+      // register's top card over the linked one.
+      const reg = cardLinkReg();
+      if (reg) {
+        forcedVert.current = reg;
+        deepLinked.current = true;
+        setHashTick((n) => n + 1);
+      }
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -1663,9 +1743,7 @@ export default function App() {
     // A card link pins its register; so does an invitation that names one —
     // otherwise the "open where the work is" rule would bounce a plumber off
     // the gas register the email promised him.
-    forcedVert.current = m
-      ? { b: 'facades', g: 'gas', e: 'elevators', k: 'carbon', c: 'contracts', o: 'openings' }[m[1]]
-      : invite.reg || '';
+    forcedVert.current = m ? CARD_REG[m[1]] : invite.reg || '';
   }
   // "No facade, no contracts, no openings" used to mean "exploring" — until
   // the elevator trade became mandates-only and got classified as a tourist.
@@ -1707,9 +1785,13 @@ export default function App() {
     saveLS('rw.closeRate', r);
   };
 
+  // The query stays wherever the address falls back to the path — here, and
+  // when a card closes or the data page goes back to the feed: it carries an
+  // invitation's trade, ZIPs, ref and greeting, and the bare path lost all
+  // four on a reload.
   const goTrade = (k) => {
     try {
-      history.replaceState(null, '', k === 'explore' ? location.pathname : `#t/${k}`);
+      history.replaceState(null, '', k === 'explore' ? location.pathname + location.search : `#t/${k}`);
     } catch {}
   };
 
@@ -1743,7 +1825,9 @@ export default function App() {
   // the card can say which other registers hold the rest.
   const agentSpread = useCallback(
     (company) => {
-      if (!company) return [];
+      // Counted across the building registers: no spread while the lite shell
+      // holds only their first rows.
+      if (!company || ['facades', ...mandateKeys].some(sliced)) return [];
       const key = company.toUpperCase().trim();
       return [['facades', 'facades'], ...mandateKeys.map((k) => [k, MANDATES[k].label.toLowerCase()])]
         .map(([k, label]) => [k, label, (data[k]?.feed || []).filter((c) => (c.agent?.company || '').toUpperCase().trim() === key).length])
@@ -1903,28 +1987,15 @@ export default function App() {
     for (const c of filteredNoBoro) m[c.borough] = (m[c.borough] || 0) + 1;
     return m;
   }, [filteredNoBoro]);
-  // The five-minute lane re-checks a narrow slice — award notices and liquor
-  // licences — and publishes only what it saw. It must never REPLACE a register:
-  // it was still writing the old 29-award, 40-venue shape after the build moved
-  // to 156 City Record notices and 400 openings, so production was serving a
-  // third of the product and none of the open solicitations. Merge by id, keep
-  // the richer record, and let genuinely new rows through.
-  const mergeLive = (base, fresh) => {
-    if (!Array.isArray(fresh) || !fresh.length) return base;
-    const byId = new Map(base.map((r) => [r.id, r]));
-    for (const r of fresh) {
-      const had = byId.get(r.id);
-      // A fast-lane row carries fewer fields, so it may only refresh what it has.
-      byId.set(r.id, had ? { ...had, ...Object.fromEntries(Object.entries(r).filter(([, v]) => v != null)) } : r);
-    }
-    return [...byId.values()];
-  };
+  // The five-minute lane merges by id and may only refresh what moves between
+  // builds; it never overwrites the borough, the identity or a name the build
+  // withheld. The rules, and why, are in src/live-merge.js.
   // A cancellation notice is not an open solicitation; City Record files them
   // under the same kind, and one sat in the feed reading "closes in 2 days".
   const noCancel = (rows) => rows.filter((c) => !/^\s*cancell/i.test(c.title || ''));
-  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts)), [data, live]);
+  const liveContracts = useMemo(() => noCancel(mergeLive(data.contracts, live?.contracts, 'contracts')), [data, live]);
   const liveOpenings = useMemo(
-    () => mergeLive(data.openings, live?.openings).filter((o) => o.src !== 'sla' || !NOT_A_VENUE.test(o.kind || '')),
+    () => mergeLive(data.openings, live?.openings, 'openings').filter((o) => o.src !== 'sla' || !NOT_A_VENUE.test(o.kind || '')),
     [data, live],
   );
   // The liquour file dates its applications and the health file does not, so
@@ -1977,12 +2048,27 @@ export default function App() {
     const counts = {};
     for (const key of mandateKeys) {
       const pre = MANDATES[key].prefix;
+      // A grouped row ("N buildings · one call", below) is dismissed, watched
+      // and marked under its own 'grp-…' key, but this filter only ever sees the
+      // members. Each member honours its group's key as well as its own: without
+      // that a dismissed group stayed on screen, and the Hidden, Watchlist and
+      // Working chips counted a row their lists never showed. The grouping below
+      // takes its id from this same function, so the two cannot drift apart.
+      const groupIdOf = (c) => {
+        if (key !== 'carbon' && key !== 'gas') return null;
+        const ph = contacts[c.bin]?.phone || c.phone || c.contact?.phone || null;
+        if (!c.agent?.company || !ph || !c.zip) return null;
+        const nk = String(c.agent.company).toUpperCase().replace(/[^A-Z]/g, '').replace(/(LLC|INC|CORP|CO|LP|LLP)$/, '');
+        return 'grp-' + `${nk}|${ph}|${c.zip}`.replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+      };
       // Borough excluded here so the chips can count faceted — see filteredNoBoro.
       const noBoro = (data[key]?.feed || []).filter((c) => {
-        if (showHidden !== isDismissed(pre + c.bin)) return false;
+        const g = groupIdOf(c);
+        const ks = g ? [pre + c.bin, pre + g] : [pre + c.bin];
+        if (showHidden !== ks.some(isDismissed)) return false;
         if (!showHidden && taughtAway(pre, c)) return false;
-        if (onlyWatch && !isWatched(pre + c.bin)) return false;
-        if (onlyWorking && !['contacted', 'won'].includes(fb[pre + c.bin]?.s)) return false;
+        if (onlyWatch && !ks.some(isWatched)) return false;
+        if (onlyWorking && !ks.some((k) => ['contacted', 'won'].includes(fb[k]?.s))) return false;
         if (cohort && !(COHORTS[cohort]?.of(c) ?? true)) return false;
         if (!q) return true;
         if (zips) return Boolean(c.zip) && zips.includes(c.zip);
@@ -2035,7 +2121,7 @@ export default function App() {
           const pricedMembers = cards.filter((m) => m.ghg?.usd > 0).length;
           grouped.push({
             group: true,
-            id: 'grp-' + gk.replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
+            id: groupIdOf(cards[0]),
             cards,
             company: cards[0].agent.company,
             phone: ph,
@@ -2054,8 +2140,21 @@ export default function App() {
     out._counts = counts;
     return out;
   }, [data, onlyWatch, watch, fb, showHidden, deferredQuery, boro, sortMode, onlyWorking, cohort, contacts]);
+  // The borough chips a register draws: facades four fixed ones, a mandate
+  // register or openings one per borough it touches (the lite shell names
+  // those in meta), contracts none — a city notice has no address to filter.
+  const boroughsOn = (k) => {
+    if (k === 'facades') return ['Manhattan', 'Brooklyn', 'Queens', 'Bronx'];
+    if (k === 'contracts') return null;
+    if (sliced(k)) return data.meta.boroughs[k];
+    const pool = data[k]?.feed || (Array.isArray(data[k]) ? data[k] : []);
+    return ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'].filter((b) => pool.some((c) => (c.borough || c.county) === b));
+  };
   // A sort that does not exist on the register you just switched to would leave
-  // the control showing nothing while the list quietly reordered itself.
+  // the control showing nothing while the list quietly reordered itself. The
+  // same goes for filters: keyed on the trade as well, because a cohort chip
+  // belongs to the trade's own list, and switching trade on the same register
+  // left the old cohort filtering with no chip lit to say so.
   useEffect(() => {
     const allowed = (REG_SORTS[vertical] || []).map(([v]) => v);
     if (allowed.length && !allowed.includes(sortMode)) setSortMode(allowed[0]);
@@ -2064,7 +2163,16 @@ export default function App() {
     if (vertical === 'carbon' && sortMode === 'profile') setSortMode('exposure');
     const chips = vertical === 'facades' ? profile.cohorts || [] : REG_COHORTS[vertical] || [];
     if (cohort && !chips.includes(cohort)) setCohort(null);
-  }, [vertical]);
+    // A borough this register draws no chip for (Staten Island, picked on
+    // openings) filtered it to nothing with no chip lit — and it is saved, so
+    // the next visit opened on "Nothing matches". Only once the page has
+    // landed on a register this trade actually shows: on mount the vertical is
+    // still the seeded facades, and an openings trade's saved Staten Island
+    // was wiped a beat before "open where the work is" moved it to openings.
+    const offered = boroughsOn(vertical);
+    const landed = visibleVerts.some((v) => v.key === vertical);
+    if (landed && boro !== 'all' && offered && !offered.includes(boro)) setBoro('all');
+  }, [vertical, profileKey]);
 
   // Two shapes of the same list: the feed renders the grouped rows, everything
   // that counts or maps buildings works on the flat one.
@@ -2079,6 +2187,11 @@ export default function App() {
         if (cohort && !(COHORTS[cohort]?.of(o) ?? true)) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
+        // A ZIP territory, as on the building registers. Matched as one string,
+        // "11201 11205" was a substring of nothing, and a venue trade's
+        // two-ZIP invitation opened on an empty register.
+        const zips = zipsIn(q);
+        if (zips) return Boolean(o.zip) && zips.includes(o.zip);
         return [o.name, o.identity, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
@@ -2101,12 +2214,21 @@ export default function App() {
   // what makes it different.
   // A bare urgency score means nothing to someone reading their first card. What
   // they can act on is where it sits against the rest of the register.
+  // One direction throughout: "top" counts from the most urgent, "bottom" from
+  // the least. The old label printed the rank-from-top as a percentile, so the
+  // least urgent cards read "98th percentile" (and "31th", "62th" on the way).
+  // Ties count in the card's favour at the top and against it at the bottom.
   const urgencyRank = useMemo(() => {
-    const scores = facadeFeed.map((c) => c.urgencyScore).sort((a, b) => b - a);
+    const scores = facadeFeed.map((c) => c.urgencyScore);
+    const n = scores.length || 1;
     return (score) => {
       const above = scores.filter((x) => x > score).length;
-      const pct = Math.max(1, Math.round((100 * (above + 1)) / (scores.length || 1)));
-      return pct <= 25 ? `top ${pct}%` : `${pct}th percentile`;
+      const top = Math.max(1, Math.round((100 * (above + 1)) / n));
+      if (top <= 25) return `top ${top}%`;
+      if (top <= 50) return 'top half';
+      const atOrBelow = scores.filter((x) => x <= score).length;
+      const bottom = Math.max(1, Math.round((100 * atOrBelow) / n));
+      return bottom <= 25 ? `bottom ${bottom}%` : 'bottom half';
     };
   }, [facadeFeed]);
 
@@ -2143,23 +2265,34 @@ export default function App() {
   // closing it closes it like any other card.
   const autoOpened = useRef({});
   useEffect(() => {
-    if (deepLinked.current || autoOpened.current[vertical]) return;
+    // A register the lite shell holds only the first rows of opened the top of
+    // those rows; when the whole register lands the pick is made once more,
+    // unless the visitor has opened or closed a card since. For insurance and
+    // CRE the slice's top card ranks lower in the full register, and the card
+    // that opened on arrival slid down the list or out of the first seven.
+    const was = autoOpened.current[vertical];
+    const repick = was?.lite && !sliced(vertical);
+    if (deepLinked.current || (was && !repick)) return;
     const top = (visibleForReasons || [])[0];
     if (!top) return;
-    autoOpened.current[vertical] = true;
     // The id the register's feed actually keys on: a DOHMH row happens to
     // carry a bin too, and bin-first left the openings top card silently shut.
-    setOpenId(vertical === 'contracts' || vertical === 'openings' ? top.id : top.bin || top.id);
+    const id = vertical === 'contracts' || vertical === 'openings' ? top.id : top.bin || top.id;
+    autoOpened.current[vertical] = { id, lite: sliced(vertical) };
+    if (was && openId !== was.id) return;
+    setOpenId(id);
   }, [vertical, visibleForReasons]);
 
   // A register shows up only if this trade can act on it *and* there is enough
   // in it to be worth a page. Counted before the search box and the filters, so
   // typing never makes a tab vanish. A deep link always opens its own register.
+  // While a building register is sliced its size comes from meta, or a lender
+  // landed on openings (394) over facades (24 of 800) and stayed there.
   const vertSize = {
-    facades: facadeFeed.length,
+    facades: sliced('facades') ? (data.meta.facadesFor[profileKey] ?? data.meta.facades) : facadeFeed.length,
     // Counted from the whole register, not the filtered view: typing in the
     // search box must never make a tab disappear.
-    ...Object.fromEntries(mandateKeys.map((k) => [k, (data[k]?.feed || []).length])),
+    ...Object.fromEntries(mandateKeys.map((k) => [k, regSize(k)])),
     contracts: contractsBase.length,
     openings: openingsBase.length,
   };
@@ -2222,12 +2355,18 @@ export default function App() {
     const m = {};
     for (const k of Object.keys(PROFILES)) {
       const p = PROFILES[k];
-      const f = p.facade ? data.facades.feed.filter(p.facade.fFilter || (() => true)).length : 0;
+      // A sliced facade register is counted from meta, as each trade filters it
+      // — the trade pages used to read "24 buildings" and "nothing open today".
+      const f = !p.facade
+        ? 0
+        : sliced('facades')
+          ? (data.meta.facadesFor[k] ?? data.meta.facades)
+          : data.facades.feed.filter(p.facade.fFilter || (() => true)).length;
       const c = p.cNeed ? liveContracts.filter(p.cFilter || (() => true)).length : 0;
       const o = p.oNeed ? liveOpenings.filter(p.oFilter || (() => true)).length : 0;
       // The building registers count too, or the picker ranks a trade by the
       // one register it happens to share with everyone else.
-      const mand = mandateKeys.reduce((n, key) => n + (p.mandates?.[key] ? (data[key]?.feed || []).length : 0), 0);
+      const mand = mandateKeys.reduce((n, key) => n + (p.mandates?.[key] ? regSize(key) : 0), 0);
       m[k] = { facades: f, contracts: c, openings: o, mandates: mand, total: k === 'explore' ? -1 : f + c + o + mand };
     }
     return m;
@@ -2251,6 +2390,12 @@ export default function App() {
   // scrolling four hundred rows looking for amber dots.
   const isWorking = (k) => ['contacted', 'won'].includes(fb[k]?.s);
   const workingCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && isWorking(k)).length;
+  // The Working chip is drawn only while this register holds something marked
+  // Contacted or Won; a filter left on where the chip is not drawn emptied the
+  // list with nothing on screen to switch it off.
+  useEffect(() => {
+    if (onlyWorking && !workingCount) setOnlyWorking(false);
+  }, [onlyWorking, workingCount]);
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, gas: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
   // Scoped to the registers this trade can see and to its own pools: a POS shop
   // used to read "5 fresh signals · 27 contracts" on the openings register, and
@@ -2258,7 +2403,7 @@ export default function App() {
   const myVerts = new Set(matchedVertKeys);
   const newContracts = contractsBase.filter((c) => c.isNew).length;
   const newParts = [
-    myVerts.has('facades') && wn.buildings && wn.buildings < data.facades.feed.length
+    myVerts.has('facades') && wn.buildings && wn.buildings < regSize('facades')
       ? `${wn.buildings} building${wn.buildings > 1 ? 's' : ''}`
       : null,
     myVerts.has('facades') && wn.signals ? `${wn.signals} fresh signal${wn.signals > 1 ? 's' : ''}` : null,
@@ -2267,7 +2412,7 @@ export default function App() {
     ...mandateKeys.map((k) => {
       if (!myVerts.has(k)) return null;
       const n = wn[k] || 0;
-      const size = (data[k]?.feed || []).length;
+      const size = regSize(k);
       if (!n || n >= size) return null;
       return `${n} ${MANDATES[k].noun || 'building'}${n > 1 ? 's' : ''} on ${MANDATES[k].label.toLowerCase()}`;
     }),
@@ -2314,8 +2459,13 @@ export default function App() {
   const cityByLabel = cityClock ? SOURCES[cityClock.key]?.label || cityClock.key : null;
   // What the greeting line counts: the rows actually on screen for the ZIPs the
   // invitation named. Computed from the same list the feed renders, so the
-  // sentence cannot disagree with the page under it.
+  // sentence cannot disagree with the page under it — and it names the ZIPs in
+  // the search box now, not the invitation's frozen list, which printed
+  // "4 buildings in 10452, 10453" over a search for 10001. No count at all on
+  // a register the lite shell has only sliced ("0 buildings" and a false
+  // "Nothing matches" for the first second), or on contracts, which no ZIP filters.
   const inviteZips = invite.zips;
+  const preparedZips = inviteZips.length && vertical !== 'contracts' && !sliced(vertical) ? zipsIn(deferredQuery) : null;
   const preparedCount = (visibleForReasons || []).length;
   const preparedNoun =
     vertical === 'contracts' ? 'notices' : vertical === 'openings' ? 'venues' : 'buildings';
@@ -2367,13 +2517,29 @@ export default function App() {
   // of deep link, and the boolean meant the FIRST click opened a card and every
   // later one was silently swallowed.
   const lastDeepLink = useRef(null);
+  // Where a link resolved against the lite slice left the visitor: the
+  // register and the card it opened. The re-resolve on the full feed is for a
+  // visitor still looking at that card, not one who moved on in the second
+  // before the feed landed — that re-run yanked them back to the linked tab.
+  const liteLink = useRef(null);
   useEffect(() => {
     const m = location.hash.match(/^#(b|c|g|e|k|o)\/(.+)$/);
     if (!m) {
       lastDeepLink.current = null;
       return;
     }
-    if (lastDeepLink.current === location.hash) return;
+    // Settled for this link — or, against the lite slice, settled until the
+    // full feed arrives (see open()).
+    if (lastDeepLink.current === location.hash || (data.lite && lastDeepLink.current === `${location.hash}|lite`)) return;
+    if (
+      lastDeepLink.current === `${location.hash}|lite` &&
+      liteLink.current &&
+      (openId !== liteLink.current.target || vertical !== liteLink.current.vert)
+    ) {
+      lastDeepLink.current = location.hash;
+      liteLink.current = null;
+      return;
+    }
     const [, t, id] = m;
     // idx must be the card's position in the list AS RENDERED — the same sort,
     // the same grouping — or "show idx rows" reveals the wrong slice and the
@@ -2382,7 +2548,13 @@ export default function App() {
     // with the tiered sort on screen. The scroll retries once, because the
     // rows it asks for may still be mounting on the first attempt.
     const open = (vert, idx, targetId = id) => {
-      lastDeepLink.current = location.hash;
+      // An index into the lite slice is provisional: the full register
+      // re-sorts, the card lands past the rows shown and unmounts — it opened,
+      // then vanished a second later. So a link resolved against a sliced
+      // register is settled only until the full feed arrives (data is a dep),
+      // and then resolved again against the whole register.
+      lastDeepLink.current = sliced(vert) ? `${location.hash}|lite` : location.hash;
+      liteLink.current = sliced(vert) ? { vert, target: targetId } : null;
       keepShown.current = Math.max(7, idx + 1);
       setVertical(vert);
       setOpenId(targetId);
@@ -2526,7 +2698,7 @@ export default function App() {
     if (!wasOpen) track('card_expanded', { card: String(id) });
     setOpenId(wasOpen ? null : id);
     try {
-      history.replaceState(null, '', wasOpen ? location.pathname : `#${type}/${id}`);
+      history.replaceState(null, '', wasOpen ? location.pathname + location.search : `#${type}/${id}`);
     } catch {}
   };
 
@@ -2582,19 +2754,28 @@ export default function App() {
       );
     } else if (MANDATES[vertical]) {
       const m = MANDATES[vertical];
-      const factKeys = mandateList.length ? m.facts(mandateList[0]).map(([k]) => k) : [];
+      // Facts vary per row (carbon's emissions, exposure and meter lines come
+      // and go; an elevator adds its last CAT5 only when there is one), so the
+      // columns are the union across the list and each row is written by key.
+      // Taking the first row's facts and spreading every row by position put
+      // the managing agent under "Why now" on most carbon rows.
+      const factKeys = [];
+      for (const c of mandateList) for (const [k] of m.facts(c)) if (!factKeys.includes(k)) factKeys.push(k);
       downloadCsv(
         `right-window-${vertical}.csv`,
         ['Address', 'Borough', 'ZIP', 'BIN', ...factKeys, 'Why now', 'Managing agent', 'Agent address', 'Suggested opener', 'Link'],
-        mandateList.map((c) => [
-          title(c.address), c.borough, c.zip || '', c.bin,
-          ...m.facts(c).map(([, v]) => v),
-          profile.mandates?.[vertical]?.(c) || m.whoWins,
-          c.agent?.company ? title(c.agent.company) : '',
-          c.agent?.address ? title(c.agent.address) : '',
-          mOpener(vertical, c),
-          `${location.origin}/#${m.prefix[0]}/${c.bin}`,
-        ]),
+        mandateList.map((c) => {
+          const byKey = Object.fromEntries(m.facts(c));
+          return [
+            title(c.address), c.borough, c.zip || '', c.bin,
+            ...factKeys.map((k) => byKey[k] ?? ''),
+            profile.mandates?.[vertical]?.(c) || m.whoWins,
+            c.agent?.company ? title(c.agent.company) : '',
+            c.agent?.address ? title(c.agent.address) : '',
+            mOpener(vertical, c),
+            `${location.origin}/#${m.prefix[0]}/${c.bin}`,
+          ];
+        }),
       );
     } else if (vertical === 'contracts') {
       downloadCsv(
@@ -2605,7 +2786,7 @@ export default function App() {
           isOpenNotice(c) ? c.title : c.vendor,
           c.amount ?? '', c.agency, c.title, c.date ?? '', c.daysAgo ?? '',
           c.dueDate ? c.dueDate.slice(0, 10) : '', c.daysLeft ?? '', c.epin || '',
-          c.contact?.name || '', c.contact?.phone || '', c.contact?.email || '',
+          realText(c.contact?.name) || '', realPhone(c.contact?.phone) || '', realText(c.contact?.email) || '',
           isOpenNotice(c)
             ? c.scope || `${c.category} · ${c.method}`
             : profile.cNeed?.(c) || 'Winner is mobilizing: subs, bonding, insurance, staffing, equipment.',
@@ -2620,7 +2801,7 @@ export default function App() {
         ['Venue', 'Type', 'County', 'Premises', 'Legal name', 'Filed', 'Why you', 'Suggested opener', 'Link'],
         openingsList.map((o) => [
           venueName(o), o.kind, o.county, o.address, o.legal || '', o.received || '',
-          profile.oNeed?.(o) || 'Opening in 2–4 months: POS, insurance, suppliers, furniture, marketing get chosen now.',
+          profile.oNeed?.(o) || 'If it has not opened yet: POS, insurance, suppliers, furniture and marketing get chosen now.',
           (profile.oOpener || defaultOOpener)(o),
           `${location.origin}/#o/${o.id}`,
         ]),
@@ -2808,10 +2989,10 @@ export default function App() {
   // registers without a statutory clock bring to it.
   // Counted from the PROFILE's contract base, not the raw register: an
   // awards-only trade must not be greeted with a count of solicitations it
-  // will never see.
+  // will never see. The lite shell carries the whole register, so this holds
+  // from first paint; a register-wide stand-in greeted lender with "127
+  // notices open" over an empty list.
   const contractHook = useMemo(() => {
-    if (data.lite)
-      return { open: data.meta.contractsOpen, nearest: null, awards: data.meta.awardsSum, awardN: data.meta.awardN };
     const open = contractsBase.filter((c) => c.kind !== 'AWARD' && (c.daysLeft == null || c.daysLeft >= 0));
     const nearest = open
       .map((c) => c.daysLeft)
@@ -2857,7 +3038,7 @@ export default function App() {
           ? awardsOnly
             ? 'Awards from the City Record with the winning vendor and the agency named on every notice. Each winner has about two weeks to line up bonding, working capital, subs and crews before mobilization.'
             : 'Open solicitations with a filed deadline and the agency officer named on the notice — plus the awards that just landed, where the winner has two weeks to line up subs and bonding.'
-          : 'Two records, both public. A liquor licence names a venue two to four months out. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
+          : 'Two records, both public. A liquor licence often comes before an opening — about a third of new licences are issued before the doors open. A Health Department permit with no inspection against it names one that has not opened at all — and prints the number to ring.';
 
   // The 30-second hook: a hard city deadline with a countdown, not a product pitch.
   const deadlineIso = '2027-02-21';
@@ -2938,7 +3119,11 @@ export default function App() {
       setOpenId(targetId);
       try {
         history.replaceState(null, '', `#${vertPrefix.replace(':', '')}/${id}`);
-        lastDeepLink.current = location.hash;
+        // A pick against the lite slice is provisional in the same way a
+        // pasted link is: settled only until the full register arrives.
+        const provisional = sliced(vertical);
+        lastDeepLink.current = provisional ? `${location.hash}|lite` : location.hash;
+        liteLink.current = provisional ? { vert: vertical, target: targetId } : null;
       } catch {}
       // Instant jump, retried until the row mounts: a smooth scroll is an
       // animation and dies against a list that is still rendering.
@@ -2962,16 +3147,16 @@ export default function App() {
   const mapSlot = (
     <>
       {HEROES[vertical] && (
-          <div className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
+          <div ref={heroSlot} className={'massing-slot' + (vertical === 'contracts' ? ' scene-only' : '')}>
             {/* Registers with coordinates put the register ITSELF in the hero:
                 the live map of the filtered list, not an illustration of the
                 kind of thing the list contains. Contracts keep their built
                 scene — a solicitation has no address to stand on. The skeleton
                 is the same outline twice over: the loading state before
-                MapLibre arrives, and the whole map on a phone, where MapLibre
-                never loads at all. */}
-            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={sceneReady} onPick={mapPick} />}
-            {sceneReady &&
+                MapLibre arrives, and the whole map on a phone until the slot
+                has been scrolled into view (heroScene). */}
+            {vertical !== 'contracts' && <MapSkeleton cards={visibleForReasons || []} loading={heroScene} onPick={mapPick} total={sliced(vertical) ? regSize(vertical) : null} />}
+            {heroScene &&
               (vertical !== 'contracts' ? (
                 <Suspense fallback={null}>
                   <CityMap
@@ -2984,6 +3169,9 @@ export default function App() {
                   />
                 </Suspense>
               ) : (
+                // CSS hides this slot under 980px; mounting the scene there
+                // downloaded three.js (220 kB) into a box nobody can see.
+                wide && (
                 <Suspense fallback={null}>
                   {React.createElement(HEROES[vertical].Scene, {
                     colors: themeColors,
@@ -2992,6 +3180,7 @@ export default function App() {
                     ...(HEROES[vertical].variant ? { variant: HEROES[vertical].variant } : {}),
                   })}
                 </Suspense>
+                )
               ))}
             {vertical === 'contracts' && <span className="massing-cap">{awardsOnly ? 'Award just filed · winner named' : HEROES[vertical].cap}</span>}
           </div>
@@ -3039,18 +3228,19 @@ export default function App() {
             // Faceted: counted against the rows the other filters left, so the
             // chips can never contradict the map. A borough the register never
             // touches stays hidden; one the current filters empty is dimmed.
+            // A sliced register's chips carry no count until it is whole.
             const pool = data[vertical]?.feed || (Array.isArray(data[vertical]) ? data[vertical] : []);
-            const ever = b === 'all' || pool.some((c) => (c.borough || c.county) === b);
+            const ever = b === 'all' || (boroughsOn(vertical) || []).includes(b);
             if (!ever) return null;
             const n = counts ? counts[b === 'all' ? 'all' : b] || 0 : b === 'all' ? total : pool.filter((c) => (c.borough || c.county) === b).length;
             return (
               <button
                 key={b}
-                className={'chip' + (boro === b ? ' on' : '') + (!n && boro !== b ? ' dim' : '')}
+                className={'chip' + (boro === b ? ' on' : '') + (!n && boro !== b && !sliced(vertical) ? ' dim' : '')}
                 aria-pressed={boro === b}
                 onClick={() => setBoro(b)}
               >
-                {b === 'all' ? 'All' : b} <i>{n}</i>
+                {b === 'all' ? 'All' : b} <i>{sliced(vertical) ? '…' : n}</i>
               </button>
             );
           })}
@@ -3061,8 +3251,9 @@ export default function App() {
         if (!def) return null;
         const pool = registerPool(vertical);
         const n = pool.filter(def.of).length;
-        // A filter that selects the whole register tells you nothing.
-        if (!n || n === pool.length) return null;
+        // A filter that selects the whole register tells you nothing. While the
+        // register is sliced, meta says which chips it offers, without counts.
+        if (sliced(vertical) ? !data.meta.cohorts[vertical]?.includes(k) : !n || n === pool.length) return null;
         return (
           <button
             key={k}
@@ -3070,7 +3261,7 @@ export default function App() {
             aria-pressed={cohort === k}
             onClick={() => setCohort(cohort === k ? null : k)}
           >
-            {def.label} ({n})
+            {def.label}{sliced(vertical) ? '' : ` (${n})`}
           </button>
         );
       })}
@@ -3102,10 +3293,16 @@ export default function App() {
           Map
         </button>
       )}
-      <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
+      <button className="chip-btn" onClick={exportCurrent} disabled={sliced(vertical)} title={sliced(vertical) ? 'Loading the full register…' : undefined}>Export CSV</button>
       <span className="count">
-        {list.length}
-        {list.length !== total ? ` of ${total}` : ''} shown
+        {sliced(vertical) ? (
+          'counting…'
+        ) : (
+          <>
+            {list.length}
+            {list.length !== total ? ` of ${total}` : ''} shown
+          </>
+        )}
       </span>
     </div>
   );
@@ -3138,7 +3335,7 @@ export default function App() {
         isDark={isDark}
         onTheme={toggleTheme}
         onBack={() => {
-          history.replaceState(null, '', location.pathname);
+          history.replaceState(null, '', location.pathname + location.search);
           setRoute('feed');
         }}
       />
@@ -3438,6 +3635,7 @@ export default function App() {
         </div>
       </header>
 
+      <main>
       {/* What the product is, stated once, above the register tabs. The
           per-register headline below says what THIS list is; a stranger who
           arrives from a cold email needs the sentence before that one. */}
@@ -3452,11 +3650,16 @@ export default function App() {
       </motion.section>
 
       <LayoutGroup>
-        <div className="verticals" role="tablist" aria-label="Pick a register">
+        <div className="verticals">
+        {/* role=tablist holds tabs only: "+3 more" is not a tab, so it sits
+            beside this wrapper, inside the same glass strip. */}
+        <div className="vtabs" role="tablist" aria-label="Pick a register">
           {visibleVerts.map((v) => (
             <button
               key={v.key}
               role="tab"
+              id={'rw-tab-' + v.key}
+              aria-controls="rw-register"
               aria-selected={vertical === v.key}
               tabIndex={vertical === v.key ? 0 : -1}
               className={vertical === v.key ? 'on' : ''}
@@ -3487,6 +3690,7 @@ export default function App() {
               <span className="tlabel">{v.label}</span>
             </button>
           ))}
+        </div>
           {hiddenVertCount > 0 && (
             <button className="vmore" onClick={openRow}>
               +{hiddenVertCount} more
@@ -3502,7 +3706,7 @@ export default function App() {
       {invite.for && (
         <div className="prepared-for">
           Prepared for {invite.for}
-          {inviteZips.length ? ` · ${preparedCount} ${preparedNoun} in ${inviteZips.join(', ')}` : ''} · updated{' '}
+          {preparedZips ? ` · ${preparedCount} ${preparedNoun} in ${preparedZips.join(', ')}` : ''} · updated{' '}
           {agoLabel}
         </div>
       )}
@@ -3511,7 +3715,7 @@ export default function App() {
           {vertical === 'facades' ? (
             <motion.div className="hook" data-label="Compliance calendar · NYC DOB" {...fade(0)}>
               <b>{(data.facades.totals.nonFilers10A || 0).toLocaleString('en-US')}</b>
-              <i>buildings citywide</i>
+              <i>buildings in four boroughs</i>
               <span>
                 have not filed their sub-cycle 10A facade report. The deadline is {usDate(deadlineIso)} —{' '}
                 <strong>{monthsToDeadline} months out</strong>. After that: $1,000 a month, per building.
@@ -3587,11 +3791,11 @@ export default function App() {
             </motion.div>
           ) : vertical === 'openings' ? (
             <motion.div className="hook" data-label="DOHMH & NYS SLA · new venues" {...fade(0)}>
-              <b>{(data.lite ? data.meta.openings : vertSize.openings || 0).toLocaleString('en-US')}</b>
+              <b>{(vertSize.openings || 0).toLocaleString('en-US')}</b>
               <i>venues</i>
               <span>
                 hold a fresh permit and no first inspection — build-out is happening now, before the doors open. The
-                city prints a phone number on <strong>{(data.lite ? data.meta.openingsPhones : openingsPhones).toLocaleString('en-US')}</strong> of them.
+                city prints a phone number on <strong>{openingsPhones.toLocaleString('en-US')}</strong> of them.
               </span>
             </motion.div>
           ) : (
@@ -3615,11 +3819,12 @@ export default function App() {
             {emphasize(heroText)}
           </motion.h1>
           <motion.p {...fade(0.05)}>{heroSub}</motion.p>
-          {data.lite && HEROES[vertical] ? (
+          {sliced(vertical) ? (
             <motion.div className="pipe" {...fade(0.1)}>
               {/* The full register is still on the wire; a funnel priced from
                   the lite slice would print numbers that correct themselves a
-                  second later — the one sin this page cannot afford. */}
+                  second later — the one sin this page cannot afford. Contracts
+                  and openings ship whole, so theirs prices from first paint. */}
               <b className="pipe-lead">Pricing this register from the city's filings…</b>
             </motion.div>
           ) : vertical === 'carbon' ? (
@@ -3855,18 +4060,22 @@ export default function App() {
           )}
 
         </section>
-      {/* The hero map on desktop; on a phone it moves BELOW the feed — the
-          first card inside 1.2 screens beats the visual, and the drawing is
-          still there for whoever scrolls. */}
+      {/* The hero map: beside the headline on desktop; on a phone it sits
+          between the headline and the feed, as the static outline until it
+          has been scrolled into view (heroScene), then as the live map. */}
         {mapSlot}
       </div>
 
       <motion.div
         key={vertical}
+        id="rw-register"
+        role="tabpanel"
+        aria-labelledby={'rw-tab-' + vertical}
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       >
+      <h2 className="sr-only">{(VERTICALS.find((v) => v.key === vertical) || VERTICALS[0]).label}: the register</h2>
       <motion.div className="livestrip" {...fade(0.08)}>
         <button
           className={'news' + (onlyNew ? ' on' : '') + (vertical !== 'facades' || !hasNew ? ' plain' : '')}
@@ -3980,7 +4189,7 @@ export default function App() {
                 <div className="cycle-head">
                   <b>Sub-cycle {cyc}</b>
                   <span>
-                    {mixed ? `${cnt.toLocaleString('en-US')} of ${filteredFeed.length.toLocaleString('en-US')} buildings here · ` : ''}
+                    {mixed && !sliced('facades') ? `${cnt.toLocaleString('en-US')} of ${filteredFeed.length.toLocaleString('en-US')} buildings here · ` : ''}
                     <strong>{elapsed}% of the window is gone</strong> · {monthsToDeadline} months to {usDate(deadline)}
                   </span>
                 </div>
@@ -4032,17 +4241,17 @@ export default function App() {
               ].map(([b, label, line, glyph]) => {
                 const n = b === 'all' ? boroCounts.all : boroCounts[b] || 0;
                 // A borough the current filters empty is dimmed, not shown with
-                // a stale register-wide count.
+                // a stale register-wide count. No count at all while sliced.
                 return (
                   <button
                     key={b}
-                    className={'chip-btn' + (boro === b ? ' on' : '') + (!n && boro !== b ? ' dim' : '')}
+                    className={'chip-btn' + (boro === b ? ' on' : '') + (!n && boro !== b && !sliced('facades') ? ' dim' : '')}
                     aria-pressed={boro === b}
                     onClick={() => setBoro(b)}
                   >
                     {line && <span className={'bullet ' + line} aria-hidden="true">{glyph}</span>}
                     {label}
-                    <small>{n}</small>
+                    <small>{sliced('facades') ? '…' : n}</small>
                   </button>
                 );
               })}
@@ -4051,7 +4260,8 @@ export default function App() {
               const def = COHORTS[k];
               if (!def) return null;
               const n = facadeFeed.filter(def.of).length;
-              if (!n || n === facadeFeed.length) return null;
+              // Which chips the trade gets is register-wide (meta while sliced).
+              if (sliced('facades') ? !data.meta.cohorts.facades[profileKey]?.includes(k) : !n || n === facadeFeed.length) return null;
               return (
                 <button
                   key={k}
@@ -4059,7 +4269,7 @@ export default function App() {
                   aria-pressed={cohort === k}
                   onClick={() => setCohort(cohort === k ? null : k)}
                 >
-                  {def.label} ({n})
+                  {def.label}{sliced('facades') ? '' : ` (${n})`}
                 </button>
               );
             })}
@@ -4097,9 +4307,9 @@ export default function App() {
                 Map
               </button>
             )}
-            <button className="chip-btn" onClick={exportCurrent}>Export CSV</button>
+            <button className="chip-btn" onClick={exportCurrent} disabled={sliced('facades')} title={sliced('facades') ? 'Loading the full register…' : undefined}>Export CSV</button>
             <span className="count">
-              {filteredFeed.length} buildings
+              {sliced('facades') ? 'counting…' : `${filteredFeed.length} buildings`}
               {(() => {
                 const z = zipsIn(query.trim());
                 if (!z) return null;
@@ -4111,7 +4321,15 @@ export default function App() {
 
 
 
-          {filteredFeed.length === 0 && (
+          {/* Over the lite slice an empty list proves nothing: an invitation's
+              ZIPs matched none of the first 24 rows, and "Clear all filters"
+              here wiped the territory the link was built to set. */}
+          {filteredFeed.length === 0 && sliced('facades') && (
+            <div className="empty">
+              <b>Loading the full register…</b>
+            </div>
+          )}
+          {filteredFeed.length === 0 && !sliced('facades') && (
             <div className="empty">
               <b>Nothing matches</b>
               No buildings fit the current search and filters.
@@ -4125,6 +4343,10 @@ export default function App() {
                     setHideBusy(false);
                     setOnlyPortfolio(false);
                     setShowHidden(false);
+                    // Every filter, including the two chips a trade switch can
+                    // leave on without drawing them.
+                    setCohort(null);
+                    setOnlyWorking(false);
                   }}
                 >
                   Clear all filters
@@ -4164,6 +4386,7 @@ export default function App() {
                   }}
                 >
                   <div className="card-row">
+                    <h3 className="card-h">
                     <button
                       className="card-head"
                       aria-expanded={open}
@@ -4216,6 +4439,7 @@ export default function App() {
                         </motion.span>
                       </span>
                     </button>
+                    </h3>
                     <motion.button
                       className={'star' + (isWatched(wkey) ? ' on' : '')}
                       onClick={() => toggleWatch(wkey)}
@@ -4250,8 +4474,8 @@ export default function App() {
                           <div className="sig">
                             <div className="sig-k">
                               Why now
-                              <span className="score" title={`Urgency ${c.urgencyScore}, ranked against the other ${facadeFeed.length} buildings in this register`}>
-                                {urgencyRank(c.urgencyScore)}
+                              <span className="score" title={`Urgency ${c.urgencyScore}, ranked against all ${facadeFeed.length} buildings in this view`}>
+                                {sliced('facades') ? '…' : urgencyRank(c.urgencyScore)}
                               </span>
                             </div>
                             <div className="sig-v">{signalStory(c)}</div>
@@ -4314,7 +4538,7 @@ export default function App() {
                                     <>
                                       <div className="k">Registration changed</div>
                                       <div className="v">
-                                        detected {c.mgmtChange.detected}
+                                        detected {usDate(c.mgmtChange.detected)}
                                         {c.mgmtChange.prevCompany ? ` · was ${title(c.mgmtChange.prevCompany)}` : ''} · HPD daily
                                       </div>
                                     </>
@@ -4540,7 +4764,7 @@ export default function App() {
 
           {shown < filteredFeed.length && (
             <div className="more-row">
-              <button onClick={() => setShown((n) => n + 14)}>Show more buildings ({filteredFeed.length - shown} left)</button>
+              <button onClick={() => setShown((n) => n + 14)}>Show more buildings{sliced('facades') ? '' : ` (${filteredFeed.length - shown} left)`}</button>
             </div>
           )}
         </>
@@ -4575,7 +4799,7 @@ export default function App() {
                     <span className="badge">Won {money(c.amount)}</span>
                   )}
                   {isOpenNotice(c) && <span className="boro">{c.agency}</span>}
-                  <ContactHint phone={c.contact?.phone} mail={Boolean(c.contact?.email)} />
+                  <ContactHint phone={realPhone(c.contact?.phone)} mail={Boolean(firstMail(c.contact?.email))} />
                 </span>
                 <span className="head-side">
                   <span
@@ -4657,10 +4881,10 @@ export default function App() {
                       </div>
                     </div>
                   )}
-                  {isOpenNotice(c) && c.submitTo && (
+                  {isOpenNotice(c) && realText(c.submitTo) && (
                     <div className="fact">
                       <div className="k">Bids to</div>
-                      <div className="v">{c.submitTo}</div>
+                      <div className="v">{realText(c.submitTo)}</div>
                     </div>
                   )}
                   {c.vendorAddress && (
@@ -4680,10 +4904,10 @@ export default function App() {
                 <div className="na-cap">Next action</div>
                 <div className="call-block">
                   <div className="call-who">
-                    <b>{isOpenNotice(c) ? c.contact?.name || c.agency : c.vendor}</b>
+                    <b>{isOpenNotice(c) ? realText(c.contact?.name) || c.agency : c.vendor}</b>
                     <span>
                       {isOpenNotice(c)
-                        ? c.contact?.name
+                        ? realText(c.contact?.name)
                           ? `${c.agency} — named on the notice`
                           : 'No officer named on this notice'
                         : `Opener written for ${profile.cNeed ? profile.label : 'this window'}`}
@@ -4695,13 +4919,13 @@ export default function App() {
                     </button>
                     {/* the city prints this contact so bidders can use it; no
                         search and no guessing */}
-                    {isOpenNotice(c) && c.contact?.phone && (
-                      <a className="btn ghost" onClick={() => track('call_clicked', { card: String(c.id) })} href={`tel:${c.contact.phone.replace(/[^\d+]/g, '')}`}>
-                        {c.contact.phone}
+                    {isOpenNotice(c) && realPhone(c.contact?.phone) && (
+                      <a className="btn ghost" onClick={() => track('call_clicked', { card: String(c.id) })} href={`tel:${realPhone(c.contact.phone).replace(/[^\d+]/g, '')}`}>
+                        {realPhone(c.contact.phone)}
                       </a>
                     )}
-                    {isOpenNotice(c) && c.contact?.email && (
-                      <a className="btn ghost" href={`mailto:${c.contact.email}?subject=${encodeURIComponent(c.title || '')}`}>
+                    {isOpenNotice(c) && firstMail(c.contact?.email) && (
+                      <a className="btn ghost" href={`mailto:${firstMail(c.contact.email)}?subject=${encodeURIComponent(c.title || '')}`}>
                         Email ↗
                       </a>
                     )}
@@ -4741,9 +4965,16 @@ export default function App() {
         <>
           {miniToolbar(mandateList, (data[vertical]?.feed || []).length, { boroughs: true, counts: mandateLists._counts?.[vertical] })}
           {mapPanel(mandateList)}
+          {/* A plumber's ZIPs can miss all 24 lite rows; that is not "none". */}
+          {sliced(vertical) && !mandateRows.length && (
+            <div className="empty">
+              <b>Loading the full register…</b>
+            </div>
+          )}
           <SimpleFeed
             items={mandateRows.slice(0, shown)}
             total={mandateRows.length}
+            sliced={sliced(vertical)}
             shown={shown}
             onMore={() => setShown((n) => n + 7)}
             openId={openId}
@@ -4860,7 +5091,7 @@ export default function App() {
                       <div className="fact">
                         <div className="k">Managing agent</div>
                         <div className="v">
-                          {c.agent.company ? title(c.agent.company) : c.agent.role}
+                          {c.agent.company ? title(c.agent.company) : agentRole(c.agent)}
                           {c.agent.address ? ` — ${title(c.agent.address)}` : ''}
                           {c.agent.portfolio > 1 && (
                             <>
@@ -4895,7 +5126,7 @@ export default function App() {
                           : 'No managing agent named on the HPD registration'}
                       </b>
                       <span>
-                        {ct?.level ? `${c.agent.role} · ${ct.level}` : c.agent ? c.agent.role : 'The building registers itself'}
+                        {ct?.level ? `${agentRole(c.agent)} · ${ct.level}` : c.agent ? agentRole(c.agent) : 'The building registers itself'}
                       </span>
                     </div>
                     <div className="call-actions">
@@ -5006,8 +5237,8 @@ export default function App() {
                       </>
                     ) : (
                       <>
-                        {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — opens in 2–4 months,
-                        choosing vendors now.
+                        {c.kind} license filed{c.daysAgo != null ? ` ${c.daysAgo}d ago` : ''} — about a third of new licences
+                        come before the venue opens, while its vendors are still being chosen.
                       </>
                     )}
                   </div>
@@ -5159,7 +5390,7 @@ export default function App() {
 
       <div className="pilot">
         <div>
-          <b>{(PILOT_COPY[vertical] || PILOT_COPY.facades)[0]}</b>
+          <b role="heading" aria-level="2">{(PILOT_COPY[vertical] || PILOT_COPY.facades)[0]}</b>
           <span>
             {(PILOT_COPY[vertical] || PILOT_COPY.facades)[1]} The open pool above stays free. Pilots are free while we
             learn.
@@ -5316,6 +5547,7 @@ export default function App() {
           )}
         </div>
       </div>
+      </main>
 
       <footer>
         <p>
@@ -5367,7 +5599,8 @@ export default function App() {
   );
 }
 
-function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, nameOf, hashType, isWatched, onWatch, statusOf }) {
+// `sliced`: the list is the lite shell's first rows, so "N left" would count the slice.
+function SimpleFeed({ items, total, sliced, shown, onMore, openId, toggle, reduce, renderHead, renderBody, idOf, nameOf, hashType, isWatched, onWatch, statusOf }) {
   return (
     <>
       <div className="feed">
@@ -5392,6 +5625,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
               }}
             >
               <div className="card-row">
+                <h3 className="card-h">
                 <button
                   className="card-head"
                   aria-expanded={open}
@@ -5411,6 +5645,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
                     <Chevron />
                   </motion.span>
                 </button>
+                </h3>
                 <motion.button
                   className={'star' + (isWatched(c) ? ' on' : '')}
                   onClick={() => onWatch(c)}
@@ -5450,7 +5685,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
       </div>
       {shown < total && (
         <div className="more-row">
-          <button onClick={onMore}>Show more ({total - shown} left)</button>
+          <button onClick={onMore}>Show more{sliced ? '' : ` (${total - shown} left)`}</button>
         </div>
       )}
     </>

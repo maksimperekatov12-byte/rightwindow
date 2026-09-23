@@ -4,6 +4,12 @@
 import { removeSubscriber, suppress } from '../lib/leads.mjs';
 import { unsubOk } from '../lib/unsub.mjs';
 
+// The address goes back onto the page, and a valid signature does not make it
+// safe markup: we sign whatever address prefs holds, and prefs accepts a quoted
+// local part such as "<svg/onload=…>"@example.com. Escaped, it is only text.
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const q = new URL(req.url, 'https://rightwindow.nyc').searchParams;
@@ -28,7 +34,11 @@ export default async function handler(req, res) {
     return res.end('Unsubscribed.');
   }
   res.setHeader('content-type', 'text/html; charset=utf-8');
+  // The page is one paragraph and a link: nothing on it needs to run.
+  res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'");
+  // Signing up again no longer lifts an unsubscribe (anyone can post anyone's
+  // address to the sign-up form), so the way back is a person: a reply.
   return res.end(
-    `<meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:-apple-system,sans-serif;max-width:420px;margin:80px auto;padding:0 20px;color:#101613"><h2 style="font-weight:600">You are unsubscribed.</h2><p style="color:#5F6F69">${email} will get no more email from Right Window. Signing up again on the site turns it back on.</p><p><a href="https://rightwindow.nyc/" style="color:#14594A">rightwindow.nyc</a></p></body>`,
+    `<meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:-apple-system,sans-serif;max-width:420px;margin:80px auto;padding:0 20px;color:#101613"><h2 style="font-weight:600">You are unsubscribed.</h2><p style="color:#5F6F69">${esc(email)} will get no more email from Right Window. Reply to any of our emails to turn it back on.</p><p><a href="https://rightwindow.nyc/" style="color:#14594A">rightwindow.nyc</a></p></body>`,
   );
 }

@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   const key = String(action.value || '');
   const who = payload.user?.name || payload.user?.username || 'someone';
 
-  if (action.action_id === 'claim' && /^[bco]:[\w-]{1,40}$/.test(key)) {
+  if (action.action_id === 'claim' && /^[bcgeko]:[\w-]{1,40}$/.test(key)) {
     let taken = false;
     await updateDoc(CLAIMS, (doc) => {
       if (doc[key]) { taken = true; return null; }

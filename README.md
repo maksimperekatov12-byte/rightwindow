@@ -211,6 +211,7 @@ Wallet passes via `passkit-generator` and APNs over HTTP/2.
 ```bash
 npm install
 npm run collect     # rebuild src/data/feed.json from live city APIs (~3 min)
+npm run backtest    # re-derive data/evidence.json: do facade signals lead to a purchase?
 npm run dev         # http://localhost:5205
 ```
 

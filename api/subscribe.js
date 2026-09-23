@@ -13,7 +13,7 @@
 // work. It starts storing the moment STORAGE_DRIVER=r2 is configured, with no
 // further change here.
 import { canStorePrivate } from '../lib/artifacts.mjs';
-import { addSubscriber, unsuppress } from '../lib/leads.mjs';
+import { addSubscriber, isSuppressed } from '../lib/leads.mjs';
 import { mailHeaders, unsubUrl, unsubSig } from '../lib/unsub.mjs';
 
 const EMAIL = /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i;
@@ -110,13 +110,23 @@ export default async function handler(req, res) {
 
   try {
     // One file per address — subscribing twice rewrites the same file, which is
-    // why a duplicate is a success rather than an error. Signing up again also
-    // lifts any suppression: consent renewed is consent.
-    const { already } = await addSubscriber({ email, profile, boro });
-    await unsuppress(email).catch(() => {});
+    // why a duplicate is a success rather than an error.
+    //
+    // Anyone can post anyone's address here, so two things this endpoint used
+    // to do are gone. It lifted a suppression ("consent renewed is consent"),
+    // which let a stranger undo the recipient's own unsubscribe in one request;
+    // an address that opted out now stays out. And it sent a confirmation on
+    // every POST, so a loop turned our signed domain into a mail cannon; now a
+    // repeat within a day sends nothing. The response does not change either
+    // way, so it cannot be used to learn who has unsubscribed.
+    const suppressed = await isSuppressed(email);
+    const { already, prevUpdated } = await addSubscriber({ email, profile, boro });
+    const recent = Boolean(prevUpdated) && Date.now() - Date.parse(prevUpdated) < 864e5;
 
-    const mail = await confirm(email, profile);
-    return res.status(200).json({ ok: true, already, confirmation: mail.sent, note: mail.reason || undefined });
+    const mail = suppressed || recent ? { sent: false } : await confirm(email, profile);
+    // "Does not change" has to include this field: a suppressed address
+    // answers as a first sign-up would.
+    return res.status(200).json({ ok: true, already, confirmation: suppressed || mail.sent, note: suppressed ? undefined : mail.reason || undefined });
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'That did not save on our side.' });
   }

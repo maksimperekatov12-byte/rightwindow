@@ -26,8 +26,12 @@ export default function DataPage({ data, live, onBack, isDark, onTheme }) {
     ['elevators', 'Elevators'],
     ['gas', 'Gas piping (LL152)'],
   ];
+  // A register the lite shell holds only the first rows of is read from its
+  // register-wide meta until the full feed lands: counted off the slice, every
+  // row read 24 cards and the order contradicted the paragraph under it.
   const coverage = [
     ...REGS.map(([key, label]) => {
+      if (data.lite && data.meta.sliced.includes(key)) return { key, label, cards: data.meta[key], reached: data.meta.reached[key] };
       const rows = data[key]?.feed || [];
       return { key, label, cards: rows.length, reached: rows.filter((c) => c.agent?.contactKnown).length };
     }),
