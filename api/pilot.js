@@ -7,7 +7,7 @@
 // morning. A duplicate address is a success — somebody re-reading their own
 // email and clicking again must not be told off.
 import { canStorePrivate } from '../lib/artifacts.mjs';
-import { addSubscriber, unsuppress } from '../lib/leads.mjs';
+import { addSubscriber, isSuppressed } from '../lib/leads.mjs';
 import { savePilot, logEvent, PILOT_DAYS } from '../lib/pilots.mjs';
 import { mailHeaders, unsubUrl } from '../lib/unsub.mjs';
 
@@ -34,23 +34,28 @@ const readBody = (req) =>
 const clean = (s, max) => String(s || '').replace(/["'<>`\\]/g, '').trim().slice(0, max);
 
 // The link that brought them is the link that goes back: the confirmation
-// opens the same list they were looking at when they signed up.
-function inviteLink({ trade, zips, reg, ref, company }) {
+// opens the same list they were looking at when they signed up. It leaves out
+// the `for=` greeting (the company they typed) for the reason below; the
+// morning digest's own link never carried it either.
+function inviteLink({ trade, zips, reg, ref }) {
   const u = new URL(SITE);
   if (trade) u.searchParams.set('trade', trade);
   if (zips.length) u.searchParams.set('zips', zips.join(','));
   if (reg && reg !== 'facades') u.searchParams.set('reg', reg);
-  if (company) u.searchParams.set('for', company);
   if (ref) u.searchParams.set('ref', ref);
   return u.toString();
 }
 
-async function confirm({ email, company, zips, link, until }) {
+// The mail carries no free text from the request. It used to open with the
+// `company` field, so anyone could post any address with a company of "Verify
+// your account at …" and have us sign and send that sentence to a stranger.
+// The company is still stored with the pilot.
+async function confirm({ email, zips, link, until }) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { sent: false, reason: 'no RESEND_API_KEY in this environment' };
   const where = zips.length ? `ZIPs ${zips.join(', ')}` : 'your registers';
   const text =
-    `Your pilot is on${company ? `, ${company}` : ''}.\n\n` +
+    `Your pilot is on.\n\n` +
     `Every morning you get what the city published overnight for ${where} — and nothing on a quiet day.\n\n` +
     `Your list: ${link}\n\n` +
     `Free until ${until}. Three cards stay reserved to you at a time; nobody else sees them while they are yours.\n\n` +
@@ -67,7 +72,7 @@ async function confirm({ email, company, zips, link, until }) {
         text,
         html:
           '<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;color:#101613;line-height:1.6">' +
-          `<p>Your pilot is on${company ? `, <b>${company}</b>` : ''}.</p>` +
+          '<p>Your pilot is on.</p>' +
           `<p>Every morning you get what the city published overnight for <b>${where}</b> — and nothing on a quiet day.</p>` +
           `<p><a href="${link}" style="color:#14594A">Open your list</a></p>` +
           `<p>Free until ${until}. Three cards stay reserved to you at a time; nobody else sees them while they are yours.</p>` +
@@ -101,13 +106,18 @@ export default async function handler(req, res) {
     return res.status(503).json({ ok: false, error: 'We cannot store sign-ups yet on our side.' });
 
   try {
-    const { record, already } = await savePilot({ email, company, trade, zips, ref, reg });
+    // Same rules as /api/subscribe, for the same reason: anyone can post any
+    // address. An address that unsubscribed stays unsubscribed (the digest
+    // skips it too), and a repeat within a day sends no second confirmation.
+    // The response is the same either way, so it reveals nothing.
+    const suppressed = await isSuppressed(email);
+    const { record, already, prevUpdated } = await savePilot({ email, company, trade, zips, ref, reg });
     // The pilot IS a subscriber; the digest reads both stores.
     await addSubscriber({ email, profile: trade, boro: null });
-    await unsuppress(email).catch(() => {});
+    const recent = Boolean(prevUpdated) && Date.now() - Date.parse(prevUpdated) < 864e5;
     const until = record.until.slice(0, 10);
-    const link = inviteLink({ trade, zips, reg, ref, company });
-    const mail = await confirm({ email, company, zips, link, until });
+    const link = inviteLink({ trade, zips, reg, ref });
+    const mail = suppressed || recent ? { sent: false } : await confirm({ email, zips, link, until });
     logEvent({ kind: 'pilot_started', ref, trade, zips, reg, sid: clean(body?.sid, 40) || null }).catch(() => {});
     return res.status(200).json({ ok: true, already, until, link, confirmation: mail.sent, note: mail.reason || undefined });
   } catch (e) {

@@ -25,6 +25,9 @@ const COOLDOWN_MS = 45 * 60 * 1000; // never more than one interruption per 45 m
 const prefsDoc = await readDoc(PREFS);
 let slackSent = 0, mailSent = 0, users = 0, seeded = 0, cooled = 0;
 const touched = new Map();
+// One alert email per address per run, however many uids name it: anyone can
+// point a fresh uid at any address, and each would otherwise mail it again.
+const mailed = new Set();
 
 for (const pref of Object.values(prefsDoc)) {
   // Interruptions are for people who told us their trade. The daily digest
@@ -69,7 +72,14 @@ for (const pref of Object.values(prefsDoc)) {
     sent.add(`${it.kind}:${it.id}`);
   }
 
-  if (!slack && email && process.env.RESEND_API_KEY && !suppressed.has(String(email).toLowerCase())) {
+  if (
+    !slack &&
+    email &&
+    process.env.RESEND_API_KEY &&
+    !suppressed.has(String(email).toLowerCase()) &&
+    !mailed.has(String(email).toLowerCase())
+  ) {
+    mailed.add(String(email).toLowerCase());
     const rows = hits
       .map(
         (i) =>

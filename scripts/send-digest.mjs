@@ -50,6 +50,9 @@ const prefsDoc = await readDoc(PREFS);
 const everyone = Object.values(prefsDoc);
 let mail = 0, slack = 0, skipped = 0;
 const touched = new Map();
+// One digest per address per run. Anyone can point a fresh uid at any address,
+// so without this N uids would mean N copies of the digest in one inbox.
+const mailed = new Set();
 for (const pref of everyone) {
   if (!pref) { skipped++; continue; }
   // A visitor who never picked a trade is exploring: the site shows them every
@@ -77,8 +80,10 @@ for (const pref of everyone) {
     email &&
     process.env.RESEND_API_KEY &&
     /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) &&
-    !suppressed.has(email.toLowerCase())
+    !suppressed.has(email.toLowerCase()) &&
+    !mailed.has(email.toLowerCase())
   ) {
+    mailed.add(email.toLowerCase());
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
