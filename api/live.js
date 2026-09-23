@@ -7,6 +7,51 @@
 // ever computed per uid.
 import { readJsonSoft } from '../lib/store.mjs';
 import { fetchLive, fetchContacts } from '../lib/live-source.mjs';
+import { republishableEmail, republishableVia, namesAPerson } from '../lib/provenance.mjs';
+import { isPersonToken, looksPersonal } from '../lib/personal.mjs';
+
+const PHONE = /^\+1-\d{3}-\d{3}-\d{4}$/;
+// The same shape lib/live-source.mjs holds the branch copy to: this string ends
+// up in a mailto: in somebody's browser.
+const MAIL_SHAPE = /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i;
+
+// The private store holds EVERY resolved row — scripts/push-contacts.mjs writes
+// the ungated map there — and this endpoint answers anyone, with no uid, in one
+// cached GET. Merged raw, that response carried 175 mailboxes the project's own
+// gate calls personal, 18 via notes naming someone and 3 rows naming a person:
+// a bulk download of exactly what the branch artefact was built to keep out.
+//
+// So a stored row reaches a browser only as the publication gate would pass it.
+// The directory-tier phone survives, because showing a labelled directory number
+// on a card is a disclosed product choice; the person does not. The via note is
+// cut back to the firm BEFORE the name test runs, so a row whose only fault is a
+// name in its via keeps its phone. A row the gate rejects outright is simply not
+// merged, and the card falls back to its vetted branch row — fail closed.
+export function gateStored(m) {
+  const out = {};
+  for (const [bin, r] of Object.entries(m && typeof m === 'object' ? m : {})) {
+    if (!/^\d{1,9}$/.test(bin) || !r || typeof r !== 'object') continue;
+    const phone = typeof r.phone === 'string' && PHONE.test(r.phone) ? r.phone : null;
+    const email =
+      typeof r.email === 'string' &&
+      MAIL_SHAPE.test(r.email) &&
+      republishableEmail(r.email, isPersonToken, looksPersonal)
+        ? r.email
+        : null;
+    const via = typeof r.via === 'string' && r.via.length < 120 ? republishableVia(r.via, looksPersonal) : null;
+    if (!phone && !email) continue;
+    const row = {
+      phone,
+      email,
+      confidence: ['verified', 'listed', 'affiliate'].includes(r.confidence) ? r.confidence : 'listed',
+      ...(typeof r.source === 'string' && r.source.length < 200 ? { source: r.source } : {}),
+      ...(via ? { via } : {}),
+    };
+    if (Object.values(row).some((v) => typeof v === 'string' && namesAPerson(v, looksPersonal))) continue;
+    out[bin] = row;
+  }
+  return out;
+}
 
 export default async function handler(req, res) {
   const uid = String(req.query.uid || '');
@@ -19,12 +64,14 @@ export default async function handler(req, res) {
   // never what any licence restricted, so with the store alive again (Pro,
   // 2026-08-31) a card gets the fullest contact we resolved, and the branch
   // remains both the CDN fast path and the fallback when the store blinks.
+  // "One card at a time" is not what this response is, though — it is the whole
+  // map in one GET — so the stored half passes through gateStored() first.
   const [live, branch, stored] = await Promise.all([
     fetchLive(),
     fetchContacts(),
     readJsonSoft('contacts.json'),
   ]);
-  const contacts = { ...(branch || {}), ...(stored || {}) };
+  const contacts = { ...(branch || {}), ...gateStored(stored) };
   // "No contacts" must not be cached as though it were an answer. Before the
   // first publish, or during a branch outage, an empty map pinned at the edge
   // for two minutes is every card in the product saying there is nobody to ring.
