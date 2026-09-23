@@ -3453,6 +3453,7 @@ export default function App() {
         </div>
       </header>
 
+      <main>
       {/* What the product is, stated once, above the register tabs. The
           per-register headline below says what THIS list is; a stranger who
           arrives from a cold email needs the sentence before that one. */}
@@ -3467,11 +3468,16 @@ export default function App() {
       </motion.section>
 
       <LayoutGroup>
-        <div className="verticals" role="tablist" aria-label="Pick a register">
+        <div className="verticals">
+        {/* role=tablist holds tabs only: "+3 more" is not a tab, so it sits
+            beside this wrapper, inside the same glass strip. */}
+        <div className="vtabs" role="tablist" aria-label="Pick a register">
           {visibleVerts.map((v) => (
             <button
               key={v.key}
               role="tab"
+              id={'rw-tab-' + v.key}
+              aria-controls="rw-register"
               aria-selected={vertical === v.key}
               tabIndex={vertical === v.key ? 0 : -1}
               className={vertical === v.key ? 'on' : ''}
@@ -3502,6 +3508,7 @@ export default function App() {
               <span className="tlabel">{v.label}</span>
             </button>
           ))}
+        </div>
           {hiddenVertCount > 0 && (
             <button className="vmore" onClick={openRow}>
               +{hiddenVertCount} more
@@ -3870,18 +3877,22 @@ export default function App() {
           )}
 
         </section>
-      {/* The hero map on desktop; on a phone it moves BELOW the feed — the
-          first card inside 1.2 screens beats the visual, and the drawing is
-          still there for whoever scrolls. */}
+      {/* The hero map: beside the headline on desktop; on a phone it sits
+          between the headline and the feed, as the static outline until it
+          has been scrolled into view (heroScene), then as the live map. */}
         {mapSlot}
       </div>
 
       <motion.div
         key={vertical}
+        id="rw-register"
+        role="tabpanel"
+        aria-labelledby={'rw-tab-' + vertical}
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       >
+      <h2 className="sr-only">{(VERTICALS.find((v) => v.key === vertical) || VERTICALS[0]).label}: the register</h2>
       <motion.div className="livestrip" {...fade(0.08)}>
         <button
           className={'news' + (onlyNew ? ' on' : '') + (vertical !== 'facades' || !hasNew ? ' plain' : '')}
@@ -4179,6 +4190,7 @@ export default function App() {
                   }}
                 >
                   <div className="card-row">
+                    <h3 className="card-h">
                     <button
                       className="card-head"
                       aria-expanded={open}
@@ -4231,6 +4243,7 @@ export default function App() {
                         </motion.span>
                       </span>
                     </button>
+                    </h3>
                     <motion.button
                       className={'star' + (isWatched(wkey) ? ' on' : '')}
                       onClick={() => toggleWatch(wkey)}
@@ -5174,7 +5187,7 @@ export default function App() {
 
       <div className="pilot">
         <div>
-          <b>{(PILOT_COPY[vertical] || PILOT_COPY.facades)[0]}</b>
+          <b role="heading" aria-level="2">{(PILOT_COPY[vertical] || PILOT_COPY.facades)[0]}</b>
           <span>
             {(PILOT_COPY[vertical] || PILOT_COPY.facades)[1]} The open pool above stays free. Pilots are free while we
             learn.
@@ -5331,6 +5344,7 @@ export default function App() {
           )}
         </div>
       </div>
+      </main>
 
       <footer>
         <p>
@@ -5407,6 +5421,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
               }}
             >
               <div className="card-row">
+                <h3 className="card-h">
                 <button
                   className="card-head"
                   aria-expanded={open}
@@ -5426,6 +5441,7 @@ function SimpleFeed({ items, total, shown, onMore, openId, toggle, reduce, rende
                     <Chevron />
                   </motion.span>
                 </button>
+                </h3>
                 <motion.button
                   className={'star' + (isWatched(c) ? ' on' : '')}
                   onClick={() => onWatch(c)}

@@ -250,6 +250,10 @@ a.logo { color: inherit; text-decoration: none; }
 .verticals button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .verticals button.on { color: #fff; }
 .verticals .vpill { position: absolute; inset: 0; background: var(--pill); border-radius: 9px; z-index: 0; }
+/* The tablist is an inner row so that "+3 more", which is not a tab, can sit
+   beside it inside the same strip. It lays its tabs out exactly as the strip
+   did. */
+.verticals .vtabs { display: flex; gap: inherit; flex-wrap: inherit; }
 .tlabel { position: relative; z-index: 1; }
 
 /* ---------- hero + stats: desktop side by side ---------- */
@@ -357,6 +361,9 @@ a.logo { color: inherit; text-decoration: none; }
 
 .card-row { display: flex; align-items: stretch; }
 .card-row .card-head { flex: 1 1 auto; min-width: 0; }
+/* Each card head is wrapped in an h3 (h3 > button, the accordion pattern) so a
+   screen reader can step card to card. The heading itself draws nothing. */
+.card-h { display: flex; flex: 1 1 auto; min-width: 0; margin: 0; font: inherit; letter-spacing: inherit; color: inherit; }
 .card-head {
   display: flex; align-items: center; gap: 12px; width: 100%;
   padding: 13px 14px; min-height: 56px;
@@ -1352,6 +1359,7 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   .verticals .vmore { font-size: 11px; padding: 8px 8px; }
   .verticals::-webkit-scrollbar { display: none; }
   .verticals button { white-space: nowrap; flex: none; }
+  .verticals .vtabs { flex: none; }
 
   .top { padding: 7px 12px; gap: 4px 8px; margin: 8px 0 4px; }
   .logo b { font-size: 18px; }
