@@ -1528,10 +1528,23 @@ export default function App() {
         setProfileKey(t);
         saveLS('rw.profile', t);
         setShowOnboard(false);
+        // Same statement as pickProfile: choosing a trade takes a card link's
+        // pin off, or the new trade opens on the old link's register.
+        forcedVert.current = '';
+        pickedVert.current = false;
+        setVertical(homeVertical(t));
       }
       // A card link pasted into an open tab must open that card, not just
-      // change the address bar.
-      if (/^#(b|c|g|e|k|o)\//.test(location.hash)) setHashTick((n) => n + 1);
+      // change the address bar — and pin its register like an arriving link,
+      // or "open where the work is" bounces it and the whole list mounts. Like
+      // an arriving link it also stops the auto-open, which opened the new
+      // register's top card over the linked one.
+      const reg = cardLinkReg();
+      if (reg) {
+        forcedVert.current = reg;
+        deepLinked.current = true;
+        setHashTick((n) => n + 1);
+      }
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -1718,9 +1731,13 @@ export default function App() {
     saveLS('rw.closeRate', r);
   };
 
+  // The query stays wherever the address falls back to the path — here, and
+  // when a card closes or the data page goes back to the feed: it carries an
+  // invitation's trade, ZIPs, ref and greeting, and the bare path lost all
+  // four on a reload.
   const goTrade = (k) => {
     try {
-      history.replaceState(null, '', k === 'explore' ? location.pathname : `#t/${k}`);
+      history.replaceState(null, '', k === 'explore' ? location.pathname + location.search : `#t/${k}`);
     } catch {}
   };
 
@@ -2078,7 +2095,10 @@ export default function App() {
     return ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'].filter((b) => pool.some((c) => (c.borough || c.county) === b));
   };
   // A sort that does not exist on the register you just switched to would leave
-  // the control showing nothing while the list quietly reordered itself.
+  // the control showing nothing while the list quietly reordered itself. The
+  // same goes for filters: keyed on the trade as well, because a cohort chip
+  // belongs to the trade's own list, and switching trade on the same register
+  // left the old cohort filtering with no chip lit to say so.
   useEffect(() => {
     const allowed = (REG_SORTS[vertical] || []).map(([v]) => v);
     if (allowed.length && !allowed.includes(sortMode)) setSortMode(allowed[0]);
@@ -2087,7 +2107,12 @@ export default function App() {
     if (vertical === 'carbon' && sortMode === 'profile') setSortMode('exposure');
     const chips = vertical === 'facades' ? profile.cohorts || [] : REG_COHORTS[vertical] || [];
     if (cohort && !chips.includes(cohort)) setCohort(null);
-  }, [vertical]);
+    // A borough this register draws no chip for (Staten Island, picked on
+    // openings) filtered it to nothing with no chip lit — and it is saved, so
+    // the next visit opened on "Nothing matches".
+    const offered = boroughsOn(vertical);
+    if (boro !== 'all' && offered && !offered.includes(boro)) setBoro('all');
+  }, [vertical, profileKey]);
 
   // Two shapes of the same list: the feed renders the grouped rows, everything
   // that counts or maps buildings works on the flat one.
@@ -2102,6 +2127,11 @@ export default function App() {
         if (cohort && !(COHORTS[cohort]?.of(o) ?? true)) return false;
         const q = deferredQuery.trim().toLowerCase();
         if (!q) return true;
+        // A ZIP territory, as on the building registers. Matched as one string,
+        // "11201 11205" was a substring of nothing, and a venue trade's
+        // two-ZIP invitation opened on an empty register.
+        const zips = zipsIn(q);
+        if (zips) return Boolean(o.zip) && zips.includes(o.zip);
         return [o.name, o.identity, o.legal, o.address, o.county, o.kind, o.zip, o.phone]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
@@ -2291,6 +2321,12 @@ export default function App() {
   // scrolling four hundred rows looking for amber dots.
   const isWorking = (k) => ['contacted', 'won'].includes(fb[k]?.s);
   const workingCount = Object.keys(fb).filter((k) => k.startsWith(vertPrefix) && isWorking(k)).length;
+  // The Working chip is drawn only while this register holds something marked
+  // Contacted or Won; a filter left on where the chip is not drawn emptied the
+  // list with nothing on screen to switch it off.
+  useEffect(() => {
+    if (onlyWorking && !workingCount) setOnlyWorking(false);
+  }, [onlyWorking, workingCount]);
   const wn = { ...(data.whatsNew || { buildings: 0, signals: 0, gas: 0, contracts: 0, openings: 0 }), ...(live?.whatsNew || {}) };
   // Scoped to the registers this trade can see and to its own pools: a POS shop
   // used to read "5 fresh signals · 27 contracts" on the openings register, and
@@ -2578,7 +2614,7 @@ export default function App() {
     if (!wasOpen) track('card_expanded', { card: String(id) });
     setOpenId(wasOpen ? null : id);
     try {
-      history.replaceState(null, '', wasOpen ? location.pathname : `#${type}/${id}`);
+      history.replaceState(null, '', wasOpen ? location.pathname + location.search : `#${type}/${id}`);
     } catch {}
   };
 
@@ -3198,7 +3234,7 @@ export default function App() {
         isDark={isDark}
         onTheme={toggleTheme}
         onBack={() => {
-          history.replaceState(null, '', location.pathname);
+          history.replaceState(null, '', location.pathname + location.search);
           setRoute('feed');
         }}
       />
@@ -4195,6 +4231,10 @@ export default function App() {
                     setHideBusy(false);
                     setOnlyPortfolio(false);
                     setShowHidden(false);
+                    // Every filter, including the two chips a trade switch can
+                    // leave on without drawing them.
+                    setCohort(null);
+                    setOnlyWorking(false);
                   }}
                 >
                   Clear all filters
