@@ -200,7 +200,7 @@ const frameFor = (rows) => (rows.length > 150 ? CITY_FRAME : boundsOf(rows));
 // are cached by the browser, so the cost is a rebuild of the vector layers, and
 // each instance owns its whole lifecycle, which is far simpler than moving a
 // live WebGL canvas between containers.
-function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip = false }) {
+function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip = false, cooperative = false }) {
   const host = useRef(null);
   const mapRef = useRef(null);
   const [tip, setTip] = useState(null);
@@ -212,6 +212,14 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
 
   const located = rows;
   const data = useMemo(() => toGeoJSON(located), [located]);
+  // The map's handlers are registered once, when it loads, but the list they
+  // resolve a feature's index against changes with every filter. Read through
+  // refs: a closure over the first render's list made a click on a Queens dot,
+  // after the Queens chip, open a building in Manhattan.
+  const locRef = useRef(located);
+  locRef.current = located;
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   useEffect(() => {
     const el = host.current;
@@ -246,6 +254,10 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
       // the fly-in still pitches when a card is opened.
       pitch: 0,
       attributionControl: { compact: true },
+      // On a touch screen the in-page map must not swallow the page scroll: a
+      // swipe that started on it panned Manhattan and the page stayed put. One
+      // finger scrolls the page, two move the map, a tap still opens a pin.
+      cooperativeGestures: cooperative && window.matchMedia('(pointer: coarse)').matches,
     });
     // Zoom buttons and a pitch-aware compass: the ask was zoom in and out, so
     // the controls are explicit rather than wheel-only.
@@ -262,7 +274,8 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
     // far out. One refit once everything has settled.
     map.once('idle', () => {
       map.resize();
-      if (located.length) map.fitBounds(frameFor(located), { padding: 40, maxZoom: 15, duration: 0 });
+      const L = locRef.current;
+      if (L.length) map.fitBounds(frameFor(L), { padding: 40, maxZoom: 15, duration: 0 });
     });
     map.on('movestart', () => {
       delete el.dataset.mapIdle;
@@ -283,8 +296,10 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
         source: 'nyc-edge',
         paint: { 'line-color': colors.line || 'rgba(15,30,26,0.25)', 'line-width': 1 },
       });
-      map.addSource('cards-pts', { type: 'geojson', data: data.pts });
-      map.addSource('cards', { type: 'geojson', data: data.polys });
+      // The list can change while the style is still on the wire (the lite
+      // feed gives way to the full one); load with whatever is current now.
+      map.addSource('cards-pts', { type: 'geojson', data: dataRef.current.pts });
+      map.addSource('cards', { type: 'geojson', data: dataRef.current.polys });
       // Far out, a dot; close in, the extruded column. The crossover leaves no
       // zoom where the register is invisible.
       map.addLayer({
@@ -322,7 +337,7 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
           return;
         }
         map.getCanvas().style.cursor = 'pointer';
-        const r = located[hits[0].properties.i];
+        const r = locRef.current[hits[0].properties.i];
         if (r) setTip({ x: e.point.x, y: e.point.y, card: r.card });
       });
       map.on('click', (e) => {
@@ -331,7 +346,7 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
           setPin(null);
           return;
         }
-        const r = located[hits[0].properties.i];
+        const r = locRef.current[hits[0].properties.i];
         if (!r) return;
         const [lat, lon] = r.card.ll;
         // Fly to the building — the zoom IS the answer to "where is this" —
@@ -366,11 +381,16 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
     const map = mapRef.current;
     if (!map) return;
     const apply = () => {
-      map.getSource('cards-pts')?.setData(data.pts);
-      map.getSource('cards')?.setData(data.polys);
-      if (located.length) map.fitBounds(frameFor(located), { padding: 40, maxZoom: 15, duration: 700 });
+      map.getSource('cards-pts')?.setData(dataRef.current.pts);
+      map.getSource('cards')?.setData(dataRef.current.polys);
+      const L = locRef.current;
+      if (L.length) map.fitBounds(frameFor(L), { padding: 40, maxZoom: 15, duration: 700 });
     };
-    if (map.isStyleLoaded()) apply();
+    // Not isStyleLoaded(): that is false whenever a tile is still loading, and
+    // 'load' fires only once, so a filter changed mid-flight (every dot click
+    // flies the camera) waited for an event that never came and left the old
+    // dots on the map. The source existing is what apply() needs.
+    if (map.getSource('cards-pts')) apply();
     else map.once('load', apply);
     // A popup pinned to a card the filters just removed would hang over nothing.
     setPin(null);
@@ -460,6 +480,13 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
   );
 }
 
+// Dates the way the rest of the product prints them ("Nov 6, 2026"), not the
+// ISO string the feed stores.
+const usDay = (iso) => {
+  const d = new Date(String(iso).length <= 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 // The lines that separate one card from its neighbours, for the expanded view:
 // whatever this register actually knows about the building.
 function tipExtras(c, limit = 5) {
@@ -468,8 +495,8 @@ function tipExtras(c, limit = 5) {
   else if (c.ghg) out.push(`${c.ghg.t.toLocaleString('en-US')} tCO2e reported (CY${c.ghg.y})`);
   if (c.finesOwed > 0) out.push(`$${Math.round(c.finesOwed).toLocaleString('en-US')} assessed`);
   if (c.ecbBalance > 0) out.push(`$${Math.round(c.ecbBalance).toLocaleString('en-US')} unpaid at OATH`);
-  if (c.nextHearing) out.push(`hearing ${c.nextHearing}`);
-  if (c.laa) out.push(c.laa.filed ? `gas work filed ${c.laa.filed}` : 'gas work in pre-filing');
+  if (c.nextHearing) out.push(`hearing ${usDay(c.nextHearing)}`);
+  if (c.laa) out.push(c.laa.filed ? `gas work filed ${usDay(c.laa.filed)}` : 'gas work in pre-filing');
   if (c.devices) out.push(`${c.devices} device${c.devices > 1 ? 's' : ''} · CAT1 ${c.lastCat1 ?? 'never filed'}`);
   if (c.filing?.cost > 0) out.push(`$${Math.round(c.filing.cost).toLocaleString('en-US')} declared job cost`);
   if (c.monthsLeft != null) out.push(`${c.monthsLeft} mo to deadline`);
@@ -500,9 +527,21 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, conta
   const [big, setBig] = useState(startBig);
   const [cut, setCut] = useState('all');
 
+  // Callers wrap their list afresh on every render (`list.map((card) => ({ card }))`),
+  // and the page re-renders on a 30-second clock. A new array each time re-ran
+  // the data effect below: it closed a pinned popup and flew a zoomed-in camera
+  // back out to the city with nobody touching anything. Keep the previous
+  // wrapper while it wraps the same cards in the same order.
+  const stableRef = useRef(rows);
+  {
+    const p = stableRef.current;
+    if (p !== rows && !(p.length === rows.length && p.every((r, i) => r.card === rows[i].card))) stableRef.current = rows;
+  }
+  const stableRows = stableRef.current;
+
   const located = useMemo(
-    () => rows.filter((r) => Array.isArray(r.card.ll) && r.card.ll.length === 2),
-    [rows],
+    () => stableRows.filter((r) => Array.isArray(r.card.ll) && r.card.ll.length === 2),
+    [stableRows],
   );
 
   const cutCounts = useMemo(() => {
@@ -565,7 +604,7 @@ export default function CityMap({ rows, colors, reduced, onPick, describe, conta
   return (
     <div className="citymap-wrap">
       <div className={'citymap' + (compact ? ' compact' : '')}>
-        <MapSurface rows={shown} colors={colors} onPick={onPick} describe={describe} contactFor={contactFor} />
+        <MapSurface rows={shown} colors={colors} onPick={onPick} describe={describe} contactFor={contactFor} cooperative />
         <div className="citymap-topbar">
           <button className="citymap-big" onClick={() => setBig(true)} title="Expand the map to the whole window">
             ⤢ Expand

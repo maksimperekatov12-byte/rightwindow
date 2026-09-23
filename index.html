@@ -27,7 +27,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- The web fonts must never hold up the page. As a plain stylesheet this
+       link blocked first paint AND the app's module script, so a slow answer
+       from fonts.googleapis.com was a blank screen after the app had already
+       arrived. Now it is fetched at once (preload) and applied when it lands
+       (the media swap); until the faces arrive the page is set in fallback
+       faces sized to match them (index.css), so the swap repaints the glyphs
+       without moving a line. The faces are not requested any earlier than the
+       text that uses them: fetching them eagerly made them compete with the
+       app's own script for a slow connection, and the matched fallbacks
+       already make a late swap harmless. -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" media="print" onload="this.onload=null;this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" /></noscript>
 </head>
 <body>
   <div id="root"></div>
