@@ -12,6 +12,7 @@ import { NO_LESSON, reasonsFor, reasonsForFeed, rulesFrom, taughtAway as taughtB
 import { resolveMoney, defaultCapacity, medianOf } from '../lib/deal-basis.mjs';
 import { SOURCES, newestStamp } from '../lib/sources.mjs';
 import TradesPage from './Trades.jsx';
+import EvidencePage from './Evidence.jsx';
 
 const YEAR = new Date().getFullYear();
 
@@ -1240,11 +1241,13 @@ function saveLS(key, v) {
 }
 
 export default function App() {
-  // Routes: #data, #trades, #t/<trade>, or the feed. A trade in the URL means a
-  // link can be sent to one contractor and open already set up for his work.
+  // Routes: #data, #trades, #evidence, #t/<trade>, or the feed. A trade in the
+  // URL means a link can be sent to one contractor and open already set up for
+  // his work.
   const routeFromHash = () => {
     if (location.hash === '#data') return 'data';
     if (location.hash === '#trades') return 'trades';
+    if (location.hash === '#evidence') return 'evidence';
     return 'feed';
   };
   const initialRoute = routeFromHash();
@@ -3322,6 +3325,21 @@ export default function App() {
         }}
         onBack={() => {
           goTrade(profileKey || 'explore');
+          setRoute('feed');
+        }}
+      />
+    );
+
+  // The answer to "does the window lead to a sale?", read from the backtest's
+  // own file. The page fetches that file itself, so it opens before the feed
+  // has loaded and costs the feed nothing.
+  if (route === 'evidence')
+    return (
+      <EvidencePage
+        isDark={isDark}
+        onTheme={toggleTheme}
+        onBack={() => {
+          history.replaceState(null, '', location.pathname + location.search);
           setRoute('feed');
         }}
       />
@@ -5578,6 +5596,17 @@ export default function App() {
             }}
           >
             A page for every trade
+          </button>
+          <span className="foot-sep" aria-hidden="true">·</span>
+          <button
+            className="foot-toggle"
+            onClick={() => {
+              history.pushState(null, '', '#evidence');
+              setRoute('evidence');
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            Does the window lead to a sale?
           </button>
           <span className="foot-sep" aria-hidden="true">·</span>
           <button className="foot-toggle" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources}>

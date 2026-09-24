@@ -1485,3 +1485,115 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .plan i { font-family: var(--mono); font-style: normal; color: var(--on-cta); }
 .plan span { color: var(--on-cta); opacity: 0.85; }
 @media (max-width: 640px) { .plan { grid-template-columns: 1fr auto; } .plan span { grid-column: 1 / -1; } }
+
+/* ---- Evidence: does the window lead to a sale? ---------------------------- */
+/* A document, not a landing page. It keeps the data page's column and heading
+   scale; what it adds is for reading figures: every share is a bold number with
+   the count it is out of beside it in mono, so the eye can take the share and
+   the reader who doubts it can take the count. */
+/* One measure for the whole document, tables and chart included: at the data
+   page's 860px the tables ran a third wider than the prose beside them. */
+.datapage.evidence { max-width: 740px; }
+.evidence .ev-kicker {
+  font: 600 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-3); margin: 0 0 10px;
+}
+.evidence section { margin-top: 40px; padding-top: 4px; border-top: 1px solid var(--line); }
+.evidence section h2 { margin-top: 22px; }
+.evidence h3 { font: 700 15px/1.35 var(--sans); letter-spacing: -.005em; margin: 26px 0 8px; }
+.evidence p { max-width: 68ch; }
+.evidence main > .lead { margin-bottom: 0; }
+.evidence .ev-oneline { font-size: 19px; line-height: 1.5; color: var(--ink); max-width: 60ch; }
+.evidence .ev-note { color: var(--ink-2); font-style: italic; }
+.ev-share b, .evidence dd b, .evidence p b { font-weight: 700; color: var(--ink); }
+.ev-den { font-family: var(--mono); font-size: .8em; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ev-share.stack { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.ev-share.stack .ev-den { font-size: 11px; }
+
+/* The chart sits in the text column with a hairline under its caption, like a
+   figure in a report. Text wears ink tokens; only the bars carry the brand. */
+.ev-figure { margin: 26px 0 8px; }
+.ev-chart { width: 100%; }
+.ev-chart svg { display: block; overflow: visible; }
+.ev-chart .g { font: 700 13px var(--sans); fill: var(--ink); letter-spacing: .02em; }
+.ev-chart .gd, .ev-chart .k, .ev-chart .d { font: 400 11px var(--mono); fill: var(--ink-3); letter-spacing: 0; }
+.ev-chart .v { font: 700 13px var(--sans); fill: var(--ink); }
+.ev-chart .b-long { fill: var(--brand); }
+.ev-chart .b-short { fill: color-mix(in srgb, var(--brand) 42%, var(--paper)); }
+.ev-chart .axis { stroke: var(--line-2); stroke-width: 1; }
+.ev-figure figcaption {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--ink-3); max-width: 72ch;
+}
+
+/* The timeline from report to permit: a label and its figure per line, the
+   label above on a phone. */
+.ev-steps { margin: 16px 0; padding: 0; max-width: 72ch; }
+.ev-steps > div {
+  display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 4px 18px;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.ev-steps > div:first-child { border-top: 1px solid var(--line); }
+.ev-steps dt { font-size: 14px; color: var(--ink-2); }
+.ev-steps dd { margin: 0; font-size: 15px; }
+@media (max-width: 640px) {
+  .ev-steps > div { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Tables of shares: numbers right-aligned and tabular, the count stacked under
+   each share. Tight enough to fit a 390px phone without scrolling its box. */
+.ev-table-wrap { margin: 14px 0; }
+.dtable.ev-table th, .dtable.ev-table td { padding: 9px 11px; }
+.dtable.ev-table thead th:not(:first-child) { text-align: right; }
+.dtable.ev-table td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.dtable.ev-table tbody th { font-family: var(--sans); font-size: 13.5px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.dtable.ev-table tbody th.ev-rowhead { font-weight: 500; color: var(--ink-2); max-width: 30ch; }
+.dtable.ev-table tbody th .did { font-weight: 400; font-family: var(--mono); }
+/* A date breaks from its label, never inside itself ("Aug / 21, 2021"). */
+.dtable.ev-table tbody th .did [data-src] { white-space: nowrap; }
+.dtable.ev-table .ev-total th, .dtable.ev-table .ev-total td { border-top: 1px solid var(--line-2); }
+@media (max-width: 480px) {
+  .dtable.ev-table { font-size: 12.5px; }
+  .dtable.ev-table th, .dtable.ev-table td { padding: 8px 7px; }
+  .dtable.ev-table thead th { font-size: 9.5px; letter-spacing: .04em; }
+  .dtable.ev-table tbody th { font-size: 12.5px; }
+}
+.dtable.ev-sources .did { font-family: var(--sans); }
+.dtable.ev-sources .mono.did { font-family: var(--mono); }
+.dtable.ev-sources td.mono { white-space: normal; min-width: 11ch; }
+
+.ev-list li { font-size: 15px; }
+
+/* What does not hold: the claim and its verdict stay visible, the figures
+   behind it open on request. */
+.ev-claims { display: grid; gap: 8px; margin-top: 12px; }
+.ev-claim { border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--glass); padding: 0 14px; }
+.ev-claim summary {
+  cursor: pointer; padding: 12px 0; font-size: 14.5px; line-height: 1.45; color: var(--ink);
+  display: flex; gap: 10px; align-items: baseline; list-style: none;
+}
+.ev-claim summary::-webkit-details-marker { display: none; }
+.ev-claim summary::after { content: '+'; margin-left: auto; padding-left: 10px; font-family: var(--mono); color: var(--ink-3); }
+.ev-claim[open] summary::after { content: '−'; }
+.ev-claim summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 2px; }
+.ev-claim summary .verdict { flex: none; white-space: nowrap; }
+.ev-claim > p, .ev-claim > ol, .ev-claim > .ev-stated { font-size: 14px; color: var(--ink-2); margin: 0 0 12px; }
+.ev-claim > ol { padding-left: 20px; }
+.ev-claim > ol li { margin-bottom: 8px; }
+.ev-stated p { margin: 0 0 4px; }
+.ev-stated { padding-top: 10px; border-top: 1px solid var(--line); }
+@media (max-width: 480px) {
+  .ev-claim summary { flex-wrap: wrap; gap: 6px 10px; }
+}
+
+.ev-defs { margin: 8px 0 0; max-width: 74ch; }
+.ev-defs dt { font-weight: 700; font-size: 14px; margin-top: 14px; }
+.ev-defs dd { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.ev-defs .ev-sub { display: block; }
+.evidence code { font-family: var(--mono); font-size: .9em; overflow-wrap: anywhere; }
+.ev-cmd {
+  margin: 8px 0 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--glass); font: 500 14px var(--mono); color: var(--ink); overflow-x: auto;
+}
+.ev-failed .btn { margin-top: 4px; }
+.evidence .nw { white-space: nowrap; }
