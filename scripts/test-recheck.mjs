@@ -323,6 +323,23 @@ const put = (doc) => {
 };
 const entryFor = (company, address, entry) => ({ [E.keyOf({ company, address })]: entry });
 const now = Date.now();
+// ---- an inherited number is published only while its firm still has it -------
+{
+  // The collector's affiliate pass hands a holding LLC the contact of a firm
+  // whose head officer signs for both, from the cache as it stood before the
+  // re-check. push-contacts asks stillServed() before it publishes one.
+  const firm = { company: 'CROWN PARK MANAGEMENT LLC', address: '10 E 40TH ST, New York NY 10016' };
+  const good = { at: now - 40 * DAY, checkedAt: now - HOUR, lastCheck: { at: now - HOUR, outcome: 'confirmed' }, value: { company: firm.company, phone: '+1-212-736-5000', email: null, confidence: 'verified', source: 'crownparkmgmt.com', via: null } };
+  put(entryFor(firm.company, firm.address, good));
+  assert.ok(E.stillServed('Crown Park Management, LLC', { phone: '+1-212-736-5000' }, now), 'served under a spelling of the same name');
+  assert.equal(E.stillServed('Crown Park Management', { phone: '+1-212-736-5001' }, now), null, 'another number is not the firm\'s');
+  put(entryFor(firm.company, firm.address, R.tombstone(good, 'no longer on its source page since 2026-09-23', 'withdrawn', now)));
+  assert.equal(E.stillServed(firm.company, { phone: '+1-212-736-5000' }, now), null, 'a withdrawn number cannot come back under another name');
+  put(entryFor(firm.company, firm.address, { ...good, lastCheck: { at: now, outcome: 'held' } }));
+  assert.equal(E.stillServed(firm.company, { phone: '+1-212-736-5000' }, now), null, 'nor a held one');
+  put({});
+}
+
 {
   const A = { company: 'ALDER MANAGEMENT', address: '10 A ST, New York NY 10001' };
   const B = { company: 'BIRCH MANAGEMENT', address: '10 B ST, New York NY 10001' };

@@ -8,7 +8,7 @@
 // Deviations we sell: non-filer inside an open window, SWARMP carried from Cycle 9,
 // UNSAFE and chronic no-report. Calendar itself is not a signal - everyone knows it.
 
-import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { enrichContact, enrichmentProvider, enrichmentReady, pullCache, pushCache } from '../lib/enrich.mjs';
 import { assertCollectable } from '../lib/policy.mjs';
 import { sourceStamps, newestStamp } from '../lib/sources.mjs';
@@ -2031,8 +2031,25 @@ if (!PUBLISH_CONTACTS) {
   const withAgents = [out.facades.feed, ...Object.keys(registers).map((k) => out[k].feed)].flat();
   const served = await publishedContactBins();
   if (served.size) console.log(`Published contact set: ${served.size} bins on the data branch`);
+  // The affiliate pass (lib/affiliate.mjs) gives a holding LLC the contact of
+  // the firm whose head officer signs for both. It needs the head officer's
+  // name, which never leaves this process, so push-contacts cannot redo it —
+  // and for as long as nothing handed its result over, those cards read
+  // "on file" in the feed while /api/live had no row to show (BIN 1064255,
+  // 386 Ft Washington Realty, on 2026-09-24). The rows go to .data/, which is
+  // gitignored, and push-contacts publishes them only while the number is
+  // still served for the firm it came from.
+  const inherited = {};
   for (const c of withAgents) {
     if (!c.agent) continue;
+    if (c.agent.confidence === 'affiliate' && c.agent.via && (c.agent.phone || c.agent.email)) {
+      inherited[c.bin] = {
+        phone: c.agent.phone || null,
+        email: c.agent.email || null,
+        source: c.agent.contactSource || null,
+        via: c.agent.via,
+      };
+    }
     if (c.agent.phone || c.agent.email) contacts++;
     if (c.agent.name) names++;
     // Keep the shape the card renders against, so a redacted feed still shows
@@ -2057,6 +2074,9 @@ if (!PUBLISH_CONTACTS) {
     `Public feed redacted: ${contacts} contacts and ${names} personal names withheld ` +
       '(set PUBLISH_CONTACTS=1 for a private deployment)',
   );
+  mkdirSync(new URL('../.data/', import.meta.url), { recursive: true });
+  writeFileSync(new URL('../.data/affiliates.json', import.meta.url), JSON.stringify(inherited));
+  console.log(`Affiliate contacts handed to push-contacts: ${Object.keys(inherited).length}`);
 }
 writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(out, null, 1));
 // The HPD baseline advances only once the feed it produced is safely on disk:

@@ -16,7 +16,7 @@
 // person, and this file has never carried one.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { writeJson } from '../lib/store.mjs';
-import { enrichContact, confirmedOn } from '../lib/enrich.mjs';
+import { enrichContact, confirmedOn, stillServed } from '../lib/enrich.mjs';
 import { republishable, provenanceOf, republishableEmail, republishableVia, namesAPerson } from '../lib/provenance.mjs';
 import { isPersonToken, looksPersonal } from '../lib/personal.mjs';
 
@@ -35,14 +35,38 @@ const held = {};
 const REGISTER_KEYS = Object.keys(feed).filter((k) => Array.isArray(feed[k]?.feed));
 const withAgents = REGISTER_KEYS.map((k) => feed[k].feed).flat();
 console.log(`push-contacts: registers found in the feed — ${REGISTER_KEYS.join(', ')}`);
+
+// Contacts the collector's affiliate pass gave holding LLCs (scripts/collect.mjs
+// writes them; it alone sees the head officer who ties the two firms). Each is
+// published only while the number is still served for the firm it came from.
+const DATA_DIR = process.env.DATA_DIR || new URL('../.data/', import.meta.url).pathname;
+let inherited = {};
+try {
+  inherited = JSON.parse(readFileSync(`${DATA_DIR.replace(/\/?$/, '/')}affiliates.json`, 'utf8'));
+} catch {}
+let inheritedIn = 0;
+let inheritedStale = 0;
+
 for (const c of withAgents) {
   if (!c.agent?.company) continue;
-  const e = await enrichContact({ company: c.agent.company, address: c.agent.address });
-  if (e.confidence === 'none' || (!e.phone && !e.email)) continue;
+  let e = await enrichContact({ company: c.agent.company, address: c.agent.address });
   // The day the number was last seen good — by its search, or by the daily
   // re-check reading its page again (lib/recheck.mjs). The card prints it, so
   // a caller can tell this morning's number from last month's.
-  const checkedAt = confirmedOn({ company: c.agent.company, address: c.agent.address });
+  let checkedAt = null;
+  if (e.confidence === 'none' || (!e.phone && !e.email)) {
+    const inh = inherited[c.bin];
+    if (!inh) continue;
+    checkedAt = stillServed(inh.via, inh);
+    if (!checkedAt) {
+      inheritedStale++;
+      continue;
+    }
+    e = { phone: inh.phone, email: inh.email, confidence: 'affiliate', source: inh.source, via: inh.via };
+    inheritedIn++;
+  } else {
+    checkedAt = confirmedOn({ company: c.agent.company, address: c.agent.address });
+  }
   const row = {
     phone: e.phone || null,
     email: e.email || null,
@@ -152,6 +176,10 @@ console.log(
     `${Object.keys(publicOut).length} publishable to the data branch` +
     (heldParts ? `, withheld ${heldParts}` : ''),
 );
+console.log(
+  `push-contacts: ${inheritedIn} affiliate contacts from the collector's head-officer pass` +
+    (inheritedStale ? `, ${inheritedStale} left out — the firm they came from no longer has that number` : ''),
+);
 
 if (!process.env.BLOB_READ_WRITE_TOKEN) {
   console.log('push-contacts: no blob token, private store skipped');
@@ -173,7 +201,30 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
       await writeJson('contacts.json', all);
       console.log(`push-contacts: ${Object.keys(all).length} written to the private store`);
     }
+    markKnown();
   } catch (e) {
     console.log(`push-contacts: store unavailable (${e.message}) — the data branch still carries the public set`);
   }
+}
+
+// The feed's "a contact exists" flag, set to what the cards can now be given.
+// The collector sets it from the cache as it stood before this run's re-check
+// (lib/recheck.mjs), which may since have withdrawn the number — and a card
+// flagged with nothing behind it read "on file · from a listing we cannot
+// republish" beside a Find-the-number button (BIN 1064255, 2026-09-24). Only
+// after the private store holds this set: it is what /api/live serves, and a
+// run that could not write it leaves the collector's flags alone.
+function markKnown() {
+  let on = 0;
+  let off = 0;
+  for (const c of withAgents) {
+    if (!c.agent?.company) continue;
+    const known = Boolean(all[c.bin]);
+    if (Boolean(c.agent.contactKnown) === known) continue;
+    c.agent.contactKnown = known;
+    known ? on++ : off++;
+  }
+  if (!on && !off) return;
+  writeFileSync(new URL('../src/data/feed.json', import.meta.url), JSON.stringify(feed, null, 1));
+  console.log(`push-contacts: the feed's contact flags now match the served set (${on} on, ${off} off)`);
 }
