@@ -347,7 +347,7 @@ function Body() {
       <section aria-labelledby="ev-answer">
         <h2 id="ev-answer">The short answer</h2>
         <p className="ev-oneline">
-          Yes, where the law requires the work. Of the <F src={`${R}.UNSAFE.buildings`} /> buildings whose first{' '}
+          Where the law requires the work, yes. Of the <F src={`${R}.UNSAFE.buildings`} /> buildings whose first{' '}
           <span className="nw">cycle-9</span> facade report was filed UNSAFE, between <Share src={`${W}.UNSAFE.within${m24}`} /> and{' '}
           <Share src={`${R}.UNSAFE.within${m24}`} /> had a facade-related permit within <Mo k={m24} />, depending on
           which of two definitions is counted. Of the buildings reported SAFE, the comparison group,{' '}
@@ -407,8 +407,11 @@ function Body() {
                 claim”)
               </>
             ) : null}
-            . Both groups had an UNSAFE report; what sets the headline's buildings apart is that theirs was fresh. A
-            fresh, current-cycle UNSAFE report is a signal the register does not read today.
+            . Both groups had an UNSAFE report, but they differ in more than one way, and the figures do not say which
+            difference explains the gap: the headline's report was fresh and its owner had just filed it; an
+            UNSAFE_PRIOR report is a cycle old and its owner has not filed the current one; and the headline's clock
+            starts at the report date, the replay's at the replay date. A fresh, current-cycle UNSAFE report is a
+            signal the register does not read today.
           </p>
           <p>
             The table below replays all of the register's rules together. On{' '}
@@ -838,8 +841,9 @@ function Body() {
             <>
               None of these buildings is on today's register (the snapshot committed{' '}
               <F src="openNow.register.committedAt" fmt={day} />
-              ), and that is by how the register is built, not a finding: all <F src="openNow.register.cards" /> of its
-              cards are buildings with no cycle-10 filing.
+              ). That is how the register ranks today, not a guarantee: all <F src="openNow.register.cards" /> of its
+              cards are buildings with no cycle-10 filing, but a building whose cycle-9 report was SWARMP can still
+              qualify with a fresh UNSAFE report.
             </>
           ) : (
             <>

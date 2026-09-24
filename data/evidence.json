@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T05:50:33.685Z",
+  "generatedAt": "2026-09-24T07:05:38.276Z",
   "asOf": "2026-09-22",
   "script": "scripts/backtest.mjs",
   "question": "When the public record says a building's facade window is open, does the building then buy the work?",
@@ -164,11 +164,11 @@
       "definition": "regex definition; sign-off is w9ak-ipjd signoff_date; the shed life is a Kaplan-Meier median"
     },
     {
-      "claim": "Today 258 buildings have a cycle-10 report filed UNSAFE in the last 12 months and no facade-related GC permit in DOB NOW issued since (nor in the six months before). They are not all untouched: 126 already have a facade-related job application filed in DOB NOW, awaiting or beside its permit, and 109 of the reports are under 180 days old, inside the usual 231-day lag to a permit. 132 have nothing facade-related filed (Manhattan 75, Brooklyn 27, Bronx 25, Queens 5), 55 of them reported under 180 days ago. None is on the register, by its design rather than by finding: all 800 of its cards are buildings with no cycle-10 filing.",
+      "claim": "Today 258 buildings have a cycle-10 report filed UNSAFE in the last 12 months and no facade-related GC permit in DOB NOW issued since (nor in the six months before). They are not all untouched: 126 already have a facade-related job application filed in DOB NOW, awaiting or beside its permit, and 109 of the reports are under 180 days old. 132 have nothing facade-related filed (Manhattan 75, Brooklyn 27, Bronx 25, Queens 5), 55 of them reported under 180 days ago and 48 under 129 days, the median time from an UNSAFE report to the filing of its facade job. None is on the register today, which is how it ranks rather than a guarantee: all 800 of its cards are buildings with no cycle-10 filing, though a building whose cycle-9 report was SWARMP can still qualify with a fresh UNSAFE report.",
       "value": "132",
       "denominator": "355 UNSAFE first reports",
       "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22",
-      "definition": "the FRESH_UNSAFE window, not a signal the register has yet: no facade-related permit issued and no facade-related job application filed from 180 days before the report"
+      "definition": "a window the register does not read as a signal today: a fresh cycle-10 UNSAFE report with no facade-related permit issued and no facade-related job application filed from 180 days before the report"
     }
   ],
   "facades": {
@@ -2286,7 +2286,7 @@
         "num": 109,
         "den": 258,
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; open",
-        "definition": "report filed less than 180 days before 2026-09-22, inside the usual report-to-permit time (facades.cohorts.regex.UNSAFE.lagDays)"
+        "definition": "report filed less than 180 days before 2026-09-22; for comparison, the median time from an UNSAFE report to the filing of the job behind its first facade-related permit is 129 days (facades.jobTiming.reportToJobFiledSigned)"
       },
       "nothingFiled": {
         "value": 37.2,
@@ -2344,7 +2344,7 @@
         "num": 0,
         "den": 258,
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; open",
-        "definition": "on the facade register committed at 2026-09-23T23:35:32.375Z. Zero by how the register is built, not a finding: see openNow.register"
+        "definition": "on the facade register committed at 2026-09-23T23:35:32.375Z. The register ranks its candidates and keeps the top ones, and a building whose cycle-9 report was SWARMP can qualify with a fresh cycle-10 UNSAFE report (SWARMP_CARRYOVER), so a zero here is how it ranks today, not a guarantee: see openNow.register"
       }
     },
     "SWARMP": {
@@ -2405,7 +2405,7 @@
         "num": 216,
         "den": 425,
         "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22; open",
-        "definition": "report filed less than 180 days before 2026-09-22, inside the usual report-to-permit time (facades.cohorts.regex.UNSAFE.lagDays)"
+        "definition": "report filed less than 180 days before 2026-09-22"
       },
       "nothingFiled": {
         "value": 69.3,
@@ -2456,7 +2456,7 @@
         "num": 0,
         "den": 425,
         "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22; open",
-        "definition": "on the facade register committed at 2026-09-23T23:35:32.375Z. Zero by how the register is built, not a finding: see openNow.register"
+        "definition": "on the facade register committed at 2026-09-23T23:35:32.375Z. The register ranks its candidates and keeps the top ones, and a building whose cycle-9 report was SWARMP can qualify with a fresh cycle-10 SWARMP report (SWARMP_CARRYOVER), so a zero here is how it ranks today, not a guarantee: see openNow.register"
       }
     },
     "register": {

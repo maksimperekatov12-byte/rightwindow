@@ -948,7 +948,20 @@ async function main() {
       openByBorough: perBorough(open, openDef),
       facadeJobFiled: share(facadeJob.size, open.length, `${WO}; open`, `${jobDef}, passing the same facade test on its work_on_floor or job_description: the work is already filed and the permit not yet issued`),
       shedJobFiled: share(shedJob.length, open.length, `${WO}; open`, `${jobDef}, with a sidewalk shed (shed='YES')`),
-      reportUnder180Days: share(young.length, open.length, `${WO}; open`, `report filed less than ${LOOKBACK} days before ${iso(asOf)}, inside the usual report-to-permit time (facades.cohorts.regex.UNSAFE.lagDays)`),
+      // Measured against the job filing, not the permit: a report under 180
+      // days old is not inside the median time to a job filing, and the page
+      // once called it inside the longer lag to a permit (review of
+      // 2026-09-24). The job timing is of the UNSAFE cohort, so a SWARMP
+      // report is not held to it.
+      reportUnder180Days: share(
+        young.length,
+        open.length,
+        `${WO}; open`,
+        `report filed less than ${LOOKBACK} days before ${iso(asOf)}` +
+          (status === 'UNSAFE'
+            ? `; for comparison, the median time from an UNSAFE report to the filing of the job behind its first facade-related permit is ${jobTiming.reportToJobFiledSigned.median} days (facades.jobTiming.reportToJobFiledSigned)`
+            : ''),
+      ),
       nothingFiled: share(nothing.length, recent.length, WO, nothingDef),
       nothingFiledByBorough: perBorough(nothing, nothingDef),
       nothingFiledReportUnder180Days: share(
@@ -977,18 +990,20 @@ async function main() {
             open.filter((r) => shown.has(String(r.bin))).length,
             open.length,
             `${WO}; open`,
-            `on the facade register committed at ${feed.generatedAt}. Zero by how the register is built, not a finding: see openNow.register`,
+            `on the facade register committed at ${feed.generatedAt}. The register ranks its candidates and keeps the top ones, and a building whose cycle-9 report was SWARMP can qualify with a fresh cycle-10 ${status} report (SWARMP_CARRYOVER), so a zero here is how it ranks today, not a guarantee: see openNow.register`,
           )
         : null,
     };
   }
-  // Why none of them is on the register: every card on it today is a building
-  // that has not filed in cycle 10, so a building with a fresh cycle-10 report
-  // cannot be among them. That is the design, and the FRESH_UNSAFE window is
-  // the signal it would need. The register does read an UNSAFE report, one
-  // cycle late (UNSAFE_PRIOR), and it is counted here: the evidence page once
-  // said a filed UNSAFE report was a signal the product had yet to read, while
-  // 98 of the 800 cards carried one (review of 2026-09-24).
+  // Why none of them is on the register today: every card on it is a building
+  // that has not filed in cycle 10. That is how the register ranks, not a rule:
+  // SWARMP_CARRYOVER (scripts/collect.mjs) also takes a building with a fresh
+  // cycle-10 UNSAFE report whose cycle-9 report was SWARMP, and the zero comes
+  // from the cut to the top-ranked cards; the page once called it the
+  // register's design (review of 2026-09-24). The register does read an UNSAFE
+  // report, one cycle late (UNSAFE_PRIOR), and it is counted here: the
+  // evidence page once said a filed UNSAFE report was a signal the product had
+  // yet to read, while 98 of the 800 cards carried one (same review).
   const reg = `the facade register committed at ${feed?.generatedAt}`;
   openNow.register = feed
     ? {
@@ -1161,17 +1176,18 @@ async function main() {
       claim:
         `Today ${fmt(U.open.num)} buildings have a cycle-10 report filed UNSAFE in the last 12 months and no ${PERMIT} issued since (nor in the six months before). ` +
         `They are not all untouched: ${fmt(U.facadeJobFiled.num)} already have a facade-related job application filed in DOB NOW, awaiting or beside its permit, ` +
-        `and ${fmt(U.reportUnder180Days.num)} of the reports are under ${LOOKBACK} days old, inside the usual ${R.UNSAFE.lagDays.median}-day lag to a permit. ` +
-        `${fmt(U.nothingFiled.num)} have nothing facade-related filed (${byCount(U.nothingFiledByBorough)}), ${fmt(U.nothingFiledReportUnder180Days.num)} of them reported under ${LOOKBACK} days ago. ` +
+        `and ${fmt(U.reportUnder180Days.num)} of the reports are under ${LOOKBACK} days old. ` +
+        `${fmt(U.nothingFiled.num)} have nothing facade-related filed (${byCount(U.nothingFiledByBorough)}), ${fmt(U.nothingFiledReportUnder180Days.num)} of them reported under ${LOOKBACK} days ago ` +
+        `and ${fmt(U.nothingFiledReportUnderJobFiling.num)} under ${JT.reportToJobFiledSigned.median} days, the median time from an UNSAFE report to the filing of its facade job. ` +
         (!openNow.register
           ? ''
           : openNow.register.noCycle10Filing.num === openNow.register.cards && !U.inRegister.num
-            ? `None is on the register, by its design rather than by finding: all ${fmt(openNow.register.cards)} of its cards are buildings with no cycle-10 filing.`
+            ? `None is on the register today, which is how it ranks rather than a guarantee: all ${fmt(openNow.register.cards)} of its cards are buildings with no cycle-10 filing, though a building whose cycle-9 report was SWARMP can still qualify with a fresh UNSAFE report.`
             : `${fmt(U.inRegister.num)} are on the register.`),
       value: fmt(U.nothingFiled.num),
       denominator: `${fmt(U.reports)} UNSAFE first reports`,
       window: U.open.window,
-      definition: 'the FRESH_UNSAFE window, not a signal the register has yet: no facade-related permit issued and no facade-related job application filed from 180 days before the report',
+      definition: 'a window the register does not read as a signal today: a fresh cycle-10 UNSAFE report with no facade-related permit issued and no facade-related job application filed from 180 days before the report',
     },
   ];
 

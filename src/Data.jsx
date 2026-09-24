@@ -264,8 +264,8 @@ export default function DataPage({ data, live, onBack, isDark, onTheme }) {
       {/* A plain link, not a button: the app routes on hashchange, and a link
           can be opened in a new tab or copied. */}
       <p className="fine">
-        Whether a window in these records leads to anyone buying the work is measured separately, against the city's own
-        permits: <a href="#evidence">does the window lead to a sale?</a>
+        Whether a facade window in these records leads to anyone buying the work is measured separately, against the
+        city's own permits: <a href="#evidence">does the window lead to a sale?</a>
       </p>
 
       <h2>Compliance</h2>
