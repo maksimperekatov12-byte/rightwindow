@@ -1836,18 +1836,23 @@ export default function App() {
     [data],
   );
 
-  // What the user asked of the default order, in one sentence: a card you can
-  // ACT on now sits above one you can only write to, and both sit above one
-  // with nobody to reach. Tier 2 is a dialable number (served or printed on the
-  // record), tier 1 is an inbox or a findable number, tier 0 is silence. The
-  // explicit sorts (next hearing, penalties owed…) stay pure — this shapes only
-  // the defaults. Declared before every table that calls it: a const in this
+  // What the user asked of the order, in one sentence: a card you can ACT on
+  // now sits above one you can only write to, and both sit above one with
+  // nobody to reach. Tier 2 is a dialable number (served or printed on the
+  // record), tier 1 is an inbox or a findable number, tier 0 is silence. It
+  // used to shape only the defaults, and the explicit sorts stayed pure — so
+  // Carbon, which opens on dollar exposure, and every "next hearing" or
+  // "penalties owed" list mixed numberless cards in among the callable ones.
+  // On 2026-09-24 the owner asked for numbers first everywhere: every order
+  // below is now applied within the tiers (see the sort calls further down).
+  // A City Record placeholder such as (000) 000-0000 is not a number and does
+  // not lift a card. Declared before every table that calls it: a const in this
   // body is dead until its line runs, and the first deploy of this feature
   // proved it by taking the whole page down.
   const actTier = useCallback(
     (c) => {
       const srv = contacts[c.bin] || {};
-      if (srv.phone || c.phone || c.contact?.phone) return 2;
+      if (realPhone(srv.phone) || realPhone(c.phone) || realPhone(c.contact?.phone)) return 2;
       if (srv.email || c.email || c.contact?.email || c.agent?.contactKnown) return 1;
       return 0;
     },
@@ -1942,7 +1947,7 @@ export default function App() {
     money: (a, b) => (b.ecbBalance || 0) + (b.finesOwed || 0) - (a.ecbBalance || 0) - (a.finesOwed || 0),
   };
   const facadeFeed = useMemo(
-    () => data.facades.feed.filter((c) => c.bin === linkedId || (fv.fFilter || (() => true))(c)).sort(SORTS[sortMode] || SORTS.profile),
+    () => data.facades.feed.filter((c) => c.bin === linkedId || (fv.fFilter || (() => true))(c)).sort(tierFirst(SORTS[sortMode] || SORTS.profile)),
     [data, profileKey, sortMode, contacts, linkedId],
   );
   // The one register-wide money figure that grows in every hourly build: what
@@ -2038,7 +2043,7 @@ export default function App() {
         return [c.vendor, c.agency, c.title, c.category, c.contact?.name, c.epin]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q));
-      }).sort(CONTRACT_SORTS[sortMode] || CONTRACT_SORTS.closing),
+      }).sort(tierFirst(CONTRACT_SORTS[sortMode] || CONTRACT_SORTS.closing)),
     [contractsBase, onlyWatch, watch, fb, showHidden, deferredQuery, cohort, sortMode, contacts],
   );
   const mandateLists = useMemo(() => {
@@ -2079,7 +2084,7 @@ export default function App() {
       counts[key] = { all: noBoro.length };
       for (const c of noBoro) counts[key][c.borough] = (counts[key][c.borough] || 0) + 1;
       const rows = boro === 'all' ? noBoro : noBoro.filter((c) => c.borough === boro);
-      const cmp = MANDATE_SORTS[sortMode] || MANDATE_SORTS.profile;
+      const cmp = tierFirst(MANDATE_SORTS[sortMode] || MANDATE_SORTS.profile);
       const sorted = [...rows].sort(cmp);
       // LL97 and LL152 cite whole complexes in one sweep, so the register opens
       // on six near-identical addresses under one agent and one phone — correct,
@@ -2207,7 +2212,7 @@ export default function App() {
     () =>
       openingsNoBoro
         .filter((o) => boro === 'all' || o.county === boro)
-        .sort(OPENING_SORTS[sortMode] || OPENING_SORTS.recent),
+        .sort(tierFirst(OPENING_SORTS[sortMode] || OPENING_SORTS.recent)),
     [openingsNoBoro, sortMode, boro, contacts],
   );
   // How common each signal is across the rows on screen, so a card can lead with

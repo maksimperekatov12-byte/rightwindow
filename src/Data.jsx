@@ -116,6 +116,21 @@ export default function DataPage({ data, live, onBack, isDark, onTheme }) {
           <b>{p.publisher} licence.</b> {p.license}
         </p>
       ))}
+      <p className="fine">
+        <b>Map.</b> Map data ©{' '}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+          OpenStreetMap contributors
+        </a>{' '}
+        under the Open Database License; vector tiles ©{' '}
+        <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">
+          OpenMapTiles
+        </a>
+        , served by{' '}
+        <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">
+          OpenFreeMap
+        </a>
+        ; drawn with MapLibre. The same credit opens from the (i) on the map.
+      </p>
 
       <h2>What we don't collect, and why</h2>
       {denied.map((p) => (

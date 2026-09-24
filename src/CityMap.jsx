@@ -263,6 +263,22 @@ function MapSurface({ rows, colors, onPick, describe, contactFor = null, richTip
     // the controls are explicit rather than wheel-only.
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.touchZoomRotate.enableRotation();
+    // The map credit stays on the map, one tap away behind the (i): the
+    // OpenStreetMap licence asks for it there, and the Data page repeats it in
+    // full. What goes is the white bar MapLibre unfolds across the bottom of
+    // the map on every load until the first drag — it sat over Staten Island.
+    // MapLibre adds the unfolded class once, when the credit first arrives with
+    // the style, and never again on its own, so folding it at that moment is
+    // enough; a tap on the (i) still opens it.
+    const foldCredit = () => {
+      const credit = el.querySelector('.maplibregl-ctrl-attrib.maplibregl-compact-show');
+      if (!credit) return;
+      credit.classList.remove('maplibregl-compact-show');
+      map.off('styledata', foldCredit);
+      map.off('sourcedata', foldCredit);
+    };
+    map.on('styledata', foldCredit);
+    map.on('sourcedata', foldCredit);
     // The flag integration tests read: flipped on every idle, cleared on move.
     map.on('idle', () => {
       el.dataset.mapIdle = '1';
