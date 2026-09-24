@@ -271,7 +271,12 @@
     // ---- derived state ----
     const PINGER_LATE_MS = 15 * 60000;   // three missed ticks
     const FEED_STALE_MS = 6 * HOUR;      // the collector's own STALE_HOURS
-    const EXTRA = { enrichment: 'Contact search provider', dataBranch: 'Data branch (GitHub)', store: 'Private store (Vercel Blob)' };
+    const EXTRA = { enrichment: 'Contact search provider', contacts: 'Contact re-check', dataBranch: 'Data branch (GitHub)', store: 'Private store (Vercel Blob)' };
+    // The daily re-check of the cards' contacts (lib/recheck.mjs) reads other
+    // people's sites and never pages anyone: a skipped run or a pass that has
+    // not finished for two days is a warning, since the numbers it keeps lapse
+    // a month after they were last seen.
+    const PASS_LATE_MS = 2 * DAY;
     const labelOf = (S, key) => S[key]?.label || EXTRA[key] || key;
 
     function derive(d, now) {
@@ -316,9 +321,12 @@
         if (!h && !f) return null;
         const openInc = [...(hourly?.incidents || []), ...(live?.health?.incidents || [])].find((i) => i.source === key && !i.resolvedAt) || null;
         const failing = openInc || h?.ok === false || f?.ok === false;
-        const state = !failing ? 'ok' : key === 'enrichment' ? 'refused' : 'down';
-        const why = failing ? `${(h || f)?.error || ''}`.slice(0, 120) : '';
-        return { key, label: EXTRA[key], agency: key === 'enrichment' ? 'licensed provider' : 'infrastructure', clock: 0, h, f, state, why, openInc, extra: true };
+        const pass = key === 'contacts' ? h?.detail?.fullPassAt || 0 : 0;
+        const late = key === 'contacts' && !failing && (!pass || now - pass > PASS_LATE_MS);
+        const state = !failing ? (late ? 'behind' : 'ok') : key === 'enrichment' ? 'refused' : key === 'contacts' ? 'skipped' : 'down';
+        const why = failing ? `${(h || f)?.error || ''}`.slice(0, 120)
+          : key === 'contacts' ? (pass ? `last full pass finished ${ago(pass, now)}` : 'no full pass has finished yet') : '';
+        return { key, label: EXTRA[key], agency: key === 'enrichment' ? 'licensed provider' : key === 'contacts' ? "the pages the cards' numbers came from" : 'infrastructure', clock: 0, h, f, state, why, openInc, extra: true };
       }).filter(Boolean);
 
       const openIncidents = [...(hourly?.incidents || []), ...(live?.health?.incidents || [])].filter((i) => !i.resolvedAt);
@@ -335,7 +343,8 @@
       const problems = [];
       for (const r of shown) if (r.state === 'down') problems.push({ level: 'bad', head: `${r.label} is unreachable`, text: `${r.label}: ${r.why}` });
       // The search provider is not the city: a spent quota is a warning with a name, not an outage.
-      for (const r of extras) if (r.state !== 'ok') problems.push({ level: r.state === 'refused' ? 'warn' : 'bad', head: `${r.label} ${r.state === 'refused' ? 'refused' : 'is failing'}`, text: `${r.label}: ${r.why}` });
+      const EXTRA_HEAD = { refused: 'refused', skipped: 'was skipped', behind: 'is behind' };
+      for (const r of extras) if (r.state !== 'ok') problems.push({ level: r.state === 'down' ? 'bad' : 'warn', head: `${r.label} ${EXTRA_HEAD[r.state] || 'is failing'}`, text: `${r.label}: ${r.why}` });
       if (pingerLate) problems.push({ level: 'bad', head: 'the five-minute lane has gone quiet', text: `the five-minute lane last checked ${ago(live?.checkedAt, now)}` });
       if (feedStale) problems.push({ level: 'bad', head: 'the feed is stale', text: `the feed was last rebuilt ${ago(lastSweepAt, now)}` });
       if (runFailed) problems.push({ level: 'bad', head: 'the hourly sweep crashed', text: `the last hourly sweep crashed: ${last.error || 'no message'}` });
@@ -439,9 +448,9 @@
       document.getElementById('pipeline-note').textContent = v.wf.length ? '' : 'GitHub run history unavailable (rate limit) — the two lanes report for themselves';
     }
 
-    const PILL = { ok: '<span class="pill ok">ok</span>', noclock: '<span class="pill warn">clock unread</span>', stale: '<span class="pill warn">publisher quiet</span>', retried: '<span class="pill warn">retried</span>', refused: '<span class="pill warn">refused</span>', down: '<span class="pill bad">down</span>', unknown: '<span class="pill mute">not read</span>' };
+    const PILL = { ok: '<span class="pill ok">ok</span>', noclock: '<span class="pill warn">clock unread</span>', stale: '<span class="pill warn">publisher quiet</span>', retried: '<span class="pill warn">retried</span>', refused: '<span class="pill warn">refused</span>', skipped: '<span class="pill warn">skipped</span>', behind: '<span class="pill warn">behind</span>', down: '<span class="pill bad">down</span>', unknown: '<span class="pill mute">not read</span>' };
     function renderSources(v, now) {
-      const order = { down: 0, refused: 1, noclock: 2, stale: 3, retried: 4, unknown: 5, ok: 6 };
+      const order = { down: 0, refused: 1, skipped: 1, behind: 1, noclock: 2, stale: 3, retried: 4, unknown: 5, ok: 6 };
       const rows = [...v.rows, ...v.extras].sort((a, b) => order[a.state] - order[b.state] || (a.lookup ? 1 : 0) - (b.lookup ? 1 : 0));
       const tb = document.querySelector('#sources tbody');
       tb.innerHTML = rows.map((r) => {
@@ -451,7 +460,7 @@
         // for a record whose rows this lane does not read (ok is null).
         const clockCell = (c) => (!c ? '—' : c.ok ? `clock ok ${esc(ago(c.lastOkAt, now))}` : `<span class="pill warn">clock HTTP ${esc(c.status ?? '—')}</span> ${esc(ago(c.failedAt, now))}`);
         const clockBit = (c) => (c && c.ok === false ? ` · <span class="pill warn">clock HTTP ${esc(c.status ?? '—')}</span>` : '');
-        const hCell = h ? (h.ok === null ? clockCell(h.clock) : (h.ok ? `${n(h.rows)} rows · ${h.calls} call${h.calls === 1 ? '' : 's'}${h.retries ? ` · ${h.retries} retr${h.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(h.status ?? '—')}</span> ${esc(h.error || '')}`) + clockBit(h.clock)) : (r.lookup ? 'not needed this run' : '—');
+        const hCell = h ? (h.ok === null ? clockCell(h.clock) : (h.ok ? h.detail?.summary ? `${esc(h.detail.summary)} · ${n(h.rows)} re-read this run` : `${n(h.rows)} rows · ${h.calls} call${h.calls === 1 ? '' : 's'}${h.retries ? ` · ${h.retries} retr${h.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(h.status ?? '—')}</span> ${esc(h.error || '')}`) + clockBit(h.clock)) : (r.lookup ? 'not needed this run' : '—');
         const fCell = f ? (f.ok === null ? clockCell(f.clock) : (f.ok ? `ok ${esc(ago(f.lastOkAt, now))}${f.retries ? ` · ${f.retries} retr${f.retries === 1 ? 'y' : 'ies'}` : ''}` : `<span class="pill bad">HTTP ${esc(f.status ?? '—')}</span> ${esc(ago(f.failedAt, now))}`) + clockBit(f.clock)) : '—';
         return `<tr>
           <td><div class="name">${esc(r.label)}</div><div class="agency">${esc(r.agency)}${link ? ' · ' + link : ''}${r.lookup ? ' · lookup' : ''}</div></td>

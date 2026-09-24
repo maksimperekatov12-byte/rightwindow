@@ -20,12 +20,14 @@ const stored = {
     via: 'Joseph Popack',
   },
   // The firm's own role inbox publishes, and a via note is cut back to the firm.
+  // The day its number was last seen on its page rides along, as a date.
   1000002: {
     phone: '+1-212-555-0102',
     email: 'info@acmeproperty.com',
     confidence: 'verified',
     source: 'acmeproperty.com/contact',
     via: 'Acme Property Management (the firm that runs the building)',
+    checkedAt: '2026-09-24',
   },
   // A person named in the source prose sinks the row; the card falls back to
   // its branch copy.
@@ -44,6 +46,16 @@ const stored = {
   1000006: { phone: '+1-212-555-0106', email: 'office@acmeproperty.com', confidence: 'listed', source: 'bbb.org', via: 'contact Isack Hagar' },
   // Everything that ends up in a tel: or a mailto: has to be the right shape.
   1000007: { phone: 'javascript:alert(1)', email: 'info@x"onmouseover.com', confidence: 'listed' },
+  // A checkedAt that is not a date, and the cache's private fields, go nowhere.
+  1000008: {
+    phone: '+1-212-555-0108',
+    email: null,
+    confidence: 'verified',
+    source: 'acmeproperty.com',
+    checkedAt: '<img src=x onerror=alert(1)>',
+    url: 'https://acmeproperty.com/contact',
+    was: { phone: '+1-212-555-0199' },
+  },
   abc: { phone: '+1-212-555-0199' },
   1000009: null,
 };
@@ -61,6 +73,9 @@ assert.ok(!('via' in out[1000006]), 'a via note that names a person is dropped')
 assert.equal(out[1000006].phone, '+1-212-555-0106', 'a name in via costs the note, not the phone');
 
 assert.equal(out[1000002].email, 'info@acmeproperty.com');
+assert.equal(out[1000002].checkedAt, '2026-09-24', 'the day a number was last seen on its page reaches the card');
+assert.ok(!('checkedAt' in out[1000008]), 'a checkedAt that is not a date is dropped');
+assert.ok(!('url' in out[1000008]) && !('was' in out[1000008]), "the cache's private fields never leave the store");
 assert.equal(out[1000002].via, 'Acme Property Management');
 assert.equal(out[1000005].email, null);
 assert.equal(out[1000005].confidence, 'listed', 'an unknown confidence reads as the weakest tier');
@@ -73,7 +88,7 @@ assert.deepEqual(merged[1000003], branch[1000003]);
 // And the invariant itself, over everything that came out.
 for (const [bin, r] of Object.entries(out)) {
   assert.deepEqual(
-    Object.keys(r).filter((k) => !['phone', 'email', 'confidence', 'source', 'via'].includes(k)),
+    Object.keys(r).filter((k) => !['phone', 'email', 'confidence', 'source', 'via', 'checkedAt'].includes(k)),
     [],
     `${bin} carries a field the browser never needs`,
   );
