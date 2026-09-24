@@ -46,7 +46,7 @@ try {
   process.exit(0);
 }
 
-const { registers, pairs, before, doc, results, due, ms, pushed, standing: s } = out;
+const { registers, pairs, before, doc, results, due, ms, pushed, pushError, standing: s } = out;
 const now = Date.now();
 
 // ---- the pass, for /status ---------------------------------------------------
@@ -65,6 +65,7 @@ if (s.due === 0) {
 const summary =
   `${n(s.confirmed)} confirmed · ${n(s.changed)} changed · ${n(s.withdrawn)} withdrawn · ` +
   `${n(s.unreachable)} unreachable · ${n(s.unconfirmed)} unconfirmed` +
+  (s.held ? ` · ${n(s.held)} held off the cards` : '') +
   (s.absent ? ` · ${n(s.absent)} missing once` : '') +
   (s.unchecked ? ` · ${n(s.unchecked)} not yet checked` : '');
 
@@ -82,9 +83,16 @@ if (!dryRun) {
       : 'recheck: nothing due',
   );
   console.log(`recheck: cards' contacts now ${summary}${s.due ? ` · ${n(s.due)} still due` : ''}`);
-  console.log(pushed ? `recheck: pushed ${n(pushed)} entries to the shared cache` : 'recheck: the shared cache is unchanged — not rewritten');
+  console.log(
+    pushError
+      ? `recheck: the push to the shared cache failed (${pushError}) — this run's checks reach the cards from disk; the store keeps its copy until a later run`
+      : pushed
+        ? `recheck: pushed ${n(pushed)} entries to the shared cache`
+        : 'recheck: the shared cache is unchanged — not rewritten',
+  );
   health.note('contacts', {
-    ok: true,
+    ok: !pushError,
+    ...(pushError ? { error: `the re-checked contacts could not be written back (${pushError})` } : {}),
     rows: results.length,
     ms,
     detail: { ...s, checked: results.length, fullPassAt, summary },
@@ -154,5 +162,6 @@ const cards = (r) => `${r.bins.length} card${r.bins.length === 1 ? '' : 's'}`;
 list('Rejected under the directory rule', results.filter((r) => r.outcome === 'rejected'), (r) => `${r.company} (${cards(r)}) — ${r.reason}`, 25);
 list('Withdrawn, gone from the page twice', results.filter((r) => r.outcome === 'withdrawn'), (r) => `${r.company} (${cards(r)}) — ${r.reason}`);
 list('Changed — the page now carries another number', results.filter((r) => r.outcome === 'changed'), (r) => `${r.company} (${r.level}, ${cards(r)})`);
+list('Held off the cards — a pre-rule listing yet to show its tie', results.filter((r) => r.outcome === 'held'), (r) => `${r.company} (${cards(r)}) — ${r.reason}`, 15);
 list('Absent once — the exact page loaded without it', results.filter((r) => r.outcome === 'absent'), (r) => `${r.company} (${r.level}, ${cards(r)})`, 15);
 console.log('\ndry run: nothing written — not the store, not the local cache, not data/health.json');

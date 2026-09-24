@@ -109,7 +109,33 @@ const own = (source, extra = {}) => ({
   assert.equal((await R.checkEntry(own('harborviewpm.com/contact'), HARBOR, wall.get)).outcome, 'unreachable');
 }
 
+// ---- Cloudflare's script on an ordinary page is not a wall ---------------------
+{
+  const w = web({ 'https://harborviewpm.com/contact': html('<script src="/cdn-cgi/challenge-platform/scripts/jsd/main.js"></script><p>Office (718) 402-3316</p>') });
+  assert.equal((await R.checkEntry(own('harborviewpm.com/contact'), HARBOR, w.get)).outcome, 'confirmed');
+}
+
+// ---- a thin page confirms a number it carries, and never says it has gone -----
+{
+  const splash = '<html><body><img src="/logo.png"><a href="tel:+17184023316">Call</a></body></html>';
+  assert.equal((await R.checkEntry(own('harborviewpm.com/contact'), HARBOR, web({ 'https://harborviewpm.com/contact': splash }).get)).outcome, 'confirmed');
+  const shell = '<html><body><div id="root"></div><noscript>You need to enable JavaScript to run this app.</noscript></body></html>';
+  const res = await R.checkEntry(own('harborviewpm.com/contact'), HARBOR, web({ 'https://harborviewpm.com/contact': shell }).get);
+  assert.notEqual(res.outcome, 'absent', 'an app shell is no evidence the number has gone');
+}
+
 // ---- the firm's own site now carries another number: changed ------------------
+{
+  // Only the page the number came from may replace it. The office page times
+  // out; the homepage's head-office line is not a replacement.
+  const w = web({
+    'https://harborviewpm.com/queens-office': new Error('The operation was aborted due to timeout'),
+    'https://harborviewpm.com/': html('<p>Head office <a href="tel:2124020100">(212) 402-0100</a></p>'),
+  });
+  const res = await R.checkEntry(own('harborviewpm.com/queens-office'), HARBOR, w.get);
+  assert.notEqual(res.outcome, 'changed');
+  assert.notEqual(res.outcome, 'absent');
+}
 {
   const w = web({ 'https://harborviewpm.com/contact': html('<p>Call <a href="tel:7184029900">(718) 402-9900</a></p>') });
   const e = own('harborviewpm.com/contact');
@@ -133,17 +159,78 @@ const listed = (source, extra = {}) => ({
   const w = web({ [url]: html('<h1>Imperial Consulting Group</h1><p>2400 Hempstead Tpke, East Meadow, NY 11554</p><p>Call (646) 480-7021</p>') });
   const e = listed('nextdoor.com/pages/imperial-consulting-group-east-meadow-ny');
   const res = await R.checkEntry(e, IMPERIAL, w.get);
-  assert.equal(res.outcome, 'rejected');
+  // Found before the rule and read failing it: off the cards at once, but one
+  // reading withdraws nothing — it could be a consent page on the day.
+  assert.equal(res.outcome, 'held');
+  assert.equal(res.strike, true);
   assert.match(res.reason, /does not show the filing's address/);
-  const t = R.applyCheck(e, res, NOW);
-  assert.equal(t.at, NOW, 'a tombstone is stamped now, so it beats every older copy');
+  const h = R.applyCheck(e, res, NOW);
+  assert.equal(h.lastCheck.outcome, 'held');
+  assert.equal(h.value.phone, '+1-646-480-7021', 'held, not withdrawn');
+  assert.equal(E.fromCache({ [E.keyOf(IMPERIAL)]: h }, IMPERIAL, NOW).value, null, 'a held number is off the cards');
+  assert.ok(R.checkable(h), 'and read again the next day');
+  // Five hours on is the same bad day; the next day, the second strike.
+  const same = R.applyCheck(h, await R.checkEntry(h, IMPERIAL, w.get), NOW + 5 * HOUR);
+  assert.equal(same.lastCheck.outcome, 'held');
+  assert.equal(same.lastCheck.since, NOW);
+  const t = R.applyCheck(same, await R.checkEntry(same, IMPERIAL, w.get), NOW + 21 * HOUR);
+  assert.equal(t.at, NOW + 21 * HOUR, 'a tombstone is stamped now, so it beats every older copy');
   assert.equal(t.value.confidence, 'none');
   assert.equal(t.value.phone, null);
   assert.equal(t.value.email, null);
   assert.equal(t.value.company, IMPERIAL.company);
-  assert.equal(t.value.rejected, res.reason);
+  assert.match(t.value.rejected, /does not show the filing's address.*\(since 2026-09-24\)/);
   assert.equal(t.lastCheck.outcome, 'rejected');
   assert.ok(!R.checkable(t), 'a tombstone is never checked again');
+  // A page that could not be read in between is no strike, and restarts none.
+  const blind = R.applyCheck(h, await R.checkEntry(h, IMPERIAL, web({ [url]: 503 }).get), NOW + 21 * HOUR);
+  assert.equal(blind.lastCheck.outcome, 'held');
+  assert.equal(blind.lastCheck.strike, undefined);
+  assert.equal(blind.value.rejected, undefined);
+}
+{
+  // A listing that met the rule and then reads without it keeps serving until
+  // the second strike, a day on.
+  const url = 'https://yellowpages.com/queens-ny/imperial-consulting-group';
+  const e = { ...listed('', { url }), at: NOW - 2 * HOUR };
+  const cookie = web({ [url]: html('<h1>We value your privacy</h1><p>Accept all cookies to continue to the listing.</p>') });
+  const a1 = R.applyCheck(e, await R.checkEntry(e, IMPERIAL, cookie.get), NOW);
+  assert.equal(a1.lastCheck.outcome, 'absent');
+  assert.equal(E.fromCache({ [E.keyOf(IMPERIAL)]: a1 }, IMPERIAL, NOW).value.phone, '+1-646-480-7021', 'one bad reading keeps it on the card');
+  const a2 = R.applyCheck(a1, await R.checkEntry(a1, IMPERIAL, cookie.get), NOW + 21 * HOUR);
+  assert.equal(a2.value.phone, null);
+  assert.ok(a2.value.rejected);
+}
+{
+  // A redirect to another host is not the listing: no strike.
+  const url = 'https://yellowpages.com/queens-ny/imperial-consulting-group';
+  const moved = async (u) => {
+    const r = new Response(html('<h1>Search</h1><p>No results near Kew Gardens.</p>'), { status: 200, headers: { 'content-type': 'text/html' } });
+    Object.defineProperty(r, 'url', { value: 'https://login.example.net/consent' });
+    return r;
+  };
+  const e = { ...listed('', { url }), at: NOW - 2 * HOUR };
+  assert.equal((await R.checkEntry(e, IMPERIAL, R.pageGetter(moved))).outcome, 'unreachable');
+}
+{
+  // A city record filed as "listed" is not a directory.
+  const GMLV = { company: 'GMLV COMPANIES INC.', address: '12 W 31ST ST, New York NY 10001' };
+  const gov = { at: AUG28, value: { company: GMLV.company, phone: '+1-212-736-5000', email: null, confidence: 'listed', source: 'data.cityofnewyork.us — DOB/DCWP licences, matched on name and business address', via: null } };
+  const w = web({});
+  const res = await R.checkEntry(gov, GMLV, w.get);
+  assert.equal(res.outcome, 'unconfirmed');
+  assert.equal(w.calls.length, 0);
+}
+{
+  // A confirmed listing keeps its number and drops a directory inbox.
+  const url = 'https://yellowpages.com/queens-ny/imperial-consulting-group';
+  const e = listed('', { url, email: 'office@imperialcg.example' });
+  const page = html('<div>Imperial Consulting Group 118-09 83rd Ave, Kew Gardens NY 11415 (646) 480-7021 office@imperialcg.example</div>');
+  const res = await R.checkEntry(e, IMPERIAL, web({ [url]: page }).get);
+  assert.equal(res.outcome, 'confirmed');
+  const after = R.applyCheck(e, res, NOW);
+  assert.equal(after.value.email, null, 'a directory vouches for no inbox');
+  assert.equal(after.value.phone, '+1-646-480-7021');
 }
 {
   // The filing's ZIP is on the page, but a screen away from the number: a
@@ -151,7 +238,8 @@ const listed = (source, extra = {}) => ({
   const url = 'https://www.yellowpages.com/search?q=imperial';
   const page = html(`<p>Imperial Consulting Group · East Meadow, NY 11554 · (646) 480-7021</p>${'<p>other listing</p>'.repeat(60)}<p>People also viewed: businesses near Kew Gardens, NY 11415</p>`);
   const res = await R.checkEntry(listed('', { url }), IMPERIAL, web({ [url]: page }).get);
-  assert.equal(res.outcome, 'rejected');
+  assert.equal(res.outcome, 'held');
+  assert.equal(res.strike, true);
 }
 {
   // The filing's ZIP sits nearest another number: that one is taken.
@@ -184,7 +272,13 @@ const listed = (source, extra = {}) => ({
   assert.equal(keptAfter.lastCheck.outcome, 'unreachable');
 
   const bare = { ...withNote, value: { ...withNote.value, source: 'bbb.org/us/ny/rego-park/profile/jrc' } };
-  const gone = await R.checkEntry(bare, JRC, blocked.get);
+  const shut = await R.checkEntry(bare, JRC, blocked.get);
+  // Its listing names a page, which may yet be read: held, not withdrawn.
+  assert.equal(shut.outcome, 'held');
+  assert.equal(shut.strike, undefined, 'a page that answered 403 is no strike');
+  // No listing named at all, and no address in the note: nothing ever will.
+  const prose = { ...withNote, value: { ...withNote.value, source: 'bbb.org and yellowpages.com (Brooklyn)' } };
+  const gone = await R.checkEntry(prose, JRC, blocked.get);
   assert.equal(gone.outcome, 'rejected');
   assert.equal(gone.reason, "directory number with no demonstrable tie to the filing's address");
   // A bare directory host names no listing at all: the same, with no fetch.
