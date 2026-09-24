@@ -824,6 +824,10 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dlist.tiers li { margin-bottom: 12px; }
 .dlist.tiers .conf { margin-right: 8px; }
 .deny-head .mono { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+/* A host with a path (www.googleapis.com/customsearch) is one unbreakable word
+   wider than a phone; it wraps anywhere rather than pushing the page sideways. */
+.deny-head { flex-wrap: wrap; }
+.deny-head .mono { min-width: 0; overflow-wrap: anywhere; }
 
 .theme-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1509,6 +1513,19 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .ev-den { font-family: var(--mono); font-size: .8em; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ev-share.stack { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .ev-share.stack .ev-den { font-size: 11px; }
+/* Focus is moved to the heading when the page opens so a screen reader starts
+   there; it is not a control, so it draws no ring. */
+.evidence h1:focus { outline: none; }
+
+/* What the headline figure is not, said right beside it: the warm rule the
+   data page uses for what we do not collect, so it reads as a limit, not a
+   highlight. */
+.ev-caution {
+  margin: 18px 0 0; padding: 12px 16px; max-width: 68ch;
+  border-left: 3px solid var(--warm); background: var(--warm-wash); border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.ev-caution p { margin: 0 0 8px; font-size: 15px; }
+.ev-caution p:last-child { margin-bottom: 0; }
 
 /* The chart sits in the text column with a hairline under its caption, like a
    figure in a report. Text wears ink tokens; only the bars carry the brand. */
@@ -1541,7 +1558,12 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 }
 
 /* Tables of shares: numbers right-aligned and tabular, the count stacked under
-   each share. Tight enough to fit a 390px phone without scrolling its box. */
+   each share. Tight enough to fit a 390px phone without scrolling its box;
+   narrower than that the box scrolls, and it is positioned so the
+   screen-reader-only words in the cells stay clipped to it rather than
+   pushing the page sideways. */
+.evidence .scrollx { position: relative; }
+.evidence .scrollx:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .ev-table-wrap { margin: 14px 0; }
 .dtable.ev-table th, .dtable.ev-table td { padding: 9px 11px; }
 .dtable.ev-table thead th:not(:first-child) { text-align: right; }
@@ -1573,8 +1595,11 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
   display: flex; gap: 10px; align-items: baseline; list-style: none;
 }
 .ev-claim summary::-webkit-details-marker { display: none; }
-.ev-claim summary::after { content: '+'; margin-left: auto; padding-left: 10px; font-family: var(--mono); color: var(--ink-3); }
-.ev-claim[open] summary::after { content: '−'; }
+/* The glyph is decoration: the empty alternative text keeps it out of each
+   claim's accessible name. The plain declaration before it is the fallback for
+   a browser that does not read the alternative-text form. */
+.ev-claim summary::after { content: '+'; content: '+' / ''; margin-left: auto; padding-left: 10px; font-family: var(--mono); color: var(--ink-3); }
+.ev-claim[open] summary::after { content: '−'; content: '−' / ''; }
 .ev-claim summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 2px; }
 .ev-claim summary .verdict { flex: none; white-space: nowrap; }
 .ev-claim > p, .ev-claim > ol, .ev-claim > .ev-stated { font-size: 14px; color: var(--ink-2); margin: 0 0 12px; }

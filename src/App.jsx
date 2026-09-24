@@ -3332,7 +3332,7 @@ export default function App() {
 
   // The answer to "does the window lead to a sale?", read from the backtest's
   // own file. The page fetches that file itself, so it opens before the feed
-  // has loaded and costs the feed nothing.
+  // has loaded, and the feed carries the page's code but not its figures.
   if (route === 'evidence')
     return (
       <EvidencePage

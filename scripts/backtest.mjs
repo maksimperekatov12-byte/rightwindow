@@ -17,7 +17,8 @@
 // register's own ranking, because a number nobody can check is worth nothing
 // on a stage. Aggregates only: no building, firm or person leaves this script.
 //
-//   npm run backtest     about twenty requests; a rerun within a day makes none
+//   npm run backtest     two dozen queries (about thirty requests with an empty
+//                        cache, a big query paging); a rerun within a day makes none
 //
 // The cache lives outside the repo ($TMPDIR/rw-backtest-cache, or
 // BACKTEST_CACHE) and an entry is reused for BACKTEST_MAX_AGE_H hours (24 by
@@ -270,8 +271,8 @@ function balancedByBorough(rows, total) {
 // Facade permits by building: each job once, dated by its earliest Initial
 // Permit, with the declared cost and the permittee's licence of that permit.
 // That is the right unit for "did the building buy after the report": a
-// subsequent (-S#) filing on a job hired before the report is the same
-// contractor carrying on, not a new purchase. It is the wrong unit for "is
+// subsequent (-S#) filing on a job filed before the report is the same
+// job carrying on, not a new purchase. It is the wrong unit for "is
 // anybody on site", which is what issued answers: every matching permit's
 // issue date by building, -S# filings included.
 export function permitIndex(rows, test) {
@@ -398,11 +399,14 @@ function outcome(bins, byBin, T, label, def) {
     in24++;
     if (p.t - T <= M12 * DAY) in12++;
   }
-  const w = `${label}; permit issued within N days after ${iso(T)}`;
+  // Each span's window is written out whole. Filling a placeholder letter in
+  // one template with replace() hit the first capital N instead, the one in
+  // "DOB NOW" or NOT_FLAGGED, and left the placeholder in place.
+  const w = (span) => `${label}; permit issued within ${span} days after ${iso(T)}`;
   return {
     n: bins.length,
-    within12: share(in12, bins.length, w.replace('N', '365'), def),
-    within24: share(in24, bins.length, w.replace('N', '730'), def),
+    within12: share(in12, bins.length, w(M12), def),
+    within24: share(in24, bins.length, w(M24), def),
   };
 }
 
@@ -716,9 +720,12 @@ async function main() {
 
   // Where the time goes between an UNSAFE report and its permit: the job's
   // own filing date, from the job-applications dataset (same number).
-  // The permit trails the contract: the job is filed once a contractor is
-  // hired, so the report-to-job-filed time, not the report-to-permit time, is
-  // the selling window, and a job filed before the report was sold before it.
+  // A job is filed by its applicant of record, usually the engineer or
+  // architect, and the permit that names the contractor comes months later.
+  // So the report-to-job-filed time, not the report-to-permit time, is the
+  // closer mark of when the work was decided, and a job filed before the
+  // report was under way before it. It does not show when a contractor was
+  // hired: the record has no date for that.
   const hits = raw['regex.UNSAFE'].hits.filter((h) => h.job);
   const ids = [...new Set(hits.map((h) => h.job))].sort();
   const filed = new Map();
@@ -871,7 +878,7 @@ async function main() {
       }
     }
     const lbl = {
-      SHED_NO_REPAIR: `shed permit live on ${at} for 365+ days, no ${PERMIT} in the ${M24} days before (the register's SHED_NO_REPAIR)`,
+      SHED_NO_REPAIR: `shed permit live on ${at} for 365+ days, no ${PERMIT} in the ${M24} days before (SHED_NO_REPAIR as the rule should read, not as the collector computes it today)`,
       LONG_WITH_REPAIR: `shed permit live on ${at} for 365+ days, such a permit already in the ${M24} days before`,
       NEW_NO_REPAIR: `shed permit live on ${at} for under 365 days, no ${PERMIT} in the ${M24} days before`,
       NEW_ANY: `shed permit live on ${at} for under 365 days, with or without such a permit before`,
@@ -939,7 +946,7 @@ async function main() {
       reports: recent.length,
       open: share(open.length, recent.length, WO, openDef),
       openByBorough: perBorough(open, openDef),
-      facadeJobFiled: share(facadeJob.size, open.length, `${WO}; open`, `${jobDef}, passing the same facade test on its work_on_floor or job_description: the contractor is likely chosen and the permit not yet issued`),
+      facadeJobFiled: share(facadeJob.size, open.length, `${WO}; open`, `${jobDef}, passing the same facade test on its work_on_floor or job_description: the work is already filed and the permit not yet issued`),
       shedJobFiled: share(shedJob.length, open.length, `${WO}; open`, `${jobDef}, with a sidewalk shed (shed='YES')`),
       reportUnder180Days: share(young.length, open.length, `${WO}; open`, `report filed less than ${LOOKBACK} days before ${iso(asOf)}, inside the usual report-to-permit time (facades.cohorts.regex.UNSAFE.lagDays)`),
       nothingFiled: share(nothing.length, recent.length, WO, nothingDef),
@@ -993,6 +1000,43 @@ async function main() {
     const due = t.filter((o) => o.monthsLeft > 0).map((o) => o.within24.value);
     return due.length && t.filter((o) => o.monthsLeft <= 0).every((o) => o.within24.value < Math.min(...due));
   });
+  // Conversion rises with the score only if no higher score converts below a
+  // lower one at any replay date.
+  const rising = replays.every((r) => {
+    const v = Object.entries(r.ranking.byScore).sort(([x], [y]) => Number(x) - Number(y)).map(([, o]) => o.within24.value);
+    return v.every((x, i) => !i || x >= v[i - 1]);
+  });
+  // The 800 the register would show against the rest of the flagged pool, read
+  // off the spread of the random draws and not their median alone: better only
+  // when the whole 5th-95th percentile range sits above zero, worse only when
+  // it sits below, and no better when it straddles zero. The sentence is built
+  // from those verdicts so a rerun cannot leave a softer one standing.
+  const shownVerdicts = drawGap.map((g) => (g.p5 > 0 ? 'better' : g.p95 < 0 ? 'worse' : 'level'));
+  const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
+  const shownAgainstRest = [
+    ['level', 'no better than the rest of the flagged pool'],
+    ['worse', 'worse than the rest'],
+    ['better', 'better than the rest'],
+  ]
+    .map(([v, words]) => [words, replays.filter((_, i) => shownVerdicts[i] === v).map((r) => r.at)])
+    .filter(([, dates]) => dates.length)
+    .map(([words, dates]) =>
+      dates.length === replays.length
+        ? `${words} at every replay date`
+        : `${words} at ${WORDS[dates.length] ?? dates.length} ${dates.length > 1 ? 'dates' : 'date'} (${dates.join(', ')})`,
+    )
+    .join(' and ');
+  const tierAgainstRest = tierGap.every((g) => g > 0)
+    ? 'the top score tier converts a few points above the rest of the flagged pool'
+    : tierGap.every((g) => g <= 0)
+      ? 'the top score tier converts no better than the rest of the flagged pool'
+      : 'the top score tier converts above the rest of the flagged pool at some dates and not at others';
+  const noPermit = share(
+    R.UNSAFE.within24.den - R.UNSAFE.within24.num,
+    R.UNSAFE.within24.den,
+    R.UNSAFE.within24.window,
+    `no ${R.UNSAFE.within24.definition} within 730 days`,
+  );
   const base = replays.map((r) => r.groups.NOT_FLAGGED.within24.value);
   const vsBase = (k) => replays.map((r, i) => ({ at: r.at, v: r.groups[k].within24.value, b: base[i], gap: round1(r.groups[k].within24.value - base[i]) }));
   const sr = shedReplay.map((r) => r.groups);
@@ -1017,7 +1061,7 @@ async function main() {
         `(${range([C.UNSAFE.within12.value, R.UNSAFE.within12.value])} within 12), against ` +
         `${range([C.SAFE.within24.value, R.SAFE.within24.value])} of buildings reported SAFE. ` +
         'That gap is what the law requires (an UNSAFE building must repair, a SAFE one need not): it sizes the repair wave and its timing, it does not show that anything predicts it. ' +
-        `And since every UNSAFE building must repair, the ${round1(100 - R.UNSAFE.within24.value)}% with no such permit in two years are repairs the permit record misses or that slipped past two years.`,
+        `The ${noPermit.value}% (${fmt(noPermit.num)} of ${fmt(noPermit.den)}) with no such permit in two years mix repairs the permit record misses, repairs that slipped past two years and buildings not yet repaired; the record cannot tell them apart.`,
       value: `${R.UNSAFE.within24.value}%`,
       denominator: `${fmt(R.UNSAFE.buildings)} buildings`,
       window: `first cycle-9 report filed ${COHORT.from}..${COHORT.to}, followed 730 days`,
@@ -1025,10 +1069,10 @@ async function main() {
     },
     {
       claim:
-        `The permit trails the sale. The job behind it was filed with DOB a median ${JT.reportToJobFiledSigned.median} days after the UNSAFE report ` +
+        `The permit comes months after the work is filed. The job behind it was filed with DOB a median ${JT.reportToJobFiledSigned.median} days after the UNSAFE report ` +
         `(IQR ${JT.reportToJobFiledSigned.p25}–${JT.reportToJobFiledSigned.p75}), ${JT.jobFiledBeforeReport.value}% of them before it, and the permit was issued a median ${R.UNSAFE.lagDays.median} days after the report ` +
         `(IQR ${R.UNSAFE.lagDays.p25}–${R.UNSAFE.lagDays.p75}); ${R.UNSAFE.alreadyBefore.value}% of UNSAFE buildings already had such a permit in the ${LOOKBACK} days before their report. ` +
-        `So the selling window is months shorter than the permit lag, and for that ${JT.jobFiledBeforeReport.value}% the contractor was chosen before the report was filed.`,
+        `A job is filed by its applicant of record, usually the engineer or architect, and the permit names the contractor, so the report-to-permit lag overstates the time there is to sell into; for that ${JT.jobFiledBeforeReport.value}% the work was already filed before the report.`,
       value: `${JT.reportToJobFiledSigned.median} days`,
       denominator: `${fmt(JT.reportToJobFiledSigned.n)} jobs behind the first permits (${fmt(R.UNSAFE.buildings)} buildings for the look-back share)`,
       window: `first cycle-9 UNSAFE report filed ${COHORT.from}..${COHORT.to}; first permit within 730 days`,
@@ -1115,7 +1159,7 @@ async function main() {
         drawGap.map((g) => signed1(g.median)).join(' / ') +
         ' pts (5th–95th percentile ' +
         drawGap.map((g) => `${signed1(g.p5)} to ${signed1(g.p95)}`).join(' / ') +
-        '). Conversion does not rise with the score either: ' +
+        `). Conversion ${rising ? 'rises' : 'does not rise steadily'} with the score: ` +
         replays
           .map((r) => {
             const t = Object.entries(r.ranking.byScore).sort(([x], [y]) => Number(x) - Number(y));
@@ -1123,7 +1167,7 @@ async function main() {
             return `${r.at} score ${t.map(([sc, o]) => `${sc}: ${o.within24.value}%`).join(', ')} (lowest: ${low[0]})`;
           })
           .join('; ') +
-        '. Fair statement: the score gives a small, non-monotone lift, and showing the most overdue first gives part of it back.',
+        `. Fair statement: ${tierAgainstRest}, conversion ${rising ? 'rises' : 'does not rise steadily'} with the score, and the ${CEILING} the register would show, most overdue first, did ${shownAgainstRest}.`,
       rule: 'counted as holding only if the top score tier, and the median random draw of the 800 shown, both beat the rest of the flagged pool by at least 3 percentage points at every replay date',
     },
     {
@@ -1144,7 +1188,12 @@ async function main() {
       evidence:
         sr
           .map((g, i) => `${SHED_REPLAY[i]}: ${g.SHED_NO_REPAIR.within24.value}% within 24 months vs ${g.NEW_NO_REPAIR.within24.value}% for a shed under a year old with no such permit before it (${g.NEW_ANY.within24.value}% for every shed under a year old)`)
-          .join('; ') + '. Like for like, the long-standing shed converts worse: it reads more like a stuck owner than a ready buyer.',
+          .join('; ') +
+        (sr.every((g) => g.SHED_NO_REPAIR.within24.value < g.NEW_NO_REPAIR.within24.value)
+          ? '. Like for like, the long-standing shed converts worse at every replay date: it reads more like a stuck owner than a ready buyer.'
+          : sr.every((g) => g.SHED_NO_REPAIR.within24.value >= g.NEW_NO_REPAIR.within24.value)
+            ? '. Like for like, the long-standing shed converts at least as well at every replay date.'
+            : '. Like for like, the long-standing shed converts worse at some replay dates and not at others.'),
       rule: 'holds only if it converts at least as well as a new shed with no prior facade permit at every replay date',
     },
     {
@@ -1176,13 +1225,16 @@ async function main() {
   ];
 
   const caveats = [
-    `The outcome is a facade-related GC permit in DOB NOW, not necessarily a repair: any General Construction Initial Permit whose work location says Facade or whose description names a facade word. It includes mixed-scope and non-repair jobs that mention a facade, and misses repairs filed under suspended-scaffold or shed jobs, work filed in BIS, and minor work pulled with no GC permit. Every UNSAFE building must repair, yet only ${R.UNSAFE.within24.value}% show such a permit within 24 months: the measure undercounts, and some repairs slip past two years.`,
+    `The outcome is a facade-related GC permit in DOB NOW, not necessarily a repair: any General Construction Initial Permit whose work location says Facade or whose description names a facade word. It includes mixed-scope and non-repair jobs that mention a facade, and misses repairs filed under suspended-scaffold or shed jobs, work filed in BIS, and minor work pulled with no GC permit. Every UNSAFE building must repair, yet only ${R.UNSAFE.within24.value}% show such a permit within 24 months: the measure undercounts, some repairs slip past two years, and some buildings have not repaired yet. The record cannot tell these apart.`,
     `A permit is a lagging proxy for a purchase: it shows a licensed contractor was hired, not when or for how much. In the UNSAFE cohort the job was filed a median ${JT.reportToJobFiledSigned.median} days after the report and ${JT.jobFiledBeforeReport.value}% before it, so the report-to-permit lag (${R.UNSAFE.lagDays.median} days) overstates the selling window. The declared cost is the applicant's estimate for the whole job.`,
     'The UNSAFE-over-SAFE lift is what the law requires, not a prediction: SAFE buildings are a comparison group, not a control.',
     'DOB NOW General Construction permits begin 2020-12-27; work permitted in the older BIS system before that is invisible, which is why every look-back starts in 2021-08 or later.',
-    'Outcomes join on BIN. Joining on BBL as well added about 3 percentage points to the UNSAFE cohort when checked once by hand (81 of 2,543 buildings; not re-derived here) and is left out, so the conversion shares are slightly low rather than high.',
+    // A hand check from an earlier run, on a cohort drawn slightly differently:
+    // this script reads no lot numbers, so it cannot redo the BBL join, and the
+    // caveat says so instead of passing its figures off as this run's.
+    'Outcomes join on BIN. An earlier hand check, on a slightly different UNSAFE cohort than the one counted here (81 of its 2,543 buildings), found that joining on BBL as well would add about 3 percentage points. This script does not re-derive it and leaves the BBL join out, so the conversion shares are slightly low rather than high.',
     `The regex definition is narrower than the collector's own PERMIT_RE (no masonry, brick or waterproofing); the work_on_floor definition is narrower still. Both are reported and the claims quote the range.`,
-    'A job is its base number: its -I1 and -S# filings are one job, dated by its earliest permit. For the cohorts that is the right unit (a -S# filing on a job hired before the report is not a new purchase); for the open windows today every filing counts, because the question there is whether anybody is on site.',
+    'A job is its base number: its -I1 and -S# filings are one job, dated by its earliest permit. For the cohorts that is the right unit (a -S# filing on a job filed before the report is not a new purchase); for the open windows today every filing counts, because the question there is whether anybody is on site.',
     'A share of UNSAFE buildings already had a facade-related permit in the 180 days before the report (alreadyBefore); they are kept in the denominator, and their later permits are new jobs.',
     'Market concentration is given by job count and by declared cost: by cost the largest firms hold a larger share than by count, and both views belong in any claim about how split the market is.',
     `The engineering firm count depends on how names are folded (${fmt(Math.min(...firmRange))}–${fmt(Math.max(...firmRange))} across the folds in engineers.marketByFold); the top-10 share barely moves.`,
