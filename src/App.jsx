@@ -435,6 +435,40 @@ const CivicWorks = lazy(() => import('./CivicWorks.jsx').catch(() => blank));
 const Storefronts = lazy(() => import('./Storefronts.jsx').catch(() => blank));
 const CityMap = lazy(() => import('./CityMap.jsx').catch(() => blank));
 
+// The evidence page is split off the same way. Imported statically it put its
+// prose into the bundle every visitor to the feed downloads (+29 kB, review of
+// 2026-09-24), for a page few of them open; its figures are a chunk of their
+// own that the page fetches itself. Unlike a scene it is the whole screen, so a
+// chunk that will not load (a tab held open across a deploy) must not leave it
+// blank: it says so, with the way back and a reload.
+const EvidencePage = lazy(() =>
+  import('./Evidence.jsx').catch(() => ({ default: (props) => <EvidenceShell {...props} failed /> })),
+);
+function EvidenceShell({ onBack, failed = false }) {
+  return (
+    <div className="wrap datapage evidence">
+      <div className="page-bar">
+        <button className="chip-btn back" onClick={onBack}>← Back to the feed</button>
+      </div>
+      <main aria-busy={!failed}>
+        <h1>Does the window lead to a sale?</h1>
+        {failed ? (
+          <div className="ev-failed" role="alert">
+            <p className="lead">The page did not load. A reload usually brings it back.</p>
+            <button className="btn solid" onClick={() => location.reload()}>
+              Reload
+            </button>
+          </div>
+        ) : (
+          <p className="lead" role="status">
+            Loading the page…
+          </p>
+        )}
+      </main>
+    </div>
+  );
+}
+
 // Each register gets its own object and its own line under it. The caption is
 // the object's job: it says which fact of the register the brand-coloured
 // element stands for.
@@ -1253,11 +1287,13 @@ function saveLS(key, v) {
 }
 
 export default function App() {
-  // Routes: #data, #trades, #t/<trade>, or the feed. A trade in the URL means a
-  // link can be sent to one contractor and open already set up for his work.
+  // Routes: #data, #trades, #evidence, #t/<trade>, or the feed. A trade in the
+  // URL means a link can be sent to one contractor and open already set up for
+  // his work.
   const routeFromHash = () => {
     if (location.hash === '#data') return 'data';
     if (location.hash === '#trades') return 'trades';
+    if (location.hash === '#evidence') return 'evidence';
     return 'feed';
   };
   const initialRoute = routeFromHash();
@@ -3344,6 +3380,21 @@ export default function App() {
         }}
       />
     );
+
+  // The answer to "does the window lead to a sale?", read from the backtest's
+  // own file. The page's code and its figures are each fetched when it opens,
+  // so it opens before the feed has loaded and the feed carries neither.
+  if (route === 'evidence') {
+    const back = () => {
+      history.replaceState(null, '', location.pathname + location.search);
+      setRoute('feed');
+    };
+    return (
+      <Suspense fallback={<EvidenceShell onBack={back} />}>
+        <EvidencePage isDark={isDark} onTheme={toggleTheme} onBack={back} />
+      </Suspense>
+    );
+  }
 
   if (route === 'data')
     return (
@@ -5596,6 +5647,17 @@ export default function App() {
             }}
           >
             A page for every trade
+          </button>
+          <span className="foot-sep" aria-hidden="true">·</span>
+          <button
+            className="foot-toggle"
+            onClick={() => {
+              history.pushState(null, '', '#evidence');
+              setRoute('evidence');
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            Does the window lead to a sale?
           </button>
           <span className="foot-sep" aria-hidden="true">·</span>
           <button className="foot-toggle" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources}>

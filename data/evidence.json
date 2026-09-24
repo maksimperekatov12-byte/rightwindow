@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T11:16:08.944Z",
+  "generatedAt": "2026-09-24T07:05:38.276Z",
   "asOf": "2026-09-22",
   "script": "scripts/backtest.mjs",
   "question": "When the public record says a building's facade window is open, does the building then buy the work?",
@@ -115,14 +115,14 @@
   },
   "headline": [
     {
-      "claim": "Of 2,523 NYC buildings whose first cycle-9 facade report was filed UNSAFE, 40.3–50.4% had a facade-related GC permit in DOB NOW issued within 24 months (28.8–34.7% within 12), against 3.4–4.9% of buildings reported SAFE. That gap is what the law requires (an UNSAFE building must repair, a SAFE one need not): it sizes the repair wave and its timing, it does not show that anything predicts it. And since every UNSAFE building must repair, the 49.6% with no such permit in two years are repairs the permit record misses or that slipped past two years.",
+      "claim": "Of 2,523 NYC buildings whose first cycle-9 facade report was filed UNSAFE, 40.3–50.4% had a facade-related GC permit in DOB NOW issued within 24 months (28.8–34.7% within 12), against 3.4–4.9% of buildings reported SAFE. That gap is what the law requires (an UNSAFE building must repair, a SAFE one need not): it sizes the repair wave and its timing, it does not show that anything predicts it. The 49.6% (1,251 of 2,523) with no such permit in two years mix repairs the permit record misses, repairs that slipped past two years and buildings not yet repaired; the record cannot tell them apart.",
       "value": "50.4%",
       "denominator": "2,523 buildings",
       "window": "first cycle-9 report filed 2022-02-01..2024-09-21, followed 730 days",
       "definition": "regex definition; the lower bound of each range is the work_on_floor-only definition. A facade-related permit is not necessarily a repair (definitions.facadePermit)"
     },
     {
-      "claim": "The permit trails the sale. The job behind it was filed with DOB a median 129 days after the UNSAFE report (IQR 24–269), 18.9% of them before it, and the permit was issued a median 231 days after the report (IQR 119–416); 10.3% of UNSAFE buildings already had such a permit in the 180 days before their report. So the selling window is months shorter than the permit lag, and for that 18.9% the contractor was chosen before the report was filed.",
+      "claim": "The permit comes months after the work is filed. The job behind it was filed with DOB a median 129 days after the UNSAFE report (IQR 24–269), 18.9% of them before it, and the permit was issued a median 231 days after the report (IQR 119–416); 10.3% of UNSAFE buildings already had such a permit in the 180 days before their report. A job is filed by its applicant of record, usually the engineer or architect, and the permit names the contractor, so the report-to-permit lag overstates the time there is to sell into; for that 18.9% the work was already filed before the report.",
       "value": "129 days",
       "denominator": "1,272 jobs behind the first permits (2,523 buildings for the look-back share)",
       "window": "first cycle-9 UNSAFE report filed 2022-02-01..2024-09-21; first permit within 730 days",
@@ -133,7 +133,7 @@
       "value": "$227k",
       "denominator": "1,272 permits declaring a cost",
       "window": "first cycle-9 UNSAFE report filed 2022-02-01..2024-09-21; first permit within 730 days",
-      "definition": "estimated_job_costs on the permit application; a permit is a lagging proxy for a signed contract"
+      "definition": "estimated_job_costs on the permit application; a permit is the lagging trace of a hired contractor, not a contract"
     },
     {
       "claim": "398 different permittee licences pulled those 1,272 permits; the ten busiest hold 18.9%.",
@@ -164,11 +164,11 @@
       "definition": "regex definition; sign-off is w9ak-ipjd signoff_date; the shed life is a Kaplan-Meier median"
     },
     {
-      "claim": "Today 258 buildings have a cycle-10 report filed UNSAFE in the last 12 months and no facade-related GC permit in DOB NOW issued since (nor in the six months before). They are not all untouched: 126 already have a facade-related job application filed in DOB NOW, awaiting or beside its permit, and 109 of the reports are under 180 days old, inside the usual 231-day lag to a permit. 132 have nothing facade-related filed (Manhattan 75, Brooklyn 27, Bronx 25, Queens 5), 55 of them reported under 180 days ago. None is on the register, by its design rather than by finding: all 800 of its cards are buildings with no cycle-10 filing.",
+      "claim": "Today 258 buildings have a cycle-10 report filed UNSAFE in the last 12 months and no facade-related GC permit in DOB NOW issued since (nor in the six months before). They are not all untouched: 126 already have a facade-related job application filed in DOB NOW, awaiting or beside its permit, and 109 of the reports are under 180 days old. 132 have nothing facade-related filed (Manhattan 75, Brooklyn 27, Bronx 25, Queens 5), 55 of them reported under 180 days ago and 48 under 129 days, the median time from an UNSAFE report to the filing of its facade job. None is on the register today, which is how it ranks rather than a guarantee: all 800 of its cards are buildings with no cycle-10 filing, though a building whose cycle-9 report was SWARMP can still qualify with a fresh UNSAFE report.",
       "value": "132",
       "denominator": "355 UNSAFE first reports",
       "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22",
-      "definition": "the FRESH_UNSAFE window, not a signal the register has yet: no facade-related permit issued and no facade-related job application filed from 180 days before the report"
+      "definition": "a window the register does not read as a signal today: a fresh cycle-10 UNSAFE report with no facade-related permit issued and no facade-related job application filed from 180 days before the report"
     }
   ],
   "facades": {
@@ -1175,14 +1175,14 @@
             "value": 7,
             "num": 200,
             "den": 2856,
-            "window": "365OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "NOT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 13.9,
             "num": 396,
             "den": 2856,
-            "window": "730OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "NOT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1192,14 +1192,14 @@
             "value": 26.2,
             "num": 82,
             "den": 313,
-            "window": "365OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "NOT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 32.9,
             "num": 103,
             "den": 313,
-            "window": "730OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "NOT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1209,14 +1209,14 @@
             "value": 11,
             "num": 1015,
             "den": 9249,
-            "window": "365ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 23,
             "num": 2124,
             "den": 9249,
-            "window": "730ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1243,14 +1243,14 @@
             "value": 8.6,
             "num": 108,
             "den": 1261,
-            "window": "U365SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "UNSAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 14.4,
             "num": 182,
             "den": 1261,
-            "window": "U730SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "UNSAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1260,14 +1260,14 @@
             "value": 8,
             "num": 132,
             "den": 1655,
-            "window": "CHRO365IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "CHRONIC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 365 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 16.4,
             "num": 272,
             "den": 1655,
-            "window": "CHRO730IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within N days after 2021-08-21",
+            "window": "CHRONIC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2021-08-21; permit issued within 730 days after 2021-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         }
@@ -1458,14 +1458,14 @@
             "value": 9.2,
             "num": 410,
             "den": 4441,
-            "window": "365OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "NOT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 17.5,
             "num": 777,
             "den": 4441,
-            "window": "730OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "NOT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1475,14 +1475,14 @@
             "value": 21.8,
             "num": 187,
             "den": 859,
-            "window": "365OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "NOT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 32.1,
             "num": 276,
             "den": 859,
-            "window": "730OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "NOT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1492,14 +1492,14 @@
             "value": 11.3,
             "num": 1074,
             "den": 9507,
-            "window": "365ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 22.6,
             "num": 2149,
             "den": 9507,
-            "window": "730ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1526,14 +1526,14 @@
             "value": 7.9,
             "num": 71,
             "den": 894,
-            "window": "U365SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "UNSAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 12.6,
             "num": 113,
             "den": 894,
-            "window": "U730SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "UNSAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1543,14 +1543,14 @@
             "value": 8.6,
             "num": 104,
             "den": 1214,
-            "window": "CHRO365IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "CHRONIC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 365 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 16.6,
             "num": 202,
             "den": 1214,
-            "window": "CHRO730IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within N days after 2022-08-21",
+            "window": "CHRONIC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2022-08-21; permit issued within 730 days after 2022-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         }
@@ -1759,14 +1759,14 @@
             "value": 9.1,
             "num": 691,
             "den": 7573,
-            "window": "365OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "NOT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 16.9,
             "num": 1279,
             "den": 7573,
-            "window": "730OT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "NOT_FLAGGED, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1776,14 +1776,14 @@
             "value": 19.2,
             "num": 215,
             "den": 1121,
-            "window": "365OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "NOT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 28.9,
             "num": 324,
             "den": 1121,
-            "window": "730OT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "NOT_FLAGGED_FILED_UNSAFE, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1793,14 +1793,14 @@
             "value": 11.3,
             "num": 661,
             "den": 5825,
-            "window": "365ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 22.6,
             "num": 1318,
             "den": 5825,
-            "window": "730ON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1827,14 +1827,14 @@
             "value": 4.9,
             "num": 28,
             "den": 571,
-            "window": "U365SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "UNSAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 26.3,
             "num": 150,
             "den": 571,
-            "window": "U730SAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "UNSAFE_PRIOR, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         },
@@ -1844,14 +1844,14 @@
             "value": 7,
             "num": 58,
             "den": 829,
-            "window": "CHRO365IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "CHRONIC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 365 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           },
           "within24": {
             "value": 12.1,
             "num": 100,
             "den": 829,
-            "window": "CHRO730IC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within N days after 2023-08-21",
+            "window": "CHRONIC_NON_FILER, four register boroughs, buildings with a cycle-8 or dated cycle-9 filing on 2023-08-21; permit issued within 730 days after 2023-08-21",
             "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
           }
         }
@@ -2088,14 +2088,14 @@
               "value": 15.4,
               "num": 170,
               "den": 1103,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, no facade-related GC permit in DOB 365OW in the 730 days before (the register's SHED_NO_REPAIR); permit issued within N days after 2023-09-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, no facade-related GC permit in DOB NOW in the 730 days before (SHED_NO_REPAIR as the rule should read, not as the collector computes it today); permit issued within 365 days after 2023-09-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             },
             "within24": {
               "value": 31,
               "num": 342,
               "den": 1103,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, no facade-related GC permit in DOB 730OW in the 730 days before (the register's SHED_NO_REPAIR); permit issued within N days after 2023-09-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for 365+ days, no facade-related GC permit in DOB NOW in the 730 days before (SHED_NO_REPAIR as the rule should read, not as the collector computes it today); permit issued within 730 days after 2023-09-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             }
           },
@@ -2122,14 +2122,14 @@
               "value": 38,
               "num": 376,
               "den": 989,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for under 365 days, no facade-related GC permit in DOB 365OW in the 730 days before; permit issued within N days after 2023-09-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for under 365 days, no facade-related GC permit in DOB NOW in the 730 days before; permit issued within 365 days after 2023-09-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             },
             "within24": {
               "value": 49.2,
               "num": 487,
               "den": 989,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for under 365 days, no facade-related GC permit in DOB 730OW in the 730 days before; permit issued within N days after 2023-09-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2023-09-21 for under 365 days, no facade-related GC permit in DOB NOW in the 730 days before; permit issued within 730 days after 2023-09-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             }
           },
@@ -2161,14 +2161,14 @@
               "value": 19.6,
               "num": 226,
               "den": 1155,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, no facade-related GC permit in DOB 365OW in the 730 days before (the register's SHED_NO_REPAIR); permit issued within N days after 2024-03-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, no facade-related GC permit in DOB NOW in the 730 days before (SHED_NO_REPAIR as the rule should read, not as the collector computes it today); permit issued within 365 days after 2024-03-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             },
             "within24": {
               "value": 34.9,
               "num": 403,
               "den": 1155,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, no facade-related GC permit in DOB 730OW in the 730 days before (the register's SHED_NO_REPAIR); permit issued within N days after 2024-03-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for 365+ days, no facade-related GC permit in DOB NOW in the 730 days before (SHED_NO_REPAIR as the rule should read, not as the collector computes it today); permit issued within 730 days after 2024-03-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             }
           },
@@ -2195,14 +2195,14 @@
               "value": 41.4,
               "num": 395,
               "den": 953,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for under 365 days, no facade-related GC permit in DOB 365OW in the 730 days before; permit issued within N days after 2024-03-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for under 365 days, no facade-related GC permit in DOB NOW in the 730 days before; permit issued within 365 days after 2024-03-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             },
             "within24": {
               "value": 53.9,
               "num": 514,
               "den": 953,
-              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for under 365 days, no facade-related GC permit in DOB 730OW in the 730 days before; permit issued within N days after 2024-03-21",
+              "window": "FISP buildings, four register boroughs, shed permit live on 2024-03-21 for under 365 days, no facade-related GC permit in DOB NOW in the 730 days before; permit issued within 730 days after 2024-03-21",
               "definition": "facade-related GC permit in DOB NOW (definitions.facadePermit.regex)"
             }
           },
@@ -2272,7 +2272,7 @@
         "num": 126,
         "den": 258,
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; open",
-        "definition": "a job application in DOB NOW (w9ak-ipjd, any work type, not withdrawn) filed from 180 days before the report to 2026-09-22, passing the same facade test on its work_on_floor or job_description: the contractor is likely chosen and the permit not yet issued"
+        "definition": "a job application in DOB NOW (w9ak-ipjd, any work type, not withdrawn) filed from 180 days before the report to 2026-09-22, passing the same facade test on its work_on_floor or job_description: the work is already filed and the permit not yet issued"
       },
       "shedJobFiled": {
         "value": 50.8,
@@ -2286,7 +2286,7 @@
         "num": 109,
         "den": 258,
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; open",
-        "definition": "report filed less than 180 days before 2026-09-22, inside the usual report-to-permit time (facades.cohorts.regex.UNSAFE.lagDays)"
+        "definition": "report filed less than 180 days before 2026-09-22; for comparison, the median time from an UNSAFE report to the filing of the job behind its first facade-related permit is 129 days (facades.jobTiming.reportToJobFiledSigned)"
       },
       "nothingFiled": {
         "value": 37.2,
@@ -2332,12 +2332,19 @@
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; nothing facade-related filed",
         "definition": "report filed less than 180 days before 2026-09-22"
       },
+      "nothingFiledReportUnderJobFiling": {
+        "value": 36.4,
+        "num": 48,
+        "den": 132,
+        "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; nothing facade-related filed",
+        "definition": "report filed less than 129 days before 2026-09-22, the median time from an UNSAFE report to the filing of the job behind its first facade-related permit (facades.jobTiming.reportToJobFiledSigned)"
+      },
       "inRegister": {
         "value": 0,
         "num": 0,
         "den": 258,
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; open",
-        "definition": "on the facade register committed at 2026-09-23T05:49:00.011Z. Zero by how the register is built, not a finding: see openNow.register"
+        "definition": "on the facade register committed at 2026-09-23T23:35:32.375Z. The register ranks its candidates and keeps the top ones, and a building whose cycle-9 report was SWARMP can qualify with a fresh cycle-10 UNSAFE report (SWARMP_CARRYOVER), so a zero here is how it ranks today, not a guarantee: see openNow.register"
       }
     },
     "SWARMP": {
@@ -2384,7 +2391,7 @@
         "num": 104,
         "den": 425,
         "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22; open",
-        "definition": "a job application in DOB NOW (w9ak-ipjd, any work type, not withdrawn) filed from 180 days before the report to 2026-09-22, passing the same facade test on its work_on_floor or job_description: the contractor is likely chosen and the permit not yet issued"
+        "definition": "a job application in DOB NOW (w9ak-ipjd, any work type, not withdrawn) filed from 180 days before the report to 2026-09-22, passing the same facade test on its work_on_floor or job_description: the work is already filed and the permit not yet issued"
       },
       "shedJobFiled": {
         "value": 5.9,
@@ -2398,7 +2405,7 @@
         "num": 216,
         "den": 425,
         "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22; open",
-        "definition": "report filed less than 180 days before 2026-09-22, inside the usual report-to-permit time (facades.cohorts.regex.UNSAFE.lagDays)"
+        "definition": "report filed less than 180 days before 2026-09-22"
       },
       "nothingFiled": {
         "value": 69.3,
@@ -2449,18 +2456,25 @@
         "num": 0,
         "den": 425,
         "window": "four register boroughs, first cycle-10 report filed SWARMP 2025-09-22..2026-09-22; open",
-        "definition": "on the facade register committed at 2026-09-23T05:49:00.011Z. Zero by how the register is built, not a finding: see openNow.register"
+        "definition": "on the facade register committed at 2026-09-23T23:35:32.375Z. The register ranks its candidates and keeps the top ones, and a building whose cycle-9 report was SWARMP can qualify with a fresh cycle-10 SWARMP report (SWARMP_CARRYOVER), so a zero here is how it ranks today, not a guarantee: see openNow.register"
       }
     },
     "register": {
-      "committedAt": "2026-09-23T05:49:00.011Z",
+      "committedAt": "2026-09-23T23:35:32.375Z",
       "cards": 800,
       "noCycle10Filing": {
         "value": 100,
         "num": 800,
         "den": 800,
-        "window": "the facade register committed at 2026-09-23T05:49:00.011Z",
+        "window": "the facade register committed at 2026-09-23T23:35:32.375Z",
         "definition": "cards whose building has no cycle-10 filing (lastCycle 9)"
+      },
+      "unsafePrior": {
+        "value": 12.3,
+        "num": 98,
+        "den": 800,
+        "window": "the facade register committed at 2026-09-23T23:35:32.375Z",
+        "definition": "cards carrying the UNSAFE_PRIOR signal (scripts/collect.mjs): the building's cycle-9 report is UNSAFE and it has filed nothing in cycle 10, so the report is a cycle old; replay.*.groups.UNSAFE_PRIOR tests the rule"
       }
     }
   },
@@ -2468,7 +2482,7 @@
     {
       "claim": "The register's facade score puts the buyers on top.",
       "holds": false,
-      "evidence": "Replayed without the points it cannot see on a past date, the score ties at its maximum for 2,277 / 2,709 / 2,780 buildings. Facade-related permit within 24 months, the whole top tier against the rest of the flagged pool: 2021-08-21 26.1% vs 22.1% (+4 pts); 2022-08-21 25.3% vs 23% (+2.3 pts); 2023-08-21 27.3% vs 22.7% (+4.6 pts). The register breaks that tie by months left, most overdue first, and inside the top tier the overdue buildings convert worse: 2022-08-21 -6 months: 21.4%, 6 months: 27.2%; 2023-08-21 -18 months: 22%, -6 months: 25.3%, 6 months: 30.1%. So the 800 it would show, remaining ties drawn at random 500 times, against the rest of the pool: median +1.8 / -2.3 / -1.2 pts (5th–95th percentile -0.1 to +3.8 / -3.6 to -0.9 / -2.4 to -0.3). Conversion does not rise with the score either: 2021-08-21 score 2: 21%, 3: 23.1%, 4: 25.8%, 5: 15.5%, 6: 26.1% (lowest: 5); 2022-08-21 score 2: 20.5%, 3: 24.5%, 4: 25.6%, 5: 17%, 6: 25.3% (lowest: 5); 2023-08-21 score 3: 24.9%, 5: 12.1%, 6: 27.3% (lowest: 5). Fair statement: the score gives a small, non-monotone lift, and showing the most overdue first gives part of it back.",
+      "evidence": "Replayed without the points it cannot see on a past date, the score ties at its maximum for 2,277 / 2,709 / 2,780 buildings. Facade-related permit within 24 months, the whole top tier against the rest of the flagged pool: 2021-08-21 26.1% vs 22.1% (+4 pts); 2022-08-21 25.3% vs 23% (+2.3 pts); 2023-08-21 27.3% vs 22.7% (+4.6 pts). The register breaks that tie by months left, most overdue first, and inside the top tier the overdue buildings convert worse: 2022-08-21 -6 months: 21.4%, 6 months: 27.2%; 2023-08-21 -18 months: 22%, -6 months: 25.3%, 6 months: 30.1%. So the 800 it would show, remaining ties drawn at random 500 times, against the rest of the pool: median +1.8 / -2.3 / -1.2 pts (5th–95th percentile -0.1 to +3.8 / -3.6 to -0.9 / -2.4 to -0.3). Conversion does not rise steadily with the score: 2021-08-21 score 2: 21%, 3: 23.1%, 4: 25.8%, 5: 15.5%, 6: 26.1% (lowest: 5); 2022-08-21 score 2: 20.5%, 3: 24.5%, 4: 25.6%, 5: 17%, 6: 25.3% (lowest: 5); 2023-08-21 score 3: 24.9%, 5: 12.1%, 6: 27.3% (lowest: 5). Fair statement: the top score tier converts 2.3–4.6 points above the rest of the flagged pool, conversion does not rise steadily with the score, and the 800 the register would show, most overdue first, did no better than the rest of the flagged pool at one date (2021-08-21) and worse than the rest at two dates (2022-08-21, 2023-08-21).",
       "rule": "counted as holding only if the top score tier, and the median random draw of the 800 shown, both beat the rest of the flagged pool by at least 3 percentage points at every replay date"
     },
     {
@@ -2486,7 +2500,7 @@
     {
       "claim": "A long-standing shed with no facade permit (SHED_NO_REPAIR) is the best facade lead.",
       "holds": false,
-      "evidence": "2023-09-21: 31% within 24 months vs 49.2% for a shed under a year old with no such permit before it (30% for every shed under a year old); 2024-03-21: 34.9% within 24 months vs 53.9% for a shed under a year old with no such permit before it (34.5% for every shed under a year old). Like for like, the long-standing shed converts worse: it reads more like a stuck owner than a ready buyer.",
+      "evidence": "2023-09-21: 31% within 24 months vs 49.2% for a shed under a year old with no such permit before it (30% for every shed under a year old); 2024-03-21: 34.9% within 24 months vs 53.9% for a shed under a year old with no such permit before it (34.5% for every shed under a year old). Like for like, the long-standing shed converts worse at every replay date: it reads more like a stuck owner than a ready buyer.",
       "rule": "holds only if it converts at least as well as a new shed with no prior facade permit at every replay date"
     },
     {
@@ -2497,7 +2511,7 @@
     {
       "claim": "A fresh UNSAFE building with no facade permit is an untouched lead.",
       "holds": false,
-      "evidence": "Of 258 such buildings, 126 (48.8%) already have a facade-related job application filed in DOB NOW and 131 a shed job; 109 reports are under 180 days old. A permit trails the contract by months, so \"no permit\" is an upper bound on the open leads."
+      "evidence": "Of 258 such buildings, 126 (48.8%) already have a facade-related job application filed in DOB NOW and 131 a shed job; 109 reports are under 180 days old. A permit trails the job filing by months (a median 83 days in the UNSAFE cohort), so \"no permit\" is an upper bound on the open leads."
     },
     {
       "claim": "A facade permit is a signed contract, and its declared cost is the contract value.",
@@ -2511,13 +2525,13 @@
     }
   ],
   "caveats": [
-    "The outcome is a facade-related GC permit in DOB NOW, not necessarily a repair: any General Construction Initial Permit whose work location says Facade or whose description names a facade word. It includes mixed-scope and non-repair jobs that mention a facade, and misses repairs filed under suspended-scaffold or shed jobs, work filed in BIS, and minor work pulled with no GC permit. Every UNSAFE building must repair, yet only 50.4% show such a permit within 24 months: the measure undercounts, and some repairs slip past two years.",
+    "The outcome is a facade-related GC permit in DOB NOW, not necessarily a repair: any General Construction Initial Permit whose work location says Facade or whose description names a facade word. It includes mixed-scope and non-repair jobs that mention a facade, and misses repairs filed under suspended-scaffold or shed jobs, work filed in BIS, and minor work pulled with no GC permit. Every UNSAFE building must repair, yet only 50.4% show such a permit within 24 months: the measure undercounts, some repairs slip past two years, and some buildings have not repaired yet. The record cannot tell these apart.",
     "A permit is a lagging proxy for a purchase: it shows a licensed contractor was hired, not when or for how much. In the UNSAFE cohort the job was filed a median 129 days after the report and 18.9% before it, so the report-to-permit lag (231 days) overstates the selling window. The declared cost is the applicant's estimate for the whole job.",
     "The UNSAFE-over-SAFE lift is what the law requires, not a prediction: SAFE buildings are a comparison group, not a control.",
     "DOB NOW General Construction permits begin 2020-12-27; work permitted in the older BIS system before that is invisible, which is why every look-back starts in 2021-08 or later.",
-    "Outcomes join on BIN. Joining on BBL as well added about 3 percentage points to the UNSAFE cohort when checked once by hand (81 of 2,543 buildings; not re-derived here) and is left out, so the conversion shares are slightly low rather than high.",
+    "Outcomes join on BIN. An earlier hand check, on a slightly different UNSAFE cohort than the one counted here (81 of its 2,543 buildings), found that joining on BBL as well would add about 3 percentage points. This script does not re-derive it and leaves the BBL join out, so the conversion shares are slightly low rather than high.",
     "The regex definition is narrower than the collector's own PERMIT_RE (no masonry, brick or waterproofing); the work_on_floor definition is narrower still. Both are reported and the claims quote the range.",
-    "A job is its base number: its -I1 and -S# filings are one job, dated by its earliest permit. For the cohorts that is the right unit (a -S# filing on a job hired before the report is not a new purchase); for the open windows today every filing counts, because the question there is whether anybody is on site.",
+    "A job is its base number: its -I1 and -S# filings are one job, dated by its earliest permit. For the cohorts that is the right unit (a -S# filing on a job filed before the report is not a new purchase); for the open windows today every filing counts, because the question there is whether anybody is on site.",
     "A share of UNSAFE buildings already had a facade-related permit in the 180 days before the report (alreadyBefore); they are kept in the denominator, and their later permits are new jobs.",
     "Market concentration is given by job count and by declared cost: by cost the largest firms hold a larger share than by count, and both views belong in any claim about how split the market is.",
     "The engineering firm count depends on how names are folded (401–443 across the folds in engineers.marketByFold); the top-10 share barely moves.",
