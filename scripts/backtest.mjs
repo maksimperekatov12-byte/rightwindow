@@ -890,7 +890,7 @@ async function main() {
   // (e) Fresh reports today that the register does not show: a cycle-10 first
   // report filed UNSAFE in the last twelve months, and no facade-related permit
   // of any filing from 180 days before it. No permit is not nobody on it: the
-  // permit trails the contract by months, so the job applications filed at
+  // permit trails the job filing by months, so the job applications filed at
   // those buildings are read too, and a report younger than 180 days has not
   // had the usual time to show a permit at all.
   let feed = null;
@@ -957,6 +957,21 @@ async function main() {
         `${WO}; nothing facade-related filed`,
         `report filed less than ${LOOKBACK} days before ${iso(asOf)}`,
       ),
+      // With nothing filed, the next mark is the job filing, not the permit,
+      // and it comes months sooner. The page once measured these reports
+      // against the time to a permit alone, which flattered how many were
+      // still early (review of 2026-09-24). The job timing is measured on the
+      // UNSAFE cohort only, so a SWARMP report is not held to it.
+      ...(status === 'UNSAFE'
+        ? {
+            nothingFiledReportUnderJobFiling: share(
+              nothing.filter((r) => asOf - ymd(r.filing_date) < jobTiming.reportToJobFiledSigned.median * DAY).length,
+              nothing.length,
+              `${WO}; nothing facade-related filed`,
+              `report filed less than ${jobTiming.reportToJobFiledSigned.median} days before ${iso(asOf)}, the median time from an UNSAFE report to the filing of the job behind its first facade-related permit (facades.jobTiming.reportToJobFiledSigned)`,
+            ),
+          }
+        : {}),
       inRegister: feed
         ? share(
             open.filter((r) => shown.has(String(r.bin))).length,
@@ -970,7 +985,11 @@ async function main() {
   // Why none of them is on the register: every card on it today is a building
   // that has not filed in cycle 10, so a building with a fresh cycle-10 report
   // cannot be among them. That is the design, and the FRESH_UNSAFE window is
-  // the signal it would need.
+  // the signal it would need. The register does read an UNSAFE report, one
+  // cycle late (UNSAFE_PRIOR), and it is counted here: the evidence page once
+  // said a filed UNSAFE report was a signal the product had yet to read, while
+  // 98 of the 800 cards carried one (review of 2026-09-24).
+  const reg = `the facade register committed at ${feed?.generatedAt}`;
   openNow.register = feed
     ? {
         committedAt: feed.generatedAt,
@@ -978,8 +997,14 @@ async function main() {
         noCycle10Filing: share(
           cards.filter((c) => String(c.lastCycle) === '9').length,
           cards.length,
-          `the facade register committed at ${feed.generatedAt}`,
+          reg,
           'cards whose building has no cycle-10 filing (lastCycle 9)',
+        ),
+        unsafePrior: share(
+          cards.filter((c) => (c.signals || []).some((x) => x.kind === 'UNSAFE_PRIOR')).length,
+          cards.length,
+          reg,
+          "cards carrying the UNSAFE_PRIOR signal (scripts/collect.mjs): the building's cycle-9 report is UNSAFE and it has filed nothing in cycle 10, so the report is a cycle old; replay.*.groups.UNSAFE_PRIOR tests the rule",
         ),
       }
     : null;
@@ -1026,8 +1051,15 @@ async function main() {
         : `${words} at ${WORDS[dates.length] ?? dates.length} ${dates.length > 1 ? 'dates' : 'date'} (${dates.join(', ')})`,
     )
     .join(' and ');
+  // Worded from the size of the gaps, not from their sign alone: a +0.2 gap
+  // once would still have read "a few points" (review of 2026-09-24).
+  const lowHighPts = (xs) => {
+    const lo = Math.min(...xs);
+    const hi = Math.max(...xs);
+    return lo === hi ? `${lo} points` : `${lo}–${hi} points`;
+  };
   const tierAgainstRest = tierGap.every((g) => g > 0)
-    ? 'the top score tier converts a few points above the rest of the flagged pool'
+    ? `the top score tier converts ${lowHighPts(tierGap)} above the rest of the flagged pool`
     : tierGap.every((g) => g <= 0)
       ? 'the top score tier converts no better than the rest of the flagged pool'
       : 'the top score tier converts above the rest of the flagged pool at some dates and not at others';
@@ -1085,7 +1117,7 @@ async function main() {
       value: usd(R.UNSAFE.jobCost.median),
       denominator: `${fmt(R.UNSAFE.jobCost.n)} permits declaring a cost`,
       window: `first cycle-9 UNSAFE report filed ${COHORT.from}..${COHORT.to}; first permit within 730 days`,
-      definition: 'estimated_job_costs on the permit application; a permit is a lagging proxy for a signed contract',
+      definition: 'estimated_job_costs on the permit application; a permit is the lagging trace of a hired contractor, not a contract',
     },
     {
       claim: `${fmt(R.UNSAFE.contractors.distinct)} different permittee licences pulled those ${fmt(R.UNSAFE.contractors.jobs)} permits; the ten busiest hold ${R.UNSAFE.contractors.top10.value}%.`,
@@ -1208,7 +1240,7 @@ async function main() {
       holds: false,
       evidence:
         `Of ${fmt(U.open.num)} such buildings, ${fmt(U.facadeJobFiled.num)} (${U.facadeJobFiled.value}%) already have a facade-related job application filed in DOB NOW and ${fmt(U.shedJobFiled.num)} a shed job; ` +
-        `${fmt(U.reportUnder180Days.num)} reports are under ${LOOKBACK} days old. A permit trails the contract by months, so "no permit" is an upper bound on the open leads.`,
+        `${fmt(U.reportUnder180Days.num)} reports are under ${LOOKBACK} days old. A permit trails the job filing by months (a median ${JT.jobFiledToPermit.median} days in the UNSAFE cohort), so "no permit" is an upper bound on the open leads.`,
     },
     {
       claim: 'A facade permit is a signed contract, and its declared cost is the contract value.',

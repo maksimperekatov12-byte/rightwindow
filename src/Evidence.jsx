@@ -111,7 +111,12 @@ function Share({ src, unit, stack }) {
 // tab stop, so a keyboard can scroll it too; where it fits it stays out of the
 // tab order. (The CSS positions it, so the screen-reader-only words inside the
 // table stay clipped to it instead of widening the page.)
-function TableBox({ label, className = 'ev-table-wrap', children }) {
+//
+// A name with a figure in it names that figure's path in data-label-src, not
+// data-src: data-src on the box would vouch for every digit in the table under
+// it. The labels once typed "24 months" by hand, where the page test could not
+// see them (review of 2026-09-24).
+function TableBox({ label, labelSrc, className = 'ev-table-wrap', children }) {
   const box = useRef(null);
   const [scrolls, setScrolls] = useState(false);
   useLayoutEffect(() => {
@@ -126,7 +131,14 @@ function TableBox({ label, className = 'ev-table-wrap', children }) {
     return () => ro.disconnect();
   }, []);
   return (
-    <div ref={box} className={`scrollx ${className}`} tabIndex={scrolls ? 0 : undefined} role="region" aria-label={label}>
+    <div
+      ref={box}
+      className={`scrollx ${className}`}
+      tabIndex={scrolls ? 0 : undefined}
+      role="region"
+      aria-label={label}
+      data-label-src={labelSrc}
+    >
       {children}
     </div>
   );
@@ -300,6 +312,18 @@ function Body() {
   const flagged = RP.map((r) => r.groups.FLAGGED[`within${m24}`].value);
   const aboveUnflagged = RP.every((r, i) => flagged[i] > r.groups.NOT_FLAGGED[`within${m24}`].value);
   const belowUnsafe = flagged.every((v) => v < e.facades.cohorts.workOnFloor.UNSAFE[`within${m24}`].value);
+  // The register does read an UNSAFE report, one cycle late (UNSAFE_PRIOR).
+  // The page once called a filed UNSAFE report a signal the product had yet to
+  // read while 98 of its 800 cards carried one (review of 2026-09-24), so what
+  // those buildings bought in the replays is said beside the headline figure,
+  // lowest and highest date with their counts, and how often they fell below
+  // the buildings no rule flagged.
+  const prior = RP.map((r) => r.groups.UNSAFE_PRIOR[`within${m24}`].value);
+  const priorLo = prior.indexOf(Math.min(...prior));
+  const priorHi = prior.indexOf(Math.max(...prior));
+  const priorBelow = RP.filter((r, i) => prior[i] < r.groups.NOT_FLAGGED[`within${m24}`].value).length;
+  const priorClaim = e.nonClaims.findIndex((c) => /\bUNSAFE_PRIOR\b/.test(c.claim));
+  const ORDINAL = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
   const shedGroups = [
     ['SHED_NO_REPAIR', <>Standing <Mo k={m12} /> or more, no facade permit in the <Mo k={m24} /> before (SHED_NO_REPAIR as the rule should read)</>],
     ['NEW_NO_REPAIR', <>Standing under <Mo k={m12} />, no facade permit in the <Mo k={m24} /> before</>],
@@ -334,22 +358,60 @@ function Body() {
             product's own conversion rate otherwise. */}
         <div className="ev-caution">
           <p>
-            <b>That is not the rate of Right Window's own windows.</b> Those buildings had already filed their report.{' '}
+            <b>That is not the rate of Right Window's own windows.</b> Those buildings are counted over the{' '}
+            <Mo k={m24} /> right after they filed their report, while it was fresh.{' '}
             {registerHasNoFiler ? (
               <>
-                Today's register carries no building that has filed its current one: all{' '}
-                <F src="openNow.register.cards" /> of its cards are buildings with no cycle-10 filing.
+                Today's register (the snapshot committed <F src="openNow.register.committedAt" fmt={day} />) carries no
+                building that has filed its current report: all <F src="openNow.register.cards" /> of its cards are
+                buildings with no cycle-10 filing.
               </>
             ) : reg ? (
               <>
-                On today's register, <Share src="openNow.register.noCycle10Filing" /> of the cards are buildings with no
-                cycle-10 filing.
+                On today's register (the snapshot committed <F src="openNow.register.committedAt" fmt={day} />),{' '}
+                <Share src="openNow.register.noCycle10Filing" /> of the cards are buildings with no cycle-10 filing.
               </>
-            ) : null}{' '}
-            A filed UNSAFE report is a kind of signal the product has yet to read, not the list it shows.
+            ) : null}
           </p>
           <p>
-            The table below replays the register's own rules instead. On{' '}
+            {reg?.unsafePrior?.num ? (
+              <>
+                The register does read an UNSAFE report, one cycle late: <Share src="openNow.register.unsafePrior" /> of its
+                cards carry the UNSAFE_PRIOR rule, a building whose cycle-9 report stands UNSAFE and which has no
+                cycle-10 filing.{' '}
+              </>
+            ) : (
+              <>The register does read an UNSAFE report one cycle late, with its UNSAFE_PRIOR rule. </>
+            )}
+            Replayed, the buildings that rule flagged bought at{' '}
+            {priorLo === priorHi ? (
+              <Share src={`replay.${priorLo}.groups.UNSAFE_PRIOR.within${m24}`} />
+            ) : (
+              <>
+                between <Share src={`replay.${priorLo}.groups.UNSAFE_PRIOR.within${m24}`} /> and{' '}
+                <Share src={`replay.${priorHi}.groups.UNSAFE_PRIOR.within${m24}`} />
+              </>
+            )}{' '}
+            within <Mo k={m24} />
+            <D from={[`replay.*.groups.UNSAFE_PRIOR.within${m24}`, `replay.*.groups.NOT_FLAGGED.within${m24}`]}>
+              {priorBelow === 0
+                ? ', and never fell below the buildings no rule flagged'
+                : priorBelow === RP.length
+                  ? ', and fell below the buildings no rule flagged at every date'
+                  : `, and fell below the buildings no rule flagged at ${NUMBER_WORDS[priorBelow] ?? priorBelow} of the ${NUMBER_WORDS[RP.length] ?? RP.length} dates`}
+            </D>
+            {priorClaim >= 0 ? (
+              <>
+                {' '}
+                (the <D from="nonClaims">{ORDINAL[priorClaim] ?? 'UNSAFE_PRIOR'}</D> claim under “What we do not
+                claim”)
+              </>
+            ) : null}
+            . Both groups had an UNSAFE report; what sets the headline's buildings apart is that theirs was fresh. A
+            fresh, current-cycle UNSAFE report is a signal the register does not read today.
+          </p>
+          <p>
+            The table below replays all of the register's rules together. On{' '}
             <D from="replay.length">{RP.length}</D> past dates in the boroughs it covers, followed for <Mo k={m24} />,
             the buildings a rule flagged bought{' '}
             <D from={[`replay.*.groups.FLAGGED.within${m24}`, `replay.*.groups.NOT_FLAGGED.within${m24}`, `${W}.UNSAFE.within${m24}`]}>
@@ -361,7 +423,10 @@ function Body() {
             under “What we do not claim”, below, has the figures.
           </p>
         </div>
-        <TableBox label="Register rules replayed: share with a facade-related permit within 24 months, flagged against not flagged">
+        <TableBox
+          label={`Register rules replayed: share with a facade-related permit within ${m24} months, flagged against not flagged`}
+          labelSrc="definitions.months"
+        >
           <table className="dtable ev-table">
             <caption className="sr-only">
               Share of buildings with a facade-related permit within <Mo k={m24} /> of each replay date, by whether a
@@ -532,13 +597,16 @@ function Body() {
 
         <h3>Engineers who file the reports</h3>
         <p>
-          The report is a sale of its own, won by an engineering firm before any repair job is filed. In each of{' '}
+          The report is a sale of its own: an engineering firm is hired to inspect the facade and file it. In each of{' '}
           <D from="engineers.nonFilers.length">{NF.length}</D> sub-cycles we took the buildings that had a cycle-8
           record and had not filed a cycle-9 report <Mo k={m6} /> before their deadline, in the boroughs the register
           covers (all but Staten Island), and counted how many filed within the next <Mo k={m6} /> and{' '}
           <Mo k={m12} />. The count under each share is out of the buildings that had not filed.
         </p>
-        <TableBox label="Engineers: buildings with no cycle-9 report six months before the deadline, and how many then filed">
+        <TableBox
+          label={`Engineers: buildings with no cycle-9 report ${m6} months before the deadline, and how many then filed`}
+          labelSrc="definitions.months"
+        >
           <table className="dtable ev-table">
             <thead>
               <tr>
@@ -617,7 +685,10 @@ function Body() {
           register covers, and followed for <Mo k={m24} />, these buildings bought less often than those whose shed was
           new and had no facade permit before it:
         </p>
-        <TableBox label="Sidewalk sheds replayed: share with a facade-related permit within 24 months">
+        <TableBox
+          label={`Sidewalk sheds replayed: share with a facade-related permit within ${m24} months`}
+          labelSrc="definitions.months"
+        >
           <table className="dtable ev-table">
             <caption className="sr-only">
               Share with a facade-related permit within <Mo k={m24} /> of each replay date
@@ -666,8 +737,11 @@ function Body() {
       </section>
 
       <section aria-labelledby="ev-open">
-        <h2 id="ev-open">Open now, and not on the register yet</h2>
-        <p className="ev-note">This is what the product will read next, not a description of today's list.</p>
+        {/* No roadmap is promised here: whether the register will read this
+            signal is the owner's call, so the page says only that it does not
+            today (review of 2026-09-24). */}
+        <h2 id="ev-open">Open now, and not on the register</h2>
+        <p className="ev-note">This is a signal the register does not read today, not a description of its list.</p>
         <p>
           Between <D from="openNow.UNSAFE.open.window">{between(O.open.window, ' and ')}</D>,{' '}
           <F src="openNow.UNSAFE.reports" /> buildings in the boroughs the register covers filed their first cycle-10
@@ -684,8 +758,16 @@ function Body() {
             <Share src="openNow.UNSAFE.nothingFiled" /> of all the reports have nothing facade-related filed in DOB NOW
             since <D from="openNow.UNSAFE.nothingFiled.definition">{nothingSince} days</D> before the report: no permit
             and no job application. Of those, <Share src="openNow.UNSAFE.nothingFiledReportUnder180Days" /> were filed
-            under <D from="openNow.UNSAFE.nothingFiledReportUnder180Days.definition">{young} days</D> ago, inside the
-            usual time to a permit.
+            under <D from="openNow.UNSAFE.nothingFiledReportUnder180Days.definition">{young} days</D> ago. With nothing
+            filed, the nearer mark is the job filing, not the permit: in the cohort above it came a median{' '}
+            <F src="facades.jobTiming.reportToJobFiledSigned.median" fmt={days} /> after the report, and{' '}
+            {O.nothingFiledReportUnderJobFiling ? (
+              <>
+                <Share src="openNow.UNSAFE.nothingFiledReportUnderJobFiling" /> of these reports are younger than that.
+              </>
+            ) : (
+              <>a report older than that is past the median.</>
+            )}
           </li>
           <li>
             Among the buildings with no permit, <Share src="openNow.UNSAFE.reportUnder180Days" /> of the reports are
@@ -754,16 +836,19 @@ function Body() {
         <p>
           {!reg || !O.inRegister ? null : O.inRegister.num === 0 && registerHasNoFiler ? (
             <>
-              None of these buildings is on the register today, and that is by how the register is built, not a finding:
-              all <F src="openNow.register.cards" /> of its cards are buildings with no cycle-10 filing.
+              None of these buildings is on today's register (the snapshot committed{' '}
+              <F src="openNow.register.committedAt" fmt={day} />
+              ), and that is by how the register is built, not a finding: all <F src="openNow.register.cards" /> of its
+              cards are buildings with no cycle-10 filing.
             </>
           ) : (
             <>
-              <Share src="openNow.UNSAFE.inRegister" /> of the buildings with no permit are on the register today;{' '}
-              <Share src="openNow.register.noCycle10Filing" /> of its cards are buildings with no cycle-10 filing.
+              <Share src="openNow.UNSAFE.inRegister" /> of the buildings with no permit are on today's register (the
+              snapshot committed <F src="openNow.register.committedAt" fmt={day} />
+              ); <Share src="openNow.register.noCycle10Filing" /> of its cards are buildings with no cycle-10 filing.
             </>
           )}{' '}
-          A fresh UNSAFE report with nothing filed behind it is the next signal the product will read.
+          A fresh UNSAFE report with nothing filed behind it is a signal the register does not read today.
         </p>
       </section>
 

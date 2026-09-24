@@ -1573,6 +1573,9 @@ footer p { margin: 0 0 8px; max-width: 78ch; }
 .dtable.ev-table tbody th .did { font-weight: 400; font-family: var(--mono); }
 /* A date breaks from its label, never inside itself ("Aug / 21, 2021"). */
 .dtable.ev-table tbody th .did [data-src] { white-space: nowrap; }
+/* The same for a date that is a whole row or column head: at 320px the replay
+   dates broke inside themselves ("Aug 21, / 2022"; review of 2026-09-24). */
+.dtable.ev-table th > [data-src] { white-space: nowrap; }
 .dtable.ev-table .ev-total th, .dtable.ev-table .ev-total td { border-top: 1px solid var(--line-2); }
 @media (max-width: 480px) {
   .dtable.ev-table { font-size: 12.5px; }

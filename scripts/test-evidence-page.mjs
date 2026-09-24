@@ -81,12 +81,15 @@ function resolve(obj, keys) {
 }
 
 // Every data-src value is one path or several, comma-separated. A derived
-// figure keeps how it was computed in data-calc, apart from its paths.
+// figure keeps how it was computed in data-calc, apart from its paths. A name
+// read aloud (aria-label) that carries a figure names its path in
+// data-label-src, and those paths must resolve too.
 const srcs = [...html.matchAll(/\sdata-src="([^"]*)"/g)].map((m) => unescape(m[1]));
+const labelSrcs = [...html.matchAll(/\sdata-label-src="([^"]*)"/g)].map((m) => unescape(m[1]));
 assert.ok(srcs.length >= 200, `only ${srcs.length} data-src elements rendered: the page body did not render`);
 assert.ok(/<svg[^>]*role="img"/.test(html), 'the chart did not render, so its figures went unchecked');
 const bad = new Set();
-for (const src of srcs)
+for (const src of [...srcs, ...labelSrcs])
   for (const path of src.split(', ')) {
     if (!/^[A-Za-z0-9_*]+(\.[A-Za-z0-9_*]+)*$/.test(path) || !resolve(ev, path.split('.')).length) bad.add(path);
   }
@@ -94,20 +97,37 @@ assert.deepEqual([...bad], [], `data-src paths that do not resolve in data/evide
 
 // No digit outside an element that names its source. Walk the markup keeping
 // a stack of open elements and whether each (or an ancestor) carries data-src;
-// a digit in text anywhere else was typed. Names like "cycle-9" are labels,
-// not figures.
+// a digit in text anywhere else was typed. The names a screen reader or a
+// tooltip reads out (aria-label, title) are held to the same rule: the table
+// names once typed "24 months" by hand where this walk, reading text alone,
+// could not see them (review of 2026-09-24). A name is vouched for by a
+// data-src on its element or an ancestor, or by its element's own
+// data-label-src. Names like "cycle-9" are labels, not figures.
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+const loose = (s) => unescape(s).replace(/\bcycle-\d+\b/gi, '');
 const stack = [];
 const stray = [];
+let names = 0;
 for (const m of html.matchAll(/<(\/?)([a-zA-Z][\w-]*)([^>]*?)(\/?)>|([^<]+)/g)) {
   const [, close, tag, attrs, selfClose, text] = m;
   const sourced = stack.length > 0 && stack[stack.length - 1];
   if (text !== undefined) {
-    const loose = unescape(text).replace(/\bcycle-\d+\b/gi, '');
-    if (!sourced && /\d/.test(loose)) stray.push(loose.trim().slice(0, 80));
+    if (!sourced && /\d/.test(loose(text))) stray.push(loose(text).trim().slice(0, 80));
   } else if (close) stack.pop();
-  else if (!selfClose && !VOID.has(tag.toLowerCase())) stack.push(sourced || /\sdata-src="/.test(attrs));
+  else {
+    const own = /\sdata-src="/.test(attrs);
+    for (const [, attr, value] of attrs.matchAll(/\s(aria-label|title)="([^"]*)"/g)) {
+      names++;
+      if (!sourced && !own && !/\sdata-label-src="/.test(attrs) && /\d/.test(loose(value)))
+        stray.push(`${attr}="${loose(value).trim().slice(0, 80)}"`);
+    }
+    if (!selfClose && !VOID.has(tag.toLowerCase())) stack.push(sourced || own);
+  }
 }
+assert.ok(names >= 3, `only ${names} aria-label or title attributes seen: the walk no longer reads them`);
 assert.deepEqual(stray, [], `digits typed on the page, outside any data-src element:\n  ${stray.join('\n  ')}`);
 
-console.log(`test-evidence-page: ${srcs.length} data-src figures resolve in data/evidence.json, no typed digits, ${strings} strings free of leftovers`);
+console.log(
+  `test-evidence-page: ${srcs.length} data-src figures and ${labelSrcs.length} sourced names resolve in data/evidence.json, ` +
+    `no typed digits in text or in ${names} names, ${strings} strings free of leftovers`,
+);

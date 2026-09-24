@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T04:50:24.576Z",
+  "generatedAt": "2026-09-24T05:50:33.685Z",
   "asOf": "2026-09-22",
   "script": "scripts/backtest.mjs",
   "question": "When the public record says a building's facade window is open, does the building then buy the work?",
@@ -133,7 +133,7 @@
       "value": "$227k",
       "denominator": "1,272 permits declaring a cost",
       "window": "first cycle-9 UNSAFE report filed 2022-02-01..2024-09-21; first permit within 730 days",
-      "definition": "estimated_job_costs on the permit application; a permit is a lagging proxy for a signed contract"
+      "definition": "estimated_job_costs on the permit application; a permit is the lagging trace of a hired contractor, not a contract"
     },
     {
       "claim": "398 different permittee licences pulled those 1,272 permits; the ten busiest hold 18.9%.",
@@ -2332,6 +2332,13 @@
         "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; nothing facade-related filed",
         "definition": "report filed less than 180 days before 2026-09-22"
       },
+      "nothingFiledReportUnderJobFiling": {
+        "value": 36.4,
+        "num": 48,
+        "den": 132,
+        "window": "four register boroughs, first cycle-10 report filed UNSAFE 2025-09-22..2026-09-22; nothing facade-related filed",
+        "definition": "report filed less than 129 days before 2026-09-22, the median time from an UNSAFE report to the filing of the job behind its first facade-related permit (facades.jobTiming.reportToJobFiledSigned)"
+      },
       "inRegister": {
         "value": 0,
         "num": 0,
@@ -2461,6 +2468,13 @@
         "den": 800,
         "window": "the facade register committed at 2026-09-23T23:35:32.375Z",
         "definition": "cards whose building has no cycle-10 filing (lastCycle 9)"
+      },
+      "unsafePrior": {
+        "value": 12.3,
+        "num": 98,
+        "den": 800,
+        "window": "the facade register committed at 2026-09-23T23:35:32.375Z",
+        "definition": "cards carrying the UNSAFE_PRIOR signal (scripts/collect.mjs): the building's cycle-9 report is UNSAFE and it has filed nothing in cycle 10, so the report is a cycle old; replay.*.groups.UNSAFE_PRIOR tests the rule"
       }
     }
   },
@@ -2468,7 +2482,7 @@
     {
       "claim": "The register's facade score puts the buyers on top.",
       "holds": false,
-      "evidence": "Replayed without the points it cannot see on a past date, the score ties at its maximum for 2,277 / 2,709 / 2,780 buildings. Facade-related permit within 24 months, the whole top tier against the rest of the flagged pool: 2021-08-21 26.1% vs 22.1% (+4 pts); 2022-08-21 25.3% vs 23% (+2.3 pts); 2023-08-21 27.3% vs 22.7% (+4.6 pts). The register breaks that tie by months left, most overdue first, and inside the top tier the overdue buildings convert worse: 2022-08-21 -6 months: 21.4%, 6 months: 27.2%; 2023-08-21 -18 months: 22%, -6 months: 25.3%, 6 months: 30.1%. So the 800 it would show, remaining ties drawn at random 500 times, against the rest of the pool: median +1.8 / -2.3 / -1.2 pts (5th–95th percentile -0.1 to +3.8 / -3.6 to -0.9 / -2.4 to -0.3). Conversion does not rise steadily with the score: 2021-08-21 score 2: 21%, 3: 23.1%, 4: 25.8%, 5: 15.5%, 6: 26.1% (lowest: 5); 2022-08-21 score 2: 20.5%, 3: 24.5%, 4: 25.6%, 5: 17%, 6: 25.3% (lowest: 5); 2023-08-21 score 3: 24.9%, 5: 12.1%, 6: 27.3% (lowest: 5). Fair statement: the top score tier converts a few points above the rest of the flagged pool, conversion does not rise steadily with the score, and the 800 the register would show, most overdue first, did no better than the rest of the flagged pool at one date (2021-08-21) and worse than the rest at two dates (2022-08-21, 2023-08-21).",
+      "evidence": "Replayed without the points it cannot see on a past date, the score ties at its maximum for 2,277 / 2,709 / 2,780 buildings. Facade-related permit within 24 months, the whole top tier against the rest of the flagged pool: 2021-08-21 26.1% vs 22.1% (+4 pts); 2022-08-21 25.3% vs 23% (+2.3 pts); 2023-08-21 27.3% vs 22.7% (+4.6 pts). The register breaks that tie by months left, most overdue first, and inside the top tier the overdue buildings convert worse: 2022-08-21 -6 months: 21.4%, 6 months: 27.2%; 2023-08-21 -18 months: 22%, -6 months: 25.3%, 6 months: 30.1%. So the 800 it would show, remaining ties drawn at random 500 times, against the rest of the pool: median +1.8 / -2.3 / -1.2 pts (5th–95th percentile -0.1 to +3.8 / -3.6 to -0.9 / -2.4 to -0.3). Conversion does not rise steadily with the score: 2021-08-21 score 2: 21%, 3: 23.1%, 4: 25.8%, 5: 15.5%, 6: 26.1% (lowest: 5); 2022-08-21 score 2: 20.5%, 3: 24.5%, 4: 25.6%, 5: 17%, 6: 25.3% (lowest: 5); 2023-08-21 score 3: 24.9%, 5: 12.1%, 6: 27.3% (lowest: 5). Fair statement: the top score tier converts 2.3–4.6 points above the rest of the flagged pool, conversion does not rise steadily with the score, and the 800 the register would show, most overdue first, did no better than the rest of the flagged pool at one date (2021-08-21) and worse than the rest at two dates (2022-08-21, 2023-08-21).",
       "rule": "counted as holding only if the top score tier, and the median random draw of the 800 shown, both beat the rest of the flagged pool by at least 3 percentage points at every replay date"
     },
     {
@@ -2497,7 +2511,7 @@
     {
       "claim": "A fresh UNSAFE building with no facade permit is an untouched lead.",
       "holds": false,
-      "evidence": "Of 258 such buildings, 126 (48.8%) already have a facade-related job application filed in DOB NOW and 131 a shed job; 109 reports are under 180 days old. A permit trails the contract by months, so \"no permit\" is an upper bound on the open leads."
+      "evidence": "Of 258 such buildings, 126 (48.8%) already have a facade-related job application filed in DOB NOW and 131 a shed job; 109 reports are under 180 days old. A permit trails the job filing by months (a median 83 days in the UNSAFE cohort), so \"no permit\" is an upper bound on the open leads."
     },
     {
       "claim": "A facade permit is a signed contract, and its declared cost is the contract value.",
