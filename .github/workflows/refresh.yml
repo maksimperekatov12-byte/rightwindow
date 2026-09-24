@@ -99,6 +99,17 @@ jobs:
         run: |
           npm i --no-save @vercel/blob > /dev/null 2>&1
           node scripts/collect.mjs
+      # Reads again the page behind every contact the cards use and keeps,
+      # corrects or withdraws it (lib/recheck.mjs) — no search spent. Once a
+      # day in practice: most hourly runs find nothing due and write nothing.
+      # Before push-contacts, which then publishes from the checked cache.
+      - name: Re-check contacts
+        if: always()
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          npm i --no-save @vercel/blob > /dev/null 2>&1
+          node scripts/recheck-contacts.mjs || echo "re-check failed — the cards keep what the cache already holds"
       - name: Rotate personal signals
         if: always()
         env:

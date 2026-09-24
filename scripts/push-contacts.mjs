@@ -16,7 +16,7 @@
 // person, and this file has never carried one.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { writeJson } from '../lib/store.mjs';
-import { enrichContact } from '../lib/enrich.mjs';
+import { enrichContact, confirmedOn } from '../lib/enrich.mjs';
 import { republishable, provenanceOf, republishableEmail, republishableVia, namesAPerson } from '../lib/provenance.mjs';
 import { isPersonToken, looksPersonal } from '../lib/personal.mjs';
 
@@ -39,12 +39,17 @@ for (const c of withAgents) {
   if (!c.agent?.company) continue;
   const e = await enrichContact({ company: c.agent.company, address: c.agent.address });
   if (e.confidence === 'none' || (!e.phone && !e.email)) continue;
+  // The day the number was last seen good — by its search, or by the daily
+  // re-check reading its page again (lib/recheck.mjs). The card prints it, so
+  // a caller can tell this morning's number from last month's.
+  const checkedAt = confirmedOn({ company: c.agent.company, address: c.agent.address });
   const row = {
     phone: e.phone || null,
     email: e.email || null,
     confidence: e.confidence,
     source: e.source,
     ...(e.via ? { via: e.via } : {}),
+    ...(checkedAt ? { checkedAt } : {}),
   };
   all[c.bin] = row;
   tally[e.confidence] = (tally[e.confidence] || 0) + 1;

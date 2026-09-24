@@ -14,6 +14,10 @@ const PHONE = /^\+1-\d{3}-\d{3}-\d{4}$/;
 // The same shape lib/live-source.mjs holds the branch copy to: this string ends
 // up in a mailto: in somebody's browser.
 const MAIL_SHAPE = /^[^\s@<>"'`;,()[\]\\]{1,64}@[^\s@<>"'`;,()[\]\\]{1,190}\.[a-z]{2,24}$/i;
+// The day a number was last seen on its page (scripts/push-contacts.mjs), and
+// nothing else: a date is all the card prints, and a string that is not one
+// never reaches it.
+const DAY_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
 // The private store holds EVERY resolved row — scripts/push-contacts.mjs writes
 // the ungated map there — and this endpoint answers anyone, with no uid, in one
@@ -46,6 +50,7 @@ export function gateStored(m) {
       confidence: ['verified', 'listed', 'affiliate'].includes(r.confidence) ? r.confidence : 'listed',
       ...(typeof r.source === 'string' && r.source.length < 200 ? { source: r.source } : {}),
       ...(via ? { via } : {}),
+      ...(typeof r.checkedAt === 'string' && DAY_SHAPE.test(r.checkedAt) ? { checkedAt: r.checkedAt } : {}),
     };
     if (Object.values(row).some((v) => typeof v === 'string' && namesAPerson(v, looksPersonal))) continue;
     out[bin] = row;

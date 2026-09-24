@@ -1157,11 +1157,24 @@ const agentRole = (a) => {
   return lapsed ? `Managing agent (last HPD registration, ${lapsed})` : a?.role;
 };
 
+// The day the number was last seen on its page, from the served row
+// (scripts/push-contacts.mjs): " · checked Sep 24", with the year once it is
+// not this one. A number read off its page this morning and one found by a
+// search a month ago used to look the same.
+const checkedOn = (d) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || ''));
+  if (!m) return '';
+  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m[2]) - 1];
+  if (!mon) return '';
+  return ` · checked ${mon} ${Number(m[3])}${Number(m[1]) !== new Date().getFullYear() ? `, ${m[1]}` : ''}`;
+};
+
 function contactOf(c, resolved) {
   const a = resolved ? { ...c.agent, ...resolved } : c.agent;
   if (!a) return null;
   const lapsed = lapsedOn(c.agent);
   const base = { name: a.name, company: a.company, from: lapsed ? `the last HPD registration, ${lapsed}` : 'HPD registration' };
+  const seen = checkedOn(a.checkedAt);
 
   // Tested first, because it is the one case where the number is right but the
   // NAME is not: the registered entity is a holding company and this reaches the
@@ -1173,7 +1186,7 @@ function contactOf(c, resolved) {
       phone: a.phone || null,
       email: a.email || null,
       via: a.via,
-      level: `via ${a.via}`,
+      level: `via ${a.via}${seen}`,
       tone: 'alt',
     };
   if (a.phone && a.confidence === 'verified')
@@ -1181,7 +1194,7 @@ function contactOf(c, resolved) {
       ...base,
       phone: a.phone,
       email: a.email || null,
-      level: `verified · ${a.contactSource || 'company site'}`,
+      level: `verified · ${a.contactSource || 'company site'}${seen}`,
       tone: 'ok',
     };
   if (a.phone)
@@ -1189,7 +1202,7 @@ function contactOf(c, resolved) {
       ...base,
       phone: a.phone,
       email: a.email || null,
-      level: `listed · ${a.contactSource || 'directory'}`,
+      level: `listed · ${a.contactSource || 'directory'}${seen}`,
       tone: 'mid',
     };
   // No line, but a published inbox. Worth saying which it is: a shared mailbox
@@ -1199,7 +1212,7 @@ function contactOf(c, resolved) {
       ...base,
       phone: null,
       email: a.email,
-      level: `${/^(info|contact|management|office|admin|hello|leasing|inquiries)@/i.test(a.email) ? 'office inbox' : 'email'} · ${a.contactSource || 'company site'}`,
+      level: `${/^(info|contact|management|office|admin|hello|leasing|inquiries)@/i.test(a.email) ? 'office inbox' : 'email'} · ${a.contactSource || 'company site'}${seen}`,
       tone: 'mid',
     };
   // We resolved a number for this firm and are not showing it. That is now a
