@@ -54,13 +54,14 @@ jobs:
   # that failed to run leaves the output empty, and the sweep goes ahead. A
   # skipped collect job is also how the pinger and the cron recognise a run
   # that swept nothing (lib/sweep-clock.mjs), so the job keeps its name.
-  # always() is what lets a job run after a job it needs was skipped; without it
-  # GitHub skips `collect` on every dispatch whatever the rest of the expression
-  # says — the first dispatch after this design shipped swept nothing.
-  # !cancelled() still stops it when the run is cancelled.
+  # always() is what lets a job run after a job it needs was skipped, and the
+  # gate is asked by its result, not by comparing its output: a skipped job's
+  # output is null, and GitHub compares null with '0' as numbers — 0 == 0 — so
+  # `sweep != '0'` was false on every dispatch and the pinger's hourly sweeps
+  # concluded 'skipped' in seconds. !cancelled() still stops a cancelled run.
   collect:
     needs: gate
-    if: ${{ always() && !cancelled() && needs.gate.outputs.sweep != '0' }}
+    if: ${{ always() && !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.sweep == '1') }}
     runs-on: ubuntu-latest
     steps:
       # main as it is now, not the commit this run was queued at: a run that
