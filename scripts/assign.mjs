@@ -41,16 +41,52 @@ for (const [key, a] of Object.entries(idx)) {
   }
 }
 
+// A building reserved for you is only worth the reservation if there is
+// somebody to ring. The pool used to be taken in urgency order alone, and on
+// 2026-09-24 the owner's own three reserved cards were three with no number,
+// sitting above every callable building. So a number comes first: what the
+// private store serves (the same rows /api/live hands the cards), then an
+// inbox, then nothing — urgency decides only within those.
+let served = {};
+try {
+  served = await readDoc('contacts.json');
+} catch (e) {
+  console.log(`assign: the contact store could not be read (${e.message}) — ordering by the feed's contact flag alone`);
+}
+const bins = new Map(feed.facades.feed.map((c) => [String(c.bin), c]));
+const reach = (key) => {
+  const bin = key.slice(2);
+  if (served[bin]?.phone) return 2;
+  return served[bin]?.email || bins.get(bin)?.agent?.contactKnown ? 1 : 0;
+};
+
 const held = {};
 for (const a of Object.values(idx)) held[a.uid] = (held[a.uid] || 0) + 1;
 const assignedKeys = new Set(Object.keys(idx));
 let added = 0;
+let swapped = 0;
 for (const u of users) {
   const m = fMatch[u.profile];
   const pool = feed.facades.feed
     .filter((c) => m(c))
     .map((c) => 'b:' + c.bin)
-    .filter((k) => !claimed.has(k) && !assignedKeys.has(k) && lastHolder[k] !== u.uid);
+    .filter((k) => !claimed.has(k) && !assignedKeys.has(k) && lastHolder[k] !== u.uid)
+    .map((k, i) => ({ k, i }))
+    .sort((a, b) => reach(b.k) - reach(a.k) || a.i - b.i)
+    .map((x) => x.k);
+  // A reservation already held with no number gives way to a building that
+  // has one, one for one. Only then: with no numbered building left for this
+  // trade, it stays, rather than churning every hour.
+  const weak = Object.entries(idx)
+    .filter(([k, a]) => a.uid === u.uid && reach(k) < 2)
+    .map(([k]) => k);
+  let numbered = pool.filter((k) => reach(k) === 2).length;
+  for (const k of weak) {
+    if (numbered-- <= 0) break;
+    delete idx[k];
+    held[u.uid]--;
+    swapped++;
+  }
   while ((held[u.uid] || 0) < PER_USER && pool.length) {
     const key = pool.shift();
     idx[key] = { uid: u.uid, until: now + HOLD_MS, since: now };
@@ -61,8 +97,14 @@ for (const u of users) {
 }
 // Writing is an "advanced" blob operation on a tight monthly budget — skip it
 // when the index did not actually move.
-if (expired || added) await writeJson('assign/index.json', idx);
+// --dry-run reads everything and writes nothing.
+const dryRun = process.argv.includes('--dry-run');
+if ((expired || added || swapped) && !dryRun) await writeJson('assign/index.json', idx);
+if (dryRun) {
+  for (const [k, a] of Object.entries(idx)) console.log(`  ${k} → ${a.uid.slice(0, 8)}… reach ${reach(k)} (${a.since === now ? 'new' : 'kept'})`);
+}
 console.log(
-  `assign: users=${users.length} expired=${expired} added=${added} active=${Object.keys(idx).length}` +
-    (expired || added ? '' : ' (no write)'),
+  `assign: users=${users.length} expired=${expired} added=${added} swapped for a numbered building=${swapped} ` +
+    `active=${Object.keys(idx).length}` +
+    (expired || added || swapped ? '' : ' (no write)'),
 );

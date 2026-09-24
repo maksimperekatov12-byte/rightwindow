@@ -2034,8 +2034,11 @@ export default function App() {
     const base = boro === 'all' ? filteredNoBoro : filteredNoBoro.filter((c) => c.borough === boro);
     const at = Date.now();
     const isMine = (c) => (mine['b:' + c.bin] && mine['b:' + c.bin] > at ? 0 : 1);
-    return [...base].sort((a, b) => isMine(a) - isMine(b));
-  }, [filteredNoBoro, boro, mine]);
+    // A card reserved for you leads — among the cards with the same way to
+    // reach them. Reserved cards used to jump every tier, so three with nobody
+    // to ring sat above every callable building (2026-09-24).
+    return [...base].sort((a, b) => actTier(b) - actTier(a) || isMine(a) - isMine(b));
+  }, [filteredNoBoro, boro, mine, actTier]);
   const boroCounts = useMemo(() => {
     const m = { all: filteredNoBoro.length };
     for (const c of filteredNoBoro) m[c.borough] = (m[c.borough] || 0) + 1;
