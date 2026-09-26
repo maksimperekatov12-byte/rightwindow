@@ -1,11 +1,11 @@
 {
- "generatedAt": "2026-09-26T17:27:30.391Z",
+ "generatedAt": "2026-09-26T18:24:06.663Z",
  "sources": {
   "facades": "2026-09-26",
   "permits": "2026-09-25",
   "jobs": "2026-09-25",
   "elevators": "2026-09-25",
-  "mandates": "2026-09-25",
+  "mandates": "2026-09-26",
   "ecb": "2026-09-26",
   "hpd": "2026-08-12",
   "awards": "2026-09-16",
@@ -19,15 +19,15 @@
   "permits": 1790361761000,
   "jobs": 1790368147000,
   "elevators": 1790368342000,
-  "mandates": 1790359621000,
+  "mandates": 1790445995000,
   "ecb": 1790442031000,
   "hpd": 1786546841000,
   "awards": 1789561954000,
   "dohmh": 1790373913000,
   "sla": 1790382757000
  },
- "cityAt": 1790443877000,
- "cityBy": "facades",
+ "cityAt": 1790445995000,
+ "cityBy": "mandates",
  "whatsNew": {
   "windowHours": 168,
   "buildings": 0,
@@ -40,9 +40,9 @@
  },
  "facades": {
   "totals": {
-   "candidates": 12184,
-   "nonFilers10A": 4674,
-   "swarmpCarryover": 5395,
+   "candidates": 12183,
+   "nonFilers10A": 4670,
+   "swarmpCarryover": 5396,
    "unsafePrior": 994
   },
   "feed": [
@@ -4930,90 +4930,6 @@
     ]
    },
    {
-    "bin": "2008143",
-    "address": "1525 TOWNSEND AVENUE",
-    "borough": "Bronx",
-    "block": "2846",
-    "lot": "61",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2023-07-28",
-    "priorQewi": "DYNAMIC STRUCTURES INC.",
-    "owner": "SETTLEMENT HOUSING FUND",
-    "finesOwed": 174790,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "active",
-     "ageDays": 1201,
-     "since": "2023-06-14",
-     "until": "2026-12-10",
-     "type": "Sidewalk Shed",
-     "who": "PARK CONTRACTING GROUP",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 4375,
-    "freshHaz": null,
-    "nextHearing": "2027-01-29",
-    "urgencyScore": 16,
-    "zip": "10452",
-    "multifamily": true,
-    "agent": {
-     "company": "WAVECREST MGMT GROUP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "87-14 116TH STREET, Richmond Hill NY 11418",
-     "confidence": "verified",
-     "contactSource": "wavecrestmanagement.com",
-     "lapsed": false,
-     "portfolio": 37,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.8427,
-     -73.9151
-    ]
-   },
-   {
     "bin": "2092536",
     "address": "3555 KINGS COLLEGE PLACE",
     "borough": "Bronx",
@@ -5093,6 +5009,90 @@
     "ll": [
      40.881,
      -73.8758
+    ]
+   },
+   {
+    "bin": "2008143",
+    "address": "1525 TOWNSEND AVENUE",
+    "borough": "Bronx",
+    "block": "2846",
+    "lot": "61",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2023-07-28",
+    "priorQewi": "DYNAMIC STRUCTURES INC.",
+    "owner": "SETTLEMENT HOUSING FUND",
+    "finesOwed": 181910,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "active",
+     "ageDays": 1201,
+     "since": "2023-06-14",
+     "until": "2026-12-10",
+     "type": "Sidewalk Shed",
+     "who": "PARK CONTRACTING GROUP",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 4375,
+    "freshHaz": null,
+    "nextHearing": "2027-01-29",
+    "urgencyScore": 16,
+    "zip": "10452",
+    "multifamily": true,
+    "agent": {
+     "company": "WAVECREST MGMT GROUP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "87-14 116TH STREET, Richmond Hill NY 11418",
+     "confidence": "verified",
+     "contactSource": "wavecrestmanagement.com",
+     "lapsed": false,
+     "portfolio": 37,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.8427,
+     -73.9151
     ]
    },
    {
@@ -9011,80 +9011,6 @@
     ]
    },
    {
-    "bin": "2008130",
-    "address": "1525 WALTON AVENUE",
-    "borough": "Bronx",
-    "block": "2845",
-    "lot": "70",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2023-07-28",
-    "priorQewi": "DYNAMIC STRUCTURES INC.",
-    "owner": "NSA 2015 Owner LLC",
-    "finesOwed": 124860,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 1201,
-     "since": "2023-06-14",
-     "until": "2026-12-09",
-     "type": "Sidewalk Shed",
-     "who": "PARK CONTRACTING GROUP",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 3125,
-    "freshHaz": null,
-    "nextHearing": "2027-01-29",
-    "urgencyScore": 14,
-    "zip": "10452",
-    "multifamily": true,
-    "agent": {
-     "company": "WAVECREST MGMT GROUP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "87-14 116 STREET, Richmond Hill NY 11418",
-     "confidence": "verified",
-     "contactSource": "wavecrestmanagement.com",
-     "lapsed": false,
-     "portfolio": 37,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.8424,
-     -73.9142
-    ]
-   },
-   {
     "bin": "2013359",
     "address": "2123 TIEBOUT AVENUE",
     "borough": "Bronx",
@@ -9326,6 +9252,80 @@
     "ll": [
      40.8216,
      -73.807
+    ]
+   },
+   {
+    "bin": "2008130",
+    "address": "1525 WALTON AVENUE",
+    "borough": "Bronx",
+    "block": "2845",
+    "lot": "70",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2023-07-28",
+    "priorQewi": "DYNAMIC STRUCTURES INC.",
+    "owner": "NSA 2015 Owner LLC",
+    "finesOwed": 128940,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 1201,
+     "since": "2023-06-14",
+     "until": "2026-12-09",
+     "type": "Sidewalk Shed",
+     "who": "PARK CONTRACTING GROUP",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 3125,
+    "freshHaz": null,
+    "nextHearing": "2027-01-29",
+    "urgencyScore": 14,
+    "zip": "10452",
+    "multifamily": true,
+    "agent": {
+     "company": "WAVECREST MGMT GROUP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "87-14 116 STREET, Richmond Hill NY 11418",
+     "confidence": "verified",
+     "contactSource": "wavecrestmanagement.com",
+     "lapsed": false,
+     "portfolio": 37,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.8424,
+     -73.9142
     ]
    },
    {
@@ -58868,26 +58868,6 @@
    "isNew": false
   },
   {
-   "id": "20260825023",
-   "kind": "SOLICITATION",
-   "agency": "NYC Health + Hospitals",
-   "title": "Correction: Post Acute Care Debt Collection Services",
-   "category": "Services (other than human services)",
-   "method": "Request for Proposals",
-   "date": "2026-09-01",
-   "dueDate": "2026-09-30T17:00:00.000",
-   "daysLeft": 3,
-   "epin": "2879",
-   "submitTo": "50 Water Street, 5th Floor, New York, NY 10004",
-   "scope": "This Request for Proposal ('RFP') is issued in order to obtain debt collection services for facilities of NYC Health + Hospitals Post-Acute Care (PAC) for delinquent accounts with balances owned by the Patient. The accounts with balances owed by the patient or responsible parties are accounts with b",
-   "contact": {
-    "name": "Raffaella Glasser",
-    "phone": "(646) 815-3747",
-    "email": "rfp_contacts@nychhc.org"
-   },
-   "isNew": false
-  },
-  {
    "id": "20260811020",
    "kind": "SOLICITATION",
    "agency": "Campaign Finance Board",
@@ -58904,6 +58884,26 @@
     "name": "Michele Archbald",
     "phone": "(212) 409-1800",
     "email": "contracts@nyccfb.info"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260825023",
+   "kind": "SOLICITATION",
+   "agency": "NYC Health + Hospitals",
+   "title": "Correction: Post Acute Care Debt Collection Services",
+   "category": "Services (other than human services)",
+   "method": "Request for Proposals",
+   "date": "2026-09-01",
+   "dueDate": "2026-09-30T17:00:00.000",
+   "daysLeft": 3,
+   "epin": "2879",
+   "submitTo": "50 Water Street, 5th Floor, New York, NY 10004",
+   "scope": "This Request for Proposal ('RFP') is issued in order to obtain debt collection services for facilities of NYC Health + Hospitals Post-Acute Care (PAC) for delinquent accounts with balances owned by the Patient. The accounts with balances owed by the patient or responsible parties are accounts with b",
+   "contact": {
+    "name": "Raffaella Glasser",
+    "phone": "(646) 815-3747",
+    "email": "rfp_contacts@nychhc.org"
    },
    "isNew": false
   },
@@ -58968,26 +58968,6 @@
    "isNew": false
   },
   {
-   "id": "20260821023",
-   "kind": "SOLICITATION",
-   "agency": "Transportation",
-   "title": "84126P0016-In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada",
-   "category": "Construction Related Services",
-   "method": "Competitive Sealed Proposals",
-   "date": "2026-08-31",
-   "dueDate": "2026-10-01T14:00:00.000",
-   "daysLeft": 4,
-   "epin": "84126P0016",
-   "submitTo": null,
-   "scope": "The services to be procured are the In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada. This Procurement is subject to participation goals for Minority-Owned Business Enterprises (MBEs) as required by Section 6-129 of the New York Administrative Cod",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
-   },
-   "isNew": false
-  },
-  {
    "id": "20260514019",
    "kind": "SOLICITATION",
    "agency": "Citywide Administrative Services",
@@ -59024,6 +59004,26 @@
     "name": "Karen General",
     "phone": "(718) 391-2410",
     "email": "csb_projectinquiries@ddc.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260821023",
+   "kind": "SOLICITATION",
+   "agency": "Transportation",
+   "title": "84126P0016-In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada",
+   "category": "Construction Related Services",
+   "method": "Competitive Sealed Proposals",
+   "date": "2026-08-31",
+   "dueDate": "2026-10-01T14:00:00.000",
+   "daysLeft": 4,
+   "epin": "84126P0016",
+   "submitTo": null,
+   "scope": "The services to be procured are the In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada. This Procurement is subject to participation goals for Minority-Owned Business Enterprises (MBEs) as required by Section 6-129 of the New York Administrative Cod",
+   "contact": {
+    "name": null,
+    "phone": null,
+    "email": null
    },
    "isNew": false
   },
@@ -59228,26 +59228,6 @@
    "isNew": false
   },
   {
-   "id": "20260824043",
-   "kind": "SOLICITATION",
-   "agency": "Citywide Administrative Services",
-   "title": "85727B0005-DOC - Baked Goods",
-   "category": "Goods",
-   "method": "Competitive Sealed Bids",
-   "date": "2026-09-01",
-   "dueDate": "2026-10-02T11:00:00.000",
-   "daysLeft": 5,
-   "epin": "85727B0005",
-   "submitTo": ".",
-   "scope": "All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort account. Please visit the PASSPort Public RFx Site (aka 'Procurement Navigator') at: https://passport.cityo",
-   "contact": {
-    "name": "Jordan Williams",
-    "phone": "(212) 386-5012",
-    "email": "jorwilliams@dcas.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
    "id": "20260824042",
    "kind": "SOLICITATION",
    "agency": "Citywide Administrative Services",
@@ -59264,6 +59244,26 @@
     "name": "Mailynn Lewis",
     "phone": "(212) 386-5362",
     "email": "malewis@dcas.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260824043",
+   "kind": "SOLICITATION",
+   "agency": "Citywide Administrative Services",
+   "title": "85727B0005-DOC - Baked Goods",
+   "category": "Goods",
+   "method": "Competitive Sealed Bids",
+   "date": "2026-09-01",
+   "dueDate": "2026-10-02T11:00:00.000",
+   "daysLeft": 5,
+   "epin": "85727B0005",
+   "submitTo": ".",
+   "scope": "All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort account. Please visit the PASSPort Public RFx Site (aka 'Procurement Navigator') at: https://passport.cityo",
+   "contact": {
+    "name": "Jordan Williams",
+    "phone": "(212) 386-5012",
+    "email": "jorwilliams@dcas.nyc.gov"
    },
    "isNew": false
   },
@@ -59988,26 +59988,6 @@
    "isNew": false
   },
   {
-   "id": "20260824050",
-   "kind": "SOLICITATION",
-   "agency": "Environmental Protection",
-   "title": "82626B0042-BWT-WI-323 Reconstruction of MSP Cone Check Valves, Actuators and Discharge Piping at Wards Island WWTP",
-   "category": "Construction/Construction Services",
-   "method": "Competitive Sealed Bids",
-   "date": "2026-08-31",
-   "dueDate": "2026-10-21T10:00:00.000",
-   "daysLeft": 18,
-   "epin": "82626B0042",
-   "submitTo": null,
-   "scope": "BWT-WI-323: Reconstruction of MSP Cone Check Valves, Actuators and Discharge Piping at Wards Island WWTP. This Competitive Sealed Bid ('RFx') is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitat",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
-   },
-   "isNew": false
-  },
-  {
    "id": "20260623051",
    "kind": "SOLICITATION",
    "agency": "Citywide Administrative Services",
@@ -60028,22 +60008,22 @@
    "isNew": false
   },
   {
-   "id": "20260803033",
+   "id": "20260824050",
    "kind": "SOLICITATION",
-   "agency": "Citywide Administrative Services",
-   "title": "Bid Extension: 85726B0042-2600031-SKIMMER VESSEL (DEP)",
-   "category": "Goods",
+   "agency": "Environmental Protection",
+   "title": "82626B0042-BWT-WI-323 Reconstruction of MSP Cone Check Valves, Actuators and Discharge Piping at Wards Island WWTP",
+   "category": "Construction/Construction Services",
    "method": "Competitive Sealed Bids",
-   "date": "2026-08-10",
-   "dueDate": "2026-10-21T11:00:00.000",
+   "date": "2026-08-31",
+   "dueDate": "2026-10-21T10:00:00.000",
    "daysLeft": 18,
-   "epin": "85726B0042",
-   "submitTo": "1 Centre Street, 18th Floor",
-   "scope": "The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for the procurement of SKIMMER VESSEL (DEP). Please see the solicitation documents for additional details. Please submit your proposals by both acknowledging the receipt of the RFx in t",
+   "epin": "82626B0042",
+   "submitTo": null,
+   "scope": "BWT-WI-323: Reconstruction of MSP Cone Check Valves, Actuators and Discharge Piping at Wards Island WWTP. This Competitive Sealed Bid ('RFx') is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitat",
    "contact": {
-    "name": "Anne-Sherley Almonor",
-    "phone": "(212) 386-0419",
-    "email": "aalmonor@dcas.nyc.gov"
+    "name": null,
+    "phone": null,
+    "email": null
    },
    "isNew": false
   },
@@ -60064,6 +60044,26 @@
     "name": null,
     "phone": null,
     "email": null
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260803033",
+   "kind": "SOLICITATION",
+   "agency": "Citywide Administrative Services",
+   "title": "Bid Extension: 85726B0042-2600031-SKIMMER VESSEL (DEP)",
+   "category": "Goods",
+   "method": "Competitive Sealed Bids",
+   "date": "2026-08-10",
+   "dueDate": "2026-10-21T11:00:00.000",
+   "daysLeft": 18,
+   "epin": "85726B0042",
+   "submitTo": "1 Centre Street, 18th Floor",
+   "scope": "The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for the procurement of SKIMMER VESSEL (DEP). Please see the solicitation documents for additional details. Please submit your proposals by both acknowledging the receipt of the RFx in t",
+   "contact": {
+    "name": "Anne-Sherley Almonor",
+    "phone": "(212) 386-0419",
+    "email": "aalmonor@dcas.nyc.gov"
    },
    "isNew": false
   },
@@ -60528,26 +60528,6 @@
    "isNew": false
   },
   {
-   "id": "20250328002",
-   "kind": "SOLICITATION",
-   "agency": "Health and Mental Hygiene",
-   "title": "OPEN-ENDED ' JUSTICE INVOLVED SUPPORTIVE HOUSING (JISH)",
-   "category": "Human Services/Client Services",
-   "method": "Competitive Sealed Proposals/Pre-Qualified List",
-   "date": "2025-04-10",
-   "dueDate": "2034-12-29T23:59:00.000",
-   "daysLeft": 400,
-   "epin": "81622P0004",
-   "submitTo": "42-09 28th Street, 17th Floor, WS 17-89, Long Island City, NY 11101-4132",
-   "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
-   "contact": {
-    "name": "Richard Cheung",
-    "phone": "(347) 396-6658",
-    "email": "rfp@health.nyc.gov"
-   },
-   "isNew": false
-  },
-  {
    "id": "20241017006",
    "kind": "SOLICITATION",
    "agency": "Health and Mental Hygiene",
@@ -60588,18 +60568,38 @@
    "isNew": false
   },
   {
-   "id": "20260319032",
+   "id": "20250328002",
+   "kind": "SOLICITATION",
+   "agency": "Health and Mental Hygiene",
+   "title": "OPEN-ENDED ' JUSTICE INVOLVED SUPPORTIVE HOUSING (JISH)",
+   "category": "Human Services/Client Services",
+   "method": "Competitive Sealed Proposals/Pre-Qualified List",
+   "date": "2025-04-10",
+   "dueDate": "2034-12-29T23:59:00.000",
+   "daysLeft": 400,
+   "epin": "81622P0004",
+   "submitTo": "42-09 28th Street, 17th Floor, WS 17-89, Long Island City, NY 11101-4132",
+   "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
+   "contact": {
+    "name": "Richard Cheung",
+    "phone": "(347) 396-6658",
+    "email": "rfp@health.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20250715004",
    "kind": "SOLICITATION",
    "agency": "Education",
-   "title": "Bid Extension: Requirement Contract for Electrical Installations and Repair",
+   "title": "Bid Extension: REQUIREMENTS CONTRACT FOR FRESH AND FROZEN BAKERY PRODUCTS DISTRIBUTION",
    "category": "Goods and Services",
    "method": "Competitive Sealed Bids",
-   "date": "2026-03-26",
+   "date": "2025-07-22",
    "dueDate": "2039-09-09T16:00:00.000",
    "daysLeft": 400,
-   "epin": "B5721040",
-   "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
-   "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
+   "epin": "B5936040",
+   "submitTo": "65 Court Street, Room1201, Brooklyn, NY 11201",
+   "scope": "To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in the subject line. For all questions related to this RFB, please send an e-mail to FC",
    "contact": {
     "name": "Vendor Hotline",
     "phone": "(718) 935-2300",
@@ -60648,18 +60648,18 @@
    "isNew": false
   },
   {
-   "id": "20250715004",
+   "id": "20260319032",
    "kind": "SOLICITATION",
    "agency": "Education",
-   "title": "Bid Extension: REQUIREMENTS CONTRACT FOR FRESH AND FROZEN BAKERY PRODUCTS DISTRIBUTION",
+   "title": "Bid Extension: Requirement Contract for Electrical Installations and Repair",
    "category": "Goods and Services",
    "method": "Competitive Sealed Bids",
-   "date": "2025-07-22",
+   "date": "2026-03-26",
    "dueDate": "2039-09-09T16:00:00.000",
    "daysLeft": 400,
-   "epin": "B5936040",
-   "submitTo": "65 Court Street, Room1201, Brooklyn, NY 11201",
-   "scope": "To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in the subject line. For all questions related to this RFB, please send an e-mail to FC",
+   "epin": "B5721040",
+   "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
+   "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
    "contact": {
     "name": "Vendor Hotline",
     "phone": "(718) 935-2300",
@@ -71020,43 +71020,10 @@
  ],
  "gas": {
   "totals": {
-   "cited": 57885,
-   "open": 406
+   "cited": 57883,
+   "open": 405
   },
   "feed": [
-   {
-    "bin": "2091247",
-    "address": "1256 SHAKESPEARE AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8386,
-     -73.923
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "K&M Group Properties LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2030 Hone Ave, 2nd FL, Bronx NY 10461",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
    {
     "bin": "1089726",
     "address": "400 WEST  155 STREET",
@@ -71096,6 +71063,39 @@
      "status": "Permitted",
      "signedOff": null
     }
+   },
+   {
+    "bin": "2002567",
+    "address": "1120 GRANT AVENUE",
+    "borough": "Bronx",
+    "zip": "10456",
+    "cd": 4,
+    "ll": [
+     40.8315,
+     -73.9162
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "1120 GRANT AVE LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "11435 JAMAICA AVE, Jamaica NY 11435",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
    },
    {
     "bin": "3041982",
@@ -71164,39 +71164,6 @@
     "isNew": false
    },
    {
-    "bin": "2002567",
-    "address": "1120 GRANT AVENUE",
-    "borough": "Bronx",
-    "zip": "10456",
-    "cd": 4,
-    "ll": [
-     40.8315,
-     -73.9162
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "1120 GRANT AVE LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "11435 JAMAICA AVE, Jamaica NY 11435",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1048900",
     "address": "244 EAST 90 STREET",
     "borough": "Manhattan",
@@ -71226,6 +71193,39 @@
      "lapsed": false,
      "portfolio": 2,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2028014",
+    "address": "1371 LELAND AVENUE",
+    "borough": "Bronx",
+    "zip": "10460",
+    "cd": 9,
+    "ll": [
+     40.8349,
+     -73.864
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "POWER OF ATTORNEY",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2020-11-01",
+     "address": "1371 LELAND AVENUE, BRONX NY 10460",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -71300,39 +71300,6 @@
     "isNew": false
    },
    {
-    "bin": "2028014",
-    "address": "1371 LELAND AVENUE",
-    "borough": "Bronx",
-    "zip": "10460",
-    "cd": 9,
-    "ll": [
-     40.8349,
-     -73.864
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "POWER OF ATTORNEY",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2020-11-01",
-     "address": "1371 LELAND AVENUE, BRONX NY 10460",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1062002",
     "address": "550 WEST 148 STREET",
     "borough": "Manhattan",
@@ -71360,6 +71327,41 @@
      "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2116442",
+    "address": "1477 GRAND CONCOURSE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8405,
+     -73.9129
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "KRAUS MANAGEMENT INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "33-01 VERNON BLVD, LIC NY 11106",
+     "confidence": "verified",
+     "contactSource": "nyc.gov — HPD Division of Housing Supervision, Mitchell-Lama/Redevelopment managing agent list (MLLIST.pdf, revised May 2026)",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -71432,41 +71434,6 @@
     "isNew": false
    },
    {
-    "bin": "2116442",
-    "address": "1477 GRAND CONCOURSE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8405,
-     -73.9129
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "KRAUS MANAGEMENT INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "33-01 VERNON BLVD, LIC NY 11106",
-     "confidence": "verified",
-     "contactSource": "nyc.gov — HPD Division of Housing Supervision, Mitchell-Lama/Redevelopment managing agent list (MLLIST.pdf, revised May 2026)",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1026942",
     "address": "643 10 AVENUE",
     "borough": "Manhattan",
@@ -71491,6 +71458,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "643 10 AVENUE, NEW YORK CITY NY 10036",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2015337",
+    "address": "2773 UNIVERSITY AVENUE",
+    "borough": "Bronx",
+    "zip": "10468",
+    "cd": 8,
+    "ll": [
+     40.8708,
+     -73.8995
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Samuel Moskovits",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "35 Sillman st, 4B, Brooklyn NY 11205",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -71568,39 +71568,6 @@
     "isNew": false
    },
    {
-    "bin": "2015337",
-    "address": "2773 UNIVERSITY AVENUE",
-    "borough": "Bronx",
-    "zip": "10468",
-    "cd": 8,
-    "ll": [
-     40.8708,
-     -73.8995
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Samuel Moskovits",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "35 Sillman st, 4B, Brooklyn NY 11205",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1082148",
     "address": "449 3 AVENUE",
     "borough": "Manhattan",
@@ -71625,6 +71592,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "449 3rd avenue, New York NY 10016",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2028936",
+    "address": "2012 BENEDICT AVENUE",
+    "borough": "Bronx",
+    "zip": "10462",
+    "cd": 9,
+    "ll": [
+     40.8344,
+     -73.8572
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Selene Finance LP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "233 Long Beach Rd, Island Park NY 11558",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -71700,39 +71700,6 @@
     "isNew": false
    },
    {
-    "bin": "2028936",
-    "address": "2012 BENEDICT AVENUE",
-    "borough": "Bronx",
-    "zip": "10462",
-    "cd": 9,
-    "ll": [
-     40.8344,
-     -73.8572
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Selene Finance LP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "233 Long Beach Rd, Island Park NY 11558",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1018260",
     "address": "145 EAST 29 STREET",
     "borough": "Manhattan",
@@ -71762,6 +71729,39 @@
      "lapsed": false,
      "portfolio": 2,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2012196",
+    "address": "655 EAST  187 STREET",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8548,
+     -73.886
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "MAJOR MANAGEMENT INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "31-10 37TH AVENUE, 301, lic NY 11101",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -71836,39 +71836,6 @@
     "isNew": false
    },
    {
-    "bin": "2012196",
-    "address": "655 EAST  187 STREET",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8548,
-     -73.886
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "MAJOR MANAGEMENT INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "31-10 37TH AVENUE, 301, lic NY 11101",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1050270",
     "address": "310 EAST   93 STREET",
     "borough": "Manhattan",
@@ -71896,6 +71863,41 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2013212",
+    "address": "2068 DALY AVENUE",
+    "borough": "Bronx",
+    "zip": "10460",
+    "cd": 6,
+    "ll": [
+     40.8438,
+     -73.8823
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "LEMLE & WOLFF INC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "5925 BROADWAY, Bronx NY 10463",
+     "confidence": "verified",
+     "contactSource": "lemlewolff.com",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -71975,41 +71977,6 @@
     "isNew": false
    },
    {
-    "bin": "2013212",
-    "address": "2068 DALY AVENUE",
-    "borough": "Bronx",
-    "zip": "10460",
-    "cd": 6,
-    "ll": [
-     40.8438,
-     -73.8823
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "LEMLE & WOLFF INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5925 BROADWAY, Bronx NY 10463",
-     "confidence": "verified",
-     "contactSource": "lemlewolff.com",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1070108",
     "address": "416 WEST 56 STREET",
     "borough": "Manhattan",
@@ -72044,6 +72011,44 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2026544",
+    "address": "2133 GLEASON AVENUE",
+    "borough": "Bronx",
+    "zip": "10462",
+    "cd": 9,
+    "ll": [
+     40.8317,
+     -73.8528
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "COLUMBIA PRESBYTERIAN HOSPITAL",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "2133 GLEASAN AVE, BRONX NY 10462",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": null,
+     "status": "Pre-Filing",
+     "signedOff": null
+    }
    },
    {
     "bin": "3039355",
@@ -72112,44 +72117,6 @@
     "isNew": false
    },
    {
-    "bin": "2026544",
-    "address": "2133 GLEASON AVENUE",
-    "borough": "Bronx",
-    "zip": "10462",
-    "cd": 9,
-    "ll": [
-     40.8317,
-     -73.8528
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "COLUMBIA PRESBYTERIAN HOSPITAL",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2133 GLEASAN AVE, BRONX NY 10462",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": null,
-     "status": "Pre-Filing",
-     "signedOff": null
-    }
-   },
-   {
     "bin": "1013698",
     "address": "536 9 AVENUE",
     "borough": "Manhattan",
@@ -72186,6 +72153,39 @@
      "status": "Signed off",
      "signedOff": "2022-11-02"
     }
+   },
+   {
+    "bin": "2003097",
+    "address": "1300 SHAKESPEARE AVENUE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8398,
+     -73.9225
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "THE ESTATE OF NARENDRANAUTH RAMLAGAN",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2023-09-01",
+     "address": "1300 SHAKESPEARE AVE, Bronx NY 10452",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
    },
    {
     "bin": "3396853",
@@ -72258,39 +72258,6 @@
     "isNew": false
    },
    {
-    "bin": "2003097",
-    "address": "1300 SHAKESPEARE AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8398,
-     -73.9225
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "THE ESTATE OF NARENDRANAUTH RAMLAGAN",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "1300 SHAKESPEARE AVE, Bronx NY 10452",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1013678",
     "address": "532 9 AVENUE",
     "borough": "Manhattan",
@@ -72322,6 +72289,46 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2100645",
+    "address": "4991 HENRY HUDSON PARKWAY",
+    "borough": "Bronx",
+    "zip": "10471",
+    "cd": 8,
+    "ll": [
+     40.8979,
+     -73.9082
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "MIDAS PROPERTY MANAGEMENT CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2024-09-30",
+     "address": "3605 SEDGWICK AVENUE, A1, Bronx NY 10463",
+     "confidence": "verified",
+     "contactSource": "midasnyc.com/contact-us.html (company's own site), corroborated by their own PDF brochure at midasnyc.com",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2024-08-09",
+     "status": "Signed off",
+     "signedOff": "2024-09-11"
+    }
    },
    {
     "bin": "3036744",
@@ -72390,46 +72397,6 @@
     "isNew": false
    },
    {
-    "bin": "2100645",
-    "address": "4991 HENRY HUDSON PARKWAY",
-    "borough": "Bronx",
-    "zip": "10471",
-    "cd": 8,
-    "ll": [
-     40.8979,
-     -73.9082
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "MIDAS PROPERTY MANAGEMENT CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2024-09-30",
-     "address": "3605 SEDGWICK AVENUE, A1, Bronx NY 10463",
-     "confidence": "verified",
-     "contactSource": "midasnyc.com/contact-us.html (company's own site), corroborated by their own PDF brochure at midasnyc.com",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2024-08-09",
-     "status": "Signed off",
-     "signedOff": "2024-09-11"
-    }
-   },
-   {
     "bin": "1014058",
     "address": "212 8 AVENUE",
     "borough": "Manhattan",
@@ -72459,6 +72426,39 @@
      "lapsed": false,
      "portfolio": 2,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2002488",
+    "address": "959 GRANT AVENUE",
+    "borough": "Bronx",
+    "zip": "10456",
+    "cd": 4,
+    "ll": [
+     40.8281,
+     -73.9182
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PCG 959 GRANT LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "188 Pulaski, Brooklyn NY 11206",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -72531,39 +72531,6 @@
     "isNew": false
    },
    {
-    "bin": "2002488",
-    "address": "959 GRANT AVENUE",
-    "borough": "Bronx",
-    "zip": "10456",
-    "cd": 4,
-    "ll": [
-     40.8281,
-     -73.9182
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PCG 959 GRANT LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "188 Pulaski, Brooklyn NY 11206",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1014062",
     "address": "228 8 AVENUE",
     "borough": "Manhattan",
@@ -72588,6 +72555,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "38 W 31 STREET, 3, New York NY 10001",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2027820",
+    "address": "1311 COMMONWEALTH AVENUE",
+    "borough": "Bronx",
+    "zip": "10472",
+    "cd": 9,
+    "ll": [
+     40.8332,
+     -73.8686
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Khan Family Trust Dated December 6, 2019",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "1723 Seddon Street, Bronx NY 10461",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -72668,39 +72668,6 @@
     "isNew": false
    },
    {
-    "bin": "2027820",
-    "address": "1311 COMMONWEALTH AVENUE",
-    "borough": "Bronx",
-    "zip": "10472",
-    "cd": 9,
-    "ll": [
-     40.8332,
-     -73.8686
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Khan Family Trust Dated December 6, 2019",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1723 Seddon Street, Bronx NY 10461",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1085187",
     "address": "1398 2 AVENUE",
     "borough": "Manhattan",
@@ -72734,6 +72701,46 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2008645",
+    "address": "1372 SHAKESPEARE AVENUE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8413,
+     -73.9217
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "MIDAS PROPERTY MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "3605 SEDGWICK AVENUE, A1, Bronx NY 10463",
+     "confidence": "verified",
+     "contactSource": "midasnyc.com/contact-us.html (company's own site), corroborated by their own PDF brochure at midasnyc.com",
+     "lapsed": false,
+     "portfolio": 2,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2022-06-07",
+     "status": "Signed off",
+     "signedOff": "2022-07-29"
+    }
    },
    {
     "bin": "3403567",
@@ -72804,46 +72811,6 @@
     "isNew": false
    },
    {
-    "bin": "2008645",
-    "address": "1372 SHAKESPEARE AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8413,
-     -73.9217
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "MIDAS PROPERTY MANAGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "3605 SEDGWICK AVENUE, A1, Bronx NY 10463",
-     "confidence": "verified",
-     "contactSource": "midasnyc.com/contact-us.html (company's own site), corroborated by their own PDF brochure at midasnyc.com",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2022-06-07",
-     "status": "Signed off",
-     "signedOff": "2022-07-29"
-    }
-   },
-   {
     "bin": "1020149",
     "address": "233 EAST 34 STREET",
     "borough": "Manhattan",
@@ -72871,6 +72838,41 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2116449",
+    "address": "1499 GRAND CONCOURSE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8409,
+     -73.9127
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "KRAUS MANAGEMENT INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "33-01 VERNON BLVD, LIC NY 11106",
+     "confidence": "verified",
+     "contactSource": "nyc.gov — HPD Division of Housing Supervision, Mitchell-Lama/Redevelopment managing agent list (MLLIST.pdf, revised May 2026)",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -72945,41 +72947,6 @@
     "isNew": false
    },
    {
-    "bin": "2116449",
-    "address": "1499 GRAND CONCOURSE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8409,
-     -73.9127
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "KRAUS MANAGEMENT INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "33-01 VERNON BLVD, LIC NY 11106",
-     "confidence": "verified",
-     "contactSource": "nyc.gov — HPD Division of Housing Supervision, Mitchell-Lama/Redevelopment managing agent list (MLLIST.pdf, revised May 2026)",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1025179",
     "address": "316 WEST 51 STREET",
     "borough": "Manhattan",
@@ -73016,6 +72983,41 @@
      "status": "Approved",
      "signedOff": null
     }
+   },
+   {
+    "bin": "2116438",
+    "address": "1461 GRAND CONCOURSE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8403,
+     -73.9129
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "KRAUS MANAGEMENT INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "33-01 VERNON BLVD, LIC NY 11106",
+     "confidence": "verified",
+     "contactSource": "nyc.gov — HPD Division of Housing Supervision, Mitchell-Lama/Redevelopment managing agent list (MLLIST.pdf, revised May 2026)",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
    },
    {
     "bin": "3079752",
@@ -73084,41 +73086,6 @@
     "isNew": false
    },
    {
-    "bin": "2116438",
-    "address": "1461 GRAND CONCOURSE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8403,
-     -73.9129
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "KRAUS MANAGEMENT INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "33-01 VERNON BLVD, LIC NY 11106",
-     "confidence": "verified",
-     "contactSource": "nyc.gov — HPD Division of Housing Supervision, Mitchell-Lama/Redevelopment managing agent list (MLLIST.pdf, revised May 2026)",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1046921",
     "address": "40 EAST   88 STREET",
     "borough": "Manhattan",
@@ -73156,6 +73123,44 @@
      "filed": "2024-05-08",
      "status": "Permitted",
      "signedOff": null
+    }
+   },
+   {
+    "bin": "2011326",
+    "address": "2141 WASHINGTON AVENUE",
+    "borough": "Bronx",
+    "zip": "10457",
+    "cd": 6,
+    "ll": [
+     40.8527,
+     -73.8949
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "2141 WASHINGTON AVE LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "4058 BRONX BLVD, 1B, Bronx NY 10466",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2022-04-29",
+     "status": "Signed off",
+     "signedOff": "2022-09-02"
     }
    },
    {
@@ -73232,44 +73237,6 @@
     "isNew": false
    },
    {
-    "bin": "2011326",
-    "address": "2141 WASHINGTON AVENUE",
-    "borough": "Bronx",
-    "zip": "10457",
-    "cd": 6,
-    "ll": [
-     40.8527,
-     -73.8949
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "2141 WASHINGTON AVE LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "4058 BRONX BLVD, 1B, Bronx NY 10466",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2022-04-29",
-     "status": "Signed off",
-     "signedOff": "2022-09-02"
-    }
-   },
-   {
     "bin": "1025413",
     "address": "311 WEST 54 STREET",
     "borough": "Manhattan",
@@ -73304,6 +73271,44 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2007175",
+    "address": "1306 COLLEGE AVENUE",
+    "borough": "Bronx",
+    "zip": "10456",
+    "cd": 4,
+    "ll": [
+     40.8355,
+     -73.9117
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "GRAND CONCOURSE EAST HDFC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "900 GRAND CONCOURSE, BRONX NY 10451",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2024-04-03",
+     "status": "Permitted",
+     "signedOff": null
+    }
    },
    {
     "bin": "3041792",
@@ -73372,44 +73377,6 @@
     "isNew": false
    },
    {
-    "bin": "2007175",
-    "address": "1306 COLLEGE AVENUE",
-    "borough": "Bronx",
-    "zip": "10456",
-    "cd": 4,
-    "ll": [
-     40.8355,
-     -73.9117
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "GRAND CONCOURSE EAST HDFC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "900 GRAND CONCOURSE, BRONX NY 10451",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2024-04-03",
-     "status": "Permitted",
-     "signedOff": null
-    }
-   },
-   {
     "bin": "1041470",
     "address": "40 EAST 73 STREET",
     "borough": "Manhattan",
@@ -73441,6 +73408,44 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2103377",
+    "address": "2062 WASHINGTON AVENUE",
+    "borough": "Bronx",
+    "zip": "10457",
+    "cd": 6,
+    "ll": [
+     40.8506,
+     -73.896
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "CARMEN URIBE",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "2062 WASHINGTON AVE, PH 1, BRONX NY 10457",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2025-06-24",
+     "status": "Signed off",
+     "signedOff": "2025-07-12"
+    }
    },
    {
     "bin": "3115519",
@@ -73509,44 +73514,6 @@
     "isNew": false
    },
    {
-    "bin": "2103377",
-    "address": "2062 WASHINGTON AVENUE",
-    "borough": "Bronx",
-    "zip": "10457",
-    "cd": 6,
-    "ll": [
-     40.8506,
-     -73.896
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "CARMEN URIBE",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2062 WASHINGTON AVE, PH 1, BRONX NY 10457",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2025-06-24",
-     "status": "Signed off",
-     "signedOff": "2025-07-12"
-    }
-   },
-   {
     "bin": "1047578",
     "address": "162 EAST 82 STREET",
     "borough": "Manhattan",
@@ -73585,6 +73552,39 @@
      "status": "Permitted",
      "signedOff": null
     }
+   },
+   {
+    "bin": "2012199",
+    "address": "664 EAST 189 STREET",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8565,
+     -73.8843
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "664 EAST 189 STREET REALTY CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "2474 BELMONT AVENUE, BSMT, Bronx NY 10458",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
    },
    {
     "bin": "3082027",
@@ -73653,39 +73653,6 @@
     "isNew": false
    },
    {
-    "bin": "2012199",
-    "address": "664 EAST 189 STREET",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8565,
-     -73.8843
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "664 EAST 189 STREET REALTY CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2474 BELMONT AVENUE, BSMT, Bronx NY 10458",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1047039",
     "address": "28 EAST 92 STREET",
     "borough": "Manhattan",
@@ -73711,6 +73678,39 @@
      "regEnd": "2016-09-01",
      "address": "28 E 92ND ST, NEW YORK NY 10128",
      "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2003377",
+    "address": "1372 OGDEN AVENUE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.842,
+     -73.9244
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "MID-BRONX HOUSING MGMT CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "900 GRAND CONCOURSE, BX NY 10451",
+     "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -73785,39 +73785,6 @@
     "isNew": false
    },
    {
-    "bin": "2003377",
-    "address": "1372 OGDEN AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.842,
-     -73.9244
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "MID-BRONX HOUSING MGMT CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "900 GRAND CONCOURSE, BX NY 10451",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1043190",
     "address": "121 EAST 77 STREET",
     "borough": "Manhattan",
@@ -73849,6 +73816,46 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2129709",
+    "address": "1217 NELSON AVENUE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8379,
+     -73.9252
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "IMPACT REAL ESTATE MANAGMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "30-30 NORTHERN BLVD, 402, LONG ISLAND CIT NY 11101",
+     "confidence": "verified",
+     "contactSource": "impactremgt.com",
+     "lapsed": false,
+     "portfolio": 4,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2025-12-17",
+     "status": "Signed off",
+     "signedOff": "2026-05-21"
+    }
    },
    {
     "bin": "3031073",
@@ -73922,46 +73929,6 @@
     "isNew": false
    },
    {
-    "bin": "2129709",
-    "address": "1217 NELSON AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8379,
-     -73.9252
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "IMPACT REAL ESTATE MANAGMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "30-30 NORTHERN BLVD, 402, LONG ISLAND CIT NY 11101",
-     "confidence": "verified",
-     "contactSource": "impactremgt.com",
-     "lapsed": false,
-     "portfolio": 4,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2025-12-17",
-     "status": "Signed off",
-     "signedOff": "2026-05-21"
-    }
-   },
-   {
     "bin": "1076209",
     "address": "410 WEST 56TH STREET",
     "borough": "Manhattan",
@@ -73991,6 +73958,41 @@
      "via": "PH Realty Capital",
      "lapsed": false,
      "portfolio": 7,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2012524",
+    "address": "2335 BEAUMONT AVENUE",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8531,
+     -73.885
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "RHAMCO",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "696 EAST 187TH STREET, 2ND FL, Bronx NY 10458",
+     "confidence": "verified",
+     "contactSource": "rhamco.com/contact-us and rhamco.com/about-us (own site)",
+     "lapsed": false,
+     "portfolio": 3,
      "contactKnown": true,
      "namedContact": true
     },
@@ -74066,41 +74068,6 @@
     "isNew": false
    },
    {
-    "bin": "2012524",
-    "address": "2335 BEAUMONT AVENUE",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8531,
-     -73.885
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "RHAMCO",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "696 EAST 187TH STREET, 2ND FL, Bronx NY 10458",
-     "confidence": "verified",
-     "contactSource": "rhamco.com/contact-us and rhamco.com/about-us (own site)",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1043149",
     "address": "1308 3 AVENUE",
     "borough": "Manhattan",
@@ -74132,6 +74099,44 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2011691",
+    "address": "2375 LORILLARD PLACE",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8558,
+     -73.8898
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "2375 Lorillard Realty LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "1204 W BROADWAY, Hewlett NY 11557",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2026-06-10",
+     "status": "Signed off",
+     "signedOff": "2026-06-13"
+    }
    },
    {
     "bin": "3036019",
@@ -74200,44 +74205,6 @@
     "isNew": false
    },
    {
-    "bin": "2011691",
-    "address": "2375 LORILLARD PLACE",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8558,
-     -73.8898
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "2375 Lorillard Realty LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "1204 W BROADWAY, Hewlett NY 11557",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2026-06-10",
-     "status": "Signed off",
-     "signedOff": "2026-06-13"
-    }
-   },
-   {
     "bin": "1059797",
     "address": "1528 AMSTERDAM AVENUE",
     "borough": "Manhattan",
@@ -74271,6 +74238,44 @@
     },
     "urgencyScore": 14,
     "isNew": false
+   },
+   {
+    "bin": "2001965",
+    "address": "943 TELLER AVENUE",
+    "borough": "Bronx",
+    "zip": "10451",
+    "cd": 4,
+    "ll": [
+     40.8263,
+     -73.9155
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "FINGER MANAGEMENT CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "697 3RD AVE, 718, New York NY 10017",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2021-04-19",
+     "status": "Signed off",
+     "signedOff": "2021-05-22"
+    }
    },
    {
     "bin": "3390326",
@@ -74341,44 +74346,6 @@
     "isNew": false
    },
    {
-    "bin": "2001965",
-    "address": "943 TELLER AVENUE",
-    "borough": "Bronx",
-    "zip": "10451",
-    "cd": 4,
-    "ll": [
-     40.8263,
-     -73.9155
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "FINGER MANAGEMENT CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "697 3RD AVE, 718, New York NY 10017",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2021-04-19",
-     "status": "Signed off",
-     "signedOff": "2021-05-22"
-    }
-   },
-   {
     "bin": "1041279",
     "address": "818 MADISON AVENUE",
     "borough": "Manhattan",
@@ -74406,6 +74373,41 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2088396",
+    "address": "961 EAST  180 STREET",
+    "borough": "Bronx",
+    "zip": "10460",
+    "cd": 6,
+    "ll": [
+     40.8438,
+     -73.8802
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "LEMLE & WOLFF INC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "5925 BROADWAY, BRONX NY 10463",
+     "confidence": "verified",
+     "contactSource": "lemlewolff.com",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -74478,41 +74480,6 @@
     "isNew": false
    },
    {
-    "bin": "2088396",
-    "address": "961 EAST  180 STREET",
-    "borough": "Bronx",
-    "zip": "10460",
-    "cd": 6,
-    "ll": [
-     40.8438,
-     -73.8802
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "LEMLE & WOLFF INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5925 BROADWAY, BRONX NY 10463",
-     "confidence": "verified",
-     "contactSource": "lemlewolff.com",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1051191",
     "address": "521 EAST 83 STREET",
     "borough": "Manhattan",
@@ -74546,6 +74513,44 @@
     "isNew": false,
     "laa": {
      "filed": "2023-11-28",
+     "status": "Approved",
+     "signedOff": null
+    }
+   },
+   {
+    "bin": "2114749",
+    "address": "2006 HOMER AVENUE",
+    "borough": "Bronx",
+    "zip": "10473",
+    "cd": 9,
+    "ll": [
+     40.8211,
+     -73.8542
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "N/a",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": null,
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": false
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2020-07-30",
      "status": "Approved",
      "signedOff": null
     }
@@ -74624,44 +74629,6 @@
     "isNew": false
    },
    {
-    "bin": "2114749",
-    "address": "2006 HOMER AVENUE",
-    "borough": "Bronx",
-    "zip": "10473",
-    "cd": 9,
-    "ll": [
-     40.8211,
-     -73.8542
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "N/a",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": null,
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": false
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2020-07-30",
-     "status": "Approved",
-     "signedOff": null
-    }
-   },
-   {
     "bin": "1062439",
     "address": "3607 BROADWAY",
     "borough": "Manhattan",
@@ -74700,6 +74667,39 @@
      "status": "Pre-Filing - Penalty Review",
      "signedOff": null
     }
+   },
+   {
+    "bin": "2028075",
+    "address": "1416 FTELEY AVENUE",
+    "borough": "Bronx",
+    "zip": "10472",
+    "cd": 9,
+    "ll": [
+     40.8348,
+     -73.8728
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "OWNER",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "1416 FTELEY AVE, Bronx NY 10472",
+     "lapsed": false,
+     "portfolio": 2,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
    },
    {
     "bin": "3082029",
@@ -74770,39 +74770,6 @@
     "isNew": false
    },
    {
-    "bin": "2028075",
-    "address": "1416 FTELEY AVENUE",
-    "borough": "Bronx",
-    "zip": "10472",
-    "cd": 9,
-    "ll": [
-     40.8348,
-     -73.8728
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "OWNER",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1416 FTELEY AVE, Bronx NY 10472",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1062232",
     "address": "509 WEST 152 STREET",
     "borough": "Manhattan",
@@ -74827,6 +74794,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "182-11 UNION TPKE, FLUSHING NY 11366",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2021983",
+    "address": "729 NOBLE AVENUE",
+    "borough": "Bronx",
+    "zip": "10473",
+    "cd": 9,
+    "ll": [
+     40.8194,
+     -73.8674
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "SMR NOBLE LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "1118 LONGWOOD AVE, Bronx NY 10474",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -74902,39 +74902,6 @@
     "isNew": false
    },
    {
-    "bin": "2021983",
-    "address": "729 NOBLE AVENUE",
-    "borough": "Bronx",
-    "zip": "10473",
-    "cd": 9,
-    "ll": [
-     40.8194,
-     -73.8674
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "SMR NOBLE LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1118 LONGWOOD AVE, Bronx NY 10474",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1012422",
     "address": "315 10 AVENUE",
     "borough": "Manhattan",
@@ -74961,6 +74928,39 @@
      "address": "23-15 24 AVENUE, Astoria NY 11102",
      "lapsed": false,
      "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2011216",
+    "address": "2408 WEBSTER AVENUE",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8591,
+     -73.8937
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "JSAF MANAGEMENT LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "1702 EAST 5TH STREET, 3RD FL, Brooklyn NY 11223",
+     "lapsed": false,
+     "portfolio": 2,
      "contactKnown": false,
      "namedContact": true
     },
@@ -75036,39 +75036,6 @@
     "isNew": false
    },
    {
-    "bin": "2011216",
-    "address": "2408 WEBSTER AVENUE",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8591,
-     -73.8937
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "JSAF MANAGEMENT LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1702 EAST 5TH STREET, 3RD FL, Brooklyn NY 11223",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1087699",
     "address": "225 EAST   24 STREET",
     "borough": "Manhattan",
@@ -75098,6 +75065,39 @@
      "lapsed": false,
      "portfolio": 15,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2007325",
+    "address": "1699 CLAY AVENUE",
+    "borough": "Bronx",
+    "zip": "10457",
+    "cd": 4,
+    "ll": [
+     40.8442,
+     -73.9049
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Residents Living",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "223 Spencer St, 201, Brooklyn NY 11205",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -75172,39 +75172,6 @@
     "isNew": false
    },
    {
-    "bin": "2007325",
-    "address": "1699 CLAY AVENUE",
-    "borough": "Bronx",
-    "zip": "10457",
-    "cd": 4,
-    "ll": [
-     40.8442,
-     -73.9049
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Residents Living",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "223 Spencer St, 201, Brooklyn NY 11205",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1020210",
     "address": "555 3 AVENUE",
     "borough": "Manhattan",
@@ -75230,6 +75197,39 @@
      "regEnd": "2024-09-30",
      "address": "429 EAST 52ND STREET, GRND, NEW YORK NY 10022",
      "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2124520",
+    "address": "5164 POST ROAD",
+    "borough": "Bronx",
+    "zip": "10471",
+    "cd": 8,
+    "ll": [
+     40.8966,
+     -73.8983
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "DJST REALTY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "311 EAST 80TH STREE, 1, New York NY 10075",
+     "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -75304,39 +75304,6 @@
     "isNew": false
    },
    {
-    "bin": "2124520",
-    "address": "5164 POST ROAD",
-    "borough": "Bronx",
-    "zip": "10471",
-    "cd": 8,
-    "ll": [
-     40.8966,
-     -73.8983
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "DJST REALTY LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "311 EAST 80TH STREE, 1, New York NY 10075",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1051158",
     "address": "513 EAST 82 STREET",
     "borough": "Manhattan",
@@ -75368,6 +75335,39 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2092362",
+    "address": "2074 CROTONA PARKWAY",
+    "borough": "Bronx",
+    "zip": "10460",
+    "cd": 6,
+    "ll": [
+     40.8451,
+     -73.8847
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "CROTONA MOHEGAN, LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "367 WILLOUGHBY AVENUE, 500, Brooklyn NY 11205",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -75442,39 +75442,6 @@
     "isNew": false
    },
    {
-    "bin": "2092362",
-    "address": "2074 CROTONA PARKWAY",
-    "borough": "Bronx",
-    "zip": "10460",
-    "cd": 6,
-    "ll": [
-     40.8451,
-     -73.8847
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "CROTONA MOHEGAN, LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "367 WILLOUGHBY AVENUE, 500, Brooklyn NY 11205",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1059770",
     "address": "504 WEST 135 STREET",
     "borough": "Manhattan",
@@ -75504,6 +75471,39 @@
      "lapsed": false,
      "portfolio": 3,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2099660",
+    "address": "916A WHEELER AVENUE",
+    "borough": "Bronx",
+    "zip": "10473",
+    "cd": 9,
+    "ll": [
+     40.8221,
+     -73.8786
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "STORY AVENUE CONDOMINIUM",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "916A WHEELER AVE, A, BRONX NY 10473",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -75581,39 +75581,6 @@
     "isNew": false
    },
    {
-    "bin": "2099660",
-    "address": "916A WHEELER AVENUE",
-    "borough": "Bronx",
-    "zip": "10473",
-    "cd": 9,
-    "ll": [
-     40.8221,
-     -73.8786
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "STORY AVENUE CONDOMINIUM",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "916A WHEELER AVE, A, BRONX NY 10473",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1050576",
     "address": "411 EAST 87 STREET",
     "borough": "Manhattan",
@@ -75638,6 +75605,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "411 E 87 ST, NEW YORK CITY NY 10128",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2015958",
+    "address": "3411 FT INDEPENDENCE STREET",
+    "borough": "Bronx",
+    "zip": "10463",
+    "cd": 8,
+    "ll": [
+     40.8808,
+     -73.8992
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "3411 FORT INDEPENDENCE STREET REALTY CORPORATION",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "3411 FORT INDEPENDENCE STREET, BSMT, Bronx NY 10463",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -75713,39 +75713,6 @@
     "isNew": false
    },
    {
-    "bin": "2015958",
-    "address": "3411 FT INDEPENDENCE STREET",
-    "borough": "Bronx",
-    "zip": "10463",
-    "cd": 8,
-    "ll": [
-     40.8808,
-     -73.8992
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "3411 FORT INDEPENDENCE STREET REALTY CORPORATION",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "3411 FORT INDEPENDENCE STREET, BSMT, Bronx NY 10463",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1012872",
     "address": "410 WEST 36 STREET",
     "borough": "Manhattan",
@@ -75779,6 +75746,46 @@
     "isNew": false,
     "laa": {
      "filed": "2022-01-10",
+     "status": "Permitted",
+     "signedOff": null
+    }
+   },
+   {
+    "bin": "2114222",
+    "address": "1347 MORRIS AVENUE",
+    "borough": "Bronx",
+    "zip": "10456",
+    "cd": 4,
+    "ll": [
+     40.8366,
+     -73.9121
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "The Bridge",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "290 Lenox Avenue, New York NY 10027",
+     "confidence": "verified",
+     "contactSource": "thebridgeny.org",
+     "lapsed": false,
+     "portfolio": 4,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2026-07-15",
      "status": "Permitted",
      "signedOff": null
     }
@@ -75854,46 +75861,6 @@
     "isNew": false
    },
    {
-    "bin": "2114222",
-    "address": "1347 MORRIS AVENUE",
-    "borough": "Bronx",
-    "zip": "10456",
-    "cd": 4,
-    "ll": [
-     40.8366,
-     -73.9121
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "The Bridge",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "290 Lenox Avenue, New York NY 10027",
-     "confidence": "verified",
-     "contactSource": "thebridgeny.org",
-     "lapsed": false,
-     "portfolio": 4,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2026-07-15",
-     "status": "Permitted",
-     "signedOff": null
-    }
-   },
-   {
     "bin": "1050263",
     "address": "326 EAST 93 STREET",
     "borough": "Manhattan",
@@ -75919,39 +75886,6 @@
      "regEnd": "2026-09-01",
      "address": "326 E 93RD ST, NEW YORK NY 10028",
      "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3042799",
-    "address": "1484 HERKIMER STREET",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6772,
-     -73.9046
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "GUYTECH MANAGEMENT SERVICES INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2025-09-01",
-     "address": "771 THOMAS S BOYLAND ST, Brooklyn NY 11212",
-     "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -75998,6 +75932,39 @@
     }
    },
    {
+    "bin": "3042799",
+    "address": "1484 HERKIMER STREET",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6772,
+     -73.9046
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "GUYTECH MANAGEMENT SERVICES INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2025-09-01",
+     "address": "771 THOMAS S BOYLAND ST, Brooklyn NY 11212",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1018905",
     "address": "145 EAST 35 STREET",
     "borough": "Manhattan",
@@ -76036,6 +76003,39 @@
     }
    },
    {
+    "bin": "2117961",
+    "address": "797 FAIRMOUNT PLACE",
+    "borough": "Bronx",
+    "zip": "10460",
+    "cd": 6,
+    "ll": [
+     40.8427,
+     -73.8891
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "ILLYRIAN PROPERTIES",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "166 SECOND AVE SUITE, 2D, New York NY 10003",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "3036331",
     "address": "201 BUFFALO AVENUE",
     "borough": "Brooklyn",
@@ -76065,39 +76065,6 @@
      "lapsed": false,
      "portfolio": 4,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "2117961",
-    "address": "797 FAIRMOUNT PLACE",
-    "borough": "Bronx",
-    "zip": "10460",
-    "cd": 6,
-    "ll": [
-     40.8427,
-     -73.8891
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "ILLYRIAN PROPERTIES",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "166 SECOND AVE SUITE, 2D, New York NY 10003",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -76142,39 +76109,6 @@
     }
    },
    {
-    "bin": "3042548",
-    "address": "1246 HERKIMER STREET",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6776,
-     -73.9121
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "1246 HERKIMER STREET LLC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2022-09-01",
-     "address": "1246 HERKIMER STREET, Brooklyn NY 11233",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2116444",
     "address": "1483 GRAND CONCOURSE",
     "borough": "Bronx",
@@ -76204,6 +76138,39 @@
      "lapsed": false,
      "portfolio": 7,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3042548",
+    "address": "1246 HERKIMER STREET",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6776,
+     -73.9121
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "1246 HERKIMER STREET LLC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2022-09-01",
+     "address": "1246 HERKIMER STREET, Brooklyn NY 11233",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -76240,39 +76207,6 @@
      "lapsed": false,
      "portfolio": 28,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3042087",
-    "address": "91 TRUXTON STREET",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6786,
-     -73.9058
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "SCHWEID EQUITY MANAGEMENT LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "4515 12TH AVE, D-6, Brooklyn NY 11219",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -76317,6 +76251,39 @@
     }
    },
    {
+    "bin": "3042087",
+    "address": "91 TRUXTON STREET",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6786,
+     -73.9058
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "SCHWEID EQUITY MANAGEMENT LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "4515 12TH AVE, D-6, Brooklyn NY 11219",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1061269",
     "address": "1681 AMSTERDAM AVENUE",
     "borough": "Manhattan",
@@ -76355,6 +76322,39 @@
     }
    },
    {
+    "bin": "2011746",
+    "address": "539 EAST 187 STREET",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8566,
+     -73.8895
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "MNB HOLDINGS LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "2319 NOSTRAND AVE, 100079, Brooklyn NY 11210",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "3072752",
     "address": "1111 WILLOUGHBY AVENUE",
     "borough": "Brooklyn",
@@ -76385,39 +76385,6 @@
      "lapsed": false,
      "portfolio": 9,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "2011746",
-    "address": "539 EAST 187 STREET",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8566,
-     -73.8895
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "MNB HOLDINGS LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "2319 NOSTRAND AVE, 100079, Brooklyn NY 11210",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -76462,41 +76429,6 @@
     }
    },
    {
-    "bin": "3345405",
-    "address": "17 DWIGHT STREET",
-    "borough": "Brooklyn",
-    "zip": "11231",
-    "cd": 6,
-    "ll": [
-     40.6782,
-     -74.0064
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "CONCORD MANAGEMENT OF NY LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "50 WEST 132 STREET, York A, New York NY 10037",
-     "confidence": "verified",
-     "contactSource": "concordny.com",
-     "lapsed": false,
-     "portfolio": 12,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2024785",
     "address": "1838 WESTCHESTER AVENUE",
     "borough": "Bronx",
@@ -76535,6 +76467,41 @@
     }
    },
    {
+    "bin": "3345405",
+    "address": "17 DWIGHT STREET",
+    "borough": "Brooklyn",
+    "zip": "11231",
+    "cd": 6,
+    "ll": [
+     40.6782,
+     -74.0064
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "CONCORD MANAGEMENT OF NY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "50 WEST 132 STREET, York A, New York NY 10037",
+     "confidence": "verified",
+     "contactSource": "concordny.com",
+     "lapsed": false,
+     "portfolio": 12,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1041955",
     "address": "132 EAST 61 STREET",
     "borough": "Manhattan",
@@ -76565,39 +76532,6 @@
      "lapsed": false,
      "portfolio": 4,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3004508",
-    "address": "541 HENRY STREET",
-    "borough": "Brooklyn",
-    "zip": "11231",
-    "cd": 6,
-    "ll": [
-     40.6832,
-     -73.9999
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "NA",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "541 HENRY ST, A, Brooklyn NY 11231",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -76637,6 +76571,39 @@
     "isNew": false
    },
    {
+    "bin": "3004508",
+    "address": "541 HENRY STREET",
+    "borough": "Brooklyn",
+    "zip": "11231",
+    "cd": 6,
+    "ll": [
+     40.6832,
+     -73.9999
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "NA",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "541 HENRY ST, A, Brooklyn NY 11231",
+     "lapsed": false,
+     "portfolio": 2,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1039941",
     "address": "1032 2 AVENUE",
     "borough": "Manhattan",
@@ -76661,39 +76628,6 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2016-09-01",
      "address": "7 W 34 STREET, 431, NEW YORK NY 10001",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3030425",
-    "address": "108 BROOKLYN AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11216",
-    "cd": 8,
-    "ll": [
-     40.6762,
-     -73.9443
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "108 BROOKLYN AVE LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2019-09-01",
-     "address": "108 BROOKLYN AVE, BROOKLYN NY S11216",
      "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
@@ -76736,6 +76670,39 @@
     "isNew": false
    },
    {
+    "bin": "3030425",
+    "address": "108 BROOKLYN AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11216",
+    "cd": 8,
+    "ll": [
+     40.6762,
+     -73.9443
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "108 BROOKLYN AVE LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2019-09-01",
+     "address": "108 BROOKLYN AVE, BROOKLYN NY S11216",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1020501",
     "address": "328 EAST 19 STREET",
     "borough": "Manhattan",
@@ -76763,41 +76730,6 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3325694",
-    "address": "121 BLEECKER STREET",
-    "borough": "Brooklyn",
-    "zip": "11221",
-    "cd": 4,
-    "ll": [
-     40.6958,
-     -73.9206
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "WAVECREST MGMT GROUP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "87-14 116 TH STREET, Richmond Hill NY 11418",
-     "confidence": "verified",
-     "contactSource": "wavecrestmanagement.com",
-     "lapsed": false,
-     "portfolio": 37,
-     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -76832,6 +76764,41 @@
      "contactSource": "lemlewolff.com",
      "lapsed": false,
      "portfolio": 7,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3325694",
+    "address": "121 BLEECKER STREET",
+    "borough": "Brooklyn",
+    "zip": "11221",
+    "cd": 4,
+    "ll": [
+     40.6958,
+     -73.9206
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "WAVECREST MGMT GROUP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "87-14 116 TH STREET, Richmond Hill NY 11418",
+     "confidence": "verified",
+     "contactSource": "wavecrestmanagement.com",
+     "lapsed": false,
+     "portfolio": 37,
      "contactKnown": true,
      "namedContact": true
     },
@@ -76877,6 +76844,39 @@
     }
    },
    {
+    "bin": "2012150",
+    "address": "2334 HUGHES AVENUE",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8539,
+     -73.8879
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PPRISTINA REALTY",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "2334 HUGHES AVENUE, 1, Bronx NY 10458",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "3392540",
     "address": "95 VISITATION PLACE",
     "borough": "Brooklyn",
@@ -76912,39 +76912,6 @@
     "isNew": false
    },
    {
-    "bin": "2012150",
-    "address": "2334 HUGHES AVENUE",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8539,
-     -73.8879
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PPRISTINA REALTY",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2334 HUGHES AVENUE, 1, Bronx NY 10458",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1049978",
     "address": "318 EAST 85 STREET",
     "borough": "Manhattan",
@@ -76969,6 +76936,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "244 TAUBE MANAGEMENT CORP., 244 EA, New York NY 10022",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2094641",
+    "address": "2001 ARTHUR AVENUE",
+    "borough": "Bronx",
+    "zip": "10457",
+    "cd": 6,
+    "ll": [
+     40.8474,
+     -73.8928
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "2001 ARTHUR LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "1021 MCDONALD AVE, 2, Brooklyn NY 11230",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -77011,39 +77011,6 @@
     "isNew": false
    },
    {
-    "bin": "2094641",
-    "address": "2001 ARTHUR AVENUE",
-    "borough": "Bronx",
-    "zip": "10457",
-    "cd": 6,
-    "ll": [
-     40.8474,
-     -73.8928
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "2001 ARTHUR LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1021 MCDONALD AVE, 2, Brooklyn NY 11230",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1013327",
     "address": "342 WEST 22 STREET",
     "borough": "Manhattan",
@@ -77071,41 +77038,6 @@
      "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3019241",
-    "address": "55 ST JOHNS PLACE",
-    "borough": "Brooklyn",
-    "zip": "11217",
-    "cd": 6,
-    "ll": [
-     40.6778,
-     -73.9776
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PARK SLOPE NORTH HDFC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "70 ST JOHNS PLACE, 1, BROOKLYN NY 11217",
-     "confidence": "listed",
-     "contactSource": "real-estate-agents.cmac.ws/park-slope-north-h-d-f-c/85030/",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -77150,6 +77082,41 @@
     }
    },
    {
+    "bin": "3019241",
+    "address": "55 ST JOHNS PLACE",
+    "borough": "Brooklyn",
+    "zip": "11217",
+    "cd": 6,
+    "ll": [
+     40.6778,
+     -73.9776
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PARK SLOPE NORTH HDFC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "70 ST JOHNS PLACE, 1, BROOKLYN NY 11217",
+     "confidence": "listed",
+     "contactSource": "real-estate-agents.cmac.ws/park-slope-north-h-d-f-c/85030/",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1039835",
     "address": "347 EAST 53 STREET",
     "borough": "Manhattan",
@@ -77190,6 +77157,39 @@
     }
    },
    {
+    "bin": "2008671",
+    "address": "1432 SHAKESPEARE AVENUE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8428,
+     -73.9206
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "1432 SHAKESPEARE AVENUE LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "4058 BRONX BLVD,, 1B, Bronx NY 10466",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "3325697",
     "address": "1284 GREENE AVENUE",
     "borough": "Brooklyn",
@@ -77219,39 +77219,6 @@
      "lapsed": false,
      "portfolio": 37,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "2008671",
-    "address": "1432 SHAKESPEARE AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8428,
-     -73.9206
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "1432 SHAKESPEARE AVENUE LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "4058 BRONX BLVD,, 1B, Bronx NY 10466",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -77294,44 +77261,6 @@
     "isNew": false
    },
    {
-    "bin": "3396414",
-    "address": "680 PROSPECT PLACE",
-    "borough": "Brooklyn",
-    "zip": "11216",
-    "cd": 8,
-    "ll": [
-     40.6747,
-     -73.9545
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "REDONE ASSET LLC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "682 PROSPECT PL, 3B, Brooklyn NY 11216",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false,
-    "laa": {
-     "filed": "2022-06-23",
-     "status": "Permitted",
-     "signedOff": null
-    }
-   },
-   {
     "bin": "2012006",
     "address": "2070 ARTHUR AVENUE",
     "borough": "Bronx",
@@ -77372,6 +77301,44 @@
     }
    },
    {
+    "bin": "3396414",
+    "address": "680 PROSPECT PLACE",
+    "borough": "Brooklyn",
+    "zip": "11216",
+    "cd": 8,
+    "ll": [
+     40.6747,
+     -73.9545
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "REDONE ASSET LLC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "682 PROSPECT PL, 3B, Brooklyn NY 11216",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false,
+    "laa": {
+     "filed": "2022-06-23",
+     "status": "Permitted",
+     "signedOff": null
+    }
+   },
+   {
     "bin": "1012585",
     "address": "410 WEST  20 STREET",
     "borough": "Manhattan",
@@ -77405,39 +77372,6 @@
     "isNew": false
    },
    {
-    "bin": "3082695",
-    "address": "38 LOTT AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11212",
-    "cd": 16,
-    "ll": [
-     40.6572,
-     -73.9126
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "LOTT ESTATES LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "74 CORNELIA, BROOKLYN NY 11221",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2016177",
     "address": "234 WEST 238 STREET",
     "borough": "Bronx",
@@ -77462,6 +77396,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "238 WEST 238 STREET, Bronx NY 10463",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3082695",
+    "address": "38 LOTT AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11212",
+    "cd": 16,
+    "ll": [
+     40.6572,
+     -73.9126
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "LOTT ESTATES LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "74 CORNELIA, BROOKLYN NY 11221",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -77504,41 +77471,6 @@
     "isNew": false
    },
    {
-    "bin": "3019247",
-    "address": "43 ST JOHNS PLACE",
-    "borough": "Brooklyn",
-    "zip": "11217",
-    "cd": 6,
-    "ll": [
-     40.6779,
-     -73.9778
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PARK SLOPE NORTH HDFC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "70 ST JOHNS PLACE, 1, BROOKLYN NY 11217",
-     "confidence": "listed",
-     "contactSource": "real-estate-agents.cmac.ws/park-slope-north-h-d-f-c/85030/",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2127594",
     "address": "499 EAST  188 STREET",
     "borough": "Bronx",
@@ -77565,6 +77497,41 @@
      "address": "3251 THIRD AVENUE`, 2 FLOO, Bronx NY 10456",
      "confidence": "verified",
      "contactSource": "pillarnyc.com/",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3019247",
+    "address": "43 ST JOHNS PLACE",
+    "borough": "Brooklyn",
+    "zip": "11217",
+    "cd": 6,
+    "ll": [
+     40.6779,
+     -73.9778
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PARK SLOPE NORTH HDFC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "70 ST JOHNS PLACE, 1, BROOKLYN NY 11217",
+     "confidence": "listed",
+     "contactSource": "real-estate-agents.cmac.ws/park-slope-north-h-d-f-c/85030/",
      "lapsed": false,
      "portfolio": 3,
      "contactKnown": true,
@@ -77615,39 +77582,6 @@
     }
    },
    {
-    "bin": "3414186",
-    "address": "2288 ATLANTIC AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6763,
-     -73.9095
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "2288 ATLANTIC LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "188 Pulaski, Brooklyn NY 11206",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2023982",
     "address": "1150 MANOR AVENUE",
     "borough": "Bronx",
@@ -77672,6 +77606,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "75 South Broadway, 419, White Plains NY 10601",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3414186",
+    "address": "2288 ATLANTIC AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6763,
+     -73.9095
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "2288 ATLANTIC LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "188 Pulaski, Brooklyn NY 11206",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -77714,41 +77681,6 @@
     "isNew": false
    },
    {
-    "bin": "3008351",
-    "address": "70 NELSON STREET",
-    "borough": "Brooklyn",
-    "zip": "11231",
-    "cd": 6,
-    "ll": [
-     40.6778,
-     -74.0035
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "CONCORD MANAGEMENT OF NY LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "50 WEST 132 STREET, New York NY 10037",
-     "confidence": "verified",
-     "contactSource": "concordny.com",
-     "lapsed": false,
-     "portfolio": 12,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2002223",
     "address": "1052 FINDLAY AVENUE",
     "borough": "Bronx",
@@ -77777,6 +77709,41 @@
      "contactSource": "property-management-services.cmac.ws/garcia-building-management/85202/",
      "lapsed": true,
      "portfolio": 2,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3008351",
+    "address": "70 NELSON STREET",
+    "borough": "Brooklyn",
+    "zip": "11231",
+    "cd": 6,
+    "ll": [
+     40.6778,
+     -74.0035
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "CONCORD MANAGEMENT OF NY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "50 WEST 132 STREET, New York NY 10037",
+     "confidence": "verified",
+     "contactSource": "concordny.com",
+     "lapsed": false,
+     "portfolio": 12,
      "contactKnown": true,
      "namedContact": true
     },
@@ -77813,39 +77780,6 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "3019556",
-    "address": "710 DE GRAW STREET",
-    "borough": "Brooklyn",
-    "zip": "11217",
-    "cd": 6,
-    "ll": [
-     40.678,
-     -73.9804
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Arya Management LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "718 Court St, Brooklyn NY 11231",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -77892,6 +77826,39 @@
     }
    },
    {
+    "bin": "3019556",
+    "address": "710 DE GRAW STREET",
+    "borough": "Brooklyn",
+    "zip": "11217",
+    "cd": 6,
+    "ll": [
+     40.678,
+     -73.9804
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Arya Management LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "718 Court St, Brooklyn NY 11231",
+     "lapsed": false,
+     "portfolio": 2,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1085179",
     "address": "253 EAST   78 STREET",
     "borough": "Manhattan",
@@ -77916,6 +77883,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "317 EAST 84 STREET, New York NY 10028",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2012227",
+    "address": "2458 HUGHES AVENUE",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8563,
+     -73.8859
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Z Holdings 18 LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "17 Barstow Rd., 401, Great Neck NY 11021",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -77960,39 +77960,6 @@
     "isNew": false
    },
    {
-    "bin": "2012227",
-    "address": "2458 HUGHES AVENUE",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8563,
-     -73.8859
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Z Holdings 18 LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "17 Barstow Rd., 401, Great Neck NY 11021",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1013033",
     "address": "344 WEST 15 STREET",
     "borough": "Manhattan",
@@ -78031,39 +77998,6 @@
     }
    },
    {
-    "bin": "3116067",
-    "address": "287 CLARKSON AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11226",
-    "cd": 9,
-    "ll": [
-     40.6554,
-     -73.9506
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Amna Management",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "301 East 79th Street, 29H, New York NY 10021",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2101496",
     "address": "1678 MONROE AVENUE",
     "borough": "Bronx",
@@ -78088,6 +78022,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "825 NORTHERN BLVD, 303, Great Neck NY 11021",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3116067",
+    "address": "287 CLARKSON AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11226",
+    "cd": 9,
+    "ll": [
+     40.6554,
+     -73.9506
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Amna Management",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "301 East 79th Street, 29H, New York NY 10021",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -78138,39 +78105,6 @@
     }
    },
    {
-    "bin": "3042762",
-    "address": "1436 HERKIMER STREET",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6772,
-     -73.9059
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "1436 Herkimer NY LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2116 Fulton Street, 1st Fl, Brooklyn NY 11233",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2024740",
     "address": "1251 TAYLOR AVENUE",
     "borough": "Bronx",
@@ -78195,6 +78129,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "1251 TAYLOR AVE, 4D, Bronx NY 10472",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3042762",
+    "address": "1436 HERKIMER STREET",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6772,
+     -73.9059
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "1436 Herkimer NY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "2116 Fulton Street, 1st Fl, Brooklyn NY 11233",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -78239,6 +78206,39 @@
     "isNew": false
    },
    {
+    "bin": "2003049",
+    "address": "976 ANDERSON AVENUE",
+    "borough": "Bronx",
+    "zip": "10452",
+    "cd": 4,
+    "ll": [
+     40.8317,
+     -73.9276
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "NEW YORK CITY MANGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "13 WEST 38TH STREET, 2ND FL, New York NY 10018",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "3019418",
     "address": "50 ST JOHNS PLACE",
     "borough": "Brooklyn",
@@ -78268,39 +78268,6 @@
      "lapsed": false,
      "portfolio": 3,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "2003049",
-    "address": "976 ANDERSON AVENUE",
-    "borough": "Bronx",
-    "zip": "10452",
-    "cd": 4,
-    "ll": [
-     40.8317,
-     -73.9276
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "NEW YORK CITY MANGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "13 WEST 38TH STREET, 2ND FL, New York NY 10018",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -78345,39 +78312,6 @@
     }
    },
    {
-    "bin": "3398130",
-    "address": "237 SUMPTER STREET",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6805,
-     -73.9157
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "MHANY MANAGEMENT, INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "470 VANDERBILT AVE, 9TH FL, BROOKLYN NY 11238",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2012831",
     "address": "2346 CROTONA AVENUE",
     "borough": "Bronx",
@@ -78416,6 +78350,39 @@
     }
    },
    {
+    "bin": "3398130",
+    "address": "237 SUMPTER STREET",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6805,
+     -73.9157
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "MHANY MANAGEMENT, INC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "470 VANDERBILT AVE, 9TH FL, BROOKLYN NY 11238",
+     "lapsed": false,
+     "portfolio": 2,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "1013679",
     "address": "347 WEST   39 STREET",
     "borough": "Manhattan",
@@ -78451,39 +78418,6 @@
     "isNew": false
    },
    {
-    "bin": "3030822",
-    "address": "1338 BERGEN STREET",
-    "borough": "Brooklyn",
-    "zip": "11213",
-    "cd": 8,
-    "ll": [
-     40.6756,
-     -73.9403
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "CHARTERED PROPERTIES LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "1199 PARK AVE, 8D, New York NY 10128",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2092270",
     "address": "2474 BELMONT AVENUE",
     "borough": "Bronx",
@@ -78508,6 +78442,39 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "2474 BELMONT AVENUE, Bronx NY 10458",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3030822",
+    "address": "1338 BERGEN STREET",
+    "borough": "Brooklyn",
+    "zip": "11213",
+    "cd": 8,
+    "ll": [
+     40.6756,
+     -73.9403
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "CHARTERED PROPERTIES LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "1199 PARK AVE, 8D, New York NY 10128",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -78555,39 +78522,6 @@
     }
    },
    {
-    "bin": "3074306",
-    "address": "1187 BROADWAY",
-    "borough": "Brooklyn",
-    "zip": "11221",
-    "cd": 4,
-    "ll": [
-     40.6925,
-     -73.9273
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "WATERFRONT PROPERTY MANAGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "116 NOSTRAND AVE, Brooklyn NY 11205",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2023509",
     "address": "1021 WARD AVENUE",
     "borough": "Bronx",
@@ -78624,6 +78558,39 @@
      "status": "Signed off",
      "signedOff": "2022-01-11"
     }
+   },
+   {
+    "bin": "3074306",
+    "address": "1187 BROADWAY",
+    "borough": "Brooklyn",
+    "zip": "11221",
+    "cd": 4,
+    "ll": [
+     40.6925,
+     -73.9273
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "WATERFRONT PROPERTY MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "116 NOSTRAND AVE, Brooklyn NY 11205",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
    },
    {
     "bin": "1012854",
@@ -78664,39 +78631,6 @@
     }
    },
    {
-    "bin": "3080829",
-    "address": "2031 UNION STREET",
-    "borough": "Brooklyn",
-    "zip": "11212",
-    "cd": 16,
-    "ll": [
-     40.6668,
-     -73.9217
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "URBAN STRATEGIES MGMT CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "294 SUMPTER STREET, BROOKLYN NY 11233",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2008039",
     "address": "125 EAST  169 STREET",
     "borough": "Bronx",
@@ -78722,6 +78656,39 @@
      "regEnd": "2024-09-30",
      "address": "829 WESTCHESTER AVE, 504, Bronx NY 10455",
      "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3080829",
+    "address": "2031 UNION STREET",
+    "borough": "Brooklyn",
+    "zip": "11212",
+    "cd": 16,
+    "ll": [
+     40.6668,
+     -73.9217
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "URBAN STRATEGIES MGMT CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "294 SUMPTER STREET, BROOKLYN NY 11233",
+     "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -78757,6 +78724,41 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2012927",
+    "address": "2409 CROTONA AVENUE",
+    "borough": "Bronx",
+    "zip": "10458",
+    "cd": 6,
+    "ll": [
+     40.8544,
+     -73.8834
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "BLUE OWL MANAGEMENT LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "36-36 33rd Street, Suite, Astoria NY 11106",
+     "confidence": "verified",
+     "contactSource": "blueowlglobal.com/contact",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -78801,41 +78803,6 @@
     }
    },
    {
-    "bin": "2012927",
-    "address": "2409 CROTONA AVENUE",
-    "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
-    "ll": [
-     40.8544,
-     -73.8834
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "BLUE OWL MANAGEMENT LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "36-36 33rd Street, Suite, Astoria NY 11106",
-     "confidence": "verified",
-     "contactSource": "blueowlglobal.com/contact",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1070106",
     "address": "412 WEST   56 STREET",
     "borough": "Manhattan",
@@ -78872,39 +78839,6 @@
     "isNew": false
    },
    {
-    "bin": "3042525",
-    "address": "30 MARCONI PLACE",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6768,
-     -73.9127
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "SBA 30 LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2025-09-01",
-     "address": "30 Marconi Place, Brooklyn NY 11233",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2124423",
     "address": "1042 LELAND AVENUE",
     "borough": "Bronx",
@@ -78930,6 +78864,39 @@
      "regEnd": "2026-09-01",
      "address": "21-71 STEINWAY, Astoria NY 11105",
      "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3042525",
+    "address": "30 MARCONI PLACE",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6768,
+     -73.9127
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "SBA 30 LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2025-09-01",
+     "address": "30 Marconi Place, Brooklyn NY 11233",
+     "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -78971,39 +78938,6 @@
     "isNew": false
    },
    {
-    "bin": "3029631",
-    "address": "95 EASTERN PARKWAY",
-    "borough": "Brooklyn",
-    "zip": "11238",
-    "cd": 8,
-    "ll": [
-     40.6726,
-     -73.9658
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "EPKY 7395",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "745 NEREID AVE, Bronx NY 10466",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2099642",
     "address": "905A ELDER AVENUE",
     "borough": "Bronx",
@@ -79030,6 +78964,39 @@
      "address": "916A WHEELER AVENUE, A, BRONX NY 10473",
      "lapsed": false,
      "portfolio": 3,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3029631",
+    "address": "95 EASTERN PARKWAY",
+    "borough": "Brooklyn",
+    "zip": "11238",
+    "cd": 8,
+    "ll": [
+     40.6726,
+     -73.9658
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "EPKY 7395",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "745 NEREID AVE, Bronx NY 10466",
+     "lapsed": false,
+     "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
     },
@@ -79075,39 +79042,6 @@
     }
    },
    {
-    "bin": "3021745",
-    "address": "474 6 STREET",
-    "borough": "Brooklyn",
-    "zip": "11215",
-    "cd": 6,
-    "ll": [
-     40.669,
-     -73.9807
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "474 SIXTH ST",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "474 SIXTH ST, 1, Brooklyn NY 11215",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2007147",
     "address": "1305 CLAY AVENUE",
     "borough": "Bronx",
@@ -79133,6 +79067,39 @@
      "regEnd": "2026-09-01",
      "address": "140 Bayard St, Brooklyn NY 11222",
      "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3021745",
+    "address": "474 6 STREET",
+    "borough": "Brooklyn",
+    "zip": "11215",
+    "cd": 6,
+    "ll": [
+     40.669,
+     -73.9807
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "474 SIXTH ST",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2023-09-01",
+     "address": "474 SIXTH ST, 1, Brooklyn NY 11215",
+     "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -79168,6 +79135,41 @@
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "2010050",
+    "address": "793 FAIRMOUNT PLACE",
+    "borough": "Bronx",
+    "zip": "10460",
+    "cd": 6,
+    "ll": [
+     40.8428,
+     -73.8891
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "LEMLE & WOLFF INC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "5925 BROADWAY, BRONX NY 10463",
+     "confidence": "verified",
+     "contactSource": "lemlewolff.com",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -79214,41 +79216,6 @@
     }
    },
    {
-    "bin": "2010050",
-    "address": "793 FAIRMOUNT PLACE",
-    "borough": "Bronx",
-    "zip": "10460",
-    "cd": 6,
-    "ll": [
-     40.8428,
-     -73.8891
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "LEMLE & WOLFF INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5925 BROADWAY, BRONX NY 10463",
-     "confidence": "verified",
-     "contactSource": "lemlewolff.com",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "1044374",
     "address": "342 EAST   63 STREET",
     "borough": "Manhattan",
@@ -79284,6 +79251,39 @@
     "isNew": false
    },
    {
+    "bin": "2015949",
+    "address": "3306 BAILEY AVENUE",
+    "borough": "Bronx",
+    "zip": "10463",
+    "cd": 8,
+    "ll": [
+     40.8797,
+     -73.9011
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "GA 3308 BAILEY AVE CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "726 EAST 237TH ST, Bronx NY 10466",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
     "bin": "3326149",
     "address": "1300 GATES AVENUE",
     "borough": "Brooklyn",
@@ -79313,39 +79313,6 @@
      "lapsed": false,
      "portfolio": 37,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
-    "bin": "2015949",
-    "address": "3306 BAILEY AVENUE",
-    "borough": "Bronx",
-    "zip": "10463",
-    "cd": 8,
-    "ll": [
-     40.8797,
-     -73.9011
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "GA 3308 BAILEY AVE CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "726 EAST 237TH ST, Bronx NY 10466",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -79390,39 +79357,6 @@
     }
    },
    {
-    "bin": "3040232",
-    "address": "759 MAC DONOUGH STREET",
-    "borough": "Brooklyn",
-    "zip": "11233",
-    "cd": 16,
-    "ll": [
-     40.6842,
-     -73.9159
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "URBAN STRATEGIES MANAGEMNET CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2022-09-01",
-     "address": "294 SUMPTER STREET, Brooklyn NY 11233",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2013099",
     "address": "2116 CROTONA PARKWAY",
     "borough": "Bronx",
@@ -79452,6 +79386,39 @@
      "lapsed": false,
      "portfolio": 7,
      "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3040232",
+    "address": "759 MAC DONOUGH STREET",
+    "borough": "Brooklyn",
+    "zip": "11233",
+    "cd": 16,
+    "ll": [
+     40.6842,
+     -73.9159
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "URBAN STRATEGIES MANAGEMNET CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2022-09-01",
+     "address": "294 SUMPTER STREET, Brooklyn NY 11233",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 14,
@@ -79498,39 +79465,6 @@
     }
    },
    {
-    "bin": "3106774",
-    "address": "502A MAPLE STREET",
-    "borough": "Brooklyn",
-    "zip": "11225",
-    "cd": 9,
-    "ll": [
-     40.6612,
-     -73.9441
-    ],
-    "cycleEnd": null,
-    "issued": "2025-10-31",
-    "latest": "2025-10-31",
-    "violations": 1,
-    "subCycle": "C",
-    "deadline": "2026-12-31",
-    "monthsLeft": 3,
-    "openDays": 331,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PROREALTY TEAM LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "233 MONITOR ST, Brooklyn NY 11222",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 14,
-    "isNew": false
-   },
-   {
     "bin": "2099645",
     "address": "911A ELDER AVENUE",
     "borough": "Bronx",
@@ -79557,6 +79491,39 @@
      "address": "916A WHEELER AVENUE, A, BRONX NY 10473",
      "lapsed": false,
      "portfolio": 3,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 14,
+    "isNew": false
+   },
+   {
+    "bin": "3106774",
+    "address": "502A MAPLE STREET",
+    "borough": "Brooklyn",
+    "zip": "11225",
+    "cd": 9,
+    "ll": [
+     40.6612,
+     -73.9441
+    ],
+    "cycleEnd": null,
+    "issued": "2025-10-31",
+    "latest": "2025-10-31",
+    "violations": 1,
+    "subCycle": "C",
+    "deadline": "2026-12-31",
+    "monthsLeft": 3,
+    "openDays": 331,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PROREALTY TEAM LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "233 MONITOR ST, Brooklyn NY 11222",
+     "lapsed": false,
+     "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
     },
@@ -95633,8 +95600,8 @@
     "isNew": false
    },
    {
-    "bin": "4447197",
-    "address": "107-28 GUY BREWER BOULEVARD",
+    "bin": "4447196",
+    "address": "107-26 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
@@ -95701,8 +95668,8 @@
     "isNew": false
    },
    {
-    "bin": "4461737",
-    "address": "107-06 GUY R BREWER BOULEVARD",
+    "bin": "4447191",
+    "address": "107-10 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
@@ -95723,7 +95690,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "23-53 31 STREET, ASTORIA NY 11105",
+     "address": "2353 31 STREET, ASTORIA NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -95776,14 +95743,82 @@
     "isNew": false
    },
    {
-    "bin": "4592471",
-    "address": "107-12 GUY R BREWER BOULEVARD",
+    "bin": "4461737",
+    "address": "107-06 GUY R BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
      40.6978,
-     -73.7921
+     -73.7922
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-12",
+    "latest": "2025-12-12",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 289,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "STYLIANOU ACCOUNTING",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2022-09-01",
+     "address": "23-53 31 STREET, ASTORIA NY 11105",
+     "confidence": "verified",
+     "contactSource": "stylianouaccounting.com/contact/",
+     "lapsed": true,
+     "portfolio": 10,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "3391660",
+    "address": "2518 TILDEN AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11226",
+    "cd": 17,
+    "ll": [
+     40.6467,
+     -73.9537
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-08",
+    "latest": "2025-12-08",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 293,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Highland Park Community Development Corp.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "2520 Tilden Ave, Brooklyn NY 11226",
+     "confidence": "verified",
+     "contactSource": "highlandparkcdc.org",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "4447197",
+    "address": "107-28 GUY BREWER BOULEVARD",
+    "borough": "Queens",
+    "zip": "11433",
+    "cd": 12,
+    "ll": [
+     40.6976,
+     -73.792
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -95842,14 +95877,14 @@
     "isNew": false
    },
    {
-    "bin": "4447196",
-    "address": "107-26 GUY BREWER BOULEVARD",
+    "bin": "4592471",
+    "address": "107-12 GUY R BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6976,
-     -73.792
+     40.6978,
+     -73.7921
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -95908,74 +95943,6 @@
     "isNew": false
    },
    {
-    "bin": "4447195",
-    "address": "107-24 GUY BREWER BOULEVARD",
-    "borough": "Queens",
-    "zip": "11433",
-    "cd": 12,
-    "ll": [
-     40.6976,
-     -73.792
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-12",
-    "latest": "2025-12-12",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 289,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "STYLIANOU ACCOUNTING",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2022-09-01",
-     "address": "2353 31 STREET, ASTORIA NY 11105",
-     "confidence": "verified",
-     "contactSource": "stylianouaccounting.com/contact/",
-     "lapsed": true,
-     "portfolio": 10,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
-    "bin": "3391660",
-    "address": "2518 TILDEN AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11226",
-    "cd": 17,
-    "ll": [
-     40.6467,
-     -73.9537
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-08",
-    "latest": "2025-12-08",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 293,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "Highland Park Community Development Corp.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "2520 Tilden Ave, Brooklyn NY 11226",
-     "confidence": "verified",
-     "contactSource": "highlandparkcdc.org",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
     "bin": "1008007",
     "address": "465 WEST BROADWAY",
     "borough": "Manhattan",
@@ -96017,14 +95984,14 @@
     "isNew": false
    },
    {
-    "bin": "4447191",
-    "address": "107-10 GUY BREWER BOULEVARD",
+    "bin": "4447195",
+    "address": "107-24 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6978,
-     -73.7922
+     40.6976,
+     -73.792
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -96083,14 +96050,14 @@
     "isNew": false
    },
    {
-    "bin": "4447194",
-    "address": "107-22 GUY BREWER BOULEVARD",
+    "bin": "4447189",
+    "address": "107-04 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6977,
-     -73.7921
+     40.6979,
+     -73.7922
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -96105,7 +96072,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "2353 31 STREET, Astoria NY 11105",
+     "address": "23-53 31ST STREET, Astoria NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -96149,14 +96116,14 @@
     "isNew": false
    },
    {
-    "bin": "4447189",
-    "address": "107-04 GUY BREWER BOULEVARD",
+    "bin": "4447194",
+    "address": "107-22 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6979,
-     -73.7922
+     40.6977,
+     -73.7921
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -96171,7 +96138,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "23-53 31ST STREET, Astoria NY 11105",
+     "address": "2353 31 STREET, Astoria NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -96369,14 +96336,14 @@
     "isNew": false
    },
    {
-    "bin": "3397674",
-    "address": "2910 EMMONS AVENUE",
+    "bin": "3387717",
+    "address": "8 THROOP AVENUE",
     "borough": "Brooklyn",
-    "zip": "11235",
-    "cd": 15,
+    "zip": "11206",
+    "cd": 1,
     "ll": [
-     40.5839,
-     -73.9393
+     40.7047,
+     -73.949
     ],
     "cycleEnd": null,
     "issued": "2025-12-19",
@@ -96388,13 +96355,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "NO TURN, INC",
+     "company": "Empire State Management LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "3415 GUIDER AVE, Brooklyn NY 11235",
+     "address": "246 Lynch, 1B, Brooklyn NY 11205",
+     "confidence": "verified",
+     "contactSource": "empirestatemanagement.com/",
      "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
+     "portfolio": 5,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 4,
@@ -96435,14 +96404,14 @@
     "isNew": false
    },
    {
-    "bin": "3387717",
-    "address": "8 THROOP AVENUE",
+    "bin": "3397674",
+    "address": "2910 EMMONS AVENUE",
     "borough": "Brooklyn",
-    "zip": "11206",
-    "cd": 1,
+    "zip": "11235",
+    "cd": 15,
     "ll": [
-     40.7047,
-     -73.949
+     40.5839,
+     -73.9393
     ],
     "cycleEnd": null,
     "issued": "2025-12-19",
@@ -96454,15 +96423,13 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "Empire State Management LLC",
+     "company": "NO TURN, INC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "246 Lynch, 1B, Brooklyn NY 11205",
-     "confidence": "verified",
-     "contactSource": "empirestatemanagement.com/",
+     "address": "3415 GUIDER AVE, Brooklyn NY 11235",
      "lapsed": false,
-     "portfolio": 5,
-     "contactKnown": true,
+     "portfolio": 2,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 4,
@@ -96501,40 +96468,6 @@
     "isNew": false
    },
    {
-    "bin": "3002246",
-    "address": "87 CLINTON STREET",
-    "borough": "Brooklyn",
-    "zip": "11201",
-    "cd": 2,
-    "ll": [
-     40.6935,
-     -73.9928
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-19",
-    "latest": "2025-12-19",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 282,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "BPC MANAGEMENT CORP.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "80 LIVINGSTON STREET, Brooklyn NY 11201",
-     "confidence": "verified",
-     "contactSource": "bpcmanagement.com",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
     "bin": "3387719",
     "address": "12 THROOP AVENUE",
     "borough": "Brooklyn",
@@ -96567,14 +96500,14 @@
     "isNew": false
    },
    {
-    "bin": "3388252",
-    "address": "532 BROADWAY",
+    "bin": "3002246",
+    "address": "87 CLINTON STREET",
     "borough": "Brooklyn",
-    "zip": "11206",
-    "cd": 1,
+    "zip": "11201",
+    "cd": 2,
     "ll": [
-     40.705,
-     -73.9494
+     40.6935,
+     -73.9928
     ],
     "cycleEnd": null,
     "issued": "2025-12-19",
@@ -96586,14 +96519,14 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "Empire State Management LLC",
+     "company": "BPC MANAGEMENT CORP.",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "246 LYNCH STREET, 1A, Brooklyn NY 11206",
+     "address": "80 LIVINGSTON STREET, Brooklyn NY 11201",
      "confidence": "verified",
-     "contactSource": "empirestatemanagement.com/",
+     "contactSource": "bpcmanagement.com",
      "lapsed": false,
-     "portfolio": 5,
+     "portfolio": 2,
      "contactKnown": true,
      "namedContact": true
     },
@@ -96699,14 +96632,46 @@
     "isNew": false
    },
    {
-    "bin": "3387716",
-    "address": "6 THROOP AVENUE",
+    "bin": "3096839",
+    "address": "645 VAN SICLEN AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11207",
+    "cd": 5,
+    "ll": [
+     40.6634,
+     -73.8878
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-19",
+    "latest": "2025-12-19",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 282,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "SAMARITAN DAY TOP VILLAGE",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "13802 QUEENS BLVD, Jamaica NY 11435",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "3388252",
+    "address": "532 BROADWAY",
     "borough": "Brooklyn",
     "zip": "11206",
     "cd": 1,
     "ll": [
-     40.7047,
-     -73.9491
+     40.705,
+     -73.9494
     ],
     "cycleEnd": null,
     "issued": "2025-12-19",
@@ -96733,14 +96698,14 @@
     "isNew": false
    },
    {
-    "bin": "3096839",
-    "address": "645 VAN SICLEN AVENUE",
+    "bin": "3208200",
+    "address": "1155 EAST 35 STREET",
     "borough": "Brooklyn",
-    "zip": "11207",
-    "cd": 5,
+    "zip": "11210",
+    "cd": 18,
     "ll": [
-     40.6634,
-     -73.8878
+     40.626,
+     -73.9419
     ],
     "cycleEnd": null,
     "issued": "2025-12-19",
@@ -96752,11 +96717,11 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "SAMARITAN DAY TOP VILLAGE",
+     "company": "WATERSTONE GROUP LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "13802 QUEENS BLVD, Jamaica NY 11435",
-     "lapsed": false,
+     "regEnd": "2025-09-01",
+     "address": "4722 18TH AVENUE, Brooklyn NY 11204",
+     "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -96808,38 +96773,6 @@
     "isNew": false
    },
    {
-    "bin": "3208200",
-    "address": "1155 EAST 35 STREET",
-    "borough": "Brooklyn",
-    "zip": "11210",
-    "cd": 18,
-    "ll": [
-     40.626,
-     -73.9419
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-19",
-    "latest": "2025-12-19",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 282,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "WATERSTONE GROUP LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2025-09-01",
-     "address": "4722 18TH AVENUE, Brooklyn NY 11204",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
     "bin": "3387718",
     "address": "10 THROOP AVENUE",
     "borough": "Brooklyn",
@@ -96863,6 +96796,40 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "246 LYNCH STREET, 1B, Brooklyn NY 11206",
+     "confidence": "verified",
+     "contactSource": "empirestatemanagement.com/",
+     "lapsed": false,
+     "portfolio": 5,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "3387716",
+    "address": "6 THROOP AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11206",
+    "cd": 1,
+    "ll": [
+     40.7047,
+     -73.9491
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-19",
+    "latest": "2025-12-19",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 282,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "Empire State Management LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "246 LYNCH STREET, 1A, Brooklyn NY 11206",
      "confidence": "verified",
      "contactSource": "empirestatemanagement.com/",
      "lapsed": false,
@@ -97226,38 +97193,6 @@
     "isNew": false
    },
    {
-    "bin": "2094523",
-    "address": "271 EAST 171 STREET",
-    "borough": "Bronx",
-    "zip": "10457",
-    "cd": 4,
-    "ll": [
-     40.839,
-     -73.9106
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-12",
-    "latest": "2025-12-12",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 289,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "HELP USa",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "285 EAST 171 STREEt, BRONx NY 10457",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
     "bin": "2094522",
     "address": "284 EAST  172 STREET",
     "borough": "Bronx",
@@ -97282,6 +97217,38 @@
      "regEnd": "2021-09-01",
      "address": "115 EAST 13TH STREET, New York NY 10003",
      "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "2094523",
+    "address": "271 EAST 171 STREET",
+    "borough": "Bronx",
+    "zip": "10457",
+    "cd": 4,
+    "ll": [
+     40.839,
+     -73.9106
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-12",
+    "latest": "2025-12-12",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 289,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "HELP USa",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "285 EAST 171 STREEt, BRONx NY 10457",
+     "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
