@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-29T23:12:17.217Z",
+ "generatedAt": "2026-09-30T00:11:36.091Z",
  "sources": {
   "facades": "2026-09-29",
   "permits": "2026-09-29",
@@ -10,7 +10,7 @@
   "hpd": "2026-08-12",
   "awards": "2026-09-29",
   "dohmh": "2026-09-29",
-  "sla": "2026-09-29",
+  "sla": "2026-09-30",
   "elevatorCompliance": "2026-09-29",
   "acrisThrough": "2026-08-31"
  },
@@ -24,16 +24,16 @@
   "hpd": 1786546841000,
   "awards": 1790685994000,
   "dohmh": 1790719584000,
-  "sla": 1790641962000
+  "sla": 1790728358000
  },
- "cityAt": 1790719584000,
- "cityBy": "dohmh",
+ "cityAt": 1790728358000,
+ "cityBy": "sla",
  "whatsNew": {
   "windowHours": 168,
   "buildings": 0,
   "signals": 4,
-  "contracts": 42,
-  "openings": 135,
+  "contracts": 38,
+  "openings": 138,
   "gas": 0,
   "carbon": 0,
   "elevators": 0
@@ -7984,6 +7984,150 @@
     ]
    },
    {
+    "bin": "3038417",
+    "address": "1024 MONTGOMERY STREET",
+    "borough": "Brooklyn",
+    "block": "1425",
+    "lot": "13",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2024-05-01",
+    "priorQewi": "ANDREW KATZ ENGINEERING, PLLC",
+    "owner": "PMV REALTY LLC",
+    "finesOwed": 132250,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 15000,
+    "freshHaz": null,
+    "nextHearing": "2026-10-29",
+    "urgencyScore": 14,
+    "zip": "11213",
+    "multifamily": true,
+    "agent": {
+     "company": "PM & V REALTY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "438 KINGSTON AVE, BKLYN NY 11225",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.664,
+     -73.9305
+    ]
+   },
+   {
+    "bin": "4051292",
+    "address": "105-40 62 ROAD",
+    "borough": "Queens",
+    "block": "2144",
+    "lot": "15",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 6,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2020-10-12",
+    "priorQewi": "O&S ASSOCIATES",
+    "owner": "Oak Leasing LP",
+    "finesOwed": 0,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 1170,
+     "since": "2023-07-18",
+     "until": "2026-11-24",
+     "type": "Sidewalk Shed",
+     "who": "PLATINUM SERVICES NY LLC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 14,
+    "zip": "11375",
+    "multifamily": true,
+    "agent": {
+     "company": "ESTATES NY REAL ESTATE SERVICES LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "59-17 JUNCTION BLVD, 2002, Elmhurst NY 11373",
+     "confidence": "affiliate",
+     "contactSource": "lefrak.com (contact details on homepage)",
+     "via": "LeFrak Organization",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.7359,
+     -73.8519
+    ]
+   },
+   {
     "bin": "3331317",
     "address": "70 ROSS STREET",
     "borough": "Brooklyn",
@@ -8065,81 +8209,6 @@
     "ll": [
      40.7032,
      -73.9622
-    ]
-   },
-   {
-    "bin": "4051292",
-    "address": "105-40 62 ROAD",
-    "borough": "Queens",
-    "block": "2144",
-    "lot": "15",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 6,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2020-10-12",
-    "priorQewi": "O&S ASSOCIATES",
-    "owner": "Oak Leasing LP",
-    "finesOwed": 0,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 1170,
-     "since": "2023-07-18",
-     "until": "2026-11-24",
-     "type": "Sidewalk Shed",
-     "who": "PLATINUM SERVICES NY LLC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 14,
-    "zip": "11375",
-    "multifamily": true,
-    "agent": {
-     "company": "ESTATES NY REAL ESTATE SERVICES LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "59-17 JUNCTION BLVD, 2002, Elmhurst NY 11373",
-     "confidence": "affiliate",
-     "contactSource": "lefrak.com (contact details on homepage)",
-     "via": "LeFrak Organization",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.7359,
-     -73.8519
     ]
    },
    {
@@ -10117,79 +10186,6 @@
     ]
    },
    {
-    "bin": "3338887",
-    "address": "385 FLATBUSH AVENUE EXTENSION",
-    "borough": "Brooklyn",
-    "block": "2085",
-    "lot": "2",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 3,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2023-08-28",
-    "priorQewi": "HOWARD L. ZIMMERMAN ARCHITECTS, P.C",
-    "owner": "LONG ISLAND UNIVERSITY",
-    "finesOwed": 57000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 17,
-     "cat1Missing": 16,
-     "cat1Overdue": 1,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2626,
-     "since": "2019-07-23",
-     "until": "2023-12-13",
-     "type": "Sidewalk Shed",
-     "who": "PLATINUM SERVICES NY LLC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "zip": "11238",
-    "multifamily": true,
-    "agent": {
-     "company": "NANYANG REALTY CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2010-04-01",
-     "address": "200 STERLING PLACE, A, BROOKLYN NY 11238",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": []
-   },
-   {
     "bin": "1087100",
     "address": "50 MADISON AVENUE",
     "borough": "Manhattan",
@@ -10282,11 +10278,11 @@
     ]
    },
    {
-    "bin": "3180730",
-    "address": "1233 EAST 19 STREET",
+    "bin": "3338887",
+    "address": "385 FLATBUSH AVENUE EXTENSION",
     "borough": "Brooklyn",
-    "block": "6739",
-    "lot": "30",
+    "block": "2085",
+    "lot": "2",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -10300,52 +10296,59 @@
       "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 3,
+      "monthsLeft": 5
      }
     ],
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-12-22",
-    "priorQewi": "SPAR UNLIMITED LLC",
-    "owner": "PR",
-    "finesOwed": 1500,
+    "lastFiling": "2023-08-28",
+    "priorQewi": "HOWARD L. ZIMMERMAN ARCHITECTS, P.C",
+    "owner": "LONG ISLAND UNIVERSITY",
+    "finesOwed": 57000,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
-    "shed": null,
+    "elevator": {
+     "devices": 17,
+     "cat1Missing": 16,
+     "cat1Overdue": 1,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2626,
+     "since": "2019-07-23",
+     "until": "2023-12-13",
+     "type": "Sidewalk Shed",
+     "who": "PLATINUM SERVICES NY LLC",
+     "longStanding": true
+    },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 500,
-    "freshHaz": {
-     "daysAgo": 40,
-     "hazardous": false,
-     "severity": "CLASS - 3",
-     "desc": "TERMINATION OF DRYERS IS NOT AS PER MC-501.3.1; 278-MISC, COMPLY WITH CODE; CORRECT VIOLATING CONDITIONS AND SUBMIT A CERTIFICATE OF CORRECTION."
-    },
-    "nextHearing": "2026-10-28",
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11230",
+    "zip": "11238",
     "multifamily": true,
     "agent": {
-     "company": "ADOR HOUSING & DEVELOPMENT",
+     "company": "NANYANG REALTY CORP",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5318 NEW UTRECHT AVE, BROOKLYN NY 11219",
-     "confidence": "verified",
-     "contactSource": "adorhousing.com/contact",
-     "lapsed": false,
+     "regEnd": "2010-04-01",
+     "address": "200 STERLING PLACE, A, BROOKLYN NY 11238",
+     "lapsed": true,
      "portfolio": 1,
-     "contactKnown": true,
+     "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6203,
-     -73.9563
-    ]
+    "fresh": []
    },
    {
     "bin": "1089743",
@@ -10428,11 +10431,11 @@
     ]
    },
    {
-    "bin": "3038503",
-    "address": "456 SCHENECTADY AVENUE",
+    "bin": "3180730",
+    "address": "1233 EAST 19 STREET",
     "borough": "Brooklyn",
-    "block": "1429",
-    "lot": "32",
+    "block": "6739",
+    "lot": "30",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -10446,55 +10449,41 @@
       "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
      }
     ],
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-11-06",
-    "priorQewi": "ANDREW KATZ ENGINEERING, PLLC",
-    "owner": "456 LLC",
-    "finesOwed": 137500,
+    "lastFiling": "2021-12-22",
+    "priorQewi": "SPAR UNLIMITED LLC",
+    "owner": "PR",
+    "finesOwed": 1500,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 1000,
-     "since": "2024-01-04",
-     "until": "2025-03-04",
-     "type": "Sidewalk Shed",
-     "who": "A & D GENERAL CONTR INC",
-     "longStanding": true
-    },
+    "elevator": null,
+    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 5000,
-    "freshHaz": null,
-    "nextHearing": "2027-03-16",
+    "ecbBalance": 500,
+    "freshHaz": {
+     "daysAgo": 40,
+     "hazardous": false,
+     "severity": "CLASS - 3",
+     "desc": "TERMINATION OF DRYERS IS NOT AS PER MC-501.3.1; 278-MISC, COMPLY WITH CODE; CORRECT VIOLATING CONDITIONS AND SUBMIT A CERTIFICATE OF CORRECTION."
+    },
+    "nextHearing": "2026-10-28",
     "urgencyScore": 13,
-    "zip": "11203",
+    "zip": "11230",
     "multifamily": true,
     "agent": {
-     "company": "456 LLC",
+     "company": "ADOR HOUSING & DEVELOPMENT",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "438 KINGSTON AVE, BKLYN NY 11225",
-     "confidence": "affiliate",
-     "contactSource": "data.cityofnewyork.us DOB permit issuance for BBL 3-1429-32, plus gegent.com/listing/dira-realty and buzzfile listing for Dira Realty LLC",
-     "via": "Dira Realty (438 Kingston Ave office; DOB filings name it as AVI Realty Co. / 1 Lenox Realty Inc c/o A1AA Realty, contact Isack Hagar)",
+     "address": "5318 NEW UTRECHT AVE, BROOKLYN NY 11219",
+     "confidence": "verified",
+     "contactSource": "adorhousing.com/contact",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": true,
@@ -10503,8 +10492,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6629,
-     -73.9349
+     40.6203,
+     -73.9563
     ]
    },
    {
@@ -10600,6 +10589,164 @@
     ]
    },
    {
+    "bin": "3038503",
+    "address": "456 SCHENECTADY AVENUE",
+    "borough": "Brooklyn",
+    "block": "1429",
+    "lot": "32",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2024-11-06",
+    "priorQewi": "ANDREW KATZ ENGINEERING, PLLC",
+    "owner": "456 LLC",
+    "finesOwed": 137500,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 2,
+     "cat1Missing": 2,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 1000,
+     "since": "2024-01-04",
+     "until": "2025-03-04",
+     "type": "Sidewalk Shed",
+     "who": "A & D GENERAL CONTR INC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 5000,
+    "freshHaz": null,
+    "nextHearing": "2027-03-16",
+    "urgencyScore": 13,
+    "zip": "11203",
+    "multifamily": true,
+    "agent": {
+     "company": "456 LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "438 KINGSTON AVE, BKLYN NY 11225",
+     "confidence": "affiliate",
+     "contactSource": "data.cityofnewyork.us DOB permit issuance for BBL 3-1429-32, plus gegent.com/listing/dira-realty and buzzfile listing for Dira Realty LLC",
+     "via": "Dira Realty (438 Kingston Ave office; DOB filings name it as AVI Realty Co. / 1 Lenox Realty Inc c/o A1AA Realty, contact Isack Hagar)",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6629,
+     -73.9349
+    ]
+   },
+   {
+    "bin": "1045894",
+    "address": "421 EAST   74 STREET",
+    "borough": "Manhattan",
+    "block": "1469",
+    "lot": "10",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "OWNER_CHANGE",
+      "urgency": 3,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2022-09-09",
+    "priorQewi": "THOMAS A FENNIMAN ARCHITECT",
+    "owner": "PAN AM EQUITIES",
+    "finesOwed": 14000,
+    "mgmtChange": null,
+    "ownerChange": {
+     "daysAgo": 69,
+     "amount": 0,
+     "recorded": "2026-07-23"
+    },
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2155,
+     "since": "2020-11-05",
+     "until": "2022-04-01",
+     "type": "Sidewalk Shed",
+     "who": "STEEL SYSTEMS LLC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 13,
+    "zip": "10021",
+    "multifamily": true,
+    "agent": {
+     "company": "PAN AM EQUITIES INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "18 E 50TH ST, 3 FLR, NEW YORK NY 10022",
+     "confidence": "verified",
+     "contactSource": "panamequities.com/contact",
+     "lapsed": false,
+     "portfolio": 4,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.7688,
+     -73.9539
+    ]
+   },
+   {
     "bin": "3131067",
     "address": "1180 OCEAN PARKWAY",
     "borough": "Brooklyn",
@@ -10682,11 +10829,11 @@
     ]
    },
    {
-    "bin": "1045894",
-    "address": "421 EAST   74 STREET",
+    "bin": "1062464",
+    "address": "631 WEST  152 STREET",
     "borough": "Manhattan",
-    "block": "1469",
-    "lot": "10",
+    "block": "2099",
+    "lot": "11",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -10700,63 +10847,51 @@
       "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 5
-     },
-     {
-      "kind": "OWNER_CHANGE",
-      "urgency": 3,
-      "monthsLeft": 5
      }
     ],
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-09-09",
-    "priorQewi": "THOMAS A FENNIMAN ARCHITECT",
-    "owner": "PAN AM EQUITIES",
-    "finesOwed": 14000,
+    "lastFiling": "2021-08-05",
+    "priorQewi": "STEVEN KAPLAN CONSULTING ENGINEER",
+    "owner": "631 Associates LLC",
+    "finesOwed": 9500,
     "mgmtChange": null,
-    "ownerChange": {
-     "daysAgo": 69,
-     "amount": 0,
-     "recorded": "2026-07-23"
-    },
+    "ownerChange": null,
     "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2155,
-     "since": "2020-11-05",
-     "until": "2022-04-01",
-     "type": "Sidewalk Shed",
-     "who": "STEEL SYSTEMS LLC",
-     "longStanding": true
-    },
+    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
+    "ecbBalance": 625,
+    "freshHaz": {
+     "daysAgo": 64,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "CLASS 2 ITEMS: IN-CAR EMERGENCY COMMUNICATION DEVICE IS NOT CONNECTED TO A CONTINUOUSLY STAFFED LOCATION AS REQUIRED BY APPENDIX K. PROVIDE A FUNCTION"
+    },
+    "nextHearing": "2026-10-01",
     "urgencyScore": 13,
-    "zip": "10021",
+    "zip": "10031",
     "multifamily": true,
     "agent": {
-     "company": "PAN AM EQUITIES INC",
+     "company": "LEMLE & WOLFF INC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "18 E 50TH ST, 3 FLR, NEW YORK NY 10022",
+     "address": "5925 BROADWAY, BRONX NY 10463",
      "confidence": "verified",
-     "contactSource": "panamequities.com/contact",
+     "contactSource": "lemlewolff.com/contact-us",
      "lapsed": false,
-     "portfolio": 4,
+     "portfolio": 2,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7688,
-     -73.9539
+     40.8318,
+     -73.9488
     ]
    },
    {
@@ -10829,11 +10964,11 @@
     ]
    },
    {
-    "bin": "1062464",
-    "address": "631 WEST  152 STREET",
+    "bin": "1083992",
+    "address": "700 LENOX AVENUE",
     "borough": "Manhattan",
-    "block": "2099",
-    "lot": "11",
+    "block": "1744",
+    "lot": "1",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -10852,36 +10987,39 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-08-05",
-    "priorQewi": "STEVEN KAPLAN CONSULTING ENGINEER",
-    "owner": "631 Associates LLC",
-    "finesOwed": 9500,
+    "lastFiling": "2022-02-15",
+    "priorQewi": "LAWLESS & MANGIONE, LLP",
+    "owner": "ESPLANADE GARDENS, INC",
+    "finesOwed": 68800,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": null,
-    "shed": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2806,
+     "since": "2019-01-24",
+     "until": "2021-06-15",
+     "type": "Sidewalk Shed",
+     "who": "DYNAMIC INSTALLATION CORP",
+     "longStanding": true
+    },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 625,
-    "freshHaz": {
-     "daysAgo": 64,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "CLASS 2 ITEMS: IN-CAR EMERGENCY COMMUNICATION DEVICE IS NOT CONNECTED TO A CONTINUOUSLY STAFFED LOCATION AS REQUIRED BY APPENDIX K. PROVIDE A FUNCTION"
-    },
-    "nextHearing": "2026-10-01",
+    "ecbBalance": 57219,
+    "freshHaz": null,
+    "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "10031",
+    "zip": "10039",
     "multifamily": true,
     "agent": {
-     "company": "LEMLE & WOLFF INC",
+     "company": "PRESTIGE MANAGEMENT, INC.",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5925 BROADWAY, BRONX NY 10463",
+     "regEnd": "2027-09-01",
+     "address": "1776 EASTCHESTER ROAD, 210, Bronx NY 10461",
      "confidence": "verified",
-     "contactSource": "lemlewolff.com/contact-us",
+     "contactSource": "prestigemgt.com (company's own site, contact page)",
      "lapsed": false,
      "portfolio": 2,
      "contactKnown": true,
@@ -10890,8 +11028,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.8318,
-     -73.9488
+     40.821,
+     -73.9347
     ]
    },
    {
@@ -10976,144 +11114,6 @@
     "ll": [
      40.6908,
      -73.99
-    ]
-   },
-   {
-    "bin": "1083992",
-    "address": "700 LENOX AVENUE",
-    "borough": "Manhattan",
-    "block": "1744",
-    "lot": "1",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-15",
-    "priorQewi": "LAWLESS & MANGIONE, LLP",
-    "owner": "ESPLANADE GARDENS, INC",
-    "finesOwed": 68800,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2806,
-     "since": "2019-01-24",
-     "until": "2021-06-15",
-     "type": "Sidewalk Shed",
-     "who": "DYNAMIC INSTALLATION CORP",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 57219,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "zip": "10039",
-    "multifamily": true,
-    "agent": {
-     "company": "PRESTIGE MANAGEMENT, INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "1776 EASTCHESTER ROAD, 210, Bronx NY 10461",
-     "confidence": "verified",
-     "contactSource": "prestigemgt.com (company's own site, contact page)",
-     "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.821,
-     -73.9347
-    ]
-   },
-   {
-    "bin": "3056648",
-    "address": "495 WASHINGTON AVENUE",
-    "borough": "Brooklyn",
-    "block": "1979",
-    "lot": "3",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-04",
-    "priorQewi": "ANDREW KATZ ENGINEERS",
-    "owner": "495 Washington Ave LLC",
-    "finesOwed": 46250,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 5030,
-    "freshHaz": null,
-    "nextHearing": "2026-10-16",
-    "urgencyScore": 13,
-    "zip": "11238",
-    "multifamily": true,
-    "agent": {
-     "company": "ELY MANAGMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "2568 BEDFORD AVENUE, B1M, Brooklyn NY 11226",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6835,
-     -73.9645
     ]
    },
    {
@@ -11283,11 +11283,11 @@
     ]
    },
    {
-    "bin": "3063330",
-    "address": "344 RODNEY STREET",
+    "bin": "3056648",
+    "address": "495 WASHINGTON AVENUE",
     "borough": "Brooklyn",
-    "block": "2436",
-    "lot": "4",
+    "block": "1979",
+    "lot": "3",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -11303,45 +11303,42 @@
       "monthsLeft": 5
      },
      {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
+      "kind": "ELEV_DUE",
+      "urgency": 2,
       "monthsLeft": 5
      }
     ],
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-11-22",
-    "priorQewi": "COWLEY ENGINEERING, PC",
-    "owner": "SOUTHSIDE UNITED-LOS SURES MANAGEME",
-    "finesOwed": 10000,
+    "lastFiling": "2022-02-04",
+    "priorQewi": "ANDREW KATZ ENGINEERS",
+    "owner": "495 Washington Ave LLC",
+    "finesOwed": 46250,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 581,
-     "since": "2025-02-26",
-     "until": "2027-01-18",
-     "type": "Sidewalk Shed",
-     "who": "RELIABLE ENTERPRISES INC",
-     "longStanding": true
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
     },
+    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
+    "payingForNothing": false,
+    "ecbBalance": 5030,
     "freshHaz": null,
-    "nextHearing": null,
+    "nextHearing": "2026-10-16",
     "urgencyScore": 13,
-    "zip": "11211",
+    "zip": "11238",
     "multifamily": true,
     "agent": {
-     "company": "LOS SURES MANAGEMENT CO",
+     "company": "ELY MANAGMENT",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "434 SOUTH 5TH STREET, OFFICE, BROOKLYN NY 11211",
+     "address": "2568 BEDFORD AVENUE, B1M, Brooklyn NY 11226",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -11350,8 +11347,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7097,
-     -73.9555
+     40.6835,
+     -73.9645
     ]
    },
    {
@@ -11437,11 +11434,11 @@
     ]
    },
    {
-    "bin": "3034169",
-    "address": "377 MONTGOMERY STREET",
+    "bin": "3063330",
+    "address": "344 RODNEY STREET",
     "borough": "Brooklyn",
-    "block": "1296",
-    "lot": "52",
+    "block": "2436",
+    "lot": "4",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -11452,45 +11449,50 @@
       "monthsLeft": 5
      },
      {
-      "kind": "UNSAFE_PRIOR",
+      "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
       "monthsLeft": 5
      }
     ],
     "score": 7,
-    "lastStatus": "UNSAFE",
+    "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2023-03-02",
-    "priorQewi": "INSITE DESIGN STUDIO",
-    "owner": "ICON MANAGEMENT GROUP",
-    "finesOwed": 313050,
+    "lastFiling": "2022-11-22",
+    "priorQewi": "COWLEY ENGINEERING, PC",
+    "owner": "SOUTHSIDE UNITED-LOS SURES MANAGEME",
+    "finesOwed": 10000,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": null,
     "shed": {
-     "state": "lapsed",
-     "ageDays": 2861,
-     "since": "2018-11-30",
-     "until": "2019-11-30",
+     "state": "active",
+     "ageDays": 581,
+     "since": "2025-02-26",
+     "until": "2027-01-18",
      "type": "Sidewalk Shed",
-     "who": "EXPERT GROUPENTERPRISE IN",
+     "who": "RELIABLE ENTERPRISES INC",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 31270,
+    "payingForNothing": true,
+    "ecbBalance": 0,
     "freshHaz": null,
-    "nextHearing": "2027-01-21",
+    "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11225",
+    "zip": "11211",
     "multifamily": true,
     "agent": {
-     "company": "ICON MGMT GROUP LLC",
+     "company": "LOS SURES MANAGEMENT CO",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "4620 16TH AVE, BROOKLYN NY 11204",
+     "regEnd": "2026-09-01",
+     "address": "434 SOUTH 5TH STREET, OFFICE, BROOKLYN NY 11211",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -11499,8 +11501,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6657,
-     -73.9518
+     40.7097,
+     -73.9555
     ]
    },
    {
@@ -11575,6 +11577,142 @@
     "ll": [
      40.7041,
      -73.8361
+    ]
+   },
+   {
+    "bin": "3034169",
+    "address": "377 MONTGOMERY STREET",
+    "borough": "Brooklyn",
+    "block": "1296",
+    "lot": "52",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2023-03-02",
+    "priorQewi": "INSITE DESIGN STUDIO",
+    "owner": "ICON MANAGEMENT GROUP",
+    "finesOwed": 313050,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2861,
+     "since": "2018-11-30",
+     "until": "2019-11-30",
+     "type": "Sidewalk Shed",
+     "who": "EXPERT GROUPENTERPRISE IN",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 31270,
+    "freshHaz": null,
+    "nextHearing": "2027-01-21",
+    "urgencyScore": 13,
+    "zip": "11225",
+    "multifamily": true,
+    "agent": {
+     "company": "ICON MGMT GROUP LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "4620 16TH AVE, BROOKLYN NY 11204",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6657,
+     -73.9518
+    ]
+   },
+   {
+    "bin": "4436335",
+    "address": "168-40 127 AVENUE",
+    "borough": "Queens",
+    "block": "12495",
+    "lot": "2",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2024-07-15",
+    "priorQewi": "RJ STAHL ARCHITECT, PC",
+    "owner": "ROCHDALE VILLAGE INC.",
+    "finesOwed": 60250,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 6,
+     "cat1Missing": 6,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 11250,
+    "freshHaz": null,
+    "nextHearing": "2026-10-27",
+    "urgencyScore": 13,
+    "zip": "11434",
+    "multifamily": true,
+    "agent": {
+     "company": "Douglas Elliman Property Management",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "169-65 137th AVENUE, Jamaica NY 11434",
+     "lapsed": false,
+     "portfolio": 14,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6761,
+     -73.7731
     ]
    },
    {
@@ -11663,8 +11801,8 @@
     ]
    },
    {
-    "bin": "4436335",
-    "address": "168-40 127 AVENUE",
+    "bin": "4436334",
+    "address": "168-30 127 AVENUE",
     "borough": "Queens",
     "block": "12495",
     "lot": "2",
@@ -11691,10 +11829,10 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-07-15",
+    "lastFiling": "2024-07-12",
     "priorQewi": "RJ STAHL ARCHITECT, PC",
     "owner": "ROCHDALE VILLAGE INC.",
-    "finesOwed": 60250,
+    "finesOwed": 49750,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
@@ -11708,9 +11846,9 @@
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 11250,
+    "ecbBalance": 35000,
     "freshHaz": null,
-    "nextHearing": "2026-10-27",
+    "nextHearing": "2027-01-19",
     "urgencyScore": 13,
     "zip": "11434",
     "multifamily": true,
@@ -11808,144 +11946,6 @@
     ]
    },
    {
-    "bin": "4436334",
-    "address": "168-30 127 AVENUE",
-    "borough": "Queens",
-    "block": "12495",
-    "lot": "2",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2024-07-12",
-    "priorQewi": "RJ STAHL ARCHITECT, PC",
-    "owner": "ROCHDALE VILLAGE INC.",
-    "finesOwed": 49750,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 6,
-     "cat1Missing": 6,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 35000,
-    "freshHaz": null,
-    "nextHearing": "2027-01-19",
-    "urgencyScore": 13,
-    "zip": "11434",
-    "multifamily": true,
-    "agent": {
-     "company": "Douglas Elliman Property Management",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "169-65 137th AVENUE, Jamaica NY 11434",
-     "lapsed": false,
-     "portfolio": 14,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6761,
-     -73.7731
-    ]
-   },
-   {
-    "bin": "3113812",
-    "address": "585 EAST 32 STREET",
-    "borough": "Brooklyn",
-    "block": "4996",
-    "lot": "2",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "CHRONIC_NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 3,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 6,
-    "lastStatus": "No Report Filed",
-    "lastCycle": "9",
-    "lastFiling": null,
-    "priorQewi": null,
-    "owner": null,
-    "finesOwed": 115900,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 1,
-     "cat5Due": 1
-    },
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 69250,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "zip": "11210",
-    "multifamily": true,
-    "agent": {
-     "company": "EMILE REALTY INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "755 E 56 ST, 01, Brooklyn NY 11234",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6367,
-     -73.9458
-    ]
-   },
-   {
     "bin": "4457806",
     "address": "8000 SHORE FRONT PARKWAY",
     "borough": "Queens",
@@ -12020,11 +12020,11 @@
     ]
    },
    {
-    "bin": "3056589",
-    "address": "277 GATES AVENUE",
+    "bin": "3113812",
+    "address": "585 EAST 32 STREET",
     "borough": "Brooklyn",
-    "block": "1974",
-    "lot": "51",
+    "block": "4996",
+    "lot": "2",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -12038,6 +12038,11 @@
       "kind": "CHRONIC_NON_FILER",
       "urgency": 2,
       "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 3,
+      "monthsLeft": 5
      }
     ],
     "score": 6,
@@ -12046,43 +12051,41 @@
     "lastFiling": null,
     "priorQewi": null,
     "owner": null,
-    "finesOwed": 191000,
+    "finesOwed": 115900,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 1,
+     "cat5Due": 1
+    },
     "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 35155,
-    "freshHaz": {
-     "daysAgo": 8,
-     "hazardous": false,
-     "severity": "CLASS - 3",
-     "desc": "LAARS PNCH 400 BOILERS#2+#3 ARE INOPERABLE+BOILER#2+#3 ARE UNREGISTERED>PERMIT 340603396 NOT SIGNED OFF, MAINTAIN BOILER; CORRECT VIOLATION+SUBMIT CER"
-    },
-    "nextHearing": "2026-12-02",
+    "ecbBalance": 69250,
+    "freshHaz": null,
+    "nextHearing": null,
     "urgencyScore": 13,
-    "zip": "11216",
+    "zip": "11210",
     "multifamily": true,
     "agent": {
-     "company": "CONCORD MANAGEMENT OF NY LLC",
+     "company": "EMILE REALTY INC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "50 WEST 132ND STREET, New York NY 10037",
-     "confidence": "verified",
-     "contactSource": "concordny.com",
+     "address": "755 E 56 ST, 01, Brooklyn NY 11234",
      "lapsed": false,
-     "portfolio": 11,
-     "contactKnown": true,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6858,
-     -73.9563
+     40.6367,
+     -73.9458
     ]
    },
    {
@@ -12157,6 +12160,141 @@
     "ll": [
      40.5826,
      -73.824
+    ]
+   },
+   {
+    "bin": "3056589",
+    "address": "277 GATES AVENUE",
+    "borough": "Brooklyn",
+    "block": "1974",
+    "lot": "51",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "CHRONIC_NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 6,
+    "lastStatus": "No Report Filed",
+    "lastCycle": "9",
+    "lastFiling": null,
+    "priorQewi": null,
+    "owner": null,
+    "finesOwed": 191000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 35155,
+    "freshHaz": {
+     "daysAgo": 8,
+     "hazardous": false,
+     "severity": "CLASS - 3",
+     "desc": "LAARS PNCH 400 BOILERS#2+#3 ARE INOPERABLE+BOILER#2+#3 ARE UNREGISTERED>PERMIT 340603396 NOT SIGNED OFF, MAINTAIN BOILER; CORRECT VIOLATION+SUBMIT CER"
+    },
+    "nextHearing": "2026-12-02",
+    "urgencyScore": 13,
+    "zip": "11216",
+    "multifamily": true,
+    "agent": {
+     "company": "CONCORD MANAGEMENT OF NY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "50 WEST 132ND STREET, New York NY 10037",
+     "confidence": "verified",
+     "contactSource": "concordny.com",
+     "lapsed": false,
+     "portfolio": 11,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6858,
+     -73.9563
+    ]
+   },
+   {
+    "bin": "4617972",
+    "address": "65-70 AUSTIN STREET",
+    "borough": "Queens",
+    "block": "3104",
+    "lot": "101",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2024-05-30",
+    "priorQewi": "MAYAS ENGINEERING PLLC",
+    "owner": "CHOICE NY MGMT",
+    "finesOwed": 100000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 1209,
+     "since": "2023-06-09",
+     "until": "2025-01-09",
+     "type": "Sidewalk Shed",
+     "who": "MANHATTAN D ENTERPRISES",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 86875,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 13,
+    "zip": "11374",
+    "multifamily": true,
+    "agent": {
+     "company": "CHOICE NEW YORK MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "254 WEST 31ST STREET, 6TH FL, NEW YORK NY 10001",
+     "confidence": "verified",
+     "contactSource": "management.choicenewyork.com/contact (own site)",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.725,
+     -73.8587
     ]
    },
    {
@@ -12237,135 +12375,6 @@
     ]
    },
    {
-    "bin": "4617972",
-    "address": "65-70 AUSTIN STREET",
-    "borough": "Queens",
-    "block": "3104",
-    "lot": "101",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2024-05-30",
-    "priorQewi": "MAYAS ENGINEERING PLLC",
-    "owner": "CHOICE NY MGMT",
-    "finesOwed": 100000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 1209,
-     "since": "2023-06-09",
-     "until": "2025-01-09",
-     "type": "Sidewalk Shed",
-     "who": "MANHATTAN D ENTERPRISES",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 86875,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 13,
-    "zip": "11374",
-    "multifamily": true,
-    "agent": {
-     "company": "CHOICE NEW YORK MANAGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "254 WEST 31ST STREET, 6TH FL, NEW YORK NY 10001",
-     "confidence": "verified",
-     "contactSource": "management.choicenewyork.com/contact (own site)",
-     "lapsed": false,
-     "portfolio": 3,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.725,
-     -73.8587
-    ]
-   },
-   {
-    "bin": "3426648",
-    "address": "779 47 STREET",
-    "borough": "Brooklyn",
-    "block": "759",
-    "lot": "44",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "CHRONIC_NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 5,
-    "lastStatus": "No Report Filed",
-    "lastCycle": "9",
-    "lastFiling": null,
-    "priorQewi": null,
-    "owner": null,
-    "finesOwed": 0,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 7500,
-    "freshHaz": {
-     "daysAgo": 58,
-     "hazardous": true,
-     "severity": "CLASS - 1",
-     "desc": "BC 907.2.8. FAILURE TO PROVIDE FIRE ALARM SYSTEM CLASS \"J\" FOR TRANSIENT USE AT APT 6A. REMEDY: DISCONTINUE ILLEGAL OCCUPANCY."
-    },
-    "nextHearing": "2026-10-07",
-    "urgencyScore": 13,
-    "zip": "11220",
-    "multifamily": true,
-    "agent": {
-     "company": "ON BOARD NY LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "238 50TH ST, Brooklyn NY 11220",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": []
-   },
-   {
     "bin": "4445259",
     "address": "105-00 SHORE FRONT PARKWAY",
     "borough": "Queens",
@@ -12438,6 +12447,66 @@
      40.5826,
      -73.824
     ]
+   },
+   {
+    "bin": "3426648",
+    "address": "779 47 STREET",
+    "borough": "Brooklyn",
+    "block": "759",
+    "lot": "44",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "CHRONIC_NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 5,
+    "lastStatus": "No Report Filed",
+    "lastCycle": "9",
+    "lastFiling": null,
+    "priorQewi": null,
+    "owner": null,
+    "finesOwed": 0,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 7500,
+    "freshHaz": {
+     "daysAgo": 58,
+     "hazardous": true,
+     "severity": "CLASS - 1",
+     "desc": "BC 907.2.8. FAILURE TO PROVIDE FIRE ALARM SYSTEM CLASS \"J\" FOR TRANSIENT USE AT APT 6A. REMEDY: DISCONTINUE ILLEGAL OCCUPANCY."
+    },
+    "nextHearing": "2026-10-07",
+    "urgencyScore": 13,
+    "zip": "11220",
+    "multifamily": true,
+    "agent": {
+     "company": "ON BOARD NY LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "238 50TH ST, Brooklyn NY 11220",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": []
    },
    {
     "bin": "4457744",
@@ -14094,6 +14163,81 @@
     ]
    },
    {
+    "bin": "1052311",
+    "address": "160 EAST 117 STREET",
+    "borough": "Manhattan",
+    "block": "1644",
+    "lot": "7502",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2024-09-04",
+    "priorQewi": "HOFFMANN ARCHITECTS + ENGINEERS",
+    "owner": "BP REAL ESTATE FUND LLC",
+    "finesOwed": 132000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 1113,
+     "since": "2023-09-13",
+     "until": "2024-12-18",
+     "type": "Sidewalk Shed",
+     "who": "TOPLINE NYC INC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 12,
+    "zip": "10035",
+    "multifamily": true,
+    "agent": {
+     "company": "BUILDING EQUITY MANAGEMENT LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "1261 BROADWAY, 1002, New York NY 10001",
+     "confidence": "verified",
+     "contactSource": "bemny.com",
+     "lapsed": false,
+     "portfolio": 4,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": []
+   },
+   {
     "bin": "3394277",
     "address": "525 KENT AVENUE",
     "borough": "Brooklyn",
@@ -14171,160 +14315,6 @@
     "ll": [
      40.7053,
      -73.9675
-    ]
-   },
-   {
-    "bin": "1052311",
-    "address": "160 EAST 117 STREET",
-    "borough": "Manhattan",
-    "block": "1644",
-    "lot": "7502",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2024-09-04",
-    "priorQewi": "HOFFMANN ARCHITECTS + ENGINEERS",
-    "owner": "BP REAL ESTATE FUND LLC",
-    "finesOwed": 132000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 1113,
-     "since": "2023-09-13",
-     "until": "2024-12-18",
-     "type": "Sidewalk Shed",
-     "who": "TOPLINE NYC INC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 12,
-    "zip": "10035",
-    "multifamily": true,
-    "agent": {
-     "company": "BUILDING EQUITY MANAGEMENT LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "1261 BROADWAY, 1002, New York NY 10001",
-     "confidence": "verified",
-     "contactSource": "bemny.com",
-     "lapsed": false,
-     "portfolio": 4,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": []
-   },
-   {
-    "bin": "3146467",
-    "address": "138 71 STREET",
-    "borough": "Brooklyn",
-    "block": "5889",
-    "lot": "14",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-18",
-    "priorQewi": "SALAMON ENGINEERING PLLC",
-    "owner": "NEWPORT MANAGEMENT CO LLC",
-    "finesOwed": 5750,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2315,
-     "since": "2020-05-29",
-     "until": "2023-05-17",
-     "type": "Sidewalk Shed",
-     "who": "POWERS BRIDGING & SCAFFOL",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 12,
-    "zip": "11209",
-    "multifamily": true,
-    "agent": {
-     "company": "NEWPORTMANAGEMENT LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5614 15TH AVENUE, 1A, Brooklyn NY 11219",
-     "confidence": "verified",
-     "contactSource": "newportmanagementco.com",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.635,
-     -74.031
     ]
    },
    {
@@ -14409,11 +14399,11 @@
     ]
    },
    {
-    "bin": "3029674",
-    "address": "320 EASTERN PARKWAY",
+    "bin": "3146467",
+    "address": "138 71 STREET",
     "borough": "Brooklyn",
-    "block": "1185",
-    "lot": "39",
+    "block": "5889",
+    "lot": "14",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -14437,25 +14427,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2023-10-27",
-    "priorQewi": "PVE ENGINEERING",
-    "owner": "MRM 320 LLC C/O MILBROOK PROPERTIES LTD.",
-    "finesOwed": 35250,
+    "lastFiling": "2022-02-18",
+    "priorQewi": "SALAMON ENGINEERING PLLC",
+    "owner": "NEWPORT MANAGEMENT CO LLC",
+    "finesOwed": 5750,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 2,
+     "cat1Missing": 2,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 3219,
-     "since": "2017-12-07",
-     "until": "2023-07-21",
+     "ageDays": 2315,
+     "since": "2020-05-29",
+     "until": "2023-05-17",
      "type": "Sidewalk Shed",
-     "who": "GREAT METLA CONTRACTING I",
+     "who": "POWERS BRIDGING & SCAFFOL",
      "longStanding": true
     },
     "filing": null,
@@ -14466,25 +14456,25 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11225",
+    "zip": "11209",
     "multifamily": true,
     "agent": {
-     "company": "MILBROOK PROPERTIES LTD",
+     "company": "NEWPORTMANAGEMENT LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "2820 BAILEY AVENUE, BRONX NY 10463",
+     "address": "5614 15TH AVENUE, 1A, Brooklyn NY 11219",
      "confidence": "verified",
-     "contactSource": "milbrookproperties.com/contact",
+     "contactSource": "newportmanagementco.com",
      "lapsed": false,
-     "portfolio": 5,
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6703,
-     -73.9585
+     40.635,
+     -74.031
     ]
    },
    {
@@ -14641,11 +14631,11 @@
     ]
    },
    {
-    "bin": "3038260",
-    "address": "921 MONTGOMERY STREET",
+    "bin": "3029674",
+    "address": "320 EASTERN PARKWAY",
     "borough": "Brooklyn",
-    "block": "1419",
-    "lot": "1",
+    "block": "1185",
+    "lot": "39",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -14669,25 +14659,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2023-07-10",
-    "priorQewi": "ANDREW KATZ ENGINEERS",
-    "owner": "DIRA REALTY LLC",
-    "finesOwed": 30250,
+    "lastFiling": "2023-10-27",
+    "priorQewi": "PVE ENGINEERING",
+    "owner": "MRM 320 LLC C/O MILBROOK PROPERTIES LTD.",
+    "finesOwed": 35250,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 1777,
-     "since": "2021-11-18",
-     "until": "2023-11-22",
+     "ageDays": 3219,
+     "since": "2017-12-07",
+     "until": "2023-07-21",
      "type": "Sidewalk Shed",
-     "who": "TOPLINE NYC CONTRACTING",
+     "who": "GREAT METLA CONTRACTING I",
      "longStanding": true
     },
     "filing": null,
@@ -14698,26 +14688,25 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11213",
+    "zip": "11225",
     "multifamily": true,
     "agent": {
-     "company": "9215 REALTY LLC",
+     "company": "MILBROOK PROPERTIES LTD",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "438 KINGSTON AVENUE, Brooklyn NY 11225",
-     "confidence": "affiliate",
-     "contactSource": "josephpopack.com",
-     "via": "Joseph Popack (Brooklyn portfolio management office, 438 Kingston Ave)",
+     "address": "2820 BAILEY AVENUE, BRONX NY 10463",
+     "confidence": "verified",
+     "contactSource": "milbrookproperties.com/contact",
      "lapsed": false,
-     "portfolio": 1,
+     "portfolio": 5,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6647,
-     -73.9338
+     40.6703,
+     -73.9585
     ]
    },
    {
@@ -14880,10 +14869,10 @@
     ]
    },
    {
-    "bin": "3155134",
-    "address": "9323 SHORE ROAD",
+    "bin": "3038260",
+    "address": "921 MONTGOMERY STREET",
     "borough": "Brooklyn",
-    "block": "6104",
+    "block": "1419",
     "lot": "1",
     "subCycle": "10A",
     "deadline": "2027-02-21",
@@ -14908,25 +14897,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2023-02-20",
-    "priorQewi": "URBAN ENGINEERING, PC",
-    "owner": "FORT LAFAYETTE TOWERS CORP",
-    "finesOwed": 33250,
+    "lastFiling": "2023-07-10",
+    "priorQewi": "ANDREW KATZ ENGINEERS",
+    "owner": "DIRA REALTY LLC",
+    "finesOwed": 30250,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 2,
+     "cat1Missing": 2,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 1384,
-     "since": "2022-12-16",
-     "until": "2023-12-22",
+     "ageDays": 1777,
+     "since": "2021-11-18",
+     "until": "2023-11-22",
      "type": "Sidewalk Shed",
-     "who": "ZKW ENTERPRISES INC",
+     "who": "TOPLINE NYC CONTRACTING",
      "longStanding": true
     },
     "filing": null,
@@ -14937,25 +14926,26 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11209",
+    "zip": "11213",
     "multifamily": true,
     "agent": {
-     "company": "ALL AREA REALTY SERVICES",
+     "company": "9215 REALTY LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "99 Tulip Avenue, 302, Floral Park NY 11001",
-     "confidence": "verified",
-     "contactSource": "aarsny.com/contact-us",
+     "address": "438 KINGSTON AVENUE, Brooklyn NY 11225",
+     "confidence": "affiliate",
+     "contactSource": "josephpopack.com",
+     "via": "Joseph Popack (Brooklyn portfolio management office, 438 Kingston Ave)",
      "lapsed": false,
-     "portfolio": 2,
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6182,
-     -74.0387
+     40.6647,
+     -73.9338
     ]
    },
    {
@@ -15123,11 +15113,11 @@
     ]
    },
    {
-    "bin": "3146490",
-    "address": "145 72 STREET",
+    "bin": "3155134",
+    "address": "9323 SHORE ROAD",
     "borough": "Brooklyn",
-    "block": "5889",
-    "lot": "58",
+    "block": "6104",
+    "lot": "1",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -15151,25 +15141,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-02-18",
-    "priorQewi": "SALAMON ENGINEERING PLLC",
-    "owner": "NEWPORT MANAGEMENT CO LLC",
-    "finesOwed": 5750,
+    "lastFiling": "2023-02-20",
+    "priorQewi": "URBAN ENGINEERING, PC",
+    "owner": "FORT LAFAYETTE TOWERS CORP",
+    "finesOwed": 33250,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 2296,
-     "since": "2020-06-17",
-     "until": "2023-05-17",
+     "ageDays": 1384,
+     "since": "2022-12-16",
+     "until": "2023-12-22",
      "type": "Sidewalk Shed",
-     "who": "POWERS BRIDGING & SCAFFOL",
+     "who": "ZKW ENTERPRISES INC",
      "longStanding": true
     },
     "filing": null,
@@ -15183,22 +15173,22 @@
     "zip": "11209",
     "multifamily": true,
     "agent": {
-     "company": "NEWPORT MANAGEMENT",
+     "company": "ALL AREA REALTY SERVICES",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "5614 15TH AVENUE, 1A, BROOKLYN NY 11219",
+     "address": "99 Tulip Avenue, 302, Floral Park NY 11001",
      "confidence": "verified",
-     "contactSource": "newportmanagementco.com",
+     "contactSource": "aarsny.com/contact-us",
      "lapsed": false,
-     "portfolio": 1,
+     "portfolio": 2,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6347,
-     -74.0311
+     40.6182,
+     -74.0387
     ]
    },
    {
@@ -15360,11 +15350,11 @@
     ]
    },
    {
-    "bin": "3348310",
-    "address": "564 WYTHE AVENUE",
+    "bin": "3146490",
+    "address": "145 72 STREET",
     "borough": "Brooklyn",
-    "block": "2165",
-    "lot": "7502",
+    "block": "5889",
+    "lot": "58",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -15388,25 +15378,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-09-03",
-    "priorQewi": "SCOPE ENGINEERING CONSULTANTS, P.C.",
-    "owner": "Kent-Rush Realty Corp.",
-    "finesOwed": 132000,
+    "lastFiling": "2022-02-18",
+    "priorQewi": "SALAMON ENGINEERING PLLC",
+    "owner": "NEWPORT MANAGEMENT CO LLC",
+    "finesOwed": 5750,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 2,
+     "cat1Missing": 2,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 798,
-     "since": "2024-07-24",
-     "until": "2025-03-04",
+     "ageDays": 2296,
+     "since": "2020-06-17",
+     "until": "2023-05-17",
      "type": "Sidewalk Shed",
-     "who": "A & D GENERAL CONTR INC",
+     "who": "POWERS BRIDGING & SCAFFOL",
      "longStanding": true
     },
     "filing": null,
@@ -15417,26 +15407,25 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11249",
+    "zip": "11209",
     "multifamily": true,
     "agent": {
-     "company": "SEM NY CORP",
+     "company": "NEWPORT MANAGEMENT",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "670 FLUSHING AVE, 313, Brooklyn NY 11206",
-     "confidence": "affiliate",
-     "contactSource": "sem.twa.rentmanager.com (Stone Edge Management tenant portal)",
-     "via": "Stone Edge Management",
+     "address": "5614 15TH AVENUE, 1A, BROOKLYN NY 11219",
+     "confidence": "verified",
+     "contactSource": "newportmanagementco.com",
      "lapsed": false,
-     "portfolio": 10,
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7055,
-     -73.9673
+     40.6347,
+     -74.0311
     ]
    },
    {
@@ -15604,11 +15593,11 @@
     ]
    },
    {
-    "bin": "3114643",
-    "address": "2121 WESTBURY COURT",
+    "bin": "3348310",
+    "address": "564 WYTHE AVENUE",
     "borough": "Brooklyn",
-    "block": "5026",
-    "lot": "241",
+    "block": "2165",
+    "lot": "7502",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -15632,25 +15621,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2023-10-21",
-    "priorQewi": "PVE ENGINEERING",
-    "owner": "MASERATI ASSOCIATES LLC C/O MILBROOK PROPERTIES LTD",
-    "finesOwed": 27250,
+    "lastFiling": "2024-09-03",
+    "priorQewi": "SCOPE ENGINEERING CONSULTANTS, P.C.",
+    "owner": "Kent-Rush Realty Corp.",
+    "finesOwed": 132000,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 1797,
-     "since": "2021-10-29",
-     "until": "2023-07-21",
+     "ageDays": 798,
+     "since": "2024-07-24",
+     "until": "2025-03-04",
      "type": "Sidewalk Shed",
-     "who": "GREAT METLA CONTRACTING I",
+     "who": "A & D GENERAL CONTR INC",
      "longStanding": true
     },
     "filing": null,
@@ -15661,25 +15650,26 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11225",
+    "zip": "11249",
     "multifamily": true,
     "agent": {
-     "company": "MILBROOK PROPERTIES LTD",
+     "company": "SEM NY CORP",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "2820 BAILEY AVE, BRONX NY 10463",
-     "confidence": "verified",
-     "contactSource": "milbrookproperties.com/contact",
+     "address": "670 FLUSHING AVE, 313, Brooklyn NY 11206",
+     "confidence": "affiliate",
+     "contactSource": "sem.twa.rentmanager.com (Stone Edge Management tenant portal)",
+     "via": "Stone Edge Management",
      "lapsed": false,
-     "portfolio": 5,
+     "portfolio": 10,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6569,
-     -73.9606
+     40.7055,
+     -73.9673
     ]
    },
    {
@@ -15852,11 +15842,11 @@
     ]
    },
    {
-    "bin": "3397266",
-    "address": "100 CATON AVENUE",
+    "bin": "3114643",
+    "address": "2121 WESTBURY COURT",
     "borough": "Brooklyn",
-    "block": "5324",
-    "lot": "1",
+    "block": "5026",
+    "lot": "241",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -15880,54 +15870,54 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-01-19",
-    "priorQewi": "STRUCTURAL ENGINEERING BURO",
-    "owner": "VILLE DE PORT CORP",
-    "finesOwed": 44000,
+    "lastFiling": "2023-10-21",
+    "priorQewi": "PVE ENGINEERING",
+    "owner": "MASERATI ASSOCIATES LLC C/O MILBROOK PROPERTIES LTD",
+    "finesOwed": 27250,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 2,
+     "cat1Missing": 2,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 2141,
-     "since": "2020-11-19",
-     "until": "2021-10-14",
+     "ageDays": 1797,
+     "since": "2021-10-29",
+     "until": "2023-07-21",
      "type": "Sidewalk Shed",
-     "who": "KAJ NY CONSTRUCTION INC",
+     "who": "GREAT METLA CONTRACTING I",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 625,
+    "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11218",
+    "zip": "11225",
     "multifamily": true,
     "agent": {
-     "company": "ADAR MANAGEMENT",
+     "company": "MILBROOK PROPERTIES LTD",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "333 MCDONALD AVE, BKLYN NY 11218",
-     "confidence": "listed",
-     "contactSource": "mapquest.com (listing \"Adar Management, 333 McDonald Ave, Brooklyn, NY 11218\"), corroborated by buzzfile.com profile \"Ville De Port, Inc. (trade name Adar Management)\"",
+     "regEnd": "2026-09-01",
+     "address": "2820 BAILEY AVE, BRONX NY 10463",
+     "confidence": "verified",
+     "contactSource": "milbrookproperties.com/contact",
      "lapsed": false,
-     "portfolio": 1,
+     "portfolio": 5,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6466,
-     -73.9796
+     40.6569,
+     -73.9606
     ]
    },
    {
@@ -16078,11 +16068,11 @@
     ]
    },
    {
-    "bin": "3388495",
-    "address": "970 KENT AVENUE",
+    "bin": "3397266",
+    "address": "100 CATON AVENUE",
     "borough": "Brooklyn",
-    "block": "1925",
-    "lot": "7501",
+    "block": "5324",
+    "lot": "1",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -16106,54 +16096,54 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-02-14",
-    "priorQewi": "GILSANZ MURRAY STEFICEK, LLP",
-    "owner": "MAXWELLKATES",
-    "finesOwed": 6500,
+    "lastFiling": "2022-01-19",
+    "priorQewi": "STRUCTURAL ENGINEERING BURO",
+    "owner": "VILLE DE PORT CORP",
+    "finesOwed": 44000,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 3,
-     "cat1Missing": 3,
+     "devices": 1,
+     "cat1Missing": 1,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 2505,
-     "since": "2019-11-21",
-     "until": "2024-12-13",
+     "ageDays": 2141,
+     "since": "2020-11-19",
+     "until": "2021-10-14",
      "type": "Sidewalk Shed",
-     "who": "SPIRE SCAFFOLDING & HOIST",
+     "who": "KAJ NY CONSTRUCTION INC",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": false,
-    "ecbBalance": 0,
+    "ecbBalance": 625,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11205",
+    "zip": "11218",
     "multifamily": true,
     "agent": {
-     "company": "AKAM ASSOCIATES, INC.",
+     "company": "ADAR MANAGEMENT",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "99 PARK AVENUE, 14TH F, NEW YORK NY 10016",
-     "confidence": "verified",
-     "contactSource": "akam.com",
+     "regEnd": "2027-09-01",
+     "address": "333 MCDONALD AVE, BKLYN NY 11218",
+     "confidence": "listed",
+     "contactSource": "mapquest.com (listing \"Adar Management, 333 McDonald Ave, Brooklyn, NY 11218\"), corroborated by buzzfile.com profile \"Ville De Port, Inc. (trade name Adar Management)\"",
      "lapsed": false,
-     "portfolio": 32,
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6913,
-     -73.959
+     40.6466,
+     -73.9796
     ]
    },
    {
@@ -16234,11 +16224,11 @@
     ]
    },
    {
-    "bin": "3024654",
-    "address": "78 8 AVENUE",
+    "bin": "3388495",
+    "address": "970 KENT AVENUE",
     "borough": "Brooklyn",
-    "block": "1065",
-    "lot": "31",
+    "block": "1925",
+    "lot": "7501",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -16262,25 +16252,25 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-02-18",
-    "priorQewi": "SW ENGINEERING COMPANY, PLLC",
-    "owner": "78 8TH AVENUE TENANTS' CORP.",
-    "finesOwed": 2650,
+    "lastFiling": "2022-02-14",
+    "priorQewi": "GILSANZ MURRAY STEFICEK, LLP",
+    "owner": "MAXWELLKATES",
+    "finesOwed": 6500,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
+     "devices": 3,
+     "cat1Missing": 3,
      "cat1Overdue": 0,
      "cat5Due": 0
     },
     "shed": {
      "state": "lapsed",
-     "ageDays": 2682,
-     "since": "2019-05-28",
-     "until": "2026-08-04",
-     "type": "Supported Scaffold",
-     "who": "JJS BUILDERS",
+     "ageDays": 2505,
+     "since": "2019-11-21",
+     "until": "2024-12-13",
+     "type": "Sidewalk Shed",
+     "who": "SPIRE SCAFFOLDING & HOIST",
      "longStanding": true
     },
     "filing": null,
@@ -16291,25 +16281,25 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 12,
-    "zip": "11215",
+    "zip": "11205",
     "multifamily": true,
     "agent": {
-     "company": "NEW BEDFORD MANAGEMENT CORP.",
+     "company": "AKAM ASSOCIATES, INC.",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "210 EAST 23RD STREET, 5FL, NEW YORK CITY NY 10010",
+     "address": "99 PARK AVENUE, 14TH F, NEW YORK NY 10016",
      "confidence": "verified",
-     "contactSource": "nbmgmt.com",
+     "contactSource": "akam.com",
      "lapsed": false,
-     "portfolio": 33,
+     "portfolio": 32,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6733,
-     -73.9734
+     40.6913,
+     -73.959
     ]
    },
    {
@@ -16400,6 +16390,157 @@
     ]
    },
    {
+    "bin": "3024654",
+    "address": "78 8 AVENUE",
+    "borough": "Brooklyn",
+    "block": "1065",
+    "lot": "31",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2022-02-18",
+    "priorQewi": "SW ENGINEERING COMPANY, PLLC",
+    "owner": "78 8TH AVENUE TENANTS' CORP.",
+    "finesOwed": 2650,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": {
+     "devices": 1,
+     "cat1Missing": 1,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2682,
+     "since": "2019-05-28",
+     "until": "2026-08-04",
+     "type": "Supported Scaffold",
+     "who": "JJS BUILDERS",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 12,
+    "zip": "11215",
+    "multifamily": true,
+    "agent": {
+     "company": "NEW BEDFORD MANAGEMENT CORP.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "210 EAST 23RD STREET, 5FL, NEW YORK CITY NY 10010",
+     "confidence": "verified",
+     "contactSource": "nbmgmt.com",
+     "lapsed": false,
+     "portfolio": 33,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6733,
+     -73.9734
+    ]
+   },
+   {
+    "bin": "4443306",
+    "address": "29-09 137 STREET",
+    "borough": "Queens",
+    "block": "4340",
+    "lot": "10",
+    "subCycle": "10B",
+    "deadline": "2028-02-21",
+    "monthsLeft": 17,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 17
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 2,
+      "monthsLeft": 17
+     }
+    ],
+    "score": 5,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2024-02-21",
+    "priorQewi": "PCS ENGINEERING",
+    "owner": "LINDEN TOWERS CO-OP #4, INC.",
+    "finesOwed": 26000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2875,
+     "since": "2018-11-16",
+     "until": "2020-02-06",
+     "type": "Sidewalk Shed",
+     "who": "PARSONS CONSTRUCTION INC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 2500,
+    "freshHaz": {
+     "daysAgo": 56,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "FAILURE TO COMPLY WITH THE COMMISSIONER'S ORDER TO FILE A CERTIFICATE OF CORRECTION WITH THE DEPT OF BUILDINGS FOR SUMMONS 39159445K, FILE A CERTIFICA"
+    },
+    "nextHearing": "2026-10-13",
+    "urgencyScore": 12,
+    "zip": "11354",
+    "multifamily": true,
+    "agent": {
+     "company": "LINDEN TOWERS CO-OP #4, INC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "29-09 137TH STREET, Flushing NY 11354",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.7708,
+     -73.8311
+    ]
+   },
+   {
     "bin": "3104520",
     "address": "5421 BEVERLY ROAD",
     "borough": "Brooklyn",
@@ -16474,78 +16615,6 @@
     "ll": [
      40.6468,
      -73.9253
-    ]
-   },
-   {
-    "bin": "4443306",
-    "address": "29-09 137 STREET",
-    "borough": "Queens",
-    "block": "4340",
-    "lot": "10",
-    "subCycle": "10B",
-    "deadline": "2028-02-21",
-    "monthsLeft": 17,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 17
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 2,
-      "monthsLeft": 17
-     }
-    ],
-    "score": 5,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2024-02-21",
-    "priorQewi": "PCS ENGINEERING",
-    "owner": "LINDEN TOWERS CO-OP #4, INC.",
-    "finesOwed": 26000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2875,
-     "since": "2018-11-16",
-     "until": "2020-02-06",
-     "type": "Sidewalk Shed",
-     "who": "PARSONS CONSTRUCTION INC",
-     "longStanding": true
-    },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 2500,
-    "freshHaz": {
-     "daysAgo": 56,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "FAILURE TO COMPLY WITH THE COMMISSIONER'S ORDER TO FILE A CERTIFICATE OF CORRECTION WITH THE DEPT OF BUILDINGS FOR SUMMONS 39159445K, FILE A CERTIFICA"
-    },
-    "nextHearing": "2026-10-13",
-    "urgencyScore": 12,
-    "zip": "11354",
-    "multifamily": true,
-    "agent": {
-     "company": "LINDEN TOWERS CO-OP #4, INC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "29-09 137TH STREET, Flushing NY 11354",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.7708,
-     -73.8311
     ]
    },
    {
@@ -16705,75 +16774,6 @@
     "ll": [
      40.7053,
      -73.9675
-    ]
-   },
-   {
-    "bin": "3038417",
-    "address": "1024 MONTGOMERY STREET",
-    "borough": "Brooklyn",
-    "block": "1425",
-    "lot": "13",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2024-05-01",
-    "priorQewi": "ANDREW KATZ ENGINEERING, PLLC",
-    "owner": "PMV REALTY LLC",
-    "finesOwed": 132250,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 1,
-     "cat1Missing": 1,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 15000,
-    "freshHaz": null,
-    "nextHearing": "2026-10-29",
-    "urgencyScore": 12,
-    "zip": "11213",
-    "multifamily": true,
-    "agent": {
-     "company": "PM & V REALTY LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "438 KINGSTON AVE, BKLYN NY 11225",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.664,
-     -73.9305
     ]
    },
    {
@@ -55601,6 +55601,145 @@
     ]
    },
    {
+    "bin": "1087734",
+    "address": "360 EAST 57 STREET",
+    "borough": "Manhattan",
+    "block": "1349",
+    "lot": "7503",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "FILING_STALLED",
+      "urgency": 3,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2021-05-03",
+    "priorQewi": "GEIGER ENGINEER, PC",
+    "owner": "WEINBERG PROPERTIES",
+    "finesOwed": 1800,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 114,
+     "since": "2026-06-08",
+     "until": "2026-11-29",
+     "type": "Sidewalk Shed",
+     "who": "ANDAMIO SCAFFOLDING LLC",
+     "longStanding": false
+    },
+    "filing": {
+     "filed": "2026-05-28",
+     "daysSince": 125,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": 560000,
+     "who": "GEIGER E&A GROUP CORP."
+    },
+    "height": null,
+    "occupied": true,
+    "payingForNothing": false,
+    "ecbBalance": 10000,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 7,
+    "zip": "10022",
+    "multifamily": true,
+    "agent": {
+     "company": "WEINBERG PROPERTIES, C/O DELAURENTIS MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "360 East 57th Street, New York NY 10022",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.7582,
+     -73.9634
+    ]
+   },
+   {
+    "bin": "3115699",
+    "address": "150 HAWTHORNE STREET",
+    "borough": "Brooklyn",
+    "block": "5046",
+    "lot": "18",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "CHRONIC_NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 6,
+    "lastStatus": "No Report Filed",
+    "lastCycle": "9",
+    "lastFiling": null,
+    "priorQewi": null,
+    "owner": null,
+    "finesOwed": 119500,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 7,
+    "zip": "11225",
+    "multifamily": true,
+    "agent": {
+     "company": "ROKOWSKY MGMT.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "3215 AVE. H, 1B, Brooklyn NY 11210",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6573,
+     -73.9553
+    ]
+   },
+   {
     "bin": "1085789",
     "address": "2 WEST STREET",
     "borough": "Manhattan",
@@ -55691,36 +55830,46 @@
     ]
    },
    {
-    "bin": "3115699",
-    "address": "150 HAWTHORNE STREET",
+    "bin": "3127822",
+    "address": "680 OCEAN PARKWAY",
     "borough": "Brooklyn",
-    "block": "5046",
-    "lot": "18",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
+    "block": "5420",
+    "lot": "50",
+    "subCycle": "10B",
+    "deadline": "2028-02-21",
+    "monthsLeft": 17,
     "signals": [
      {
       "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
+      "urgency": 2,
+      "monthsLeft": 17
      },
      {
-      "kind": "CHRONIC_NON_FILER",
+      "kind": "SWARMP_CARRYOVER",
       "urgency": 2,
-      "monthsLeft": 5
+      "monthsLeft": 17
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 17
      }
     ],
-    "score": 6,
-    "lastStatus": "No Report Filed",
+    "score": 5,
+    "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": null,
-    "priorQewi": null,
-    "owner": null,
-    "finesOwed": 119500,
+    "lastFiling": "2024-11-21",
+    "priorQewi": "KOENIGSBERG ENGINEERING, P.C.",
+    "owner": "TSH TSH HOUSING CORP",
+    "finesOwed": 42900,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
+    "elevator": {
+     "devices": 2,
+     "cat1Missing": 2,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
     "shed": null,
     "filing": null,
     "height": null,
@@ -55730,13 +55879,13 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 7,
-    "zip": "11225",
+    "zip": "11230",
     "multifamily": true,
     "agent": {
-     "company": "ROKOWSKY MGMT.",
+     "company": "B.P. HAND INC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "3215 AVE. H, 1B, Brooklyn NY 11210",
+     "address": "1002 44TH STREET, Brooklyn NY 11219",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -55745,8 +55894,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6573,
-     -73.9553
+     40.6318,
+     -73.9725
     ]
    },
    {
@@ -55837,11 +55986,11 @@
     ]
    },
    {
-    "bin": "3127822",
-    "address": "680 OCEAN PARKWAY",
+    "bin": "3397545",
+    "address": "480 HUMBOLDT STREET",
     "borough": "Brooklyn",
-    "block": "5420",
-    "lot": "50",
+    "block": "2857",
+    "lot": "106",
     "subCycle": "10B",
     "deadline": "2028-02-21",
     "monthsLeft": 17,
@@ -55865,10 +56014,10 @@
     "score": 5,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-11-21",
-    "priorQewi": "KOENIGSBERG ENGINEERING, P.C.",
-    "owner": "TSH TSH HOUSING CORP",
-    "finesOwed": 42900,
+    "lastFiling": "2023-02-17",
+    "priorQewi": "SW ENGINEERING COMPANY, PLLC",
+    "owner": "480 HUMBOLDT ASSOCIATES LLC",
+    "finesOwed": 5500,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
@@ -55886,13 +56035,13 @@
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 7,
-    "zip": "11230",
+    "zip": "11211",
     "multifamily": true,
     "agent": {
-     "company": "B.P. HAND INC",
+     "company": "MINTLEAF MANAGEMENT",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1002 44TH STREET, Brooklyn NY 11219",
+     "regEnd": "2027-09-01",
+     "address": "22 SOUTH 9TH STEET, 3A, BROOKLYNBROOKLY NY 11240",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -55901,8 +56050,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.6318,
-     -73.9725
+     40.7189,
+     -73.9428
     ]
    },
    {
@@ -55990,75 +56139,6 @@
     "ll": [
      40.7559,
      -73.997
-    ]
-   },
-   {
-    "bin": "3397545",
-    "address": "480 HUMBOLDT STREET",
-    "borough": "Brooklyn",
-    "block": "2857",
-    "lot": "106",
-    "subCycle": "10B",
-    "deadline": "2028-02-21",
-    "monthsLeft": 17,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 17
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 2,
-      "monthsLeft": 17
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 17
-     }
-    ],
-    "score": 5,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2023-02-17",
-    "priorQewi": "SW ENGINEERING COMPANY, PLLC",
-    "owner": "480 HUMBOLDT ASSOCIATES LLC",
-    "finesOwed": 5500,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 7,
-    "zip": "11211",
-    "multifamily": true,
-    "agent": {
-     "company": "MINTLEAF MANAGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "22 SOUTH 9TH STEET, 3A, BROOKLYNBROOKLY NY 11240",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.7189,
-     -73.9428
     ]
    },
    {
@@ -57968,6 +58048,83 @@
     ]
    },
    {
+    "bin": "3058206",
+    "address": "176 JOHNSON STREET",
+    "borough": "Brooklyn",
+    "block": "2049",
+    "lot": "7501",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 5,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 5
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2022-06-21",
+    "priorQewi": "KOENIGSBERG ENGINEERING, P.C.",
+    "owner": "THE TOY FACTORY CONDOMINIUM LLC",
+    "finesOwed": 52000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 400,
+     "since": "2025-08-26",
+     "until": "2026-11-25",
+     "type": "Sidewalk Shed",
+     "who": "SAFELINE GROUP INC",
+     "longStanding": true
+    },
+    "filing": {
+     "filed": "2025-10-29",
+     "daysSince": 336,
+     "status": "Permit Entire",
+     "permitted": true,
+     "stalled": false,
+     "cost": null,
+     "who": "ROYAL CONSTRUCTION ASSOC"
+    },
+    "height": null,
+    "occupied": true,
+    "payingForNothing": false,
+    "ecbBalance": 30000,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 6,
+    "zip": "11201",
+    "multifamily": true,
+    "agent": {
+     "company": "TKR PROPERTY SERVICES",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "9920 4TH AVENUE, 305, Brooklyn NY 11209",
+     "confidence": "verified",
+     "contactSource": "tkrmgmt.com",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.6946,
+     -73.9827
+    ]
+   },
+   {
     "bin": "1088677",
     "address": "31 VESTRY STREET",
     "borough": "Manhattan",
@@ -58052,170 +58209,6 @@
     "ll": [
      40.7225,
      -74.0088
-    ]
-   },
-   {
-    "bin": "3058206",
-    "address": "176 JOHNSON STREET",
-    "borough": "Brooklyn",
-    "block": "2049",
-    "lot": "7501",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-06-21",
-    "priorQewi": "KOENIGSBERG ENGINEERING, P.C.",
-    "owner": "THE TOY FACTORY CONDOMINIUM LLC",
-    "finesOwed": 52000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 400,
-     "since": "2025-08-26",
-     "until": "2026-11-25",
-     "type": "Sidewalk Shed",
-     "who": "SAFELINE GROUP INC",
-     "longStanding": true
-    },
-    "filing": {
-     "filed": "2025-10-29",
-     "daysSince": 336,
-     "status": "Permit Entire",
-     "permitted": true,
-     "stalled": false,
-     "cost": null,
-     "who": "ROYAL CONSTRUCTION ASSOC"
-    },
-    "height": null,
-    "occupied": true,
-    "payingForNothing": false,
-    "ecbBalance": 30000,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 6,
-    "zip": "11201",
-    "multifamily": true,
-    "agent": {
-     "company": "TKR PROPERTY SERVICES",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "9920 4TH AVENUE, 305, Brooklyn NY 11209",
-     "confidence": "verified",
-     "contactSource": "tkrmgmt.com",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.6946,
-     -73.9827
-    ]
-   },
-   {
-    "bin": "1087464",
-    "address": "102 BRADHURST AVENUE",
-    "borough": "Manhattan",
-    "block": "2045",
-    "lot": "7502",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 5,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
-     }
-    ],
-    "score": 7,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2023-12-28",
-    "priorQewi": "SIMPSON GUMPERTZ & HEGER ASSOCIATES",
-    "owner": "AKAM ASSOCIATES, INC",
-    "finesOwed": 97500,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "active",
-     "ageDays": 1724,
-     "since": "2022-01-10",
-     "until": "2026-10-20",
-     "type": "Sidewalk Shed",
-     "who": "PRAT ENTERPRISES CORP",
-     "longStanding": true
-    },
-    "filing": {
-     "filed": "2026-01-29",
-     "daysSince": 244,
-     "status": "Permit Issued",
-     "permitted": true,
-     "stalled": false,
-     "cost": 6897277,
-     "who": "PRAT ENTERPRISES CORP"
-    },
-    "height": null,
-    "occupied": true,
-    "payingForNothing": false,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 6,
-    "zip": "10039",
-    "multifamily": true,
-    "agent": {
-     "company": "AKAM ASSOCIATES, INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "99 PARK AVENUE, 14TH F, New York NY 10016",
-     "confidence": "verified",
-     "contactSource": "akam.com",
-     "lapsed": false,
-     "portfolio": 32,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.8246,
-     -73.9414
     ]
    },
    {
@@ -58307,11 +58300,11 @@
     ]
    },
    {
-    "bin": "1079987",
-    "address": "160 CABRINI BOULEVARD",
+    "bin": "1087464",
+    "address": "102 BRADHURST AVENUE",
     "borough": "Manhattan",
-    "block": "2179",
-    "lot": "10",
+    "block": "2045",
+    "lot": "7502",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -58322,65 +58315,75 @@
       "monthsLeft": 5
      },
      {
-      "kind": "SWARMP_CARRYOVER",
+      "kind": "UNSAFE_PRIOR",
       "urgency": 3,
+      "monthsLeft": 5
+     },
+     {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
       "monthsLeft": 5
      }
     ],
     "score": 7,
-    "lastStatus": "SWARMP",
+    "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2025-02-21",
-    "priorQewi": "MVN ARCHITECT LLC",
-    "owner": "CASTLE VILLAGE OWNERS",
-    "finesOwed": 6000,
+    "lastFiling": "2023-12-28",
+    "priorQewi": "SIMPSON GUMPERTZ & HEGER ASSOCIATES",
+    "owner": "AKAM ASSOCIATES, INC",
+    "finesOwed": 97500,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
+    "elevator": {
+     "devices": 2,
+     "cat1Missing": 2,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
     "shed": {
      "state": "active",
-     "ageDays": 958,
-     "since": "2024-02-15",
-     "until": "2026-11-28",
-     "type": "Suspended Scaffold",
-     "who": null,
+     "ageDays": 1724,
+     "since": "2022-01-10",
+     "until": "2026-10-20",
+     "type": "Sidewalk Shed",
+     "who": "PRAT ENTERPRISES CORP",
      "longStanding": true
     },
     "filing": {
-     "filed": "2025-11-28",
-     "daysSince": 306,
+     "filed": "2026-01-29",
+     "daysSince": 244,
      "status": "Permit Issued",
      "permitted": true,
      "stalled": false,
-     "cost": 889000,
-     "who": "K.E.S CONSTRUCTION CO INC"
+     "cost": 6897277,
+     "who": "PRAT ENTERPRISES CORP"
     },
     "height": null,
     "occupied": true,
     "payingForNothing": false,
-    "ecbBalance": 31250,
+    "ecbBalance": 0,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 6,
-    "zip": "10033",
+    "zip": "10039",
     "multifamily": true,
     "agent": {
-     "company": "ORSID REALTY CORP",
+     "company": "AKAM ASSOCIATES, INC.",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "156 WEST 56 STREET, 6TH FL, New York NY 10019",
+     "address": "99 PARK AVENUE, 14TH F, New York NY 10016",
      "confidence": "verified",
-     "contactSource": "orsidny.com",
+     "contactSource": "akam.com",
      "lapsed": false,
-     "portfolio": 3,
+     "portfolio": 32,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.8534,
-     -73.9401
+     40.8246,
+     -73.9414
     ]
    },
    {
@@ -58469,11 +58472,11 @@
     ]
    },
    {
-    "bin": "1041378",
-    "address": "907 FIFTH AVENUE",
+    "bin": "1079987",
+    "address": "160 CABRINI BOULEVARD",
     "borough": "Manhattan",
-    "block": "1386",
-    "lot": "69",
+    "block": "2179",
+    "lot": "10",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 5,
@@ -58487,95 +58490,67 @@
       "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 5
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 5
      }
     ],
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2022-02-17",
-    "priorQewi": "SETH P. ROYE ARCHITECT, P.C.",
-    "owner": "BROWN HARRIS STEVENS",
-    "finesOwed": 15000,
+    "lastFiling": "2025-02-21",
+    "priorQewi": "MVN ARCHITECT LLC",
+    "owner": "CASTLE VILLAGE OWNERS",
+    "finesOwed": 6000,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": {
-     "devices": 3,
-     "cat1Missing": 3,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
+    "elevator": null,
     "shed": {
-     "state": "lapsed",
-     "ageDays": 873,
-     "since": "2024-05-10",
-     "until": "2026-05-05",
+     "state": "active",
+     "ageDays": 958,
+     "since": "2024-02-15",
+     "until": "2026-11-28",
      "type": "Suspended Scaffold",
      "who": null,
      "longStanding": true
     },
     "filing": {
-     "filed": "2025-07-18",
-     "daysSince": 439,
+     "filed": "2025-11-28",
+     "daysSince": 306,
      "status": "Permit Issued",
      "permitted": true,
      "stalled": false,
-     "cost": 480000,
-     "who": "WEST NEW YORK RESTORATION"
+     "cost": 889000,
+     "who": "K.E.S CONSTRUCTION CO INC"
     },
     "height": null,
     "occupied": true,
     "payingForNothing": false,
-    "ecbBalance": 0,
+    "ecbBalance": 31250,
     "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 6,
-    "zip": "10021",
+    "zip": "10033",
     "multifamily": true,
     "agent": {
-     "company": "BROWN HARRIS STEVENS RESIDENT & MGT LLC",
+     "company": "ORSID REALTY CORP",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "770 LEXINGTON AVE, NY NY 10065",
+     "address": "156 WEST 56 STREET, 6TH FL, New York NY 10019",
+     "confidence": "verified",
+     "contactSource": "orsidny.com",
      "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
+     "portfolio": 3,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7721,
-     -73.9669
+     40.8534,
+     -73.9401
     ]
    }
   ]
  },
  "contracts": [
-  {
-   "id": "20260812004",
-   "kind": "SOLICITATION",
-   "agency": "Housing Authority",
-   "title": "Bid Extension: Expressions of interest for Mattress Hauling and Recycling Services",
-   "category": "Services (other than human services)",
-   "method": "Request for Information",
-   "date": "2026-08-18",
-   "dueDate": "2026-09-29T23:59:00.000",
-   "daysLeft": 0,
-   "epin": "526301",
-   "submitTo": "24-02 49th Avenue, Long Island City, NY 11101",
-   "scope": "The Asset and Capital Management Sustainability Department of the New York City Housing ('NYCHA' or the 'Authority') is excited to announce the Request for Expressions of Interest ('RFEI') to seek proposals for Mattress Collection and Recycling Services. Interested applicants must submit their propo",
-   "contact": {
-    "name": "Anita Chan",
-    "phone": "(718) 730-8253",
-    "email": "anita.chan@nycha.nyc.gov"
-   },
-   "isNew": false
-  },
   {
    "id": "20260706027",
    "kind": "SOLICITATION",
@@ -58585,7 +58560,7 @@
    "method": "Competitive Sealed Bids/Pre-Qualified List",
    "date": "2026-07-13",
    "dueDate": "2026-09-30T10:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "82626B0055",
    "submitTo": null,
    "scope": "Installation of Equipment and Appurtenances for Shafts 17B and 18B; & Rehabilitation of Existing Shafts 16B, 19B, 20B, 21B, 22B and 23B This Competitive Sealed Bid ('RFx') is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PAS",
@@ -58605,7 +58580,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-07-02",
    "dueDate": "2026-09-30T11:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "33202207",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "MANDATORY PRE-BID MEETING INFORMATION Only bidders who attend the mandatory pre-bid meeting will be allowed to bid. The mandatory pre-bid meetings are scheduled for: Tuesday, July 14, 2026 at 12:00 P.M. Wednesday, July 15, 2026 at 12:00 P.M. Location: Elmhurst Hospital, 79-01 Broadway, Elmhurst, NY,",
@@ -58625,7 +58600,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-14",
    "dueDate": "2026-09-30T11:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "11202201",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "MANDATORY PRE-BID MEETING INFORMATION Only bidders who attend the mandatory pre-bid meeting will be allowed to bid. The mandatory pre-bid meetings are scheduled for: Tuesday, August 25, 2026 at 10:00 AM. Wednesday, August 26, 2026 at 10:00 A.M. Location: Bellevue Hospital, 506 1st Avenue @ 27th St, ",
@@ -58645,7 +58620,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-31",
    "dueDate": "2026-09-30T11:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "84126B0007",
    "submitTo": null,
    "scope": "This Competitive Sealed Bid (CSB) is being released through PASSPort, New York City's online procurement portal. Responses to this CSB must be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at https://www.nyc.gov/site/mocs/passport/about-passport.",
@@ -58665,7 +58640,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-26",
    "dueDate": "2026-09-30T12:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "527267",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "The materials to be provided by the successful vendor are described in greater detail in the RFQ Number: 527267 Interested vendors are invited to obtain a copy of the opportunity at NYCHA's website, http://www.nyc.gov/nychabusiness. On the left side, click on 'iSupplier Vendor Registration/Login' li",
@@ -58685,7 +58660,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-17",
    "dueDate": "2026-09-30T12:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "528362",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "The New York City Housing Authority ('NYCHA'), Supply Management and Procurement Department ('SMPD'), through this Solicitation, seeks bids from qualified vendors to provide NYCHA with materials for SMPD_Materials_Plumbing Supplies such as pipes, elbows etc. at various developments located in all fi",
@@ -58705,7 +58680,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-26",
    "dueDate": "2026-09-30T12:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "527263",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "The materials to be provided by the successful vendor are described in greater detail in the RFQ Number: 527263 Interested vendors are invited to obtain a copy of the opportunity at NYCHA's website, http://www.nyc.gov/nychabusiness. On the left side, click on 'iSupplier Vendor Registration/Login' li",
@@ -58725,7 +58700,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-28",
    "dueDate": "2026-09-30T14:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "85027B0001",
    "submitTo": ".",
    "scope": "Responses to this CSB must be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at the following website: https://passport.cityofnewyork.us/page.aspx/en/rfp/request_browse_public. Click on the 'Search Funding Opportunities in PASSPort' blue box. This",
@@ -58745,7 +58720,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-02-06",
    "dueDate": "2026-09-30T16:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "B5710040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
@@ -58765,7 +58740,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-08-27",
    "dueDate": "2026-09-30T16:30:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "82626P0029",
    "submitTo": null,
    "scope": "This Request for Proposal ('RFx) is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at https://www.nyc.gov/site/mocs/passport/about-passport",
@@ -58785,7 +58760,7 @@
    "method": "M/WBE Noncompetitive Small Purchase",
    "date": "2026-08-18",
    "dueDate": "2026-09-30T17:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "004202700003",
    "submitTo": "100 Church Street, 12th Floor, New York, NY 10007",
    "scope": "The NYC Campaign Finance Board (CFB) is seeking a vendor to provide services covering market researching, neighborhood surveying and community and stakeholder mapping within the agency's identified priority neighborhoods to strengthen the agency's voter, contributor, and candidate engagement strateg",
@@ -58805,7 +58780,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-01",
    "dueDate": "2026-09-30T17:00:00.000",
-   "daysLeft": 1,
+   "daysLeft": 0,
    "epin": "2879",
    "submitTo": "50 Water Street, 5th Floor, New York, NY 10004",
    "scope": "This Request for Proposal ('RFP') is issued in order to obtain debt collection services for facilities of NYC Health + Hospitals Post-Acute Care (PAC) for delinquent accounts with balances owned by the Patient. The accounts with balances owed by the patient or responsible parties are accounts with b",
@@ -58825,7 +58800,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-01T10:00:00.000",
-   "daysLeft": 2,
+   "daysLeft": 1,
    "epin": "85726B0070",
    "submitTo": null,
    "scope": "Please see the solicitation documents on PASSPort for additional details. Please submit your proposals by both acknowledging the receipt of the RFx in the Acknowledgement tab and completing your response in the Manage Responses tab. Vendor resources and materials can be found at the link below under",
@@ -58845,7 +58820,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-01T10:00:00.000",
-   "daysLeft": 2,
+   "daysLeft": 1,
    "epin": "85726B0068",
    "submitTo": null,
    "scope": "Please see the solicitation documents on PASSPort for additional details. Please submit your proposals by both acknowledging the receipt of the RFx in the Acknowledgement tab and completing your response in the Manage Responses tab. Vendor resources and materials can be found at the link below under",
@@ -58865,7 +58840,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-04",
    "dueDate": "2026-10-01T14:00:00.000",
-   "daysLeft": 2,
+   "daysLeft": 1,
    "epin": "85027B0018",
    "submitTo": ".",
    "scope": "Responses to this CSB must be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at the following website: https://passport.cityofnewyork.us/page.aspx/en/rfp/request_browse_public. Click on the 'Search Funding Opportunities in PASSPort' blue box. This",
@@ -58885,7 +58860,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-08-31",
    "dueDate": "2026-10-01T14:00:00.000",
-   "daysLeft": 2,
+   "daysLeft": 1,
    "epin": "84126P0016",
    "submitTo": null,
    "scope": "The services to be procured are the In-Process Fabrication Inspection of Precast and Prestressed Concrete in the United States and Canada. This Procurement is subject to participation goals for Minority-Owned Business Enterprises (MBEs) as required by Section 6-129 of the New York Administrative Cod",
@@ -58905,7 +58880,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-08-21",
    "dueDate": "2026-10-02T15:00:00.000",
-   "daysLeft": 3,
+   "daysLeft": 2,
    "epin": "B280-AP-2026",
    "submitTo": "830 Fifth Avenue, Room 407, New York, NY 10065",
    "scope": "In accordance with Section 1-13 of the Concession Rules of the City of New York, the New York City Department of Parks and Recreation (Parks) intends to issue a significant Request for Proposals ('RFP') for the renovation, operation, and maintenance of an amusement park at 1824 Shore Parkway, Brookl",
@@ -58925,7 +58900,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-02",
    "dueDate": "2026-10-05T10:30:00.000",
-   "daysLeft": 4,
+   "daysLeft": 3,
    "epin": "85726B0065",
    "submitTo": "Please refer to PASSPort for solicitation and participate details",
    "scope": "All bids are done on PASSPort. To review the details for this solicitation and participate, please use the following link below and use the EPIN 85727B0065 in search field, to find the solicitation: https://passport.cityofnewyork.us/page.aspx/en/rfp/request_browse_public If there are any issues with",
@@ -58945,7 +58920,7 @@
    "method": "Negotiated Acquisition",
    "date": "2026-09-25",
    "dueDate": "2026-10-05T12:00:00.000",
-   "daysLeft": 4,
+   "daysLeft": 3,
    "epin": "05626N0004",
    "submitTo": "375 Pearl Street, 15th Floor, New York, NY 10038",
    "scope": "For information purposes and pursuant to Section 3-04(b)(2)(i)(D) of NYC's Procurement Policy Board Rules, the New York Police Department (NYPD) intends to award a contract via Negotiated Acquisition with VEXCEL Corporation for the support, maintenance, and continued modernization of the NYPD Domain",
@@ -58965,7 +58940,7 @@
    "method": "Request for Proposals",
    "date": "2019-04-10",
    "dueDate": "2026-10-05T13:00:00.000",
-   "daysLeft": 4,
+   "daysLeft": 3,
    "epin": "R1188040",
    "submitTo": "65 Court Street Room 1201 Brooklyn, NY 11201",
    "scope": "The New York City Department of Education (NYCDOE), on behalf of the Division of Human Resources, Office of Teacher Recruitment and Quality, is seeking proposals from accredited private institutions of higher education, experienced in providing teacher certification programs that result in producing",
@@ -58985,7 +58960,7 @@
    "method": "Sole Source",
    "date": "2026-09-23",
    "dueDate": "2026-10-05T14:00:00.000",
-   "daysLeft": 4,
+   "daysLeft": 3,
    "epin": "84127Y0884",
    "submitTo": "55 Water Street, New York, NY 10044",
    "scope": "Pursuant to Section 3-05 of the New York City Procurement Policy Board Rules, the New York City Department of Transportation (NYCDOT) intends to enter into sole source negotiations with Phoscrete Corporation for an agreement to purchase Phoscrete Magnesium-Phosphate-Cement concrete repair materials ",
@@ -58994,7 +58969,7 @@
     "phone": "(212) 839-9276",
     "email": "kcornwallwilson@dot.nyc.gov"
    },
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "20260909003",
@@ -59005,7 +58980,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-15",
    "dueDate": "2026-10-05T16:00:00.000",
-   "daysLeft": 4,
+   "daysLeft": 3,
    "epin": "BBP Pier 1 Pavilion",
    "submitTo": "334 Furman Street, Brooklyn, NY 11201",
    "scope": "Brooklyn Bridge Park (the 'Park') is an eighty-five (85) acre waterfront park in Brooklyn, NY. The Pier 1 Pavilion (20 Furman Street) is the newest addition to the Park and has three (3) sets of stairs that require remediation due to inconsistent stair tread & riser dimensions. The Park is seeking p",
@@ -59025,7 +59000,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-31",
    "dueDate": "2026-10-05T23:59:00.000",
-   "daysLeft": 4,
+   "daysLeft": 3,
    "epin": "BC-CUCF-19-26",
    "submitTo": ".",
    "scope": "To view and download the documents for this solicitation, please visit the CUNY Builds' website at www.cuny.edu/cunybuilds.",
@@ -59045,7 +59020,7 @@
    "method": "Negotiated Acquisition",
    "date": "2026-09-22",
    "dueDate": "2026-10-06T09:00:00.000",
-   "daysLeft": 5,
+   "daysLeft": 4,
    "epin": "82625N0004",
    "submitTo": null,
    "scope": "The Department of Environmental Protection is entering into a Negotiated Acquisition (NA) contract with New York City Energy Efficiency Corporation. This NA will allow the greenhouse gas reduction plans of the City, including without limitation the provision of cost-effective funding and financing t",
@@ -59065,7 +59040,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-03",
    "dueDate": "2026-10-06T11:00:00.000",
-   "daysLeft": 5,
+   "daysLeft": 4,
    "epin": "85727B0001",
    "submitTo": null,
    "scope": "All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort account. Please visit the PASSPort Public RFx Site (aka 'Procurement Navigator') at: https://passport.cityo",
@@ -59085,7 +59060,7 @@
    "method": "Request for Proposals",
    "date": "2026-05-22",
    "dueDate": "2026-10-06T13:00:00.000",
-   "daysLeft": 5,
+   "daysLeft": 4,
    "epin": "R1875040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "The New York City Public Schools (NYC DOE), on behalf of the Office of Student Pathways, is seeking proposals from qualified and experienced organizations capable of providing early college credit opportunities, industry-recognized credentialing programs, or research/impact services. This solicitati",
@@ -59105,7 +59080,7 @@
    "method": "Sole Source",
    "date": "2026-09-24",
    "dueDate": "2026-10-06T14:00:00.000",
-   "daysLeft": 5,
+   "daysLeft": 4,
    "epin": "84127Y0889",
    "submitTo": "55 Water Street, New York, NY 10044",
    "scope": "Pursuant to Section 3-05 of the New York City Procurement Policy Board Rules, the New York City Department of Transportation (NYCDOT) intends to enter into sole source negotiations with Work Zone Equipment NY Inc for an agreement to purchase Umad replacement truck mounted safety attenuators and part",
@@ -59125,7 +59100,7 @@
    "method": "Request for Information",
    "date": "2026-09-22",
    "dueDate": "2026-10-06T16:00:00.000",
-   "daysLeft": 5,
+   "daysLeft": 4,
    "epin": "11799",
    "submitTo": "1 Liberty Plaza, 12th Floor, New York, NY 10006",
    "scope": "New York City Economic Development Corporation ('NYCEDC') seeks expressions of interest from qualified respondents on solutions to modernize how NYCEDC manages building plans, drawings, engineering documents, studies, reports, models, and related property records. NYCEDC's immediate challenge is tha",
@@ -59145,7 +59120,7 @@
    "method": "Request for Information",
    "date": "2026-09-22",
    "dueDate": "2026-10-07T12:00:00.000",
-   "daysLeft": 6,
+   "daysLeft": 5,
    "epin": "82627Y0894",
    "submitTo": null,
    "scope": "Pursuant to Procurement Policy Board Rule Section 3-05, the Department of Environmental Protection, intends to enter into a sole source agreement with Azure Water Services, LLC for the purchase of Purate. The Bureau of Water Supply (BWS) uses Purate to create chlorine dioxide which aids in the remov",
@@ -59165,7 +59140,7 @@
    "method": "Request for Information",
    "date": "2026-09-22",
    "dueDate": "2026-10-07T12:00:00.000",
-   "daysLeft": 6,
+   "daysLeft": 5,
    "epin": "82627Y0894",
    "submitTo": null,
    "scope": "Pursuant to Procurement Policy Board Rule Section 3-05, the Department of Environmental Protection, intends to enter into a sole source agreement with Azure Water Services, LLC for the purchase of Purate. The Bureau of Water Supply (BWS) uses Purate to create chlorine dioxide which aids in the remov",
@@ -59185,7 +59160,7 @@
    "method": "Negotiated Acquisition",
    "date": "2026-09-23",
    "dueDate": "2026-10-07T13:00:00.000",
-   "daysLeft": 6,
+   "daysLeft": 5,
    "epin": "82627N0003",
    "submitTo": null,
    "scope": "The Department of Environmental Protection is entering into a Negotiated Acquisition (NA) contract with Environmental Protection & Improvement Company, Inc. ('EPIC'). The NA will allow the agency to retain the current contractor to provide the removal and beneficial use of biosolids from the six Bur",
@@ -59194,7 +59169,7 @@
     "phone": null,
     "email": null
    },
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "20260810055",
@@ -59205,7 +59180,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-08-17",
    "dueDate": "2026-10-08T00:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": "85625P0005",
    "submitTo": null,
    "scope": "The Department of Citywide Administrative Services is seeking qualified vendors to provide the basis for examination development or a change in title classification action, as well as develop and score the examinations. HC/Exams is seeking consultants to administer civil service exams and develop st",
@@ -59225,7 +59200,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-03",
    "dueDate": "2026-10-08T10:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": null,
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "Scope of Work: The annual inspection, cleaning and disinfection of roof tanks on NYCHA properties in compliance with all applicable New York City, New York State, and Federal regulations. at various developments citywide. All work shall comply with applicable laws, codes and standards, including but",
@@ -59245,7 +59220,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-03",
    "dueDate": "2026-10-08T10:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": null,
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "Scope of Work : The scope of work includes repairing any leaks, cracks, or damage found in wooden or steel gravity tanks, including but not limited to conical covers, flat decking, hatch doors, ladders, plugs, strainers, piping, plumbing components, valves, electrical systems, probes, control wiring",
@@ -59265,7 +59240,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-08",
    "dueDate": "2026-10-08T10:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": "85727B0020",
    "submitTo": "1 Centre Street, 18th Floor",
    "scope": "The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for the procurement VANS, PASSENGER - NYPD Please see the solicitation documents for additional details. Please submit your proposals by both acknowledging the receipt of the RFx in the",
@@ -59285,7 +59260,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-14",
    "dueDate": "2026-10-08T10:30:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": "84626B0096",
    "submitTo": null,
    "scope": "This Procurement is subject to Section 6-129 of the New York City Administrative Code. Bid Submissions must be submitted in PASSPort. Bid Opening will be held on October 8, 2026 at 11:30 A.M. via Zoom Link. Bid documents are available online for free through NYC PASSPortSystem https://www.nyc.gov/si",
@@ -59305,7 +59280,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-10",
    "dueDate": "2026-10-08T11:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": "517985",
    "submitTo": "90 Church street, 6th Floor, New York, NY 10007",
    "scope": "Scope of Work The Work under this Contract (RFQ No. 517985 ' Elevator Package) consists of the rehabilitation, modernization, maintenance, and service of twelve (12) elevators across six (6) residential buildings, including eight (8) elevators in four (4) buildings at Cassidy-Lafayette Houses and fo",
@@ -59325,7 +59300,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-04-01",
    "dueDate": "2026-10-08T16:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": "B5868040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
@@ -59345,7 +59320,7 @@
    "method": "Negotiated Acquisition",
    "date": "2026-09-28",
    "dueDate": "2026-10-08T17:00:00.000",
-   "daysLeft": 7,
+   "daysLeft": 6,
    "epin": "03227N0001",
    "submitTo": ".",
    "scope": "Pursuant to Section 3-04 (b)(2)(i)(D) of the New York City Procurement Policy Board Rules, the NYC Department of Investigation intends to utilize the negotiated acquisition procurement method to enter into negotiations with Epstein Becker & Green PC for professional investigative services. Those ser",
@@ -59365,7 +59340,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0023",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59385,7 +59360,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0011",
    "submitTo": ".",
    "scope": "*Bid Addendum 3 (Questions) released in PASSPort.* *Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitat",
@@ -59405,7 +59380,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0015",
    "submitTo": ".",
    "scope": "*Bid Addendum 3 (Extension) released in PASSPort.* *Bid Addendum 2 (Questions) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitat",
@@ -59425,7 +59400,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0017",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59445,7 +59420,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0024",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59465,7 +59440,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0006",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59485,7 +59460,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0012",
    "submitTo": ".",
    "scope": "*Bid Addendum 3 (Questions) released in PASSPort.* *Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitat",
@@ -59505,7 +59480,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0010",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59525,7 +59500,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0016",
    "submitTo": ".",
    "scope": "*Bid Addendum 3 (Extension) released in PASSPort.* *Bid Addendum 2 (Questions) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitat",
@@ -59545,7 +59520,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0005",
    "submitTo": ".",
    "scope": "*Bid Addendum 1 (Extension) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort account. Please visit the PASSPort Public RFx Site (aka ",
@@ -59565,7 +59540,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0014",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59585,7 +59560,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0013",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59605,7 +59580,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0008",
    "submitTo": ".",
    "scope": "* Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All Bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort acco",
@@ -59625,7 +59600,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-09T11:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "85727B0009",
    "submitTo": ".",
    "scope": "*Bid Addendum 2 (Extension) released in PASSPort.* *Bid Addendum 1 (Questions) released in PASSPort.* All bids are submitted electronically using NYC PASSPort. To review the details (bid documents, pre-bid conference notices, etc.) of this solicitation and participate, you must have a PASSPort accou",
@@ -59645,7 +59620,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-17",
    "dueDate": "2026-10-09T14:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": null,
    "submitTo": "90 Church Street, New York, NY 10007",
    "scope": "No Bid Security Required. NYCHA intends to separately solicit and award a series of Seven (7) requirement contracts for Installation V/C Floor Tile in Apartments-Development Specific pursuant to RFQ#s: 523131- Adams Houses, 523132- Melrose Houses, 523133-Morrisania Air Right/Jackson Houses, 523135- ",
@@ -59665,7 +59640,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-17",
    "dueDate": "2026-10-09T14:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "528367-Clason Point",
    "submitTo": "90 Church Street, New York, NY 10007",
    "scope": "No Bid Security Required. NYCHA intends to separately solicit and award a series of One (1) requirement contracts for Installation V/C Floor Tile in Apartments-Development Specific pursuant to RFQ#s: 528367- Clason Point Houses, (or this 'Bid Series'). Contract Term: The Term of this contract shall ",
@@ -59685,7 +59660,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-17",
    "dueDate": "2026-10-09T14:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": null,
    "submitTo": "90 Church Street, New York, NY 10007",
    "scope": "No Bid Security Required. NYCHA intends to separately solicit and award a series of Four (4) requirement contracts for Installation V/C Floor Tile in Apartments-Development Specific pursuant to RFQ#s: 523148- Claremont Consolidated Houses, 523149- Forest Consolidated Houses, 523150-Highbridge Houses",
@@ -59705,7 +59680,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-09",
    "dueDate": "2026-10-09T14:00:00.000",
-   "daysLeft": 8,
+   "daysLeft": 7,
    "epin": "84125P0014",
    "submitTo": null,
    "scope": "The Roadway Repair & Maintenance (RRM) division of the Department of Transportation is seeking appropriately qualified vendors to provide Roadway Engineering, Data Collection, Design, Inspection, and Related Services to assist the Department in its daily workflow and to assist in the development of ",
@@ -59725,7 +59700,7 @@
    "method": "Request for Information",
    "date": "2026-09-28",
    "dueDate": "2026-10-12T16:30:00.000",
-   "daysLeft": 9,
+   "daysLeft": 8,
    "epin": "82627Y0899",
    "submitTo": null,
    "scope": "DEP intends to enter into a Sole Source agreement with Hazen and Sawyer for DEL-465 to provide technical supporting services, training and knowledge transfer and implementation of additional OST platform enhancements. OST is a dynamic water supply system software that is designed to evolve with the ",
@@ -59745,7 +59720,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-28",
    "dueDate": "2026-10-13T10:00:00.000",
-   "daysLeft": 10,
+   "daysLeft": 9,
    "epin": "3434",
    "submitTo": "1065 Avenue of the Americas, Suite 2400, New York, NY 10018",
    "scope": "The 34SP, a not-for-profit corporation organized under the laws of the State of New York, is seeking proposals ('Proposals') from qualified firms ('Proposers') by this request ('Request' or 'RFP') to manage and operate a public outdoor recreation subconcession ('Subconcession') at a pedestrian plaza",
@@ -59765,7 +59740,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-15",
    "dueDate": "2026-10-13T14:00:00.000",
-   "daysLeft": 10,
+   "daysLeft": 9,
    "epin": "523138",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "Requirements Contract for RFP 523138 Construction Management Services. No Bid Security Required. The Term of this Contract is five (5) years, with the option to extend, at NYCHA's sole discretion, for an additional five (5) year period. A non-mandatory Proposers' conference ('Proposers' Conference')",
@@ -59785,7 +59760,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-15",
    "dueDate": "2026-10-13T14:00:00.000",
-   "daysLeft": 10,
+   "daysLeft": 9,
    "epin": "523121",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "The New York City Housing Authority ('NYCHA'), by issuing this RFP, seeks proposals from investigation firms to provide NYCHA with investigative services to investigate claims for personal injury ('Personal Injury Claims') and claims for property damage ('Property Damage Claims') against NYCHA, and ",
@@ -59805,7 +59780,7 @@
    "method": "Other",
    "date": "2026-09-24",
    "dueDate": "2026-10-13T17:00:00.000",
-   "daysLeft": 10,
+   "daysLeft": 9,
    "epin": "NYCCO-2026-01",
    "submitTo": "1 Rockefeller Plaza, New York, NY 10020-2020",
    "scope": "In accordance with Section 1-14 of the Concession Rules of the City of New York ('Concession Rules'), the New York City Department of Small Business Services ('SBS'), on behalf of New York City Tourism + Conventions, Inc. ('NYCT'), intends to enter into negotiations for a significant negotiated conc",
@@ -59825,7 +59800,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-18",
    "dueDate": "2026-10-14T10:00:00.000",
-   "daysLeft": 11,
+   "daysLeft": 10,
    "epin": "85625B0009",
    "submitTo": ".",
    "scope": "Department of Citywide Administration Services (DCAS) Facilities Management and Construction (FMC) is seeking a qualified vendor to provide, during the term of the Contract, all required labor, tools, materials, and equipment necessary to perform the roof replacement and waterproofing work at 151-20",
@@ -59845,7 +59820,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-01",
    "dueDate": "2026-10-14T11:00:00.000",
-   "daysLeft": 11,
+   "daysLeft": 10,
    "epin": "33202504",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "A 3rd Mandatory Pre-Bid Meeting is scheduled Information Only bidders who attend the mandatory pre-bid meeting will be allowed to bid. The mandatory pre-bid meeting is scheduled for: Wednesdaym, September 23, 2026 at 2PM. Location: 7901 Broadway, Elmhurst, NY, Conference Room E8-11, Elmhurst Hospita",
@@ -59865,7 +59840,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-02",
    "dueDate": "2026-10-14T11:00:00.000",
-   "daysLeft": 11,
+   "daysLeft": 10,
    "epin": "26202503",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "Mandatory Pre-Bid Meeting Information Only bidders who attend the mandatory pre-bid meeting will be allowed to bid. The mandatory pre-bid meetings are scheduled for: Wednesday, September 16, 2026 at 10:00 AM. Thursday, September 17, 2026 at 10:00 AM. Location: Kings County Hospital, 451 Clarkson Ave",
@@ -59885,7 +59860,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-02",
    "dueDate": "2026-10-14T11:00:00.000",
-   "daysLeft": 11,
+   "daysLeft": 10,
    "epin": "26202503",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "Mandatory Pre-Bid Meeting Information Only bidders who attend the mandatory pre-bid meeting will be allowed to bid. The mandatory pre-bid meetings are scheduled for: Wenesday, September 16, 2026 at 2PM. Thursday, September 17, 2026 at 2PM. Location: South Brooklyn Health, 2601 Ocean Parkway, Brookly",
@@ -59905,7 +59880,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-01-13",
    "dueDate": "2026-10-14T16:00:00.000",
-   "daysLeft": 11,
+   "daysLeft": 10,
    "epin": "B5929040",
    "submitTo": "65 Court Street, 12th Floor, Brooklyn NY 11201",
    "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in ",
@@ -59925,7 +59900,7 @@
    "method": "Request for Information",
    "date": "2026-09-14",
    "dueDate": "2026-10-14T17:00:00.000",
-   "daysLeft": 11,
+   "daysLeft": 10,
    "epin": "84127Y0885",
    "submitTo": "55 Water Street, 8th Floor, New York, NY 10041",
    "scope": "The New York City Department of Transportation (NYC DOT) is releasing this Request for Information (RFI) in response to the commitment outlined by the Triborough Bridge and Tunnel Authority (TBTA) in the Congestion Relief Zone Tolling Program Final Mitigation Plan to direct $7 million for electric v",
@@ -59945,7 +59920,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-06-26",
    "dueDate": "2026-10-15T11:00:00.000",
-   "daysLeft": 12,
+   "daysLeft": 11,
    "epin": "WOO-48202205/7220200",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "1. PROJECT ID, DESCRIPTION, and BID DUE DATE 48202205 / 72202001 ' Outposted Therapeutic Housing Units (OTxHU) Main Construction / September 3, 2026 @ 11:00AM 2. LOCATION NYC Health + Hospitals Woodhull, 760 Broadway, Brooklyn, NY 11206 3. MANDATORY PRE-BID MEETING INFORMATION Only bidders who atten",
@@ -59965,7 +59940,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-10",
    "dueDate": "2026-10-15T11:00:00.000",
-   "daysLeft": 12,
+   "daysLeft": 11,
    "epin": "517934",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "Scope of Work: The scope of work includes two new playgrounds, both featuring new play structures and spray shower areas, as well as a new adult fitness station-all 3 areas have new safety surfacing. The project also includes a basketball court, a walking track with a colored wearing surface, a comm",
@@ -59985,7 +59960,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-01",
    "dueDate": "2026-10-15T14:00:00.000",
-   "daysLeft": 12,
+   "daysLeft": 11,
    "epin": "80126P0020",
    "submitTo": null,
    "scope": "The New York City Department of Small Business Services (SBS) is seeking a qualified vendor to provide, in coordination with SBS, capacity building services to community-based development organizations (CBDOs) in eligible low- and moderate -income (LMI) neighborhoods in NYC, with a specific focus on",
@@ -60005,7 +59980,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-15",
    "dueDate": "2026-10-15T14:00:00.000",
-   "daysLeft": 12,
+   "daysLeft": 11,
    "epin": null,
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "Indefinite Delivery Indefinite Quantity (IDIQ) Contract for Asbestos Investigation and Testing Services for NYCHA Buildings ' Citywide Contract Term: 3 years from the award date on NYCHA's Purchase Order. NYCHA, in its sole discretion, shall have the option to extend the Term of this Contract for up",
@@ -60025,7 +60000,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-02-10",
    "dueDate": "2026-10-15T16:00:00.000",
-   "daysLeft": 12,
+   "daysLeft": 11,
    "epin": "B5697040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
@@ -60045,7 +60020,7 @@
    "method": "Request for Information",
    "date": "2026-05-14",
    "dueDate": "2026-10-15T16:00:00.000",
-   "daysLeft": 12,
+   "daysLeft": 11,
    "epin": "11750",
    "submitTo": "1 Liberty Plaza, 12th Floor, New York, NY 10006",
    "scope": "New York City Economic Development Corporation (NYCEDC) invites expressions of interest from maritime operators, vessel designers, logistics firms, and technology partners for the development of an all-electric and/or zero-emissions (ZE) container-on-barge and associated tug service between the Broo",
@@ -60065,7 +60040,7 @@
    "method": "Request for Proposals",
    "date": "2026-07-27",
    "dueDate": "2026-10-16T04:00:00.000",
-   "daysLeft": 13,
+   "daysLeft": 12,
    "epin": "116390005",
    "submitTo": "1 Liberty Plaza, 12th Floor, New York, NY 10006",
    "scope": "New York City Economic Development Corporation ('NYCEDC'), in collaboration with the City of New York (the 'City'), is releasing a Request for Proposals ('RFP') to retain one or more (up to a maximum of five) grocery store operators or other qualified firms, either independently or in teams (each, a",
@@ -60085,7 +60060,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-18",
    "dueDate": "2026-10-16T13:00:00.000",
-   "daysLeft": 13,
+   "daysLeft": 12,
    "epin": "80626B0051",
    "submitTo": "100 Gold Street, Room 6-M3, New York, NY 10038",
    "scope": "NYC Department of Housing Preservation & Development ('HPD') is responsible to install and repair Elevators to ensure essential services. HPD has neither sufficient staff with the requisite expertise, nor the equipment necessary to perform this type of work. Qualified bidders must have three years' ",
@@ -60105,7 +60080,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-11",
    "dueDate": "2026-10-16T17:00:00.000",
-   "daysLeft": 13,
+   "daysLeft": 12,
    "epin": "2878",
    "submitTo": "50 Water Street, 5th Floor, New York, NY 10004",
    "scope": "NYC Health & Hospitals requests proposals for facility commissioning services related to new construction, facility renovations, re-commissioning of existing systems, or facility system assessments throughout its portfolio of buildings. The types of facilities to be commissioned may include office/a",
@@ -60125,7 +60100,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-15",
    "dueDate": "2026-10-19T14:00:00.000",
-   "daysLeft": 14,
+   "daysLeft": 13,
    "epin": "84126P0001",
    "submitTo": null,
    "scope": "The New York City Department of Transportation ('the Agency') seeks a qualified vendor to develop, deploy, support, and maintain existing and future Transit Signal Priority (TSP) corridors. The Agency has successfully deployed a centralized Transit Signal Priority (TSP) System within the City's five",
@@ -60145,7 +60120,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-25",
    "dueDate": "2026-10-20T11:00:00.000",
-   "daysLeft": 15,
+   "daysLeft": 14,
    "epin": "102202709162026",
    "submitTo": "250 Broadway, 16th Floor, New York, NY 10007",
    "scope": "The New York City Council is seeking a qualified vendor to design and implement a custom-built application to support initiative reporting by CCBOs and City agencies. The System must emphasize ease of use, familiarity, reliability, and data integrity while providing Council Finance with robust admin",
@@ -60165,7 +60140,7 @@
    "method": "Request for Proposals",
    "date": "2026-05-05",
    "dueDate": "2026-10-20T13:00:00.000",
-   "daysLeft": 15,
+   "daysLeft": 14,
    "epin": "R1866040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "The New York City Public Schools (NYC DOE), on behalf of the Office of Student Pathways, is seeking proposals from qualified and experienced organizations capable of providing early college credit opportunities, industry-recognized credentialing programs, or research/impact services. This solicitati",
@@ -60185,7 +60160,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-21",
    "dueDate": "2026-10-20T14:00:00.000",
-   "daysLeft": 15,
+   "daysLeft": 14,
    "epin": "84627P0002",
    "submitTo": null,
    "scope": "The Agency is seeking an appropriately qualified vendor to use ground-based LiDAR equipment to scan trees located on the city's rights-of-way and use a machine learning-based data processing approach to produce a street tree inventory as well as 3D digital model of the city's trees. This Request for",
@@ -60205,7 +60180,7 @@
    "method": "Request for Proposals",
    "date": "2026-07-20",
    "dueDate": "2026-10-20T16:00:00.000",
-   "daysLeft": 15,
+   "daysLeft": 14,
    "epin": "2119",
    "submitTo": "1 Liberty Plaza, 12th Floor, New York, NY 10006",
    "scope": "New York City Economic Development Corporation ('NYCEDC'), on behalf of the City of New York (the 'City'), is pleased to release a request for proposals ('RFP') seeking proposals from qualified parties ('Respondents') for the acquisition and development of an approximately 17,337 square foot site lo",
@@ -60225,7 +60200,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-22",
    "dueDate": "2026-10-20T16:00:00.000",
-   "daysLeft": 15,
+   "daysLeft": 14,
    "epin": "82626P0013",
    "submitTo": null,
    "scope": "This Request for Proposal ('RFx) is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at https://www1.nyc.gov/site/mocs/systems/about-go-to-pa",
@@ -60245,7 +60220,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-06-30",
    "dueDate": "2026-10-21T10:00:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "85726B0062",
    "submitTo": "1 Centre Street, 17th Floor, New York, NY 10007",
    "scope": "*Addendum 2 Released in PASSPort* *Round 2 of Bidding Released in PASSPort* *Addendum 1 released on PASSPort* The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for APPARATUS, Apparatus, 100' Rear Mount Aerial. This will be a 5-Year Req",
@@ -60265,7 +60240,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-31",
    "dueDate": "2026-10-21T10:00:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "82626B0042",
    "submitTo": null,
    "scope": "BWT-WI-323: Reconstruction of MSP Cone Check Valves, Actuators and Discharge Piping at Wards Island WWTP. This Competitive Sealed Bid ('RFx') is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitat",
@@ -60285,7 +60260,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-27",
    "dueDate": "2026-10-21T11:00:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "85625B0011",
    "submitTo": null,
    "scope": "Department of Citywide Administrative Services (DCAS) Construction and Technical Services (CTS) is seeking a qualified vendor to provide, during the term of the Contract, the City's requirements for labor, materials, and equipment necessary to perform interior and exterior general construction work ",
@@ -60305,7 +60280,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-10",
    "dueDate": "2026-10-21T11:00:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "85726B0042",
    "submitTo": "1 Centre Street, 18th Floor",
    "scope": "The New York City Department of Citywide Administrative Services ('DCAS') is issuing a solicitation to obtain bids for the procurement of SKIMMER VESSEL (DEP). Please see the solicitation documents for additional details. Please submit your proposals by both acknowledging the receipt of the RFx in t",
@@ -60325,7 +60300,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-15",
    "dueDate": "2026-10-21T15:00:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "M391-SB-2026",
    "submitTo": "830 5th Avenue, Room 407, New York, NY 10065",
    "scope": "In accordance with Section 1-13 of the Concession Rules of the City of New York, New York City Department of Parks and Recreation ('Parks') is issuing a non-significant Request for Proposals ('RFP') for the Renovation, Operation and Maintenance of a Snack Bar at the John Street Service Building at t",
@@ -60345,7 +60320,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-23",
    "dueDate": "2026-10-21T16:30:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "82626P0018",
    "submitTo": null,
    "scope": "This Request for Proposal ('RFx) is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitation, vendors should visit the PASSPort Public Portal at https://www1.nyc.gov/site/mocs/systems/about-go-to-pa",
@@ -60354,7 +60329,7 @@
     "phone": null,
     "email": null
    },
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "20260806027",
@@ -60365,7 +60340,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-08-12",
    "dueDate": "2026-10-21T17:00:00.000",
-   "daysLeft": 16,
+   "daysLeft": 15,
    "epin": "26REQ0374",
    "submitTo": "233 Broadway, 25th Floor, New York, NY 10279",
    "scope": "The New York City Police Pension Fund is seeking proposals from qualified and experienced firms to provide Virtual Chief Information Security Officer (vCISO) services. The selected firm will support the Fund in enhancing and maturing its cybersecurity program; strengthening cybersecurity governance,",
@@ -60385,7 +60360,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-05-20",
    "dueDate": "2026-10-22T10:00:00.000",
-   "daysLeft": 17,
+   "daysLeft": 16,
    "epin": "85624B0007",
    "submitTo": "N/A",
    "scope": "Department of Citywide Administration Services is seeking a qualified vendor to furnish all labor and materials to complete interior accessibility renovations project at 360 Adams Street, Brooklyn, New York 11201 EPIN 85624B0007. This solicitation is being made pursuant to the Competitive Sealed Bid",
@@ -60405,7 +60380,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-02",
    "dueDate": "2026-10-22T10:00:00.000",
-   "daysLeft": 17,
+   "daysLeft": 16,
    "epin": "85625P0004",
    "submitTo": null,
    "scope": "The City of New York Department of Citywide Administrative Services (DCAS) is seeking up to five (5) qualified vendors (hereafter, the 'Vendor(s)' and 'Contractor(s)') to perform appraisal reports of real estate in New York City, through the issuance of Work Orders. Appraiser may occasionally be req",
@@ -60425,7 +60400,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-14",
    "dueDate": "2026-10-22T11:00:00.000",
-   "daysLeft": 17,
+   "daysLeft": 16,
    "epin": "02201602 - Cumberlan",
    "submitTo": "55 Water Street, OFD 25th Floor, New York, NY 10041",
    "scope": "1. PROJECT ID, DESCRIPTION, and BID DUE DATE 02201602 - IDF MDF UPGRADE 2. LOCATION NYC Health + Hospitals Gotham / Cumberland D&TC, 100 North Portland Avenue, Brooklyn NY, 11205 3. MANDATORY PRE-BID MEETING INFORMATION - Only bidders who attend the mandatory pre-bid meeting will be allowed to bid. ",
@@ -60445,7 +60420,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-04-28",
    "dueDate": "2026-10-22T11:00:00.000",
-   "daysLeft": 17,
+   "daysLeft": 16,
    "epin": "85624B0012",
    "submitTo": ".",
    "scope": "Department of Citywide Administration Services is seeking a qualified vendor to complete the renovation on 25th Floor, 1 Centre Street, New York, NY 10007. Estimated term of the contract is three years. This solicitation is being made pursuant to the Competitive Sealed Bidding Method, Section 3-02 o",
@@ -60465,7 +60440,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-01-26",
    "dueDate": "2026-10-22T16:00:00.000",
-   "daysLeft": 17,
+   "daysLeft": 16,
    "epin": "B5869040",
    "submitTo": "65 Court Street, Room 1201, Brooklyn, NY 11201",
    "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
@@ -60485,7 +60460,7 @@
    "method": "M/WBE Noncompetitive Small Purchase",
    "date": "2026-09-29",
    "dueDate": "2026-10-23T17:00:00.000",
-   "daysLeft": 18,
+   "daysLeft": 17,
    "epin": "004202700005",
    "submitTo": "100 Church Street, 12th Floor, New York, NY 10007",
    "scope": "The NYC Campaign Finance Board (CFB) is seeking a fully licensed security contractor to provide unarmed, uniformed security and protective services for the agency at its offices located on the 12th and 20th floors of 100 Church Street in Lower Manhattan, NYC.",
@@ -60505,7 +60480,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-23",
    "dueDate": "2026-10-26T15:00:00.000",
-   "daysLeft": 19,
+   "daysLeft": 18,
    "epin": "83626B0004",
    "submitTo": null,
    "scope": "The purpose of this solicitation is to establish a contract for the collection of outstanding Business and Excise Tax docketed judgments assigned to, and/or issued by the New York City Department of Finance. Please see Section III Scope of Services section in the IFB document for details. Vendors wh",
@@ -60514,7 +60489,7 @@
     "phone": null,
     "email": null
    },
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "20260722026",
@@ -60525,7 +60500,7 @@
    "method": "Request for Information",
    "date": "2026-07-29",
    "dueDate": "2026-10-26T17:00:00.000",
-   "daysLeft": 19,
+   "daysLeft": 18,
    "epin": "TGI-RED-AdaptiveReus",
    "submitTo": "10 South Street Slip 7, New York, NY 10004",
    "scope": "Governors Island Corporation d/b/a The Trust for Governors Island (the 'Trust') invites interested parties ('Respondents' or 'Respondent Teams') to submit expressions of interest in ground leasing, rehabilitating, and operating Building 324 and/or Building 330 on Governors Island (together, the 'Bui",
@@ -60545,7 +60520,7 @@
    "method": "Request for Proposals",
    "date": "2026-04-29",
    "dueDate": "2026-10-27T16:00:00.000",
-   "daysLeft": 20,
+   "daysLeft": 19,
    "epin": "R1861040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "Proposal submissions in response to the RFP must be sent via electronic mail ('The Proposal Submission Email') to DCPSubmissions@schools.nyc.gov (the 'RFP Submission Email Address'). The New York City Department of Education (NYCDOE) on behalf of the Division of Instructional and Information Technol",
@@ -60565,7 +60540,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-28",
    "dueDate": "2026-10-28T10:00:00.000",
-   "daysLeft": 21,
+   "daysLeft": 20,
    "epin": "82625B0045",
    "submitTo": null,
    "scope": "Replacement of the Cyclone Degritters and Grit Washers at the Bowery Bay Wastewater Treatment Plant. This Competitive Sealed Bid ('RFx') is being released through PASSPort, New York City's online procurement portal. Responses to this RFx should be submitted via PASSPort. To access the solicitation, ",
@@ -60585,7 +60560,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-08-26",
    "dueDate": "2026-10-28T10:00:00.000",
-   "daysLeft": 21,
+   "daysLeft": 20,
    "epin": "85626B0010",
    "submitTo": ".",
    "scope": "Department of Citywide Administrative Services (DCAS) Facilities Management and Construction Services is seeking a qualifed vendor to to upgrade all the elevators at 198 East 161st Street (Concourse Plaza) in the Bronx, which includes elevator cabs, controls, anxillary system components, including A",
@@ -60605,7 +60580,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-28",
    "dueDate": "2026-10-30T14:00:00.000",
-   "daysLeft": 23,
+   "daysLeft": 22,
    "epin": "06827P0002",
    "submitTo": "110 William Street, New York, NY 10038",
    "scope": "The ACS Developmental Disabilities Unit (DDU) Clinical Services and Supports RFP seeks one vendor to provide, psychological evaluations which include, full scale IQ and adaptive testing scores, psychosocial assessments, and autism testing to children, adolescents, and adults with a suspicion of I/DD",
@@ -60625,7 +60600,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-28",
    "dueDate": "2026-10-30T15:00:00.000",
-   "daysLeft": 23,
+   "daysLeft": 22,
    "epin": "Q15-Q99-SB-C-CL-2026",
    "submitTo": "830 5th Avenue, Room 407, New York, NY, 10065",
    "scope": "In accordance with Section 1-13 of the Concession Rules of the City of New York, the New York City Department of Parks and Recreation (Parks) intends to issue a significant Request for Proposals ('RFP') for the renovation, operation and maintenance of a carousel, snack bar and family amusement venue",
@@ -60645,7 +60620,7 @@
    "method": "Request for Information",
    "date": "2026-09-11",
    "dueDate": "2026-10-30T15:00:00.000",
-   "daysLeft": 23,
+   "daysLeft": 22,
    "epin": "528310",
    "submitTo": ".",
    "scope": "The New York City Housing Authority's ('NYCHA') Asset and Capital Management Division is seeking input ('Responses') from manufacturers and suppliers of auger compactors and interior compactors on a proposed Master Equipment Supply Agreement. Under this new procurement approach, NYCHA would enter in",
@@ -60665,7 +60640,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-17",
    "dueDate": "2026-10-30T16:00:00.000",
-   "daysLeft": 23,
+   "daysLeft": 22,
    "epin": "10474",
    "submitTo": "1 Liberty Plaza, 12th Floor, New York, NY 10006",
    "scope": "New York City Economic Development Corporation ('NYCEDC') is pleased to invite applicants to submit proposals in response to this Request for Proposals ('RFP') for participation in the third iteration of the NYC Mass Timber Studio: Advancing Housing Development (the 'Studio'). New York City faces an",
@@ -60685,7 +60660,7 @@
    "method": "M/WBE Noncompetitive Small Purchase",
    "date": "2026-09-29",
    "dueDate": "2026-10-30T17:00:00.000",
-   "daysLeft": 23,
+   "daysLeft": 22,
    "epin": "004202700003",
    "submitTo": "100 Church Street, 12th Floor, New York, NY 10007",
    "scope": "The NYC Campaign Finance Board (CFB) is seeking an update to the vendor response due date from Wednesday, September 30 to Friday, October 30 for a vendor to provide services covering market researching, neighborhood surveying and community and stakeholder mapping within the agency's identified prior",
@@ -60705,7 +60680,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-21",
    "dueDate": "2026-11-02T10:30:00.000",
-   "daysLeft": 24,
+   "daysLeft": 23,
    "epin": "84627B0009",
    "submitTo": null,
    "scope": "This Procurement is subject to: Section 6-129 of the New York City Administrative Code. Bid Submissions must be submitted in PASSPort. Bid Opening will be held on November 2, 2026 at 11:30am via Zoom Link. Bid documents are available online for free through NYC PASSPort System https://www.nyc.gov/si",
@@ -60725,7 +60700,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-22",
    "dueDate": "2026-11-04T10:00:00.000",
-   "daysLeft": 26,
+   "daysLeft": 25,
    "epin": "85626B0001",
    "submitTo": null,
    "scope": "Department of Citywide Administrative Services (DCAS) Facilities Management and Construction (FMC) is seeking a qualified vendor to provide, during the term of the Contract, the City's requirements for labor, materials, and equipment necessary to install, erect, maintain, dismantle and remove Sidewa",
@@ -60745,7 +60720,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-28",
    "dueDate": "2026-11-04T14:00:00.000",
-   "daysLeft": 26,
+   "daysLeft": 25,
    "epin": "523249",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "NYCHA, by issuing this RFP, seeks proposal ('Proposal') from a highly qualified Program Manager (PM) firm (the 'Proposer') to provide NYCHA with comprehensive, end-to-end Program Management Services for its large-scale Lead Abatement Program as detailed more fully within Section II of this RFP (coll",
@@ -60765,7 +60740,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-10",
    "dueDate": "2026-11-05T11:00:00.000",
-   "daysLeft": 27,
+   "daysLeft": 26,
    "epin": "13202603_Harlem RBP",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "1. PROJECT ID, DESCRIPTION, and BID DUE DATE 13202603 ' Ron Brown Pavilion Cooling Tower Replacement / November 5, 2026 @ 11:00AM 2. LOCATION NYC Health + Hospitals Harlem: 506 Lenox Avenue, New York, NY 10037 3. MANDATORY PRE-BID MEETING INFORMATION - Only bidders who attend the mandatory pre-bid m",
@@ -60785,7 +60760,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-29",
    "dueDate": "2026-11-05T14:00:00.000",
-   "daysLeft": 27,
+   "daysLeft": 26,
    "epin": "523237",
    "submitTo": "90 Church Street, 6th Floor, New York, NY 10007",
    "scope": "Requirements Contract for Risk Control Consulting Services. NYCHA, by issuing this RFP, seeks proposals (' Proposals ') from Risk Control Consultant firms (the ' Proposers ') to provide NYCHA with the Scopes of Services as detailed more fully within Section II of this RFP (collectively, the ' Servic",
@@ -60805,7 +60780,7 @@
    "method": "Request for Information",
    "date": "2025-10-24",
    "dueDate": "2026-11-05T14:00:00.000",
-   "daysLeft": 27,
+   "daysLeft": 26,
    "epin": "05726Y0548",
    "submitTo": null,
    "scope": "The New York City Fire Department (FDNY) is seeking price quotes on Platinum Ambulance Simulators. Please note t hat further information can be found in the Item, Questionnaire, and Documents tab. Any vendor besides Simulator Solutions that believes they can supply the Platinum Ambulance Simulators ",
@@ -60825,7 +60800,7 @@
    "method": "Request for Information",
    "date": "2026-08-06",
    "dueDate": "2026-11-05T16:00:00.000",
-   "daysLeft": 27,
+   "daysLeft": 26,
    "epin": "11780",
    "submitTo": "One Liberty Plaza, 165 Broadway, 14th Floor Mailroom, New York, NY 10006",
    "scope": "The New York City Economic Development Corporation ('NYCEDC') is issuing a Request for Expressions of Interest (RFEI) to identify qualified organizations to design and deliver a NYCHA Maritime Career Readiness Program serving youth and young adults within public housing developments surrounding the ",
@@ -60845,7 +60820,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-03-19",
    "dueDate": "2026-11-05T16:00:00.000",
-   "daysLeft": 27,
+   "daysLeft": 26,
    "epin": "B5948040",
    "submitTo": "65 Court Street, 12th Floor, Room 1201, Brooklyn, NY 11201",
    "scope": "Please note that bids are due via electronic mail to DCPSubmissions@schools.nyc.gov. To download, please go to https://infohub.nyced.org/resources/vendors/open-doe-solicitations/request-for-bids. If you cannot download, send an e-mail to vendorhotline@schools.nyc.gov with the RFB number and title in",
@@ -60865,7 +60840,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-28",
    "dueDate": "2026-11-06T14:00:00.000",
-   "daysLeft": 28,
+   "daysLeft": 27,
    "epin": "84127P0001",
    "submitTo": null,
    "scope": "The services to be procured is TD/CSS for Crocheron Park Pedestrian Bridge Over BCIP, Borough of Queens. This Procurement is subject to participation goals for Minority-Owned Business Enterprises (MBEs) as required by Section 6-129 of the New York Administrative Code. The M/WBE goal for this project",
@@ -60885,7 +60860,7 @@
    "method": "Request for Proposals",
    "date": "2026-09-11",
    "dueDate": "2026-11-09T16:00:00.000",
-   "daysLeft": 29,
+   "daysLeft": 28,
    "epin": "3363",
    "submitTo": "1 Liberty Plaza, 12th Floor, New York, NY 10006",
    "scope": "The Land Use Department at the New York City Economic Development Corporation (NYCEDC) is seeking one or more consultants or consultant teams to provide on-call hazmat and environmental services which may include, without limitation, the performance of site investigations, Phase I and II Remedial Ac",
@@ -60905,7 +60880,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-09-24",
    "dueDate": "2026-11-12T11:00:00.000",
-   "daysLeft": 32,
+   "daysLeft": 31,
    "epin": "34202301_Queens Dial",
    "submitTo": "55 Water Street, 25th Floor, New York, NY 10041",
    "scope": "1. PROJECT ID, DESCRIPTION, and BID DUE DATE 34202301 ' Dialysis Space Construction / November 12, 2026 @ 11:00AM 2. LOCATION NYC Health + Hospitals Queens: 82-68 164th St., Queens, NY 11432 3 . MANDATORY PRE-BID MEETING INFORMATION Only bidders who attend the mandatory pre-bid meeting will be allow",
@@ -60925,7 +60900,7 @@
    "method": "Request for Information",
    "date": "2026-09-18",
    "dueDate": "2026-11-13T15:00:00.000",
-   "daysLeft": 33,
+   "daysLeft": 32,
    "epin": "R149-EX-2026",
    "submitTo": "830 5th Avenue, New York, NY, 10065",
    "scope": "The New York City Department of Parks and Recreation ('Parks') is seeking responses to this Request for Expressions of Interest ('RFEI') for permanent or temporary and seasonal implementation of programming, amenities, events, and development that will enhance Ocean Breeze Park, Staten Island. There",
@@ -60945,7 +60920,7 @@
    "method": "Request for Information",
    "date": "2026-09-14",
    "dueDate": "2026-11-16T23:45:00.000",
-   "daysLeft": 34,
+   "daysLeft": 33,
    "epin": "85827Y1399",
    "submitTo": "15 MetroTech Center, 18th Floor, Brooklyn, NY 11201",
    "scope": "The New York City Office of Technology & Innovation ('OTI') and Mayor's Office of Operations ('Operations') invite submissions in response to this Request for Information ('RFI') to help determine the feasibility of leveraging emergent technology, particularly ground-scanning technologies, to build ",
@@ -60965,7 +60940,7 @@
    "method": "Competitive Sealed Proposals",
    "date": "2026-09-25",
    "dueDate": "2026-12-18T23:59:00.000",
-   "daysLeft": 58,
+   "daysLeft": 57,
    "epin": "CSI-CUCF-11-26",
    "submitTo": ".",
    "scope": "For information on this Solicitation, please visit www.cuny.edu/cunybuilds.",
@@ -60985,7 +60960,7 @@
    "method": "Competitive Sealed Proposals/Pre-Qualified List",
    "date": "2026-04-15",
    "dueDate": "2026-12-31T23:59:00.000",
-   "daysLeft": 67,
+   "daysLeft": 66,
    "epin": "81622P0004",
    "submitTo": "42-09 28th Street, 17th Floor, WS 17-89, Long Island City, NY 11101-4132",
    "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
@@ -61005,7 +60980,7 @@
    "method": "Competitive Sealed Bids",
    "date": "2026-07-20",
    "dueDate": "2027-03-04T13:00:00.000",
-   "daysLeft": 112,
+   "daysLeft": 111,
    "epin": "82726B0005",
    "submitTo": ".",
    "scope": "82726B0005-Bronx Community Districts 9, 10 & 11 Garage Demolition and Replacement, 800 Zerega Avenue, Bronx, NY 10473 and South Lot Swing Space, 530 Zerega Avenue, Bronx, NY 10473 Last day of questions is 10/23/2026 Pre-bid Conference Information: Attendance at the pre-bid conference is optional. Da",
@@ -61025,7 +61000,7 @@
    "method": "Request for Qualifications",
    "date": "2026-04-20",
    "dueDate": "2027-04-20T17:00:00.000",
-   "daysLeft": 145,
+   "daysLeft": 144,
    "epin": "PQL000136",
    "submitTo": "Olmsted Center Annex, Flushing Meadows Corona Park, Flushing, NY 11368",
    "scope": "The New York City (the 'City') Department of Parks and Recreation ('Parks' or the 'Agency') is in the process of establishing a pre-qualified list ('PQL') of general contractors for furnishing all labor, materials, and equipment, necessary and required to perform general construction work for recons",
@@ -61045,7 +61020,7 @@
    "method": "Request for Qualifications",
    "date": "2026-04-20",
    "dueDate": "2027-04-20T17:00:00.000",
-   "daysLeft": 145,
+   "daysLeft": 144,
    "epin": "PQL000158",
    "submitTo": "Olmsted Center Annex, Flushing Meadows Corona Park, Flushing, NY 11368",
    "scope": "The New York City (the 'City') Department of Parks and Recreation ('Parks' or the 'Agency') is establishing a pre-qualified list ('PQL') of general contractors for furnishing all labor, materials and equipment, necessary and required to perform general construction site work on NYC parklands. This P",
@@ -61065,7 +61040,7 @@
    "method": "Request for Qualifications",
    "date": "2026-04-20",
    "dueDate": "2027-04-20T17:00:00.000",
-   "daysLeft": 145,
+   "daysLeft": 144,
    "epin": "PQL000152",
    "submitTo": "Olmsted Center Annex, Flushing Meadows Corona Park, Flushing, NY 11368",
    "scope": "The New York City (the 'City') Department of Parks and Recreation ('Parks' or the 'Agency') is in the process of establishing a pre-qualified list ('PQL') of general contractors for furnishing all labor, materials and equipment, necessary and required to perform general construction work for the con",
@@ -61085,7 +61060,7 @@
    "method": "Request for Qualifications",
    "date": "2026-04-20",
    "dueDate": "2027-04-20T17:00:00.000",
-   "daysLeft": 145,
+   "daysLeft": 144,
    "epin": "PQL000154",
    "submitTo": "Olmsted Center Annex, Flushing Meadows Corona Park, Flushing, NY 11368",
    "scope": "The New York City (the 'City') Department of Parks and Recreation ('Parks' or the 'Agency') is establishing a pre-qualified list ('PQL') of general contractors for furnishing all labor, materials and equipment, necessary and required to perform general construction site work on NYC parklands. The es",
@@ -61105,7 +61080,7 @@
    "method": "Required/Authorized Source",
    "date": "2025-10-29",
    "dueDate": "2027-11-08T15:00:00.000",
-   "daysLeft": 289,
+   "daysLeft": 288,
    "epin": "06925R0004",
    "submitTo": "150 Greenwich Street, 37th Floor, New York, NY 10007",
    "scope": "The Human Resources Administration (HRA) intends to enter into a Required Source contract with Food Bank for New York City for SNAP Outreach to increase SNAP participation. SNAP Outreach is a 50 percent reimbursement program in with the New York State Office of Temporary and Disability Assistance (O",
@@ -61191,6 +61166,26 @@
    "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
    "contact": {
     "name": "Richard  Cheung",
+    "phone": "(347) 396-6658",
+    "email": "rfp@health.nyc.gov"
+   },
+   "isNew": false
+  },
+  {
+   "id": "20241017006",
+   "kind": "SOLICITATION",
+   "agency": "Health and Mental Hygiene",
+   "title": "OPEN-ENDED ' JUSTICE INVOLVED SUPPORTIVE HOUSING (JISH)",
+   "category": "Human Services/Client Services",
+   "method": "Competitive Sealed Proposals/Pre-Qualified List",
+   "date": "2024-10-24",
+   "dueDate": "2034-12-29T23:59:00.000",
+   "daysLeft": 400,
+   "epin": "81622P0004",
+   "submitTo": "42-09 28th Street, 17th Floor, WS 17-89, Long Island City, NY 11101-4132",
+   "scope": "The New York City Department of Health and Mental Hygiene ('Health Department') continues to seek proposals for the Justice Involved Supportive Housing (Open-Ended) Request for Proposals (RFP) through the City's Procurement and Sourcing Solutions Portal ('PASSPort' system). This RFP is intended to p",
+   "contact": {
+    "name": "Richard Cheung",
     "phone": "(347) 396-6658",
     "email": "rfp@health.nyc.gov"
    },
@@ -61531,23 +61526,388 @@
    "date": "2026-09-16",
    "daysAgo": 14,
    "isNew": false
-  },
-  {
-   "id": "20260909008",
-   "kind": "AWARD",
-   "vendor": "D&G Elite Construction",
-   "vendorAddress": "627 Broadway",
-   "agency": "Parks and Recreation",
-   "amount": 6159109,
-   "title": "QG-1523M Renewal: Queens Tree-Damaged Sidewalk Reconstruction",
-   "category": "Construction/Construction Services",
-   "method": "Renewal",
-   "date": "2026-09-15",
-   "daysAgo": 15,
-   "isNew": false
   }
  ],
  "openings": [
+  {
+   "id": "NA-0081-26-129161",
+   "name": "Mahant 142 Inc",
+   "legal": "Mahant 142 Inc",
+   "kind": "Grocery Store",
+   "address": "142-06 41st Ave, Flushing",
+   "county": "Queens",
+   "zip": "11355",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7592,
+    -73.8256
+   ]
+  },
+  {
+   "id": "NA-0346-26-129150",
+   "name": "Sardi's",
+   "legal": "SHUBERT SARDIS LLC & GEGE 234 WEST 44TH LLC",
+   "kind": "Catering Establishment",
+   "address": "234 W 44th St, New York",
+   "county": "Manhattan",
+   "zip": "10036",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "entity",
+    "single-word",
+    "possessive"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7578,
+    -73.9876
+   ]
+  },
+  {
+   "id": "NA-0002-26-129133",
+   "name": "EMPIRE MERCHANTS, LLC",
+   "legal": "EMPIRE MERCHANTS, LLC",
+   "kind": "Wholesale Beer",
+   "address": "16 Bridgewater St, Brooklyn",
+   "county": "Brooklyn",
+   "zip": "11222",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7278,
+    -73.9344
+   ]
+  },
+  {
+   "id": "NA-0340-26-129128",
+   "name": "LAOZAO HOTPOT 8ST LLC",
+   "legal": "LAOZAO HOTPOT 8ST LLC",
+   "kind": "Restaurant",
+   "address": "37 Saint Marks Pl, New York",
+   "county": "Manhattan",
+   "zip": "10003",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7289,
+    -73.9879
+   ]
+  },
+  {
+   "id": "NA-0081-26-129129",
+   "name": "Jackson Market",
+   "legal": "Namaste Food Bazaar Inc",
+   "kind": "Grocery Store",
+   "address": "78-09 37th Ave, Jackson Heights",
+   "county": "Queens",
+   "zip": "11372",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "entity",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7497,
+    -73.8878
+   ]
+  },
+  {
+   "id": "NA-0340-26-129111",
+   "name": "Sardi's",
+   "legal": "SHUBERT SARDIS LLC & GEGE 234 WEST 44TH LLC",
+   "kind": "Restaurant",
+   "address": "234 W 44th St, New York",
+   "county": "Manhattan",
+   "zip": "10036",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "entity",
+    "single-word",
+    "possessive"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7578,
+    -73.9876
+   ]
+  },
+  {
+   "id": "NA-0240-26-129120",
+   "name": "5IVE SPICE BAYSIDE INC.",
+   "legal": "5IVE SPICE BAYSIDE INC.",
+   "kind": "Restaurant",
+   "address": "42-07 Bell Blvd, Bayside",
+   "county": "Queens",
+   "zip": "11361",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "phone": "3474539491",
+   "phoneVia": "5IVE SPICE",
+   "isNew": true,
+   "ll": [
+    40.7625,
+    -73.7702
+   ]
+  },
+  {
+   "id": "NA-0081-26-129117",
+   "name": "Liberty Convenience & Mart Inc",
+   "legal": "Liberty Convenience & Mart Inc",
+   "kind": "Grocery Store",
+   "address": "23-01 41st Ave Ste 1E, Long Island City",
+   "county": "Queens",
+   "zip": "11101",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7531,
+    -73.9402
+   ]
+  },
+  {
+   "id": "NA-0081-26-129096",
+   "name": "BOLLA OPERATING CORP.",
+   "legal": "BOLLA OPERATING CORP.",
+   "kind": "Grocery Store",
+   "address": "1998 Atlantic Ave, Brooklyn",
+   "county": "Brooklyn",
+   "zip": "11233",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "premises",
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.6766,
+    -73.9215
+   ]
+  },
+  {
+   "id": "NA-0081-26-129081",
+   "name": "Phoenix Rising Grocery Corp.",
+   "legal": "Phoenix Rising Grocery Corp.",
+   "kind": "Grocery Store",
+   "address": "108-05 101st Avenue, Ozone Park",
+   "county": "Queens",
+   "zip": "11416",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.6876,
+    -73.8354
+   ]
+  },
+  {
+   "id": "NA-0240-26-129083",
+   "name": "Barolo West Inc",
+   "legal": "Barolo West Inc",
+   "kind": "Restaurant",
+   "address": "250 W 49th St, New York",
+   "county": "Manhattan",
+   "zip": "10019",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7612,
+    -73.9862
+   ]
+  },
+  {
+   "id": "NA-0240-26-129079",
+   "name": "Min Sok Soon Dei Inc",
+   "legal": "Min Sok Soon Dei Inc",
+   "kind": "Restaurant",
+   "address": "41-04 162nd St, Flushing",
+   "county": "Queens",
+   "zip": "11358",
+   "received": "2026-09-29",
+   "daysAgo": 0,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7612,
+    -73.8041
+   ]
+  },
+  {
+   "id": "NA-0267-26-129064",
+   "name": "Ants Coffee Williamsburg",
+   "legal": "Ants Coffee Williamsburg LLC",
+   "kind": "Food & Beverage Business",
+   "address": "102A 102B Broadway, Brooklyn",
+   "county": "Brooklyn",
+   "zip": "11249",
+   "received": "2026-09-29",
+   "daysAgo": 1,
+   "src": "sla",
+   "evidence": [
+    "entity",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.7102,
+    -73.9652
+   ]
+  },
+  {
+   "id": "NA-0267-26-129060",
+   "name": "Coffeine Inc",
+   "legal": "Coffeine Inc",
+   "kind": "Food & Beverage Business",
+   "address": "561 4th Ave, Brooklyn",
+   "county": "Brooklyn",
+   "zip": "11215",
+   "received": "2026-09-29",
+   "daysAgo": 1,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.6659,
+    -73.992
+   ]
+  },
+  {
+   "id": "NA-0081-26-129056",
+   "name": "198th Delicious Deli Inc.",
+   "legal": "198th Delicious Deli Inc.",
+   "kind": "Grocery Store",
+   "address": "284 E 198th St, Bronx",
+   "county": "Bronx",
+   "zip": "10458",
+   "received": "2026-09-29",
+   "daysAgo": 1,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.8686,
+    -73.8887
+   ]
+  },
+  {
+   "id": "NA-0009-26-129048",
+   "name": "Big Daddy Trading Corporation",
+   "legal": "Big Daddy Trading Corporation",
+   "kind": "Wholesale Liquor",
+   "address": "1294 Utica Ave, Brooklyn",
+   "county": "Brooklyn",
+   "zip": "11203",
+   "received": "2026-09-29",
+   "daysAgo": 1,
+   "src": "sla",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.641,
+    -73.9296
+   ]
+  },
+  {
+   "id": "NA-0081-26-129027",
+   "name": "Superfresh Supermarket",
+   "legal": "Chris Food Corp",
+   "kind": "Grocery Store",
+   "address": "5825 Broadway, Bronx",
+   "county": "Bronx",
+   "zip": "10463",
+   "received": "2026-09-29",
+   "daysAgo": 1,
+   "src": "sla",
+   "evidence": [
+    "entity",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true,
+   "ll": [
+    40.8855,
+    -73.9008
+   ]
+  },
   {
    "id": "NA-0340-26-128972",
    "name": "1644 3rd Ave Corp.",
@@ -61753,7 +62113,6 @@
    "daysAgo": 4,
    "src": "sla",
    "evidence": [
-    "chain",
     "entity",
     "trade"
    ],
@@ -61906,7 +62265,7 @@
    "county": "Brooklyn",
    "zip": "11211",
    "received": "2026-09-25",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -61928,7 +62287,7 @@
    "county": "Brooklyn",
    "zip": "11220",
    "received": "2026-09-25",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -62050,387 +62409,6 @@
    "ll": [
     40.6819,
     -73.938
-   ]
-  },
-  {
-   "id": "NA-0081-26-128566",
-   "name": "Gramercy Grocery LLC",
-   "legal": "Gramercy Grocery LLC",
-   "kind": "Grocery Store",
-   "address": "359 2nd Ave, New York",
-   "county": "Manhattan",
-   "zip": "10010",
-   "received": "2026-09-24",
-   "daysAgo": 5,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7364,
-    -73.9823
-   ]
-  },
-  {
-   "id": "NA-0081-26-128560",
-   "name": "Worth St Market LLC",
-   "legal": "Worth St Market LLC",
-   "kind": "Grocery Store",
-   "address": "111 Worth St, New York",
-   "county": "Manhattan",
-   "zip": "10013",
-   "received": "2026-09-24",
-   "daysAgo": 5,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7161,
-    -74.0035
-   ]
-  },
-  {
-   "id": "NA-0071-26-128544",
-   "name": "Beyond Deli Corp.",
-   "legal": "Beyond Deli Corp.",
-   "kind": "Grocery Store",
-   "address": "185 Norman Ave, Brooklyn",
-   "county": "Brooklyn",
-   "zip": "11222",
-   "received": "2026-09-24",
-   "daysAgo": 5,
-   "src": "sla",
-   "evidence": [
-    "premises",
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7272,
-    -73.9469
-   ]
-  },
-  {
-   "id": "NA-0002-26-128520",
-   "name": "The Foundry",
-   "legal": "The Foundry Distribution Co., LLC",
-   "kind": "Wholesale Beer",
-   "address": "4516 251st St, Little Neck",
-   "county": "Queens",
-   "zip": "11362",
-   "received": "2026-09-24",
-   "daysAgo": 5,
-   "src": "sla",
-   "evidence": [
-    "chain",
-    "entity",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7683,
-    -73.7368
-   ]
-  },
-  {
-   "id": "NA-0340-26-128517",
-   "name": "Maay Group AP LLC",
-   "legal": "Maay Group AP LLC",
-   "kind": "Restaurant",
-   "address": "944 Flatbush Ave, Brooklyn",
-   "county": "Brooklyn",
-   "zip": "11226",
-   "received": "2026-09-24",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.6484,
-    -73.9586
-   ]
-  },
-  {
-   "id": "NA-0081-26-128510",
-   "name": "522 MAX DELI & GROCERY INC.",
-   "legal": "522 MAX DELI & GROCERY INC.",
-   "kind": "Grocery Store",
-   "address": "522 E 240th St, Bronx",
-   "county": "Bronx",
-   "zip": "10470",
-   "received": "2026-09-24",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.9009,
-    -73.8619
-   ]
-  },
-  {
-   "id": "NA-0340-26-128501",
-   "name": "Triangle",
-   "legal": "Discotriangle LLC",
-   "kind": "Restaurant",
-   "address": "87 S Elliott Pl, Brooklyn",
-   "county": "Brooklyn",
-   "zip": "11217",
-   "received": "2026-09-24",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "entity",
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.6869,
-    -73.9754
-   ]
-  },
-  {
-   "id": "NA-0081-26-128496",
-   "name": "Super Fresh Market",
-   "legal": "A & M MADISON FOOD CORP.",
-   "kind": "Grocery Store",
-   "address": "1660 Madison Ave, New York",
-   "county": "Manhattan",
-   "zip": "10029",
-   "received": "2026-09-24",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "entity",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7967,
-    -73.9479
-   ]
-  },
-  {
-   "id": "NA-0340-26-128489",
-   "name": "Meeker Restaurant Corp.",
-   "legal": "Meeker Restaurant Corp.",
-   "kind": "Restaurant",
-   "address": "593 Meeker Ave, Brooklyn",
-   "county": "Brooklyn",
-   "zip": "11222",
-   "received": "2026-09-24",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7217,
-    -73.9422
-   ]
-  },
-  {
-   "id": "NA-0100-26-128416",
-   "name": "Thirst Wine LLC",
-   "legal": "Thirst Wine LLC",
-   "kind": "Liquor Store",
-   "address": "11 Greene Ave, Brooklyn",
-   "county": "Brooklyn",
-   "zip": "11238",
-   "received": "2026-09-23",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.6861,
-    -73.9729
-   ]
-  },
-  {
-   "id": "NA-0340-26-128421",
-   "name": "Applebee's Neighborhood Grill & Bar",
-   "legal": "APPLE FOOD SERVICE OF LONG ISLAND, LLC",
-   "kind": "Restaurant",
-   "address": "5100 Kings Plz, Brooklyn",
-   "county": "Brooklyn",
-   "zip": "11234",
-   "received": "2026-09-23",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "entity",
-    "trade",
-    "possessive"
-   ],
-   "nameShown": true,
-   "phone": "2018184669",
-   "phoneVia": "APPLEBEE'S",
-   "isNew": true,
-   "ll": [
-    40.6095,
-    -73.9195
-   ]
-  },
-  {
-   "id": "NA-0071-26-128420",
-   "name": "Jersey St. Food Corp",
-   "legal": "Jersey St. Food Corp",
-   "kind": "Grocery Store",
-   "address": "376 Jersey St, Staten Island",
-   "county": "Staten Island",
-   "zip": "10301",
-   "received": "2026-09-23",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "premises",
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.6393,
-    -74.0876
-   ]
-  },
-  {
-   "id": "NA-0340-26-127479",
-   "name": "POLLOS JUQUILA 2 LLC",
-   "legal": "POLLOS JUQUILA 2 LLC",
-   "kind": "Restaurant",
-   "address": "429 W 125th St, New York",
-   "county": "Manhattan",
-   "zip": "10027",
-   "received": "2026-09-23",
-   "daysAgo": 6,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.8123,
-    -73.9549
-   ]
-  },
-  {
-   "id": "NA-0370-26-128342",
-   "name": "El Parche Inc",
-   "legal": "El Parche Inc",
-   "kind": "Food & Beverage Business",
-   "address": "45-50 46th Street, Woodside",
-   "county": "Queens",
-   "zip": "11377",
-   "received": "2026-09-23",
-   "daysAgo": 7,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true,
-   "ll": [
-    40.7418,
-    -73.9193
-   ]
-  },
-  {
-   "id": "NA-0340-26-128302",
-   "name": "Unnati Group Limited",
-   "legal": "Unnati Group Limited",
-   "kind": "Restaurant",
-   "address": "50-17 Skillman Avenue, Woodside",
-   "county": "Queens",
-   "zip": "11377",
-   "received": "2026-09-22",
-   "daysAgo": 7,
-   "src": "sla",
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false,
-   "ll": [
-    40.7463,
-    -73.9135
-   ]
-  },
-  {
-   "id": "NA-0081-26-128284",
-   "name": "MELLIZOS EMPIRE DELI LLC",
-   "legal": "MELLIZOS EMPIRE DELI LLC",
-   "kind": "Grocery Store",
-   "address": "559 W 158th St, New York",
-   "county": "Manhattan",
-   "zip": "10032",
-   "received": "2026-09-22",
-   "daysAgo": 7,
-   "src": "sla",
-   "evidence": [
-    "premises",
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false,
-   "ll": [
-    40.8347,
-    -73.9438
-   ]
-  },
-  {
-   "id": "NA-0340-26-128248",
-   "name": "Artemis",
-   "legal": "ARTEMIS EARTH & SEA LLC",
-   "kind": "Restaurant",
-   "address": "850 3rd Ave, New York",
-   "county": "Manhattan",
-   "zip": "10022",
-   "received": "2026-09-22",
-   "daysAgo": 7,
-   "src": "sla",
-   "evidence": [
-    "entity",
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false,
-   "ll": [
-    40.7569,
-    -73.9706
    ]
   },
   {
