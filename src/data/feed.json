@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-10T14:49:37.546Z",
+ "generatedAt": "2026-10-10T15:46:11.182Z",
  "sources": {
   "facades": "2026-10-09",
   "permits": "2026-10-09",
@@ -31,7 +31,7 @@
  "whatsNew": {
   "windowHours": 168,
   "buildings": 1,
-  "signals": 2,
+  "signals": 3,
   "contracts": 36,
   "openings": 127,
   "gas": 0,
@@ -5222,11 +5222,11 @@
     ]
    },
    {
-    "bin": "4436337",
-    "address": "163-35 130 AVENUE",
+    "bin": "4193248",
+    "address": "84-70 129 STREET",
     "borough": "Queens",
-    "block": "12495",
-    "lot": "2",
+    "block": "9249",
+    "lot": "40",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 4,
@@ -5237,7 +5237,7 @@
       "monthsLeft": 4
      },
      {
-      "kind": "UNSAFE_PRIOR",
+      "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 4
      },
@@ -5247,65 +5247,72 @@
       "monthsLeft": 4
      },
      {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
+      "kind": "FILING_STALLED",
+      "urgency": 3,
       "monthsLeft": 4
      }
     ],
     "score": 7,
-    "lastStatus": "UNSAFE",
+    "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2024-07-22",
-    "priorQewi": "RJ STAHL ARCHITECT, PC",
-    "owner": "ROCHDALE VILLAGE INC.",
-    "finesOwed": 56250,
+    "lastFiling": "2022-05-19",
+    "priorQewi": "SUPERSTRUCTURES E+A",
+    "owner": "84-70 129TH ST OWNERS CORP",
+    "finesOwed": 18750,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": {
-     "devices": 6,
-     "cat1Missing": 6,
+     "devices": 2,
+     "cat1Missing": 0,
      "cat1Overdue": 0,
-     "cat5Due": 0
+     "cat5Due": 2
     },
     "shed": {
-     "state": "active",
-     "ageDays": 762,
-     "since": "2024-09-09",
-     "until": "2027-03-09",
-     "type": "Suspended Scaffold",
-     "who": "PROTO RESTORATION CONSTRU",
+     "state": "lapsed",
+     "ageDays": 3259,
+     "since": "2017-11-08",
+     "until": "2022-01-20",
+     "type": "Sidewalk Shed",
+     "who": "BILLY ENTERPRISES INC",
      "longStanding": true
     },
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 4900,
-    "freshHaz": {
-     "daysAgo": 80,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "AT TIME OF INSPECTION OF PERMITTED SIDEWALK SHED AT EXPOSURE 1,2,,& 4 OBSERVED LOOSE, UNSECURED DEBRIS NETTING WITH HOLES AT EXPOSURE 1 & 2 CREATING H"
+    "filing": {
+     "filed": "2025-12-17",
+     "daysSince": 298,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": true,
+     "cost": 430730,
+     "who": "SCOPE ENGINEERING CONSULTANTS PC"
     },
+    "height": 67,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 25000,
+    "freshHaz": null,
     "nextHearing": null,
     "urgencyScore": 16,
-    "zip": "11434",
+    "zip": "11415",
     "multifamily": true,
     "agent": {
-     "company": "Douglas Elliman Property Management",
+     "company": "NEW BEDFORD MANAGEMENT CORP.",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "169-65 137th AVENUE, Jamaica NY 11434",
+     "address": "210 EAST 23 STREET, 5FL, New York NY 10010",
+     "confidence": "verified",
+     "contactSource": "nbmgmt.com",
      "lapsed": false,
-     "portfolio": 15,
-     "contactKnown": false,
+     "portfolio": 26,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
-    "fresh": [],
+    "fresh": [
+     "ELEV_DUE"
+    ],
     "ll": [
-     40.6761,
-     -73.7731
+     40.705,
+     -73.8241
     ]
    },
    {
@@ -5398,11 +5405,11 @@
     ]
    },
    {
-    "bin": "4445259",
-    "address": "105-00 SHORE FRONT PARKWAY",
+    "bin": "4436337",
+    "address": "163-35 130 AVENUE",
     "borough": "Queens",
-    "block": "16175",
-    "lot": "1",
+    "block": "12495",
+    "lot": "2",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 4,
@@ -5418,6 +5425,11 @@
       "monthsLeft": 4
      },
      {
+      "kind": "ELEV_DUE",
+      "urgency": 2,
+      "monthsLeft": 4
+     },
+     {
       "kind": "SHED_NO_REPAIR",
       "urgency": 4,
       "monthsLeft": 4
@@ -5426,49 +5438,57 @@
     "score": 7,
     "lastStatus": "UNSAFE",
     "lastCycle": "9",
-    "lastFiling": "2025-12-15",
-    "priorQewi": "MERRITT ENGINEERING CONSULTANT. DPC",
-    "owner": "DAYTON TOWERS INC..",
-    "finesOwed": 71560,
+    "lastFiling": "2024-07-22",
+    "priorQewi": "RJ STAHL ARCHITECT, PC",
+    "owner": "ROCHDALE VILLAGE INC.",
+    "finesOwed": 56250,
     "mgmtChange": null,
     "ownerChange": null,
-    "elevator": null,
+    "elevator": {
+     "devices": 6,
+     "cat1Missing": 6,
+     "cat1Overdue": 0,
+     "cat5Due": 0
+    },
     "shed": {
      "state": "active",
-     "ageDays": 1706,
-     "since": "2022-02-08",
-     "until": "2026-12-22",
-     "type": "Sidewalk Shed",
-     "who": "XINOS CONSTRUCTION CORP",
+     "ageDays": 762,
+     "since": "2024-09-09",
+     "until": "2027-03-09",
+     "type": "Suspended Scaffold",
+     "who": "PROTO RESTORATION CONSTRU",
      "longStanding": true
     },
     "filing": null,
     "height": null,
     "occupied": false,
     "payingForNothing": true,
-    "ecbBalance": 9375,
-    "freshHaz": null,
-    "nextHearing": "2026-10-27",
+    "ecbBalance": 4900,
+    "freshHaz": {
+     "daysAgo": 80,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "AT TIME OF INSPECTION OF PERMITTED SIDEWALK SHED AT EXPOSURE 1,2,,& 4 OBSERVED LOOSE, UNSECURED DEBRIS NETTING WITH HOLES AT EXPOSURE 1 & 2 CREATING H"
+    },
+    "nextHearing": null,
     "urgencyScore": 16,
-    "zip": "11694",
+    "zip": "11434",
     "multifamily": true,
     "agent": {
-     "company": "METRO MANAGEMENT DEVELOPMENT",
+     "company": "Douglas Elliman Property Management",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "8000 SHORE FRONT PWKY, Rockaway Park NY 11694",
-     "confidence": "verified",
-     "contactSource": "metromanagement.com",
+     "address": "169-65 137th AVENUE, Jamaica NY 11434",
      "lapsed": false,
-     "portfolio": 16,
-     "contactKnown": true,
+     "portfolio": 15,
+     "contactKnown": false,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.5826,
-     -73.824
+     40.6761,
+     -73.7731
     ]
    },
    {
@@ -5548,6 +5568,80 @@
     "ll": [
      40.6298,
      -73.9266
+    ]
+   },
+   {
+    "bin": "4445259",
+    "address": "105-00 SHORE FRONT PARKWAY",
+    "borough": "Queens",
+    "block": "16175",
+    "lot": "1",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 4,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 4
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 4
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 4
+     }
+    ],
+    "score": 7,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2025-12-15",
+    "priorQewi": "MERRITT ENGINEERING CONSULTANT. DPC",
+    "owner": "DAYTON TOWERS INC..",
+    "finesOwed": 71560,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 1706,
+     "since": "2022-02-08",
+     "until": "2026-12-22",
+     "type": "Sidewalk Shed",
+     "who": "XINOS CONSTRUCTION CORP",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 9375,
+    "freshHaz": null,
+    "nextHearing": "2026-10-27",
+    "urgencyScore": 16,
+    "zip": "11694",
+    "multifamily": true,
+    "agent": {
+     "company": "METRO MANAGEMENT DEVELOPMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "8000 SHORE FRONT PWKY, Rockaway Park NY 11694",
+     "confidence": "verified",
+     "contactSource": "metromanagement.com",
+     "lapsed": false,
+     "portfolio": 16,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.5826,
+     -73.824
     ]
    },
    {
@@ -6736,72 +6830,6 @@
     ]
    },
    {
-    "bin": "4002006",
-    "address": "42-09 47 AVENUE",
-    "borough": "Queens",
-    "block": "169",
-    "lot": "1",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 4,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 4
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 4
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-02-10",
-    "priorQewi": "GEORGE J. XERAKIAS",
-    "owner": "GEBS REALTY LLC",
-    "finesOwed": 13250,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 16250,
-    "freshHaz": {
-     "daysAgo": 25,
-     "hazardous": true,
-     "severity": "CLASS - 1",
-     "desc": "FAILURE TO CERTIFY CORRECTIONS FOR VIOLATION NUMBER 39176967M, COMPLY WITH COMMISSIONER'S ORDER"
-    },
-    "nextHearing": "2026-11-24",
-    "urgencyScore": 15,
-    "zip": "11104",
-    "multifamily": true,
-    "agent": {
-     "company": "Bronstein Properties LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "108-18 Queens Blvd, 302, Forest Hills NY 11375",
-     "confidence": "verified",
-     "contactSource": "bronsteinproperties.com",
-     "lapsed": false,
-     "portfolio": 6,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.7418,
-     -73.9223
-    ]
-   },
-   {
     "bin": "3346864",
     "address": "100 EAST 93 STREET",
     "borough": "Brooklyn",
@@ -6880,11 +6908,11 @@
     ]
    },
    {
-    "bin": "4051384",
-    "address": "63-10 108 STREET",
+    "bin": "4002006",
+    "address": "42-09 47 AVENUE",
     "borough": "Queens",
-    "block": "2146",
-    "lot": "28",
+    "block": "169",
+    "lot": "1",
     "subCycle": "10A",
     "deadline": "2027-02-21",
     "monthsLeft": 4,
@@ -6898,60 +6926,51 @@
       "kind": "SWARMP_CARRYOVER",
       "urgency": 3,
       "monthsLeft": 4
-     },
-     {
-      "kind": "SHED_NO_REPAIR",
-      "urgency": 4,
-      "monthsLeft": 4
      }
     ],
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-11-22",
-    "priorQewi": "SCOPE ENGINEERING CONSULTANTS PC",
-    "owner": "EARTH LEASING LP",
-    "finesOwed": 6000,
+    "lastFiling": "2022-02-10",
+    "priorQewi": "GEORGE J. XERAKIAS",
+    "owner": "GEBS REALTY LLC",
+    "finesOwed": 13250,
     "mgmtChange": null,
     "ownerChange": null,
     "elevator": null,
-    "shed": {
-     "state": "active",
-     "ageDays": 702,
-     "since": "2024-11-08",
-     "until": "2026-11-03",
-     "type": "Sidewalk Shed",
-     "who": "PLATINUM SERVICES NY LLC",
-     "longStanding": true
-    },
+    "shed": null,
     "filing": null,
     "height": null,
     "occupied": false,
-    "payingForNothing": true,
-    "ecbBalance": 0,
-    "freshHaz": null,
-    "nextHearing": null,
+    "payingForNothing": false,
+    "ecbBalance": 16250,
+    "freshHaz": {
+     "daysAgo": 25,
+     "hazardous": true,
+     "severity": "CLASS - 1",
+     "desc": "FAILURE TO CERTIFY CORRECTIONS FOR VIOLATION NUMBER 39176967M, COMPLY WITH COMMISSIONER'S ORDER"
+    },
+    "nextHearing": "2026-11-24",
     "urgencyScore": 15,
-    "zip": "11375",
+    "zip": "11104",
     "multifamily": true,
     "agent": {
-     "company": "ESTATES NY REAL ESTATE SERVICES LLC",
+     "company": "Bronstein Properties LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "59-17 JUNCTION BLVD, 2002, Elmhurst NY 11373",
-     "confidence": "affiliate",
-     "contactSource": "lefrak.com (contact details on homepage)",
-     "via": "LeFrak Organization",
+     "address": "108-18 Queens Blvd, 302, Forest Hills NY 11375",
+     "confidence": "verified",
+     "contactSource": "bronsteinproperties.com",
      "lapsed": false,
-     "portfolio": 3,
+     "portfolio": 6,
      "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7346,
-     -73.8508
+     40.7418,
+     -73.9223
     ]
    },
    {
@@ -7045,10 +7064,10 @@
     ]
    },
    {
-    "bin": "4051338",
-    "address": "62-60 108 STREET",
+    "bin": "4051384",
+    "address": "63-10 108 STREET",
     "borough": "Queens",
-    "block": "2145",
+    "block": "2146",
     "lot": "28",
     "subCycle": "10A",
     "deadline": "2027-02-21",
@@ -7073,9 +7092,9 @@
     "score": 7,
     "lastStatus": "SWARMP",
     "lastCycle": "9",
-    "lastFiling": "2021-11-20",
-    "priorQewi": "SCOPE ENGINEERING CONSULTANTS, P.C.",
-    "owner": "GARDEN LEASING LP",
+    "lastFiling": "2021-11-22",
+    "priorQewi": "SCOPE ENGINEERING CONSULTANTS PC",
+    "owner": "EARTH LEASING LP",
     "finesOwed": 6000,
     "mgmtChange": null,
     "ownerChange": null,
@@ -7115,8 +7134,8 @@
     "isNew": false,
     "fresh": [],
     "ll": [
-     40.7352,
-     -73.8511
+     40.7346,
+     -73.8508
     ]
    },
    {
@@ -7199,6 +7218,81 @@
     "ll": [
      40.6395,
      -74
+    ]
+   },
+   {
+    "bin": "4051338",
+    "address": "62-60 108 STREET",
+    "borough": "Queens",
+    "block": "2145",
+    "lot": "28",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 4,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 4
+     },
+     {
+      "kind": "SWARMP_CARRYOVER",
+      "urgency": 3,
+      "monthsLeft": 4
+     },
+     {
+      "kind": "SHED_NO_REPAIR",
+      "urgency": 4,
+      "monthsLeft": 4
+     }
+    ],
+    "score": 7,
+    "lastStatus": "SWARMP",
+    "lastCycle": "9",
+    "lastFiling": "2021-11-20",
+    "priorQewi": "SCOPE ENGINEERING CONSULTANTS, P.C.",
+    "owner": "GARDEN LEASING LP",
+    "finesOwed": 6000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "active",
+     "ageDays": 702,
+     "since": "2024-11-08",
+     "until": "2026-11-03",
+     "type": "Sidewalk Shed",
+     "who": "PLATINUM SERVICES NY LLC",
+     "longStanding": true
+    },
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": true,
+    "ecbBalance": 0,
+    "freshHaz": null,
+    "nextHearing": null,
+    "urgencyScore": 15,
+    "zip": "11375",
+    "multifamily": true,
+    "agent": {
+     "company": "ESTATES NY REAL ESTATE SERVICES LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "59-17 JUNCTION BLVD, 2002, Elmhurst NY 11373",
+     "confidence": "affiliate",
+     "contactSource": "lefrak.com (contact details on homepage)",
+     "via": "LeFrak Organization",
+     "lapsed": false,
+     "portfolio": 3,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.7352,
+     -73.8511
     ]
    },
    {
@@ -8882,88 +8976,6 @@
     "ll": [
      40.7055,
      -73.9673
-    ]
-   },
-   {
-    "bin": "4193248",
-    "address": "84-70 129 STREET",
-    "borough": "Queens",
-    "block": "9249",
-    "lot": "40",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 4,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 4
-     },
-     {
-      "kind": "SWARMP_CARRYOVER",
-      "urgency": 3,
-      "monthsLeft": 4
-     },
-     {
-      "kind": "FILING_STALLED",
-      "urgency": 3,
-      "monthsLeft": 4
-     }
-    ],
-    "score": 7,
-    "lastStatus": "SWARMP",
-    "lastCycle": "9",
-    "lastFiling": "2022-05-19",
-    "priorQewi": "SUPERSTRUCTURES E+A",
-    "owner": "84-70 129TH ST OWNERS CORP",
-    "finesOwed": 18750,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": null,
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 3259,
-     "since": "2017-11-08",
-     "until": "2022-01-20",
-     "type": "Sidewalk Shed",
-     "who": "BILLY ENTERPRISES INC",
-     "longStanding": true
-    },
-    "filing": {
-     "filed": "2025-12-17",
-     "daysSince": 298,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": true,
-     "cost": 430730,
-     "who": "SCOPE ENGINEERING CONSULTANTS PC"
-    },
-    "height": 67,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 25000,
-    "freshHaz": null,
-    "nextHearing": null,
-    "urgencyScore": 14,
-    "zip": "11415",
-    "multifamily": true,
-    "agent": {
-     "company": "NEW BEDFORD MANAGEMENT CORP.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "210 EAST 23 STREET, 5FL, New York NY 10010",
-     "confidence": "verified",
-     "contactSource": "nbmgmt.com",
-     "lapsed": false,
-     "portfolio": 26,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.705,
-     -73.8241
     ]
    },
    {
@@ -58568,26 +58580,6 @@
    "isNew": true
   },
   {
-   "id": "20260928012",
-   "kind": "INTENT",
-   "agency": "Small Business Services",
-   "title": "FY27 MANHATTAN INDUSTRIAL BUSINESS ZONE NEGOTIATED ACQUISITION EXTENSION CONTRACT - NEXT STREET FINANCIAL , LLC",
-   "category": "Services (other than human services)",
-   "method": "Negotiated Acquisition",
-   "date": "2026-10-02",
-   "dueDate": "2026-10-16T19:00:00.000",
-   "daysLeft": 5,
-   "epin": "80127N0002",
-   "submitTo": null,
-   "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension Contract with Next Street Financial LLC, to continue Industrial Business Zone services in Manhattan to reinforce the City's efforts to support the industrial and manufacturing sector by responding to cu",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
-   },
-   "isNew": false
-  },
-  {
    "id": "20260925028",
    "kind": "INTENT",
    "agency": "Small Business Services",
@@ -58628,18 +58620,18 @@
    "isNew": false
   },
   {
-   "id": "20260928010",
+   "id": "20260928012",
    "kind": "INTENT",
    "agency": "Small Business Services",
-   "title": "FY27 NYC Business Solution Center Upper Manhattan / Washington Heights - Negotiated Acquisition Extension",
+   "title": "FY27 MANHATTAN INDUSTRIAL BUSINESS ZONE NEGOTIATED ACQUISITION EXTENSION CONTRACT - NEXT STREET FINANCIAL , LLC",
    "category": "Services (other than human services)",
    "method": "Negotiated Acquisition",
    "date": "2026-10-02",
    "dueDate": "2026-10-16T19:00:00.000",
    "daysLeft": 5,
-   "epin": "80127N0005",
+   "epin": "80127N0002",
    "submitTo": null,
-   "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension contract with Harlem Commonwealth Council Inc to provide outcome focused services and assistance to small businesses and entrepreneurs including but not limited to recruitment, training, financing, busi",
+   "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension Contract with Next Street Financial LLC, to continue Industrial Business Zone services in Manhattan to reinforce the City's efforts to support the industrial and manufacturing sector by responding to cu",
    "contact": {
     "name": null,
     "phone": null,
@@ -58660,6 +58652,26 @@
    "epin": "80127N0006",
    "submitTo": null,
    "scope": "The New York City Department of Small Business Services is entering into a Negotiated Acquisition Extension contract with Brooklyn Alliance Inc to provide a suite of business services in Brooklyn that include but are not limited to financing awards, recruitment, training, business education, Minorit",
+   "contact": {
+    "name": null,
+    "phone": null,
+    "email": null
+   },
+   "isNew": false
+  },
+  {
+   "id": "20260928010",
+   "kind": "INTENT",
+   "agency": "Small Business Services",
+   "title": "FY27 NYC Business Solution Center Upper Manhattan / Washington Heights - Negotiated Acquisition Extension",
+   "category": "Services (other than human services)",
+   "method": "Negotiated Acquisition",
+   "date": "2026-10-02",
+   "dueDate": "2026-10-16T19:00:00.000",
+   "daysLeft": 5,
+   "epin": "80127N0005",
+   "submitTo": null,
+   "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension contract with Harlem Commonwealth Council Inc to provide outcome focused services and assistance to small businesses and entrepreneurs including but not limited to recruitment, training, financing, busi",
    "contact": {
     "name": null,
     "phone": null,
