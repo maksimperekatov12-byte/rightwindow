@@ -1,24 +1,24 @@
 {
- "generatedAt": "2026-10-13T19:36:57.828Z",
+ "generatedAt": "2026-10-13T20:34:38.458Z",
  "sources": {
   "facades": "2026-10-13",
   "permits": "2026-10-13",
-  "jobs": "2026-10-12",
-  "elevators": "2026-10-11",
+  "jobs": "2026-10-13",
+  "elevators": "2026-10-13",
   "mandates": "2026-10-13",
   "ecb": "2026-10-13",
   "hpd": "2026-08-12",
   "awards": "2026-10-13",
   "dohmh": "2026-10-12",
   "sla": "2026-10-13",
-  "elevatorCompliance": "2026-10-11",
+  "elevatorCompliance": "2026-10-13",
   "acrisThrough": "2026-09-30"
  },
  "sourcesAt": {
   "facades": 1791912798000,
   "permits": 1791917174000,
-  "jobs": 1791836805000,
-  "elevators": 1791750714000,
+  "jobs": 1791923421000,
+  "elevators": 1791923552000,
   "mandates": 1791915346000,
   "ecb": 1791910846000,
   "hpd": 1786546841000,
@@ -26,8 +26,8 @@
   "dohmh": 1791842762000,
   "sla": 1791851570000
  },
- "cityAt": 1791917174000,
- "cityBy": "permits",
+ "cityAt": 1791923552000,
+ "cityBy": "elevators",
  "whatsNew": {
   "windowHours": 168,
   "buildings": 1,
@@ -18055,7 +18055,15 @@
      "who": "BILLY ENTERPRISES INC",
      "longStanding": true
     },
-    "filing": null,
+    "filing": {
+     "filed": "2026-10-12",
+     "daysSince": 2,
+     "status": "Pending CPE/ACPE Assignment",
+     "permitted": false,
+     "stalled": false,
+     "cost": 83245,
+     "who": "East Coast Engineering, PC"
+    },
     "height": null,
     "occupied": false,
     "payingForNothing": false,
@@ -58478,6 +58486,26 @@
    "isNew": false
   },
   {
+   "id": "20260925028",
+   "kind": "INTENT",
+   "agency": "Small Business Services",
+   "title": "FY27 BROOKLYN NORTH INDUSTRIAL BUSINESS ZONE SERVICES",
+   "category": "Services (other than human services)",
+   "method": "Negotiated Acquisition",
+   "date": "2026-10-02",
+   "dueDate": "2026-10-16T19:00:00.000",
+   "daysLeft": 3,
+   "epin": "80127N0003",
+   "submitTo": null,
+   "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension Contract with Evergreen Inc. ' Your North Brooklyn Business Exchange, to continue Industrial Business Zone services in Northern Brooklyn to reinforce the City's efforts to support the industrial and man",
+   "contact": {
+    "name": null,
+    "phone": null,
+    "email": null
+   },
+   "isNew": false
+  },
+  {
    "id": "20260925025",
    "kind": "INTENT",
    "agency": "Small Business Services",
@@ -58550,26 +58578,6 @@
    "epin": "80127N0002",
    "submitTo": null,
    "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension Contract with Next Street Financial LLC, to continue Industrial Business Zone services in Manhattan to reinforce the City's efforts to support the industrial and manufacturing sector by responding to cu",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
-   },
-   "isNew": false
-  },
-  {
-   "id": "20260925028",
-   "kind": "INTENT",
-   "agency": "Small Business Services",
-   "title": "FY27 BROOKLYN NORTH INDUSTRIAL BUSINESS ZONE SERVICES",
-   "category": "Services (other than human services)",
-   "method": "Negotiated Acquisition",
-   "date": "2026-10-02",
-   "dueDate": "2026-10-16T19:00:00.000",
-   "daysLeft": 3,
-   "epin": "80127N0003",
-   "submitTo": null,
-   "scope": "The NYC Department of Small Business Services is entering into a Negotiated Acquisition Extension Contract with Evergreen Inc. ' Your North Brooklyn Business Exchange, to continue Industrial Business Zone services in Northern Brooklyn to reinforce the City's efforts to support the industrial and man",
    "contact": {
     "name": null,
     "phone": null,
@@ -97953,38 +97961,6 @@
     "isNew": false
    },
    {
-    "bin": "4541428",
-    "address": "70-26 QUEENS BOULEVARD",
-    "borough": "Queens",
-    "zip": "11377",
-    "cd": 2,
-    "ll": [
-     40.7399,
-     -73.8939
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-08",
-    "latest": "2025-12-08",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 310,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "GARDEN CITY CONDOMINIUM",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "146-10 35th Avenue, 1A, Flushing NY 11354",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
     "bin": "4618181",
     "address": "40-06 68 STREET",
     "borough": "Queens",
@@ -98008,6 +97984,38 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "40-06 68 ST, PLP, WOODSIDE NY 11377",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "4541428",
+    "address": "70-26 QUEENS BOULEVARD",
+    "borough": "Queens",
+    "zip": "11377",
+    "cd": 2,
+    "ll": [
+     40.7399,
+     -73.8939
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-08",
+    "latest": "2025-12-08",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 310,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "GARDEN CITY CONDOMINIUM",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "146-10 35th Avenue, 1A, Flushing NY 11354",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -98217,8 +98225,8 @@
     "isNew": false
    },
    {
-    "bin": "4447195",
-    "address": "107-24 GUY BREWER BOULEVARD",
+    "bin": "4447196",
+    "address": "107-26 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
@@ -98294,13 +98302,13 @@
     "isNew": false
    },
    {
-    "bin": "4447189",
-    "address": "107-04 GUY BREWER BOULEVARD",
+    "bin": "4447191",
+    "address": "107-10 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6979,
+     40.6978,
      -73.7922
     ],
     "cycleEnd": null,
@@ -98316,7 +98324,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "23-53 31ST STREET, Astoria NY 11105",
+     "address": "2353 31 STREET, ASTORIA NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -98410,13 +98418,13 @@
     "isNew": false
    },
    {
-    "bin": "4447191",
-    "address": "107-10 GUY BREWER BOULEVARD",
+    "bin": "4447189",
+    "address": "107-04 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6978,
+     40.6979,
      -73.7922
     ],
     "cycleEnd": null,
@@ -98432,7 +98440,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "2353 31 STREET, ASTORIA NY 11105",
+     "address": "23-53 31ST STREET, Astoria NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -98530,14 +98538,14 @@
     "isNew": false
    },
    {
-    "bin": "4447198",
-    "address": "107-30 GUY BREWER BOULEVARD",
+    "bin": "4461737",
+    "address": "107-06 GUY R BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6976,
-     -73.792
+     40.6978,
+     -73.7922
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -98552,7 +98560,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "2353 31 STREET, ASTORIA NY 11105",
+     "address": "23-53 31 STREET, ASTORIA NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -98637,14 +98645,14 @@
     "isNew": false
    },
    {
-    "bin": "4461737",
-    "address": "107-06 GUY R BREWER BOULEVARD",
+    "bin": "4447197",
+    "address": "107-28 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6978,
-     -73.7922
+     40.6976,
+     -73.792
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -98659,7 +98667,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "23-53 31 STREET, ASTORIA NY 11105",
+     "address": "2353 31 STREET, ASTORIA NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -98671,14 +98679,14 @@
     "isNew": false
    },
    {
-    "bin": "3428574",
-    "address": "21 DURYEA PLACE",
+    "bin": "3426399",
+    "address": "733 OCEAN PARKWAY",
     "borough": "Brooklyn",
-    "zip": "11226",
+    "zip": "11230",
     "cd": 14,
     "ll": [
-     40.6454,
-     -73.9573
+     40.6305,
+     -73.9717
     ],
     "cycleEnd": null,
     "issued": "2025-12-08",
@@ -98690,10 +98698,10 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "Black Veterans For Social Justice",
+     "company": "733 OCEAN PARKWAY CONDOMINIUM",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "665 Willoughby Ave, Brooklyn NY 11206",
+     "address": "733 Ocean parkway, Brooklyn NY 11230",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -98746,14 +98754,14 @@
     "isNew": false
    },
    {
-    "bin": "4592471",
-    "address": "107-12 GUY R BREWER BOULEVARD",
+    "bin": "4447198",
+    "address": "107-30 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6978,
-     -73.7921
+     40.6976,
+     -73.792
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -98780,14 +98788,14 @@
     "isNew": false
    },
    {
-    "bin": "3426399",
-    "address": "733 OCEAN PARKWAY",
+    "bin": "3428574",
+    "address": "21 DURYEA PLACE",
     "borough": "Brooklyn",
-    "zip": "11230",
+    "zip": "11226",
     "cd": 14,
     "ll": [
-     40.6305,
-     -73.9717
+     40.6454,
+     -73.9573
     ],
     "cycleEnd": null,
     "issued": "2025-12-08",
@@ -98799,10 +98807,10 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "733 OCEAN PARKWAY CONDOMINIUM",
+     "company": "Black Veterans For Social Justice",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "733 Ocean parkway, Brooklyn NY 11230",
+     "address": "665 Willoughby Ave, Brooklyn NY 11206",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -98898,14 +98906,14 @@
     "isNew": false
    },
    {
-    "bin": "4447197",
-    "address": "107-28 GUY BREWER BOULEVARD",
+    "bin": "4447194",
+    "address": "107-22 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6976,
-     -73.792
+     40.6977,
+     -73.7921
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -98920,7 +98928,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "2353 31 STREET, ASTORIA NY 11105",
+     "address": "2353 31 STREET, Astoria NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -99009,14 +99017,14 @@
     "isNew": false
    },
    {
-    "bin": "4447196",
-    "address": "107-26 GUY BREWER BOULEVARD",
+    "bin": "4592471",
+    "address": "107-12 GUY R BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6976,
-     -73.792
+     40.6978,
+     -73.7921
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -99159,14 +99167,14 @@
     "isNew": false
    },
    {
-    "bin": "4447194",
-    "address": "107-22 GUY BREWER BOULEVARD",
+    "bin": "4447195",
+    "address": "107-24 GUY BREWER BOULEVARD",
     "borough": "Queens",
     "zip": "11433",
     "cd": 12,
     "ll": [
-     40.6977,
-     -73.7921
+     40.6976,
+     -73.792
     ],
     "cycleEnd": null,
     "issued": "2025-12-12",
@@ -99181,7 +99189,7 @@
      "company": "STYLIANOU ACCOUNTING",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2022-09-01",
-     "address": "2353 31 STREET, Astoria NY 11105",
+     "address": "2353 31 STREET, ASTORIA NY 11105",
      "confidence": "verified",
      "contactSource": "stylianouaccounting.com/contact/",
      "lapsed": true,
@@ -100101,38 +100109,6 @@
     "isNew": false
    },
    {
-    "bin": "3120570",
-    "address": "1908 NEWKIRK AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11226",
-    "cd": 14,
-    "ll": [
-     40.6373,
-     -73.9596
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-19",
-    "latest": "2025-12-19",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 299,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "ACCESS NEW YORK GROUP CORP",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "300 CADMAN PLAZA, 12TH F, BROOKLYN NY 11201",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
     "bin": "3397090",
     "address": "8895 26 AVENUE",
     "borough": "Brooklyn",
@@ -100156,6 +100132,38 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2014-09-01",
      "address": "203 BAY 8 STREET, BROOKLYN NY 11228",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
+    "bin": "3120570",
+    "address": "1908 NEWKIRK AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11226",
+    "cd": 14,
+    "ll": [
+     40.6373,
+     -73.9596
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-19",
+    "latest": "2025-12-19",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 299,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "ACCESS NEW YORK GROUP CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2023-09-01",
+     "address": "300 CADMAN PLAZA, 12TH F, BROOKLYN NY 11201",
      "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
@@ -102816,6 +102824,38 @@
     "isNew": false
    },
    {
+    "bin": "1060017",
+    "address": "139 WEST  138 STREET",
+    "borough": "Manhattan",
+    "zip": "10030",
+    "cd": 10,
+    "ll": [
+     40.8169,
+     -73.9414
+    ],
+    "cycleEnd": null,
+    "issued": "2025-12-08",
+    "latest": "2025-12-08",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 310,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "SAMUEL D. PROCTOR HDFC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2023-09-01",
+     "address": "555 BERGEN AVENUE, 3RD FL, Bronx NY 10455",
+     "lapsed": true,
+     "portfolio": 1,
+     "contactKnown": false,
+     "namedContact": true
+    },
+    "urgencyScore": 4,
+    "isNew": false
+   },
+   {
     "bin": "1090232",
     "address": "347 BOWERY",
     "borough": "Manhattan",
@@ -102878,38 +102918,6 @@
      "lapsed": true,
      "portfolio": 2,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 4,
-    "isNew": false
-   },
-   {
-    "bin": "1060017",
-    "address": "139 WEST  138 STREET",
-    "borough": "Manhattan",
-    "zip": "10030",
-    "cd": 10,
-    "ll": [
-     40.8169,
-     -73.9414
-    ],
-    "cycleEnd": null,
-    "issued": "2025-12-08",
-    "latest": "2025-12-08",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 310,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "SAMUEL D. PROCTOR HDFC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "555 BERGEN AVENUE, 3RD FL, Bronx NY 10455",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 4,
@@ -108166,42 +108174,6 @@
     "isNew": false
    },
    {
-    "bin": "4440155",
-    "address": "75-22D PARSONS BOULEVARD",
-    "borough": "Queens",
-    "zip": "11366",
-    "cd": 8,
-    "ll": [
-     40.7258,
-     -73.8113
-    ],
-    "cycleEnd": null,
-    "issued": "2026-07-10",
-    "latest": "2026-07-10",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 96,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "REGENCY ESTATES CONDO",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "75-32 PARSONS BLVD, H1, FLUSHING NY 11366",
-     "confidence": "affiliate",
-     "contactSource": "regencycondos.net",
-     "via": "REGENCY ESTATES COND.MAINTENANCE",
-     "viaEvidence": "HPD names the same head officer for both",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
     "bin": "4440167",
     "address": "75-32H PARSONS BOULEVARD",
     "borough": "Queens",
@@ -108230,38 +108202,6 @@
      "lapsed": false,
      "portfolio": 2,
      "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "3325284",
-    "address": "698 CLASSON AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11238",
-    "cd": 8,
-    "ll": [
-     40.6762,
-     -73.9596
-    ],
-    "cycleEnd": null,
-    "issued": "2026-06-24",
-    "latest": "2026-06-24",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 112,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "698 CLASSON AVENUE HDFC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "698 CLASSON AVENUE, 2A, BROOKLYN NY 11238",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 2,
@@ -108302,29 +108242,29 @@
     "isNew": false
    },
    {
-    "bin": "3098623",
-    "address": "2775 LINDEN BOULEVARD",
+    "bin": "3325284",
+    "address": "698 CLASSON AVENUE",
     "borough": "Brooklyn",
-    "zip": "11208",
-    "cd": 5,
+    "zip": "11238",
+    "cd": 8,
     "ll": [
-     40.6696,
-     -73.8617
+     40.6762,
+     -73.9596
     ],
     "cycleEnd": null,
-    "issued": "2026-07-07",
-    "latest": "2026-07-07",
+    "issued": "2026-06-24",
+    "latest": "2026-06-24",
     "violations": 1,
     "deadline": null,
     "monthsLeft": null,
-    "openDays": 99,
+    "openDays": 112,
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "BROOKLYN UNITED METHODIST CHURCH HOME",
+     "company": "698 CLASSON AVENUE HDFC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1485 DUMONT AVENUE, Brooklyn NY 11208",
+     "regEnd": "2027-09-01",
+     "address": "698 CLASSON AVENUE, 2A, BROOKLYN NY 11238",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -108368,14 +108308,14 @@
     "isNew": false
    },
    {
-    "bin": "3429278",
-    "address": "527 GRAND AVENUE",
+    "bin": "3098623",
+    "address": "2775 LINDEN BOULEVARD",
     "borough": "Brooklyn",
-    "zip": "11238",
-    "cd": 8,
+    "zip": "11208",
+    "cd": 5,
     "ll": [
-     40.6794,
-     -73.9618
+     40.6696,
+     -73.8617
     ],
     "cycleEnd": null,
     "issued": "2026-07-07",
@@ -108387,10 +108327,10 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "TWIN GROUP ASSOCIATES INC",
+     "company": "BROOKLYN UNITED METHODIST CHURCH HOME",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "5 New Montrose Ave, 4, Brooklyn NY 11211",
+     "regEnd": "2026-09-01",
+     "address": "1485 DUMONT AVENUE, Brooklyn NY 11208",
      "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
@@ -108434,14 +108374,14 @@
     "isNew": false
    },
    {
-    "bin": "3099748",
-    "address": "182 REMSEN AVENUE",
+    "bin": "3429278",
+    "address": "527 GRAND AVENUE",
     "borough": "Brooklyn",
-    "zip": "11212",
-    "cd": 17,
+    "zip": "11238",
+    "cd": 8,
     "ll": [
-     40.6597,
-     -73.9277
+     40.6794,
+     -73.9618
     ],
     "cycleEnd": null,
     "issued": "2026-07-07",
@@ -108453,11 +108393,11 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "CHATHOM BUSINESS SERVICE",
+     "company": "TWIN GROUP ASSOCIATES INC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2017-09-01",
-     "address": "1247 UNION ST, BKLYN NY 11225",
-     "lapsed": true,
+     "regEnd": "2027-09-01",
+     "address": "5 New Montrose Ave, 4, Brooklyn NY 11211",
+     "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -108498,34 +108438,32 @@
     "isNew": false
    },
    {
-    "bin": "3391776",
-    "address": "1282 ST MARK'S AVENUE",
+    "bin": "3099748",
+    "address": "182 REMSEN AVENUE",
     "borough": "Brooklyn",
-    "zip": "11213",
-    "cd": 8,
+    "zip": "11212",
+    "cd": 17,
     "ll": [
-     40.6739,
-     -73.9268
+     40.6597,
+     -73.9277
     ],
     "cycleEnd": null,
-    "issued": "2026-07-10",
-    "latest": "2026-07-10",
+    "issued": "2026-07-07",
+    "latest": "2026-07-07",
     "violations": 1,
     "deadline": null,
     "monthsLeft": null,
-    "openDays": 96,
+    "openDays": 99,
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "H.S.C. MANAGEMENT CORP",
+     "company": "CHATHOM BUSINESS SERVICE",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2025-09-01",
-     "address": "5804A TYNDALL AVENUE, BRONX NY 10471",
-     "confidence": "verified",
-     "contactSource": "hscmanagement.com",
+     "regEnd": "2017-09-01",
+     "address": "1247 UNION ST, BKLYN NY 11225",
      "lapsed": true,
-     "portfolio": 8,
-     "contactKnown": true,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 2,
@@ -108566,14 +108504,14 @@
     "isNew": false
    },
    {
-    "bin": "3348992",
-    "address": "2311 GERRITSEN AVENUE",
+    "bin": "3391776",
+    "address": "1282 ST MARK'S AVENUE",
     "borough": "Brooklyn",
-    "zip": "11229",
-    "cd": 15,
+    "zip": "11213",
+    "cd": 8,
     "ll": [
-     40.5999,
-     -73.933
+     40.6739,
+     -73.9268
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -108585,14 +108523,14 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "ALVIC PROPERTY MANAGEMENT",
+     "company": "H.S.C. MANAGEMENT CORP",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "104 Avenue O, Brooklyn NY 11204",
+     "regEnd": "2025-09-01",
+     "address": "5804A TYNDALL AVENUE, BRONX NY 10471",
      "confidence": "verified",
-     "contactSource": "alvicmgm.com (company's own site, home + contact pages)",
-     "lapsed": false,
-     "portfolio": 31,
+     "contactSource": "hscmanagement.com",
+     "lapsed": true,
+     "portfolio": 8,
      "contactKnown": true,
      "namedContact": true
     },
@@ -108636,14 +108574,14 @@
     "isNew": false
    },
    {
-    "bin": "3348989",
-    "address": "2305 GERRITSEN AVENUE",
+    "bin": "3348992",
+    "address": "2311 GERRITSEN AVENUE",
     "borough": "Brooklyn",
     "zip": "11229",
     "cd": 15,
     "ll": [
-     40.6,
-     -73.9331
+     40.5999,
+     -73.933
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -108702,14 +108640,14 @@
     "isNew": false
    },
    {
-    "bin": "3391782",
-    "address": "1294 ST MARK'S AVENUE",
+    "bin": "3348989",
+    "address": "2305 GERRITSEN AVENUE",
     "borough": "Brooklyn",
-    "zip": "11213",
-    "cd": 8,
+    "zip": "11229",
+    "cd": 15,
     "ll": [
-     40.6739,
-     -73.9264
+     40.6,
+     -73.9331
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -108721,14 +108659,14 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "H.S.C. MANAGEMENT CORP",
+     "company": "ALVIC PROPERTY MANAGEMENT",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "5804A TYNDALL AVE, Bronx NY 10471",
+     "address": "104 Avenue O, Brooklyn NY 11204",
      "confidence": "verified",
-     "contactSource": "hscmanagement.com",
+     "contactSource": "alvicmgm.com (company's own site, home + contact pages)",
      "lapsed": false,
-     "portfolio": 8,
+     "portfolio": 31,
      "contactKnown": true,
      "namedContact": true
     },
@@ -108770,14 +108708,14 @@
     "isNew": false
    },
    {
-    "bin": "3391773",
-    "address": "1276 ST MARK'S AVENUE",
+    "bin": "3391779",
+    "address": "1288 ST MARK'S AVENUE",
     "borough": "Brooklyn",
     "zip": "11213",
     "cd": 8,
     "ll": [
      40.6739,
-     -73.927
+     -73.9266
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -108789,14 +108727,84 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "H.S.C. MANAGEMENT CORP.",
+     "company": "HSC MANAGEMENT CORP.",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
      "address": "5804A TYNDALL AVENUE, Bronx NY 10471",
      "confidence": "verified",
      "contactSource": "hscmanagement.com",
      "lapsed": false,
-     "portfolio": 4,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "4440155",
+    "address": "75-22D PARSONS BOULEVARD",
+    "borough": "Queens",
+    "zip": "11366",
+    "cd": 8,
+    "ll": [
+     40.7258,
+     -73.8113
+    ],
+    "cycleEnd": null,
+    "issued": "2026-07-10",
+    "latest": "2026-07-10",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 96,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "REGENCY ESTATES CONDO",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "75-32 PARSONS BLVD, H1, FLUSHING NY 11366",
+     "confidence": "affiliate",
+     "contactSource": "regencycondos.net",
+     "via": "REGENCY ESTATES COND.MAINTENANCE",
+     "viaEvidence": "HPD names the same head officer for both",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "3348997",
+    "address": "2310 STUART STREET",
+    "borough": "Brooklyn",
+    "zip": "11229",
+    "cd": 15,
+    "ll": [
+     40.6002,
+     -73.9321
+    ],
+    "cycleEnd": null,
+    "issued": "2026-07-10",
+    "latest": "2026-07-10",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 96,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "ALVIC PROPERTY MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "104 Avenue O, Brooklyn NY 11204",
+     "confidence": "verified",
+     "contactSource": "alvicmgm.com (company's own site, home + contact pages)",
+     "lapsed": false,
+     "portfolio": 31,
      "contactKnown": true,
      "namedContact": true
     },
@@ -108838,14 +108846,14 @@
     "isNew": false
    },
    {
-    "bin": "3391777",
-    "address": "1284 ST MARK'S AVENUE",
+    "bin": "3391782",
+    "address": "1294 ST MARK'S AVENUE",
     "borough": "Brooklyn",
     "zip": "11213",
     "cd": 8,
     "ll": [
      40.6739,
-     -73.9267
+     -73.9264
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -108860,7 +108868,7 @@
      "company": "H.S.C. MANAGEMENT CORP",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "5804A TYNDALL AVENUE, BRONX NY 10471",
+     "address": "5804A TYNDALL AVE, Bronx NY 10471",
      "confidence": "verified",
      "contactSource": "hscmanagement.com",
      "lapsed": false,
@@ -108906,14 +108914,14 @@
     "isNew": false
    },
    {
-    "bin": "3348991",
-    "address": "2309 GERRITSEN AVENUE",
+    "bin": "3391773",
+    "address": "1276 ST MARK'S AVENUE",
     "borough": "Brooklyn",
-    "zip": "11229",
-    "cd": 15,
+    "zip": "11213",
+    "cd": 8,
     "ll": [
-     40.6,
-     -73.9331
+     40.6739,
+     -73.927
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -108925,14 +108933,14 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "ALVIC PROPERTY MANAGEMENT",
+     "company": "H.S.C. MANAGEMENT CORP.",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "104 Avenue O, Brooklyn NY 11204",
+     "address": "5804A TYNDALL AVENUE, Bronx NY 10471",
      "confidence": "verified",
-     "contactSource": "alvicmgm.com (company's own site, home + contact pages)",
+     "contactSource": "hscmanagement.com",
      "lapsed": false,
-     "portfolio": 31,
+     "portfolio": 4,
      "contactKnown": true,
      "namedContact": true
     },
@@ -108974,14 +108982,14 @@
     "isNew": false
    },
    {
-    "bin": "3391781",
-    "address": "1292 ST MARK'S AVENUE",
+    "bin": "3391777",
+    "address": "1284 ST MARK'S AVENUE",
     "borough": "Brooklyn",
     "zip": "11213",
     "cd": 8,
     "ll": [
      40.6739,
-     -73.9264
+     -73.9267
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -109042,6 +109050,142 @@
     "isNew": false
    },
    {
+    "bin": "3348991",
+    "address": "2309 GERRITSEN AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11229",
+    "cd": 15,
+    "ll": [
+     40.6,
+     -73.9331
+    ],
+    "cycleEnd": null,
+    "issued": "2026-07-10",
+    "latest": "2026-07-10",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 96,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "ALVIC PROPERTY MANAGEMENT",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "104 Avenue O, Brooklyn NY 11204",
+     "confidence": "verified",
+     "contactSource": "alvicmgm.com (company's own site, home + contact pages)",
+     "lapsed": false,
+     "portfolio": 31,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "4518439",
+    "address": "94-28 MAGNOLIA COURT",
+    "borough": "Queens",
+    "zip": "11417",
+    "cd": 10,
+    "ll": [
+     40.6695,
+     -73.8408
+    ],
+    "cycleEnd": null,
+    "issued": "2026-08-06",
+    "latest": "2026-08-06",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 69,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "GRANT MANAGEMENT SERVICES",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "142 Mineola Avenue, 3B, Roslyn Heights NY 11577",
+     "confidence": "verified",
+     "contactSource": "grantmanagementservices.com",
+     "lapsed": false,
+     "portfolio": 17,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "3391781",
+    "address": "1292 ST MARK'S AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11213",
+    "cd": 8,
+    "ll": [
+     40.6739,
+     -73.9264
+    ],
+    "cycleEnd": null,
+    "issued": "2026-07-10",
+    "latest": "2026-07-10",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 96,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "H.S.C. MANAGEMENT CORP",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "5804A TYNDALL AVENUE, BRONX NY 10471",
+     "confidence": "verified",
+     "contactSource": "hscmanagement.com",
+     "lapsed": false,
+     "portfolio": 8,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "4518443",
+    "address": "94-42 MAGNOLIA COURT",
+    "borough": "Queens",
+    "zip": "11417",
+    "cd": 10,
+    "ll": [
+     40.6696,
+     -73.8412
+    ],
+    "cycleEnd": null,
+    "issued": "2026-08-06",
+    "latest": "2026-08-06",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 69,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "GRANT MANAGEMENT SERVICES",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "142 Mineola Avenue, 3B, Roslyn Heights NY 11577",
+     "confidence": "verified",
+     "contactSource": "grantmanagementservices.com",
+     "lapsed": false,
+     "portfolio": 17,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
     "bin": "3391774",
     "address": "1278 ST MARK'S AVENUE",
     "borough": "Brooklyn",
@@ -109076,14 +109220,14 @@
     "isNew": false
    },
    {
-    "bin": "4518439",
-    "address": "94-28 MAGNOLIA COURT",
+    "bin": "4518442",
+    "address": "94-40 MAGNOLIA COURT",
     "borough": "Queens",
     "zip": "11417",
     "cd": 10,
     "ll": [
-     40.6695,
-     -73.8408
+     40.6696,
+     -73.8411
     ],
     "cycleEnd": null,
     "issued": "2026-08-06",
@@ -109144,14 +109288,14 @@
     "isNew": false
    },
    {
-    "bin": "4518443",
-    "address": "94-42 MAGNOLIA COURT",
+    "bin": "4518469",
+    "address": "94-48 MAGNOLIA COURT",
     "borough": "Queens",
     "zip": "11417",
     "cd": 10,
     "ll": [
-     40.6696,
-     -73.8412
+     40.6698,
+     -73.8414
     ],
     "cycleEnd": null,
     "issued": "2026-08-06",
@@ -109212,76 +109356,8 @@
     "isNew": false
    },
    {
-    "bin": "4518442",
-    "address": "94-40 MAGNOLIA COURT",
-    "borough": "Queens",
-    "zip": "11417",
-    "cd": 10,
-    "ll": [
-     40.6696,
-     -73.8411
-    ],
-    "cycleEnd": null,
-    "issued": "2026-08-06",
-    "latest": "2026-08-06",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 69,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "GRANT MANAGEMENT SERVICES",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "142 Mineola Avenue, 3B, Roslyn Heights NY 11577",
-     "confidence": "verified",
-     "contactSource": "grantmanagementservices.com",
-     "lapsed": false,
-     "portfolio": 17,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "3391779",
-    "address": "1288 ST MARK'S AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11213",
-    "cd": 8,
-    "ll": [
-     40.6739,
-     -73.9266
-    ],
-    "cycleEnd": null,
-    "issued": "2026-07-10",
-    "latest": "2026-07-10",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 96,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "HSC MANAGEMENT CORP.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "5804A TYNDALL AVENUE, Bronx NY 10471",
-     "confidence": "verified",
-     "contactSource": "hscmanagement.com",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "4518469",
-    "address": "94-48 MAGNOLIA COURT",
+    "bin": "4518470",
+    "address": "94-50 MAGNOLIA COURT",
     "borough": "Queens",
     "zip": "11417",
     "cd": 10,
@@ -109322,74 +109398,6 @@
     "ll": [
      40.5999,
      -73.933
-    ],
-    "cycleEnd": null,
-    "issued": "2026-07-10",
-    "latest": "2026-07-10",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 96,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "ALVIC PROPERTY MANAGEMENT",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "104 Avenue O, Brooklyn NY 11204",
-     "confidence": "verified",
-     "contactSource": "alvicmgm.com (company's own site, home + contact pages)",
-     "lapsed": false,
-     "portfolio": 31,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "4518470",
-    "address": "94-50 MAGNOLIA COURT",
-    "borough": "Queens",
-    "zip": "11417",
-    "cd": 10,
-    "ll": [
-     40.6698,
-     -73.8414
-    ],
-    "cycleEnd": null,
-    "issued": "2026-08-06",
-    "latest": "2026-08-06",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 69,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "GRANT MANAGEMENT SERVICES",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "142 Mineola Avenue, 3B, Roslyn Heights NY 11577",
-     "confidence": "verified",
-     "contactSource": "grantmanagementservices.com",
-     "lapsed": false,
-     "portfolio": 17,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "3348997",
-    "address": "2310 STUART STREET",
-    "borough": "Brooklyn",
-    "zip": "11229",
-    "cd": 15,
-    "ll": [
-     40.6002,
-     -73.9321
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113105,14 +113113,14 @@
     "isNew": false
    },
    {
-    "bin": "2096540",
-    "address": "772A BROOK AVENUE",
+    "bin": "2096538",
+    "address": "776 BROOK AVENUE",
     "borough": "Bronx",
     "zip": "10451",
     "cd": 1,
     "ll": [
      40.8205,
-     -73.9117
+     -73.9116
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113173,14 +113181,14 @@
     "isNew": false
    },
    {
-    "bin": "2096538",
-    "address": "776 BROOK AVENUE",
+    "bin": "2096540",
+    "address": "772A BROOK AVENUE",
     "borough": "Bronx",
     "zip": "10451",
     "cd": 1,
     "ll": [
      40.8205,
-     -73.9116
+     -73.9117
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113585,14 +113593,14 @@
     "isNew": false
    },
    {
-    "bin": "2096554",
-    "address": "783 ST ANNS AVENUE",
+    "bin": "2096571",
+    "address": "525 EAST  156 STREET",
     "borough": "Bronx",
-    "zip": "10456",
+    "zip": "10455",
     "cd": 1,
     "ll": [
-     40.8206,
-     -73.9101
+     40.8193,
+     -73.9109
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113654,14 +113662,14 @@
     "isNew": false
    },
    {
-    "bin": "2096571",
-    "address": "525 EAST  156 STREET",
+    "bin": "2096554",
+    "address": "783 ST ANNS AVENUE",
     "borough": "Bronx",
-    "zip": "10455",
+    "zip": "10456",
     "cd": 1,
     "ll": [
-     40.8193,
-     -73.9109
+     40.8206,
+     -73.9101
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113723,14 +113731,14 @@
     "isNew": false
    },
    {
-    "bin": "2096567",
-    "address": "517 EAST  156 STREET",
+    "bin": "2092474",
+    "address": "1 DEEP WATER WAY",
     "borough": "Bronx",
-    "zip": "10455",
-    "cd": 1,
+    "zip": "10464",
+    "cd": 10,
     "ll": [
-     40.8194,
-     -73.9111
+     40.8465,
+     -73.7828
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113742,15 +113750,16 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "J DISLA LLC",
+     "company": "BOATYARD CONDO BOARD OF MANAGERS",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2024-09-30",
-     "address": "452 E 138TH ST, Bronx NY 10454",
+     "regEnd": "2023-09-01",
+     "address": "210 CARROLL ST, BRONX NY 10464",
      "confidence": "affiliate",
-     "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
-     "via": "Disla Property Solutions",
+     "contactSource": "wpmginc.com (number read off its own Contact page); tie read off boatyardcondo.com",
+     "via": "BOATYARD CONDO",
+     "viaEvidence": "HPD names the same head officer for both",
      "lapsed": true,
-     "portfolio": 21,
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
@@ -113792,14 +113801,14 @@
     "isNew": false
    },
    {
-    "bin": "2096563",
-    "address": "754 BROOK AVENUE",
+    "bin": "2096552",
+    "address": "779 ST ANNS AVENUE",
     "borough": "Bronx",
-    "zip": "10451",
+    "zip": "10456",
     "cd": 1,
     "ll": [
-     40.8199,
-     -73.9116
+     40.8204,
+     -73.9102
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -113861,145 +113870,6 @@
     "isNew": false
    },
    {
-    "bin": "2092474",
-    "address": "1 DEEP WATER WAY",
-    "borough": "Bronx",
-    "zip": "10464",
-    "cd": 10,
-    "ll": [
-     40.8465,
-     -73.7828
-    ],
-    "cycleEnd": null,
-    "issued": "2026-07-10",
-    "latest": "2026-07-10",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 96,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "BOATYARD CONDO BOARD OF MANAGERS",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "210 CARROLL ST, BRONX NY 10464",
-     "confidence": "affiliate",
-     "contactSource": "wpmginc.com (number read off its own Contact page); tie read off boatyardcondo.com",
-     "via": "BOATYARD CONDO",
-     "viaEvidence": "HPD names the same head officer for both",
-     "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "3320631",
-    "address": "560 LOUISIANA AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11239",
-    "cd": 18,
-    "ll": [
-     40.6481,
-     -73.8864
-    ],
-    "cycleEnd": null,
-    "issued": "2026-08-06",
-    "latest": "2026-08-06",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 69,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PRESTIGE MANAGEMENT INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "1776 EASTCHESTER RD., Bronx NY 10461",
-     "confidence": "verified",
-     "contactSource": "prestigemgt.com (company's own site, contact page)",
-     "lapsed": false,
-     "portfolio": 19,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "2099308",
-    "address": "780 BROOK AVENUE",
-    "borough": "Bronx",
-    "zip": "10451",
-    "cd": 1,
-    "ll": [
-     40.8206,
-     -73.9116
-    ],
-    "cycleEnd": null,
-    "issued": "2026-07-10",
-    "latest": "2026-07-10",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 96,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "J DISLA LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2024-09-30",
-     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
-     "confidence": "affiliate",
-     "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
-     "via": "Disla Property Solutions",
-     "lapsed": true,
-     "portfolio": 21,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
-    "bin": "3320649",
-    "address": "596 LOUISIANA AVENUE",
-    "borough": "Brooklyn",
-    "zip": "11239",
-    "cd": 18,
-    "ll": [
-     40.6477,
-     -73.886
-    ],
-    "cycleEnd": null,
-    "issued": "2026-08-06",
-    "latest": "2026-08-06",
-    "violations": 1,
-    "deadline": null,
-    "monthsLeft": null,
-    "openDays": 69,
-    "cycleYear": null,
-    "multifamily": true,
-    "agent": {
-     "company": "PRESTIGE MANAGEMENT INC.",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "1776 EASTCHESTER RD, Bronx NY 10461",
-     "confidence": "verified",
-     "contactSource": "prestigemgt.com (company's own site, contact page)",
-     "lapsed": false,
-     "portfolio": 19,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "urgencyScore": 2,
-    "isNew": false
-   },
-   {
     "bin": "2096544",
     "address": "763 ST. ANNS AVE",
     "borough": "Bronx",
@@ -114035,14 +113905,14 @@
     "isNew": false
    },
    {
-    "bin": "3320645",
-    "address": "588 LOUISIANA AVENUE",
+    "bin": "3320631",
+    "address": "560 LOUISIANA AVENUE",
     "borough": "Brooklyn",
     "zip": "11239",
     "cd": 18,
     "ll": [
-     40.6478,
-     -73.8861
+     40.6481,
+     -73.8864
     ],
     "cycleEnd": null,
     "issued": "2026-08-06",
@@ -114056,11 +113926,11 @@
     "agent": {
      "company": "PRESTIGE MANAGEMENT INC.",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2022-09-01",
-     "address": "1776 EASTCHESTER RD, Bronx NY 10461",
+     "regEnd": "2027-09-01",
+     "address": "1776 EASTCHESTER RD., Bronx NY 10461",
      "confidence": "verified",
      "contactSource": "prestigemgt.com (company's own site, contact page)",
-     "lapsed": true,
+     "lapsed": false,
      "portfolio": 19,
      "contactKnown": true,
      "namedContact": true
@@ -114103,6 +113973,143 @@
     "isNew": false
    },
    {
+    "bin": "3320649",
+    "address": "596 LOUISIANA AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11239",
+    "cd": 18,
+    "ll": [
+     40.6477,
+     -73.886
+    ],
+    "cycleEnd": null,
+    "issued": "2026-08-06",
+    "latest": "2026-08-06",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 69,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PRESTIGE MANAGEMENT INC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "1776 EASTCHESTER RD, Bronx NY 10461",
+     "confidence": "verified",
+     "contactSource": "prestigemgt.com (company's own site, contact page)",
+     "lapsed": false,
+     "portfolio": 19,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "2096524",
+    "address": "807 ST ANNS AVENUE",
+    "borough": "Bronx",
+    "zip": "10456",
+    "cd": 1,
+    "ll": [
+     40.8208,
+     -73.9105
+    ],
+    "cycleEnd": null,
+    "issued": "2026-07-10",
+    "latest": "2026-07-10",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 96,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "DISLA PROPERTY SOLUTIONS",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "811 St Ann's Avenue, A, Bronx NY 10456",
+     "confidence": "verified",
+     "contactSource": "dislaproperty.solutions",
+     "lapsed": false,
+     "portfolio": 8,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "3320645",
+    "address": "588 LOUISIANA AVENUE",
+    "borough": "Brooklyn",
+    "zip": "11239",
+    "cd": 18,
+    "ll": [
+     40.6478,
+     -73.8861
+    ],
+    "cycleEnd": null,
+    "issued": "2026-08-06",
+    "latest": "2026-08-06",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 69,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "PRESTIGE MANAGEMENT INC.",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2022-09-01",
+     "address": "1776 EASTCHESTER RD, Bronx NY 10461",
+     "confidence": "verified",
+     "contactSource": "prestigemgt.com (company's own site, contact page)",
+     "lapsed": true,
+     "portfolio": 19,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
+    "bin": "2096534",
+    "address": "784 BROOK AVENUE",
+    "borough": "Bronx",
+    "zip": "10451",
+    "cd": 1,
+    "ll": [
+     40.8208,
+     -73.9115
+    ],
+    "cycleEnd": null,
+    "issued": "2026-07-10",
+    "latest": "2026-07-10",
+    "violations": 1,
+    "deadline": null,
+    "monthsLeft": null,
+    "openDays": 96,
+    "cycleYear": null,
+    "multifamily": true,
+    "agent": {
+     "company": "J DISLA LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2024-09-30",
+     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
+     "confidence": "affiliate",
+     "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
+     "via": "Disla Property Solutions",
+     "lapsed": true,
+     "portfolio": 21,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "urgencyScore": 2,
+    "isNew": false
+   },
+   {
     "bin": "3256328",
     "address": "138 NORTH    3 STREET",
     "borough": "Brooklyn",
@@ -114137,14 +114144,14 @@
     "isNew": false
    },
    {
-    "bin": "2096524",
-    "address": "807 ST ANNS AVENUE",
+    "bin": "2096522",
+    "address": "803 ST ANNS AVENUE",
     "borough": "Bronx",
     "zip": "10456",
     "cd": 1,
     "ll": [
-     40.8208,
-     -73.9105
+     40.8209,
+     -73.9107
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114205,14 +114212,14 @@
     "isNew": false
    },
    {
-    "bin": "2096534",
-    "address": "784 BROOK AVENUE",
+    "bin": "2096512",
+    "address": "514 EAST  159 STREET",
     "borough": "Bronx",
     "zip": "10451",
     "cd": 1,
     "ll": [
-     40.8208,
-     -73.9115
+     40.8214,
+     -73.9108
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114224,15 +114231,14 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "J DISLA LLC",
+     "company": "DISLA PROPERTY SOLUTIONS",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2024-09-30",
-     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
-     "confidence": "affiliate",
-     "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
-     "via": "Disla Property Solutions",
-     "lapsed": true,
-     "portfolio": 21,
+     "regEnd": "2026-09-01",
+     "address": "811 St Ann's Avenue, A, Bronx NY 10456",
+     "confidence": "verified",
+     "contactSource": "dislaproperty.solutions",
+     "lapsed": false,
+     "portfolio": 8,
      "contactKnown": true,
      "namedContact": true
     },
@@ -114274,14 +114280,14 @@
     "isNew": false
    },
    {
-    "bin": "2096522",
-    "address": "803 ST ANNS AVENUE",
+    "bin": "2096520",
+    "address": "799 ST ANNS AVENUE",
     "borough": "Bronx",
     "zip": "10456",
     "cd": 1,
     "ll": [
      40.8209,
-     -73.9107
+     -73.9108
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114342,14 +114348,14 @@
     "isNew": false
    },
    {
-    "bin": "2096512",
-    "address": "514 EAST  159 STREET",
+    "bin": "2096508",
+    "address": "522 EAST  159 STREET",
     "borough": "Bronx",
     "zip": "10451",
     "cd": 1,
     "ll": [
      40.8214,
-     -73.9108
+     -73.9107
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114361,14 +114367,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "DISLA PROPERTY SOLUTIONS",
+     "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "811 St Ann's Avenue, A, Bronx NY 10456",
-     "confidence": "verified",
-     "contactSource": "dislaproperty.solutions",
-     "lapsed": false,
-     "portfolio": 8,
+     "regEnd": "2024-09-30",
+     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
+     "confidence": "affiliate",
+     "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
+     "via": "Disla Property Solutions",
+     "lapsed": true,
+     "portfolio": 21,
      "contactKnown": true,
      "namedContact": true
     },
@@ -114410,14 +114417,14 @@
     "isNew": false
    },
    {
-    "bin": "2096520",
-    "address": "799 ST ANNS AVENUE",
+    "bin": "2096569",
+    "address": "521 EAST  156 STREET",
     "borough": "Bronx",
-    "zip": "10456",
+    "zip": "10455",
     "cd": 1,
     "ll": [
-     40.8209,
-     -73.9108
+     40.8194,
+     -73.911
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114432,7 +114439,7 @@
      "company": "DISLA PROPERTY SOLUTIONS",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2026-09-01",
-     "address": "811 St Ann's Avenue, A, Bronx NY 10456",
+     "address": "452 E 138TH ST, Bronx NY 10454",
      "confidence": "verified",
      "contactSource": "dislaproperty.solutions",
      "lapsed": false,
@@ -114478,14 +114485,14 @@
     "isNew": false
    },
    {
-    "bin": "2096508",
-    "address": "522 EAST  159 STREET",
+    "bin": "2096570",
+    "address": "523 EAST  156 STREET",
     "borough": "Bronx",
-    "zip": "10451",
+    "zip": "10455",
     "cd": 1,
     "ll": [
-     40.8214,
-     -73.9107
+     40.8193,
+     -73.9109
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114500,7 +114507,7 @@
      "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2024-09-30",
-     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
+     "address": "452 E 138TH ST, Bronx NY 10454",
      "confidence": "affiliate",
      "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
      "via": "Disla Property Solutions",
@@ -114547,13 +114554,13 @@
     "isNew": false
    },
    {
-    "bin": "2096569",
-    "address": "521 EAST  156 STREET",
+    "bin": "2096557",
+    "address": "753 ST ANNS AVENUE",
     "borough": "Bronx",
-    "zip": "10455",
+    "zip": "10456",
     "cd": 1,
     "ll": [
-     40.8194,
+     40.82,
      -73.911
     ],
     "cycleEnd": null,
@@ -114566,14 +114573,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "DISLA PROPERTY SOLUTIONS",
+     "company": "JDISLA LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "452 E 138TH ST, Bronx NY 10454",
-     "confidence": "verified",
-     "contactSource": "dislaproperty.solutions",
-     "lapsed": false,
-     "portfolio": 8,
+     "regEnd": "2024-09-30",
+     "address": "452 EAST 138 STREET, Bronx NY 10454",
+     "confidence": "affiliate",
+     "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
+     "via": "Disla Property Solutions",
+     "lapsed": true,
+     "portfolio": 1,
      "contactKnown": true,
      "namedContact": true
     },
@@ -114615,13 +114623,13 @@
     "isNew": false
    },
    {
-    "bin": "2096570",
-    "address": "523 EAST  156 STREET",
+    "bin": "2096545",
+    "address": "765 ST ANNS AVENUE",
     "borough": "Bronx",
-    "zip": "10455",
+    "zip": "10456",
     "cd": 1,
     "ll": [
-     40.8193,
+     40.8202,
      -73.9109
     ],
     "cycleEnd": null,
@@ -114684,14 +114692,14 @@
     "isNew": false
    },
    {
-    "bin": "2096557",
-    "address": "753 ST ANNS AVENUE",
+    "bin": "2096517",
+    "address": "802A BROOK AVENUE",
     "borough": "Bronx",
-    "zip": "10456",
+    "zip": "10451",
     "cd": 1,
     "ll": [
-     40.82,
-     -73.911
+     40.8211,
+     -73.9114
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114703,15 +114711,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "JDISLA LLC",
+     "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2024-09-30",
-     "address": "452 EAST 138 STREET, Bronx NY 10454",
+     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
      "confidence": "affiliate",
      "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
      "via": "Disla Property Solutions",
      "lapsed": true,
-     "portfolio": 1,
+     "portfolio": 21,
      "contactKnown": true,
      "namedContact": true
     },
@@ -114753,15 +114761,12 @@
     "isNew": false
    },
    {
-    "bin": "2096545",
-    "address": "765 ST ANNS AVENUE",
+    "bin": "2096537",
+    "address": "778A BROOK AVENUE",
     "borough": "Bronx",
-    "zip": "10456",
-    "cd": 1,
-    "ll": [
-     40.8202,
-     -73.9109
-    ],
+    "zip": "10451",
+    "cd": null,
+    "ll": null,
     "cycleEnd": null,
     "issued": "2026-07-10",
     "latest": "2026-07-10",
@@ -114775,7 +114780,7 @@
      "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2024-09-30",
-     "address": "452 E 138TH ST, Bronx NY 10454",
+     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
      "confidence": "affiliate",
      "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
      "via": "Disla Property Solutions",
@@ -114822,12 +114827,15 @@
     "isNew": false
    },
    {
-    "bin": "2096537",
-    "address": "778A BROOK AVENUE",
+    "bin": "2096533",
+    "address": "795 ST ANNS AVENUE",
     "borough": "Bronx",
-    "zip": "10451",
-    "cd": null,
-    "ll": null,
+    "zip": "10456",
+    "cd": 1,
+    "ll": [
+     40.8207,
+     -73.911
+    ],
     "cycleEnd": null,
     "issued": "2026-07-10",
     "latest": "2026-07-10",
@@ -114841,7 +114849,7 @@
      "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2024-09-30",
-     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
+     "address": "452 E 138TH ST, Bronx NY 10454",
      "confidence": "affiliate",
      "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
      "via": "Disla Property Solutions",
@@ -114888,14 +114896,14 @@
     "isNew": false
    },
    {
-    "bin": "2096517",
-    "address": "802A BROOK AVENUE",
+    "bin": "2096567",
+    "address": "517 EAST  156 STREET",
     "borough": "Bronx",
-    "zip": "10451",
+    "zip": "10455",
     "cd": 1,
     "ll": [
-     40.8211,
-     -73.9114
+     40.8194,
+     -73.9111
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114910,7 +114918,7 @@
      "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2024-09-30",
-     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
+     "address": "452 E 138TH ST, Bronx NY 10454",
      "confidence": "affiliate",
      "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
      "via": "Disla Property Solutions",
@@ -114957,14 +114965,14 @@
     "isNew": false
    },
    {
-    "bin": "2096533",
-    "address": "795 ST ANNS AVENUE",
+    "bin": "2099308",
+    "address": "780 BROOK AVENUE",
     "borough": "Bronx",
-    "zip": "10456",
+    "zip": "10451",
     "cd": 1,
     "ll": [
-     40.8207,
-     -73.911
+     40.8206,
+     -73.9116
     ],
     "cycleEnd": null,
     "issued": "2026-07-10",
@@ -114979,7 +114987,7 @@
      "company": "J DISLA LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2024-09-30",
-     "address": "452 E 138TH ST, Bronx NY 10454",
+     "address": "811 SAINT ANNS AVE, A, Bronx NY 10456",
      "confidence": "affiliate",
      "contactSource": "dislaproperty.solutions (operator's own site); NYC Open Data HPD Registration Contacts (feu5-w2e2) for the tie",
      "via": "Disla Property Solutions",
@@ -115199,7 +115207,7 @@
  },
  "elevators": {
   "totals": {
-   "cited": 4545,
+   "cited": 4541,
    "open": 555,
    "deadline": "2026-12-31"
   },
