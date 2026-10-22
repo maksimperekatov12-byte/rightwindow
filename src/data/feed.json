@@ -1,24 +1,24 @@
 {
- "generatedAt": "2026-10-22T20:22:53.070Z",
+ "generatedAt": "2026-10-22T21:20:07.579Z",
  "sources": {
   "facades": "2026-10-22",
   "permits": "2026-10-22",
   "jobs": "2026-10-22",
-  "elevators": "2026-10-21",
+  "elevators": "2026-10-22",
   "mandates": "2026-10-22",
   "ecb": "2026-10-22",
   "hpd": "2026-08-12",
   "awards": "2026-10-22",
   "dohmh": "2026-10-21",
   "sla": "2026-10-22",
-  "elevatorCompliance": "2026-10-21",
+  "elevatorCompliance": "2026-10-22",
   "acrisThrough": "2026-09-30"
  },
  "sourcesAt": {
   "facades": 1792690288000,
   "permits": 1792694526000,
   "jobs": 1792700773000,
-  "elevators": 1792614725000,
+  "elevators": 1792701119000,
   "mandates": 1792692445000,
   "ecb": 1792688683000,
   "hpd": 1786546841000,
@@ -26,8 +26,8 @@
   "dohmh": 1792620264000,
   "sla": 1792629170000
  },
- "cityAt": 1792700773000,
- "cityBy": "jobs",
+ "cityAt": 1792701119000,
+ "cityBy": "elevators",
  "whatsNew": {
   "windowHours": 168,
   "buildings": 0,
@@ -11619,7 +11619,15 @@
      "cat5Due": 0
     },
     "shed": null,
-    "filing": null,
+    "filing": {
+     "filed": "2026-10-21",
+     "daysSince": 2,
+     "status": "Prof Cert QA Review",
+     "permitted": false,
+     "stalled": false,
+     "cost": 361000,
+     "who": "RJ STAHL ARCHITECT, PC"
+    },
     "height": null,
     "occupied": false,
     "payingForNothing": false,
@@ -11688,7 +11696,15 @@
      "cat5Due": 0
     },
     "shed": null,
-    "filing": null,
+    "filing": {
+     "filed": "2026-10-21",
+     "daysSince": 2,
+     "status": "Prof Cert QA Review",
+     "permitted": false,
+     "stalled": false,
+     "cost": 344000,
+     "who": "RJ STAHL ARCHITECT, PC"
+    },
     "height": null,
     "occupied": false,
     "payingForNothing": false,
@@ -12490,82 +12506,6 @@
     ]
    },
    {
-    "bin": "2008858",
-    "address": "1647 MACOMBS ROAD",
-    "borough": "Bronx",
-    "block": "2876",
-    "lot": "194",
-    "subCycle": "10A",
-    "deadline": "2027-02-21",
-    "monthsLeft": 4,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 3,
-      "monthsLeft": 4
-     },
-     {
-      "kind": "CHRONIC_NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 4
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 4
-     }
-    ],
-    "score": 6,
-    "lastStatus": "No Report Filed",
-    "lastCycle": "9",
-    "lastFiling": null,
-    "priorQewi": null,
-    "owner": null,
-    "finesOwed": 74000,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": null,
-    "filing": null,
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 625,
-    "freshHaz": {
-     "daysAgo": 25,
-     "hazardous": false,
-     "severity": "CLASS - 2",
-     "desc": "CLASS 2 ITEMS: ELEVATOR EMERGENCY COMMUNICATION DEVICE/PHONE IN CAR IS INOPERATIVE AND REQUIRES REPAIR. ASME A17.1-2013 2.27.1.1. CAR DOOR ROLLER HAS"
-    },
-    "nextHearing": "2026-12-04",
-    "urgencyScore": 13,
-    "zip": "10453",
-    "multifamily": true,
-    "agent": {
-     "company": "BRONX PRO GROUP LLC",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "1605 DR. MARTIN LUTHER KING JR. BLVD., Bronx NY 10453",
-     "confidence": "verified",
-     "contactSource": "bronxprogroup.com/",
-     "lapsed": false,
-     "portfolio": 5,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.8475,
-     -73.9166
-    ]
-   },
-   {
     "bin": "2002848",
     "address": "1227 GRAND CONCOURSE",
     "borough": "Bronx",
@@ -12958,93 +12898,6 @@
     "ll": [
      40.885,
      -73.9078
-    ]
-   },
-   {
-    "bin": "2115485",
-    "address": "1424 PARKER STREET",
-    "borough": "Bronx",
-    "block": "3970",
-    "lot": "35",
-    "subCycle": "10B",
-    "deadline": "2028-02-21",
-    "monthsLeft": 16,
-    "signals": [
-     {
-      "kind": "NON_FILER",
-      "urgency": 2,
-      "monthsLeft": 16
-     },
-     {
-      "kind": "UNSAFE_PRIOR",
-      "urgency": 3,
-      "monthsLeft": 16
-     },
-     {
-      "kind": "ELEV_DUE",
-      "urgency": 2,
-      "monthsLeft": 16
-     }
-    ],
-    "score": 6,
-    "lastStatus": "UNSAFE",
-    "lastCycle": "9",
-    "lastFiling": "2023-02-17",
-    "priorQewi": "FRANK S. CAMINITI, RA",
-    "owner": "RAIN TOTAL CARE",
-    "finesOwed": 82750,
-    "mgmtChange": null,
-    "ownerChange": null,
-    "elevator": {
-     "devices": 2,
-     "cat1Missing": 2,
-     "cat1Overdue": 0,
-     "cat5Due": 0
-    },
-    "shed": {
-     "state": "lapsed",
-     "ageDays": 2471,
-     "since": "2020-01-17",
-     "until": "2026-09-22",
-     "type": "Sidewalk Shed",
-     "who": "KAJ NY CONSTRUCTION INC",
-     "longStanding": true
-    },
-    "filing": {
-     "filed": "2026-08-11",
-     "daysSince": 73,
-     "status": "Approved",
-     "permitted": false,
-     "stalled": false,
-     "cost": 60615,
-     "who": "FRANK S CAMINITI, RA"
-    },
-    "height": null,
-    "occupied": false,
-    "payingForNothing": false,
-    "ecbBalance": 2500,
-    "freshHaz": null,
-    "nextHearing": "2026-11-09",
-    "urgencyScore": 13,
-    "zip": "10462",
-    "multifamily": true,
-    "agent": {
-     "company": "THE WAVECREST MGMT TEAM",
-     "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "87-14 116TH STREET, Richmond Hill NY 11418",
-     "confidence": "verified",
-     "contactSource": "wavecrestmanagement.com",
-     "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
-     "namedContact": true
-    },
-    "isNew": false,
-    "fresh": [],
-    "ll": [
-     40.8371,
-     -73.8479
     ]
    },
    {
@@ -20623,6 +20476,72 @@
     ]
    },
    {
+    "bin": "2008858",
+    "address": "1647 MACOMBS ROAD",
+    "borough": "Bronx",
+    "block": "2876",
+    "lot": "194",
+    "subCycle": "10A",
+    "deadline": "2027-02-21",
+    "monthsLeft": 4,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 3,
+      "monthsLeft": 4
+     },
+     {
+      "kind": "CHRONIC_NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 4
+     }
+    ],
+    "score": 6,
+    "lastStatus": "No Report Filed",
+    "lastCycle": "9",
+    "lastFiling": null,
+    "priorQewi": null,
+    "owner": null,
+    "finesOwed": 74000,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": null,
+    "filing": null,
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 625,
+    "freshHaz": {
+     "daysAgo": 25,
+     "hazardous": false,
+     "severity": "CLASS - 2",
+     "desc": "CLASS 2 ITEMS: ELEVATOR EMERGENCY COMMUNICATION DEVICE/PHONE IN CAR IS INOPERATIVE AND REQUIRES REPAIR. ASME A17.1-2013 2.27.1.1. CAR DOOR ROLLER HAS"
+    },
+    "nextHearing": "2026-12-04",
+    "urgencyScore": 11,
+    "zip": "10453",
+    "multifamily": true,
+    "agent": {
+     "company": "BRONX PRO GROUP LLC",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2026-09-01",
+     "address": "1605 DR. MARTIN LUTHER KING JR. BLVD., Bronx NY 10453",
+     "confidence": "verified",
+     "contactSource": "bronxprogroup.com/",
+     "lapsed": false,
+     "portfolio": 5,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.8475,
+     -73.9166
+    ]
+   },
+   {
     "bin": "2015661",
     "address": "3363 SEDGWICK AVENUE",
     "borough": "Bronx",
@@ -21223,6 +21142,83 @@
     "ll": [
      40.8458,
      -73.8854
+    ]
+   },
+   {
+    "bin": "2115485",
+    "address": "1424 PARKER STREET",
+    "borough": "Bronx",
+    "block": "3970",
+    "lot": "35",
+    "subCycle": "10B",
+    "deadline": "2028-02-21",
+    "monthsLeft": 16,
+    "signals": [
+     {
+      "kind": "NON_FILER",
+      "urgency": 2,
+      "monthsLeft": 16
+     },
+     {
+      "kind": "UNSAFE_PRIOR",
+      "urgency": 3,
+      "monthsLeft": 16
+     }
+    ],
+    "score": 6,
+    "lastStatus": "UNSAFE",
+    "lastCycle": "9",
+    "lastFiling": "2023-02-17",
+    "priorQewi": "FRANK S. CAMINITI, RA",
+    "owner": "RAIN TOTAL CARE",
+    "finesOwed": 82750,
+    "mgmtChange": null,
+    "ownerChange": null,
+    "elevator": null,
+    "shed": {
+     "state": "lapsed",
+     "ageDays": 2471,
+     "since": "2020-01-17",
+     "until": "2026-09-22",
+     "type": "Sidewalk Shed",
+     "who": "KAJ NY CONSTRUCTION INC",
+     "longStanding": true
+    },
+    "filing": {
+     "filed": "2026-08-11",
+     "daysSince": 73,
+     "status": "Approved",
+     "permitted": false,
+     "stalled": false,
+     "cost": 60615,
+     "who": "FRANK S CAMINITI, RA"
+    },
+    "height": null,
+    "occupied": false,
+    "payingForNothing": false,
+    "ecbBalance": 2500,
+    "freshHaz": null,
+    "nextHearing": "2026-11-09",
+    "urgencyScore": 11,
+    "zip": "10462",
+    "multifamily": true,
+    "agent": {
+     "company": "THE WAVECREST MGMT TEAM",
+     "role": "Managing agent (HPD registration)",
+     "regEnd": "2027-09-01",
+     "address": "87-14 116TH STREET, Richmond Hill NY 11418",
+     "confidence": "verified",
+     "contactSource": "wavecrestmanagement.com",
+     "lapsed": false,
+     "portfolio": 7,
+     "contactKnown": true,
+     "namedContact": true
+    },
+    "isNew": false,
+    "fresh": [],
+    "ll": [
+     40.8371,
+     -73.8479
     ]
    },
    {
@@ -34619,7 +34615,7 @@
     "filing": {
      "filed": "2026-10-19",
      "daysSince": 4,
-     "status": "Pending CPE/ACPE Assignment",
+     "status": "Pending Plan Examiner Assignment",
      "permitted": false,
      "stalled": false,
      "cost": null,
@@ -38698,7 +38694,15 @@
      "cat5Due": 0
     },
     "shed": null,
-    "filing": null,
+    "filing": {
+     "filed": "2026-10-21",
+     "daysSince": 2,
+     "status": "Prof Cert QA Review",
+     "permitted": false,
+     "stalled": false,
+     "cost": 352000,
+     "who": "RJ STAHL ARCHITECT, PC"
+    },
     "height": null,
     "occupied": false,
     "payingForNothing": false,
@@ -44722,7 +44726,15 @@
     "ownerChange": null,
     "elevator": null,
     "shed": null,
-    "filing": null,
+    "filing": {
+     "filed": "2026-10-21",
+     "daysSince": 2,
+     "status": "Prof Cert QA Review",
+     "permitted": false,
+     "stalled": false,
+     "cost": null,
+     "who": "EOC-NY"
+    },
     "height": null,
     "occupied": false,
     "payingForNothing": false,
@@ -60868,7 +60880,7 @@
    "county": "Brooklyn",
    "zip": "11219",
    "received": "2026-10-21",
-   "daysAgo": 1,
+   "daysAgo": 2,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -61322,7 +61334,7 @@
    "county": "Manhattan",
    "zip": "10075",
    "received": "2026-10-20",
-   "daysAgo": 2,
+   "daysAgo": 3,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -115395,7 +115407,7 @@
  },
  "elevators": {
   "totals": {
-   "cited": 4496,
+   "cited": 4490,
    "open": 550,
    "deadline": "2026-12-31"
   },
