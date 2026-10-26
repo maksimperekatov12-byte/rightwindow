@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-26T22:00:37.348Z",
+ "generatedAt": "2026-10-26T22:58:33.720Z",
  "sources": {
   "facades": "2026-10-26",
   "permits": "2026-10-26",
@@ -9,7 +9,7 @@
   "ecb": "2026-10-25",
   "hpd": "2026-08-12",
   "awards": "2026-10-26",
-  "dohmh": "2026-10-23",
+  "dohmh": "2026-10-26",
   "sla": "2026-10-26",
   "elevatorCompliance": "2026-10-26",
   "acrisThrough": "2026-09-30"
@@ -23,17 +23,17 @@
   "ecb": 1792948271000,
   "hpd": 1786546841000,
   "awards": 1793018086000,
-  "dohmh": 1792793141000,
+  "dohmh": 1793052601000,
   "sla": 1792974770000
  },
- "cityAt": 1793046802000,
- "cityBy": "elevators",
+ "cityAt": 1793052601000,
+ "cityBy": "dohmh",
  "whatsNew": {
   "windowHours": 168,
   "buildings": 1,
   "signals": 2,
   "contracts": 42,
-  "openings": 130,
+  "openings": 121,
   "gas": 0,
   "carbon": 0,
   "elevators": 0
@@ -58338,26 +58338,6 @@
    "isNew": false
   },
   {
-   "id": "20261015025",
-   "kind": "INTENT",
-   "agency": "Health and Mental Hygiene",
-   "title": "FPHNY Grant Development and Fundraising",
-   "category": "Services (other than human services)",
-   "method": "Request for Information",
-   "date": "2026-10-23",
-   "dueDate": "2026-11-06T14:00:00.000",
-   "daysLeft": 9,
-   "epin": "81627Y0869",
-   "submitTo": null,
-   "scope": "Pursuant to Section 3-05 of the New York City Procurement Policy Board Rules, the Department of Health and Mental Hygiene (DOHMH) intends to enter into negotiations for a five-year agreement with Fund for Public Health in New York, Inc. (FPHNY) for the purchase of grant acquisition, fundraising, gra",
-   "contact": {
-    "name": null,
-    "phone": null,
-    "email": null
-   },
-   "isNew": true
-  },
-  {
    "id": "20261014022",
    "kind": "INTENT",
    "agency": "Environmental Protection",
@@ -58370,6 +58350,26 @@
    "epin": "82627Y0907",
    "submitTo": null,
    "scope": "Pursuant to Procurement Policy Board Rule Section 3-05, Department of Environmental Protection, intends to enter into a sole source agreement with Aquatic Informatics Inc for Aquarius software licenses. This is a Notice of Intent. Please attach your authorized service letter from the manfacturer. Al",
+   "contact": {
+    "name": null,
+    "phone": null,
+    "email": null
+   },
+   "isNew": true
+  },
+  {
+   "id": "20261015025",
+   "kind": "INTENT",
+   "agency": "Health and Mental Hygiene",
+   "title": "FPHNY Grant Development and Fundraising",
+   "category": "Services (other than human services)",
+   "method": "Request for Information",
+   "date": "2026-10-23",
+   "dueDate": "2026-11-06T14:00:00.000",
+   "daysLeft": 9,
+   "epin": "81627Y0869",
+   "submitTo": null,
+   "scope": "Pursuant to Section 3-05 of the New York City Procurement Policy Board Rules, the Department of Health and Mental Hygiene (DOHMH) intends to enter into negotiations for a five-year agreement with Fund for Public Health in New York, Inc. (FPHNY) for the purchase of grant acquisition, fundraising, gra",
    "contact": {
     "name": null,
     "phone": null,
@@ -60974,7 +60974,7 @@
    "county": "Manhattan",
    "zip": "10036",
    "received": "2026-10-23",
-   "daysAgo": 3,
+   "daysAgo": 4,
    "src": "sla",
    "evidence": [
     "entity",
@@ -61307,7 +61307,7 @@
    "county": "Bronx",
    "zip": "10458",
    "received": "2026-10-22",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "entity"
@@ -61330,7 +61330,7 @@
    "county": "Brooklyn",
    "zip": "11208",
    "received": "2026-10-22",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -61521,12 +61521,335 @@
    ]
   },
   {
+   "id": "dohmh-50194130",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "73-18 NORTHERN BLVD",
+   "county": "Queens",
+   "zip": "11372",
+   "bin": "4028634",
+   "camis": "50194130",
+   "ll": [
+    40.7547,
+    -73.8935
+   ],
+   "phone": "9294246281",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 73-18 NORTHERN BLVD",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194129",
+   "src": "dohmh",
+   "name": "SUSHI KITSUNE",
+   "legal": "SUSHI KITSUNE",
+   "kind": "Food service",
+   "address": "70 DOBBIN ST",
+   "county": "Brooklyn",
+   "zip": "11222",
+   "bin": "3065946",
+   "camis": "50194129",
+   "ll": [
+    40.7242,
+    -73.954
+   ],
+   "phone": "9174432222",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194128",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "184 DYCKMAN ST",
+   "county": "Manhattan",
+   "zip": "10040",
+   "bin": "1064230",
+   "camis": "50194128",
+   "ll": [
+    40.8643,
+    -73.9265
+   ],
+   "phone": "9297283522",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 184 DYCKMAN ST",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194127",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "42-07 69TH ST",
+   "county": "Queens",
+   "zip": "11377",
+   "bin": "4031841",
+   "camis": "50194127",
+   "ll": [
+    40.7425,
+    -73.8957
+   ],
+   "phone": "9178638818",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 42-07 69TH ST",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194124",
+   "src": "dohmh",
+   "name": "THE SHELF LLC",
+   "legal": "THE SHELF LLC",
+   "kind": "Food service",
+   "address": "58 WEST 8 STREET",
+   "county": "Manhattan",
+   "zip": "10011",
+   "bin": "1077275",
+   "camis": "50194124",
+   "ll": [
+    40.7333,
+    -73.9989
+   ],
+   "phone": "3054694174",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194122",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "196 8 AVENUE",
+   "county": "Manhattan",
+   "zip": "10011",
+   "bin": "1014005",
+   "camis": "50194122",
+   "ll": [
+    40.7433,
+    -73.9999
+   ],
+   "phone": "9175652192",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 196 8 AVENUE",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194121",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "5505 4 AVENUE",
+   "county": "Brooklyn",
+   "zip": "11220",
+   "bin": "3014939",
+   "camis": "50194121",
+   "ll": [
+    40.6436,
+    -74.0156
+   ],
+   "phone": "9178186906",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 5505 4 AVENUE",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194118",
+   "src": "dohmh",
+   "name": "WINGS BROOKLYN INC",
+   "legal": "WINGS BROOKLYN INC",
+   "kind": "Food service",
+   "address": "3598 NOSTRAND AVENUE",
+   "county": "Brooklyn",
+   "zip": "11229",
+   "bin": "3201583",
+   "camis": "50194118",
+   "ll": [
+    40.5964,
+    -73.9411
+   ],
+   "phone": "6314847232",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194115",
+   "src": "dohmh",
+   "name": "ASHOUR RESTAURANT",
+   "legal": "ASHOUR RESTAURANT",
+   "kind": "Food service",
+   "address": "31-51 STEINWAY STREET",
+   "county": "Queens",
+   "zip": "11103",
+   "bin": "4011107",
+   "camis": "50194115",
+   "ll": [
+    40.7601,
+    -73.918
+   ],
+   "phone": "6463843091",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194114",
+   "src": "dohmh",
+   "name": "GOOP KITCHEN",
+   "legal": "GOOP KITCHEN",
+   "kind": "Food service",
+   "address": "378 BROADWAY",
+   "county": "Manhattan",
+   "zip": "10013",
+   "bin": "1001866",
+   "camis": "50194114",
+   "ll": [
+    40.7178,
+    -74.0028
+   ],
+   "phone": "6613105686",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194113",
+   "src": "dohmh",
+   "name": "NO8 CHINESE RESTAURANT",
+   "legal": "NO8 CHINESE RESTAURANT",
+   "kind": "Food service",
+   "address": "176 WEST FORDHAM ROAD",
+   "county": "Bronx",
+   "zip": "10468",
+   "bin": "2014963",
+   "camis": "50194113",
+   "ll": [
+    40.8628,
+    -73.9085
+   ],
+   "phone": "6462694592",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "phoneVia": "NO.8 CHINESE RESTAURANT",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194110",
+   "src": "dohmh",
+   "name": "SKYLINE CATERING GROUP",
+   "legal": "SKYLINE CATERING GROUP",
+   "kind": "Food service",
+   "address": "750 8 AVENUE",
+   "county": "Manhattan",
+   "zip": "10036",
+   "bin": "1024736",
+   "camis": "50194110",
+   "ll": [
+    40.7599,
+    -73.9878
+   ],
+   "phone": "6466103382",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194109",
+   "src": "dohmh",
+   "name": "PARKWAY HOT PIZZA INC.",
+   "legal": "PARKWAY HOT PIZZA INC.",
+   "kind": "Food service",
+   "address": "1431 ROCKAWAY PARKWAY",
+   "county": "Brooklyn",
+   "zip": "11236",
+   "bin": "3229703",
+   "camis": "50194109",
+   "ll": [
+    40.645,
+    -73.9022
+   ],
+   "phone": "3475534126",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194100",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "1097 BOSTON ROAD",
+   "county": "Bronx",
+   "zip": "10456",
+   "bin": "2004185",
+   "camis": "50194100",
+   "ll": [
+    40.8271,
+    -73.9052
+   ],
+   "phone": "5103713163",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 1097 BOSTON ROAD",
+   "isNew": true
+  },
+  {
    "id": "dohmh-50194097",
    "src": "dohmh",
    "name": "RAWHIDE LLC",
    "legal": "RAWHIDE LLC",
    "kind": "Food service",
-   "address": "250 W 26TH ST",
+   "address": "250 WEST 26 STREET",
    "county": "Manhattan",
    "zip": "10001",
    "bin": "1014206",
@@ -61551,7 +61874,7 @@
    "name": "BRR RESTAURANT INC.",
    "legal": "BRR RESTAURANT INC.",
    "kind": "Food service",
-   "address": "39-32 BELL BLVD",
+   "address": "39-32 BELL BOULEVARD",
    "county": "Queens",
    "zip": "11361",
    "bin": "4137551",
@@ -61576,7 +61899,7 @@
    "name": "THE SPOT NYC",
    "legal": "THE SPOT NYC",
    "kind": "Food service",
-   "address": "206 THOMPSON ST",
+   "address": "206 THOMPSON STREET",
    "county": "Manhattan",
    "zip": "10012",
    "bin": "1077847",
@@ -61601,7 +61924,7 @@
    "name": "FIRA GREEK FROZEN YOGURT CORP",
    "legal": "FIRA GREEK FROZEN YOGURT CORP",
    "kind": "Food service",
-   "address": "294 BEDFORD AVE",
+   "address": "294 BEDFORD AVENUE",
    "county": "Brooklyn",
    "zip": "11249",
    "bin": "3062776",
@@ -61626,7 +61949,7 @@
    "name": "Roman's Vodka Bar",
    "legal": "Roman's Vodka Bar",
    "kind": "Food service",
-   "address": "72 MACDOUGAL ST",
+   "address": "72 MACDOUGAL STREET",
    "county": "Manhattan",
    "zip": "10012",
    "bin": "1008341",
@@ -61651,7 +61974,7 @@
    "name": "NYX & NOX BAR & KARAOKE, INC.",
    "legal": "NYX & NOX BAR & KARAOKE, INC.",
    "kind": "Food service",
-   "address": "49 W 32ND ST",
+   "address": "49 WEST 32 STREET",
    "county": "Manhattan",
    "zip": "10001",
    "bin": "1083630",
@@ -61674,7 +61997,7 @@
    "id": "dohmh-50194090",
    "src": "dohmh",
    "kind": "Food service",
-   "address": "8504 3RD AVE",
+   "address": "8504 3 AVENUE",
    "county": "Brooklyn",
    "zip": "11209",
    "bin": "3153076",
@@ -61688,7 +62011,7 @@
    "daysAgo": null,
    "evidence": [],
    "nameShown": false,
-   "identity": "New food service at 8504 3RD AVE",
+   "identity": "New food service at 8504 3 AVENUE",
    "isNew": true
   },
   {
@@ -61697,7 +62020,7 @@
    "name": "HOMESTEAD KITCHEN",
    "legal": "HOMESTEAD KITCHEN",
    "kind": "Food service",
-   "address": "981 2ND AVE",
+   "address": "981 2 AVENUE",
    "county": "Manhattan",
    "zip": "10022",
    "bin": "1038476",
@@ -61721,7 +62044,7 @@
    "name": "HARRY'S CARIBBEAN SOUL LLC",
    "legal": "HARRY'S CARIBBEAN SOUL LLC",
    "kind": "Food service",
-   "address": "374 PEARL ST",
+   "address": "374 PEARL STREET",
    "county": "Brooklyn",
    "zip": "11201",
    "bin": "3392969",
@@ -61771,7 +62094,7 @@
    "id": "dohmh-50194081",
    "src": "dohmh",
    "kind": "Food service",
-   "address": "7110 3RD AVE",
+   "address": "7110 3 AVENUE",
    "county": "Brooklyn",
    "zip": "11209",
    "bin": "3328828",
@@ -61785,7 +62108,7 @@
    "daysAgo": null,
    "evidence": [],
    "nameShown": false,
-   "identity": "New food service at 7110 3RD AVE",
+   "identity": "New food service at 7110 3 AVENUE",
    "isNew": true
   },
   {
@@ -61794,7 +62117,7 @@
    "name": "ANCHO CHILLI MEXICAN GRILL 151 LLC",
    "legal": "ANCHO CHILLI MEXICAN GRILL 151 LLC",
    "kind": "Food service",
-   "address": "151 E 116TH ST",
+   "address": "151 EAST 116 STREET",
    "county": "Manhattan",
    "zip": "10029",
    "bin": "1052324",
@@ -61819,7 +62142,7 @@
    "name": "LATE NIGHT DINER",
    "legal": "LATE NIGHT DINER",
    "kind": "Food service",
-   "address": "1788 STILLWELL AVE",
+   "address": "1788 STILLWELL AVENUE",
    "county": "Brooklyn",
    "zip": "11223",
    "bin": "3184995",
@@ -61843,7 +62166,7 @@
    "name": "KF TEA NEW YORK LLC",
    "legal": "KF TEA NEW YORK LLC",
    "kind": "Food service",
-   "address": "806 55TH ST",
+   "address": "806 55 STREET",
    "county": "Brooklyn",
    "zip": "11220",
    "bin": "3139490",
@@ -61868,7 +62191,7 @@
    "name": "P&D EATS LLC",
    "legal": "P&D EATS LLC",
    "kind": "Food service",
-   "address": "42 E 8TH ST",
+   "address": "42 EAST 8 STREET",
    "county": "Manhattan",
    "zip": "10003",
    "bin": "1008834",
@@ -61893,7 +62216,7 @@
    "name": "EARTHBAR LLC",
    "legal": "EARTHBAR LLC",
    "kind": "Food service",
-   "address": "261 11TH AVE",
+   "address": "261 11 AVENUE",
    "county": "Manhattan",
    "zip": "10001",
    "bin": "1079184",
@@ -62007,6 +62330,8 @@
   {
    "id": "dohmh-50194043",
    "src": "dohmh",
+   "name": "HALAL GUYS PLUS INC.",
+   "legal": "HALAL GUYS PLUS INC.",
    "kind": "Food service",
    "address": "1242 CASTLE HILL AVENUE",
    "county": "Bronx",
@@ -62020,9 +62345,11 @@
    "phone": "7188856786",
    "received": null,
    "daysAgo": null,
-   "evidence": [],
-   "nameShown": false,
-   "identity": "New food service at 1242 CASTLE HILL AVENUE",
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
    "isNew": true
   },
   {
@@ -62249,7 +62576,7 @@
    "name": "CHINA WOK 2 LLC",
    "legal": "CHINA WOK 2 LLC",
    "kind": "Food service",
-   "address": "512 E 180TH ST",
+   "address": "512 EAST 180 STREET",
    "county": "Bronx",
    "zip": "10457",
    "bin": "2011468",
@@ -62274,7 +62601,7 @@
    "name": "KENNEDY FRIED CHICKEN",
    "legal": "KENNEDY FRIED CHICKEN",
    "kind": "Food service",
-   "address": "938 UTICA AVE",
+   "address": "938 UTICA AVENUE",
    "county": "Brooklyn",
    "zip": "11203",
    "bin": "3102841",
@@ -62421,7 +62748,7 @@
    "name": "THE 3 & 10 BAR LLC",
    "legal": "THE 3 & 10 BAR LLC",
    "kind": "Food service",
-   "address": "220 W HOUSTON ST",
+   "address": "220 WEST HOUSTON STREET",
    "county": "Manhattan",
    "zip": "10014",
    "bin": "1008383",
@@ -62644,7 +62971,7 @@
    "name": "Tea and sympathy inc",
    "legal": "Tea and sympathy inc",
    "kind": "Food service",
-   "address": "1000 3RD AVE",
+   "address": "1000 3 AVENUE",
    "county": "Manhattan",
    "zip": "10022",
    "bin": "1041904",
@@ -62764,7 +63091,7 @@
    "name": "CALYPSO BAR AND LOUNGE",
    "legal": "CALYPSO BAR AND LOUNGE",
    "kind": "Food service",
-   "address": "118-07 ATLANTIC AVE",
+   "address": "118-07 ATLANTIC AVENUE",
    "county": "Queens",
    "zip": "11418",
    "bin": "4196647",
@@ -62896,8 +63223,8 @@
   {
    "id": "dohmh-50193902",
    "src": "dohmh",
-   "name": "PANE PURO LLC",
-   "legal": "PANE PURO LLC",
+   "name": "SARAGHINA BAKERY",
+   "legal": "SARAGHINA BAKERY",
    "kind": "Food service",
    "address": "433 HALSEY STREET",
    "county": "Brooklyn",
@@ -62912,7 +63239,6 @@
    "received": null,
    "daysAgo": null,
    "evidence": [
-    "suffix",
     "trade"
    ],
    "nameShown": true,
@@ -62999,7 +63325,7 @@
    "name": "FABRIQUE LEXINGTON LLC",
    "legal": "FABRIQUE LEXINGTON LLC",
    "kind": "Food service",
-   "address": "939 LEXINGTON AVE",
+   "address": "939 LEXINGTON AVENUE",
    "county": "Manhattan",
    "zip": "10065",
    "bin": "1042479",
@@ -63048,7 +63374,7 @@
    "name": "JERSEY MIKES SUBS",
    "legal": "JERSEY MIKES SUBS",
    "kind": "Food service",
-   "address": "476 86TH ST",
+   "address": "476 86 STREET",
    "county": "Brooklyn",
    "zip": "11209",
    "bin": "3153548",
@@ -63158,7 +63484,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193852",
@@ -63183,7 +63509,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193851",
@@ -63208,32 +63534,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
-  },
-  {
-   "id": "dohmh-50193850",
-   "src": "dohmh",
-   "name": "MKW INTERNATIONAL LLC",
-   "legal": "MKW INTERNATIONAL LLC",
-   "kind": "Food service",
-   "address": "151 WEST 34 STREET",
-   "county": "Manhattan",
-   "zip": "10001",
-   "bin": "1015219",
-   "camis": "50193850",
-   "ll": [
-    40.7505,
-    -73.9895
-   ],
-   "phone": "9174980618",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193849",
@@ -63258,7 +63559,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193848",
@@ -63283,7 +63584,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193847",
@@ -63308,7 +63609,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193845",
@@ -63316,7 +63617,7 @@
    "name": "SKINNY LOUIE",
    "legal": "SKINNY LOUIE",
    "kind": "Food service",
-   "address": "218 FLATBUSH AVE",
+   "address": "218 FLATBUSH AVENUE",
    "county": "Brooklyn",
    "zip": "11217",
    "bin": "3018496",
@@ -63332,7 +63633,7 @@
     "chain"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193844",
@@ -63357,7 +63658,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193843",
@@ -63381,7 +63682,7 @@
     "chain"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193842",
@@ -63405,32 +63706,33 @@
     "chain"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193841",
    "src": "dohmh",
-   "name": "IANS COOKIE JAR LLC",
-   "legal": "IANS COOKIE JAR LLC",
+   "name": "IAN'S COOKIE JAR LLC",
+   "legal": "IAN'S COOKIE JAR LLC",
    "kind": "Food service",
-   "address": "40 WEST 40 STREET",
+   "address": "42 WEST 42 STREET",
    "county": "Manhattan",
-   "zip": "10018",
-   "bin": "1080745",
+   "zip": "10036",
+   "bin": "1000000",
    "camis": "50193841",
    "ll": [
-    40.7531,
-    -73.9839
+    40.7541,
+    -73.9823
    ],
    "phone": "9174151878",
    "received": null,
    "daysAgo": null,
    "evidence": [
     "suffix",
-    "trade"
+    "trade",
+    "possessive"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193840",
@@ -63451,7 +63753,7 @@
    "evidence": [],
    "nameShown": false,
    "identity": "New food service at 42-03 QUEENS BOULEVARD",
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193837",
@@ -63476,7 +63778,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193836",
@@ -63500,7 +63802,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193833",
@@ -63524,7 +63826,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193831",
@@ -63549,7 +63851,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193830",
@@ -63574,7 +63876,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193828",
@@ -63595,7 +63897,7 @@
    "evidence": [],
    "nameShown": false,
    "identity": "New food service at 659 VANDERBILT AVENUE",
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193827",
@@ -63619,7 +63921,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193823",
@@ -63643,7 +63945,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193821",
@@ -63669,7 +63971,7 @@
     "possessive"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193813",
@@ -63694,7 +63996,7 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": true
+   "isNew": false
   },
   {
    "id": "dohmh-50193805",
@@ -64337,7 +64639,7 @@
    "id": "dohmh-50193733",
    "src": "dohmh",
    "kind": "Food service",
-   "address": "154 CARLTON AVE",
+   "address": "154 CARLTON AVENUE",
    "county": "Brooklyn",
    "zip": "11205",
    "bin": "3058293",
@@ -64351,7 +64653,7 @@
    "daysAgo": null,
    "evidence": [],
    "nameShown": false,
-   "identity": "New food service at 154 CARLTON AVE",
+   "identity": "New food service at 154 CARLTON AVENUE",
    "isNew": false
   },
   {
@@ -64922,30 +65224,6 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193668",
-   "src": "dohmh",
-   "name": "HIGHLIGHTS STEAK HOUSE",
-   "legal": "HIGHLIGHTS STEAK HOUSE",
-   "kind": "Food service",
-   "address": "1687 86 STREET",
-   "county": "Brooklyn",
-   "zip": "11214",
-   "bin": "3165701",
-   "camis": "50193668",
-   "ll": [
-    40.6088,
-    -74.0052
-   ],
-   "phone": "3477216110",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193667",
    "src": "dohmh",
    "name": "YOGURT BAR III INC.",
@@ -65008,36 +65286,12 @@
     40.703,
     -73.9257
    ],
-   "phone": null,
+   "phone": "7182775440",
    "received": null,
    "daysAgo": null,
    "evidence": [],
    "nameShown": false,
    "identity": "New food service at 232 KNICKERBOCKER AVENUE",
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193658",
-   "src": "dohmh",
-   "name": "BLU CAFE",
-   "legal": "BLU CAFE",
-   "kind": "Food service",
-   "address": "120 RIVERSIDE BOULEVARD",
-   "county": "Manhattan",
-   "zip": "10069",
-   "bin": "1086247",
-   "camis": "50193658",
-   "ll": [
-    40.7767,
-    -73.9892
-   ],
-   "phone": "9173257965",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "trade"
-   ],
-   "nameShown": true,
    "isNew": false
   },
   {
@@ -65220,7 +65474,7 @@
    "name": "PHO TABLE 4 LLC",
    "legal": "PHO TABLE 4 LLC",
    "kind": "Food service",
-   "address": "52 WILLOUGHBY STREET",
+   "address": "52 WILLOUGHBY ST",
    "county": "Brooklyn",
    "zip": "11201",
    "bin": "3000386",
@@ -65517,7 +65771,7 @@
     40.7025,
     -73.9269
    ],
-   "phone": "8602624830",
+   "phone": "7185341380",
    "received": null,
    "daysAgo": null,
    "evidence": [],
@@ -65701,8 +65955,8 @@
   {
    "id": "dohmh-50193582",
    "src": "dohmh",
-   "name": "JUPIOCA 888 INC",
-   "legal": "JUPIOCA 888 INC",
+   "name": "JUPIOCA",
+   "legal": "JUPIOCA",
    "kind": "Food service",
    "address": "278B WYCKOFF AVE",
    "county": "Brooklyn",
@@ -65717,8 +65971,7 @@
    "received": null,
    "daysAgo": null,
    "evidence": [
-    "suffix",
-    "trade"
+    "single-word"
    ],
    "nameShown": true,
    "isNew": false
@@ -66358,7 +66611,7 @@
    "name": "THE SEA FIRE GRILL",
    "legal": "THE SEA FIRE GRILL",
    "kind": "Food service",
-   "address": "216 E 49TH ST",
+   "address": "216 EAST 49 STREET",
    "county": "Manhattan",
    "zip": "10017",
    "bin": "1038029",
@@ -66691,55 +66944,6 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193440",
-   "src": "dohmh",
-   "name": "HEYTEA",
-   "legal": "HEYTEA",
-   "kind": "Food service",
-   "address": "863 BROADWAY",
-   "county": "Manhattan",
-   "zip": "10003",
-   "bin": "1016125",
-   "camis": "50193440",
-   "ll": [
-    40.7374,
-    -73.9902
-   ],
-   "phone": "6464227244",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193434",
-   "src": "dohmh",
-   "name": "TKOVA INC.",
-   "legal": "TKOVA INC.",
-   "kind": "Food service",
-   "address": "107A CHAMBERS ST",
-   "county": "Manhattan",
-   "zip": "10007",
-   "bin": null,
-   "camis": "50193434",
-   "ll": [
-    40.7151,
-    -74.0082
-   ],
-   "phone": "6468844550",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193420",
    "src": "dohmh",
    "name": "AR4 BK INC",
@@ -66765,35 +66969,8 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193413",
-   "src": "dohmh",
-   "name": "PB CENTRAL PARK WEST LLC",
-   "legal": "PB CENTRAL PARK WEST LLC",
-   "kind": "Food service",
-   "address": "105 WEST 72 STREET",
-   "county": "Manhattan",
-   "zip": "10023",
-   "bin": "1029969",
-   "camis": "50193413",
-   "ll": [
-    40.7775,
-    -73.979
-   ],
-   "phone": "9174627137",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193409",
    "src": "dohmh",
-   "name": "MIA COFFEE CORP",
-   "legal": "MIA COFFEE CORP",
    "kind": "Food service",
    "address": "258 SCHAEFER STREET",
    "county": "Brooklyn",
@@ -66807,18 +66984,16 @@
    "phone": "2036283167",
    "received": null,
    "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 258 SCHAEFER STREET",
    "isNew": false
   },
   {
    "id": "dohmh-50193394",
    "src": "dohmh",
-   "name": "ZOA CAFE LLC",
-   "legal": "ZOA CAFE LLC",
+   "name": "LION'S MILK",
+   "legal": "LION'S MILK",
    "kind": "Food service",
    "address": "148 NORTH 7 STREET",
    "county": "Brooklyn",
@@ -66833,8 +67008,7 @@
    "received": null,
    "daysAgo": null,
    "evidence": [
-    "suffix",
-    "trade"
+    "possessive"
    ],
    "nameShown": true,
    "isNew": false
@@ -67241,7 +67415,7 @@
    "name": "DELI BOYZ II GOURMET INC",
    "legal": "DELI BOYZ II GOURMET INC",
    "kind": "Food service",
-   "address": "288 E BURNSIDE AVE",
+   "address": "288 EAST BURNSIDE AVENUE",
    "county": "Bronx",
    "zip": "10457",
    "bin": "2007782",
@@ -67315,7 +67489,7 @@
    "name": "CHICK -N- TEA NY INC",
    "legal": "CHICK -N- TEA NY INC",
    "kind": "Food service",
-   "address": "136-21 ROOSEVELT AVE",
+   "address": "136-21 ROOSEVELT AVENUE",
    "county": "Queens",
    "zip": "11354",
    "bin": "4112492",
@@ -67337,47 +67511,26 @@
   {
    "id": "dohmh-50193243",
    "src": "dohmh",
-   "name": "WENG GARDEN LLC",
-   "legal": "WENG GARDEN LLC",
+   "name": "WENG'S GARDEN",
+   "legal": "WENG'S GARDEN",
    "kind": "Food service",
-   "address": "872 HANCOCK ST",
+   "address": "872 HANCOCK STREET",
    "county": "Brooklyn",
    "zip": "11233",
    "bin": "3039922",
    "camis": "50193243",
    "ll": [
     40.6859,
-    -73.9207
+    -73.921
    ],
-   "phone": "9176057717",
+   "phone": "7185748979",
    "received": null,
    "daysAgo": null,
    "evidence": [
-    "suffix",
-    "trade"
+    "trade",
+    "possessive"
    ],
    "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193232",
-   "src": "dohmh",
-   "kind": "Food service",
-   "address": "602 NOSTRAND AVENUE",
-   "county": "Brooklyn",
-   "zip": "11216",
-   "bin": "3029766",
-   "camis": "50193232",
-   "ll": [
-    40.6779,
-    -73.9497
-   ],
-   "phone": "9734324623",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [],
-   "nameShown": false,
-   "identity": "New food service at 602 NOSTRAND AVENUE",
    "isNew": false
   },
   {
@@ -67386,7 +67539,7 @@
    "name": "EL NUEVO CAPRI EXPRESS INC.",
    "legal": "EL NUEVO CAPRI EXPRESS INC.",
    "kind": "Food service",
-   "address": "410 E TREMONT AVE",
+   "address": "410 EAST TREMONT AVENUE",
    "county": "Bronx",
    "zip": "10457",
    "bin": "2115890",
@@ -67406,36 +67559,12 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193228",
-   "src": "dohmh",
-   "name": "TOTÒ",
-   "legal": "TOTÒ",
-   "kind": "Food service",
-   "address": "247 SMITH STREET",
-   "county": "Brooklyn",
-   "zip": "11231",
-   "bin": "3006698",
-   "camis": "50193228",
-   "ll": [
-    40.6834,
-    -73.9927
-   ],
-   "phone": "7186645169",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193227",
    "src": "dohmh",
    "name": "XO",
    "legal": "XO",
    "kind": "Food service",
-   "address": "136 W FORDHAM RD",
+   "address": "136 WEST FORDHAM ROAD",
    "county": "Bronx",
    "zip": "10468",
    "bin": "2086825",
@@ -67454,37 +67583,12 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193225",
-   "src": "dohmh",
-   "name": "WELL NICE WINE LLC",
-   "legal": "WELL NICE WINE LLC",
-   "kind": "Food service",
-   "address": "1038 BEDFORD AVE",
-   "county": "Brooklyn",
-   "zip": "11205",
-   "bin": "3055451",
-   "camis": "50193225",
-   "ll": [
-    40.6895,
-    -73.9552
-   ],
-   "phone": "2674741889",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193220",
    "src": "dohmh",
    "name": "NO PORK HALAL CHINESE LLC",
    "legal": "NO PORK HALAL CHINESE LLC",
    "kind": "Food service",
-   "address": "76-14 LIBERTY AVE",
+   "address": "76-14 LIBERTY AVENUE",
    "county": "Queens",
    "zip": "11417",
    "bin": "4312518",
@@ -67558,7 +67662,7 @@
    "name": "OSTERIA BROOKLYN",
    "legal": "OSTERIA BROOKLYN",
    "kind": "Food service",
-   "address": "26-21 JACKSON AVE",
+   "address": "26-21 JACKSON AVENUE",
    "county": "Queens",
    "zip": "11101",
    "bin": "4005141",
@@ -67607,7 +67711,7 @@
    "name": "WONDERFUL 2012 INC.",
    "legal": "WONDERFUL 2012 INC.",
    "kind": "Food service",
-   "address": "518 E 240TH ST",
+   "address": "518 EAST 240 STREET",
    "county": "Bronx",
    "zip": "10470",
    "bin": "2019826",
@@ -67910,30 +68014,6 @@
     -73.9188
    ],
    "phone": "3476171000",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50192942",
-   "src": "dohmh",
-   "name": "DUNKIN",
-   "legal": "DUNKIN",
-   "kind": "Food service",
-   "address": "15-25 COLLEGE POINT BOULEVARD",
-   "county": "Queens",
-   "zip": "11356",
-   "bin": "4098325",
-   "camis": "50192942",
-   "ll": [
-    40.784,
-    -73.8458
-   ],
-   "phone": "2037314431",
    "received": null,
    "daysAgo": null,
    "evidence": [
@@ -68334,7 +68414,7 @@
    "name": "TACO DARBAR",
    "legal": "TACO DARBAR",
    "kind": "Food service",
-   "address": "141-21 ROCKAWAY BLVD",
+   "address": "141-21 ROCKAWAY BOULEVARD",
    "county": "Queens",
    "zip": "11436",
    "bin": "4261221",
@@ -68692,14 +68772,14 @@
    "name": "QC CAMOUS EATS (RATHAUS HALL)",
    "legal": "QC CAMOUS EATS (RATHAUS HALL)",
    "kind": "Food service",
-   "address": "64-30 KISSENA BOULEVARD",
+   "address": "65-30 KISSENA BOULEVARD",
    "county": "Queens",
    "zip": "11367",
-   "bin": "4439919",
+   "bin": "4141870",
    "camis": "50192571",
    "ll": [
-    40.7377,
-    -73.8148
+    40.7367,
+    -73.8147
    ],
    "phone": "5187769037",
    "received": null,
@@ -68731,54 +68811,6 @@
    "evidence": [
     "suffix",
     "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50192553",
-   "src": "dohmh",
-   "name": "PHONAMI",
-   "legal": "PHONAMI",
-   "kind": "Food service",
-   "address": "65-37 99 STREET",
-   "county": "Queens",
-   "zip": "11374",
-   "bin": "4050929",
-   "camis": "50192553",
-   "ll": [
-    40.7286,
-    -73.855
-   ],
-   "phone": "9176849895",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50192533",
-   "src": "dohmh",
-   "name": "ISOGOOD",
-   "legal": "ISOGOOD",
-   "kind": "Food service",
-   "address": "66-56 MYRTLE AVENUE",
-   "county": "Queens",
-   "zip": "11385",
-   "bin": "4090233",
-   "camis": "50192533",
-   "ll": [
-    40.7015,
-    -73.8864
-   ],
-   "phone": "6469255433",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "single-word"
    ],
    "nameShown": true,
    "isNew": false
@@ -70186,56 +70218,6 @@
     -73.9308
    ],
    "phone": "9292396612",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50187603",
-   "src": "dohmh",
-   "name": "PERUVIANA LLC",
-   "legal": "PERUVIANA LLC",
-   "kind": "Food service",
-   "address": "2421 ARTHUR AVENUE",
-   "county": "Bronx",
-   "zip": "10458",
-   "bin": "2120567",
-   "camis": "50187603",
-   "ll": [
-    40.856,
-    -73.8872
-   ],
-   "phone": "3478679832",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50187529",
-   "src": "dohmh",
-   "name": "AZ 2463 CORP",
-   "legal": "AZ 2463 CORP",
-   "kind": "Food service",
-   "address": "2463 CRESTON AVENUE",
-   "county": "Bronx",
-   "zip": "10468",
-   "bin": "2013918",
-   "camis": "50187529",
-   "ll": [
-    40.8619,
-    -73.8986
-   ],
-   "phone": "6465523988",
    "received": null,
    "daysAgo": null,
    "evidence": [
