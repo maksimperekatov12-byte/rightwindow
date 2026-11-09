@@ -1,35 +1,271 @@
 {
- "updatedAt": 1794211119167,
+ "updatedAt": 1794220735854,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794210737219,
-  "finishedAt": 1794211119167,
-  "ms": 381948,
-  "outcome": "upstream",
-  "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}",
-  "counts": null,
-  "feedAt": "2026-11-09T04:50:31.577Z",
+  "startedAt": 1794214283321,
+  "finishedAt": 1794220735854,
+  "ms": 6452533,
+  "outcome": "degraded",
+  "error": "carried by the previous hour: acris",
+  "counts": {
+   "facades": 800,
+   "gas": 432,
+   "carbon": 800,
+   "elevators": 543,
+   "contracts": 150,
+   "openings": 400,
+   "permits": 75,
+   "new": {
+    "windowHours": 168,
+    "buildings": 0,
+    "signals": 33,
+    "contracts": 35,
+    "openings": 108,
+    "gas": 0,
+    "carbon": 3,
+    "elevators": 0
+   }
+  },
+  "feedAt": "2026-11-09T08:51:23.321Z",
   "sources": {
    "facades": {
     "ok": true,
     "calls": 1,
-    "retries": 3,
+    "retries": 6,
     "failures": 0,
     "rows": 34044,
-    "ms": 34762,
-    "lastOkAt": 1794210771982
+    "ms": 112287,
+    "lastOkAt": 1794214395610,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 360,
+     "at": 1794220387810,
+     "lastOkAt": 1794220387810
+    }
    },
    "hpd": {
+    "ok": true,
+    "calls": 174,
+    "retries": 56,
+    "failures": 0,
+    "rows": 4813,
+    "ms": 1740014,
+    "lastOkAt": 1794220197944,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 107,
+     "at": 1794220388539,
+     "lastOkAt": 1794220388539
+    }
+   },
+   "hpdContacts": {
     "ok": false,
-    "calls": 21,
-    "retries": 20,
+    "calls": 85,
+    "retries": 34,
     "failures": 1,
-    "rows": 810,
-    "ms": 347081,
-    "lastOkAt": 1794211007529,
-    "status": 500,
-    "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}",
-    "failedAt": 1794211119141
+    "rows": 11135,
+    "ms": 857234,
+    "lastOkAt": 1794220288505,
+    "status": 503,
+    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+    "failedAt": 1794220387338
+   },
+   "ecb": {
+    "ok": true,
+    "calls": 44,
+    "retries": 4,
+    "failures": 0,
+    "rows": 6238,
+    "ms": 417799,
+    "lastOkAt": 1794215755290,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 134,
+     "at": 1794220388432,
+     "lastOkAt": 1794220388432
+    }
+   },
+   "acris": {
+    "ok": false,
+    "calls": 4,
+    "retries": 7,
+    "failures": 1,
+    "rows": 123698,
+    "ms": 480532,
+    "lastOkAt": 1794215879158,
+    "status": null,
+    "error": "The operation was aborted due to timeout",
+    "failedAt": 1794216235842
+   },
+   "elevators": {
+    "ok": true,
+    "calls": 45,
+    "retries": 10,
+    "failures": 0,
+    "rows": 11811,
+    "ms": 457017,
+    "lastOkAt": 1794219788705,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 125,
+     "at": 1794220388173,
+     "lastOkAt": 1794220388173
+    }
+   },
+   "permits": {
+    "ok": true,
+    "calls": 110,
+    "retries": 14,
+    "failures": 0,
+    "rows": 7783,
+    "ms": 692598,
+    "lastOkAt": 1794217685545,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 125,
+     "at": 1794220387935,
+     "lastOkAt": 1794220387935
+    }
+   },
+   "jobs": {
+    "ok": true,
+    "calls": 55,
+    "retries": 7,
+    "failures": 0,
+    "rows": 25898,
+    "ms": 329650,
+    "lastOkAt": 1794217433813,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 113,
+     "at": 1794220388048,
+     "lastOkAt": 1794220388048
+    }
+   },
+   "store": {
+    "ok": true,
+    "calls": 1,
+    "retries": 0,
+    "failures": 0,
+    "rows": 0,
+    "ms": 0,
+    "lastOkAt": 1794217685980
+   },
+   "awards": {
+    "ok": true,
+    "calls": 3,
+    "retries": 1,
+    "failures": 0,
+    "rows": 269,
+    "ms": 18723,
+    "lastOkAt": 1794217699308,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 186,
+     "at": 1794220388725,
+     "lastOkAt": 1794220388725
+    }
+   },
+   "sla": {
+    "ok": true,
+    "calls": 1,
+    "retries": 0,
+    "failures": 0,
+    "rows": 60,
+    "ms": 627,
+    "lastOkAt": 1794217699935,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 7213,
+     "at": 1794220396029,
+     "lastOkAt": 1794220396029
+    }
+   },
+   "dohmh": {
+    "ok": true,
+    "calls": 127,
+    "retries": 23,
+    "failures": 0,
+    "rows": 4144,
+    "ms": 946463,
+    "lastOkAt": 1794218654314,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 91,
+     "at": 1794220388816,
+     "lastOkAt": 1794220388816
+    }
+   },
+   "dcwp": {
+    "ok": true,
+    "calls": 2,
+    "retries": 0,
+    "failures": 0,
+    "rows": 56775,
+    "ms": 7818,
+    "lastOkAt": 1794217718694
+   },
+   "mandates": {
+    "ok": true,
+    "calls": 3,
+    "retries": 0,
+    "failures": 0,
+    "rows": 66067,
+    "ms": 28676,
+    "lastOkAt": 1794219232915,
+    "clock": {
+     "ok": true,
+     "calls": 1,
+     "failures": 0,
+     "ms": 125,
+     "at": 1794220388298,
+     "lastOkAt": 1794220388298
+    }
+   },
+   "energy": {
+    "ok": true,
+    "calls": 1,
+    "retries": 1,
+    "failures": 0,
+    "rows": 39090,
+    "ms": 18987,
+    "lastOkAt": 1794219251912
+   },
+   "pluto": {
+    "ok": true,
+    "calls": 20,
+    "retries": 14,
+    "failures": 0,
+    "rows": 756,
+    "ms": 219822,
+    "lastOkAt": 1794220615864
+   },
+   "laa": {
+    "ok": true,
+    "calls": 9,
+    "retries": 6,
+    "failures": 0,
+    "rows": 207,
+    "ms": 119682,
+    "lastOkAt": 1794220735548
    },
    "contacts": {
     "ok": true,
@@ -37,7 +273,7 @@
     "retries": 0,
     "failures": 0,
     "rows": 0,
-    "ms": 1,
+    "ms": 2,
     "detail": {
      "contacts": 475,
      "confirmed": 413,
@@ -53,40 +289,11 @@
      "fullPassAt": 1794153593495,
      "summary": "413 confirmed · 0 changed · 22 withdrawn · 31 unreachable · 19 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794211120753
+    "lastOkAt": 1794220737311
    }
   }
  },
  "runs": [
-  {
-   "at": 1793849717959,
-   "ms": 1092186,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T03:35:17.959Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 102,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793853154806,
    "ms": 1135405,
@@ -2780,9 +2987,61 @@
    "feedAt": "2026-11-09T04:50:31.577Z",
    "counts": null,
    "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}"
+  },
+  {
+   "at": 1794214283321,
+   "ms": 6452533,
+   "outcome": "degraded",
+   "failed": [
+    "hpdContacts",
+    "acris"
+   ],
+   "feedAt": "2026-11-09T08:51:23.321Z",
+   "counts": {
+    "facades": 800,
+    "gas": 432,
+    "carbon": 800,
+    "elevators": 543,
+    "contracts": 150,
+    "openings": 400,
+    "permits": 75,
+    "new": {
+     "windowHours": 168,
+     "buildings": 0,
+     "signals": 33,
+     "contracts": 35,
+     "openings": 108,
+     "gas": 0,
+     "carbon": 3,
+     "elevators": 0
+    }
+   },
+   "error": "carried by the previous hour: acris"
   }
  ],
  "incidents": [
+  {
+   "at": 1794208935138,
+   "lastAt": 1794220387338,
+   "lane": "hourly",
+   "source": "hpdContacts",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 2,
+   "resolvedAt": null,
+   "clockApart": true
+  },
+  {
+   "at": 1794187320588,
+   "lastAt": 1794216235842,
+   "lane": "hourly",
+   "source": "acris",
+   "status": 503,
+   "error": "The operation was aborted due to timeout",
+   "count": 4,
+   "resolvedAt": null,
+   "clockApart": true
+  },
   {
    "at": 1794211119141,
    "lastAt": 1794211119141,
@@ -2791,7 +3050,7 @@
    "status": 500,
    "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}",
    "count": 1,
-   "resolvedAt": null,
+   "resolvedAt": 1794220197944,
    "clockApart": true
   },
   {
@@ -2802,18 +3061,7 @@
    "status": null,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
    "count": 1,
-   "resolvedAt": null
-  },
-  {
-   "at": 1794208935138,
-   "lastAt": 1794208935138,
-   "lane": "hourly",
-   "source": "hpdContacts",
-   "status": 503,
-   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 1,
-   "resolvedAt": null,
-   "clockApart": true
+   "resolvedAt": 1794220735854
   },
   {
    "at": 1794207352639,
@@ -2823,40 +3071,7 @@
    "status": 503,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
    "count": 1,
-   "resolvedAt": null,
-   "clockApart": true
-  },
-  {
-   "at": 1794206545949,
-   "lastAt": 1794206545949,
-   "lane": "hourly",
-   "source": "mandates",
-   "status": 500,
-   "error": "500: {\"message\":\"Internal error: please include code 255327af-e2b4-440a-a782-206f133deb29 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"255327af-e2b4-440a-a782-206f133deb29\"}}",
-   "count": 1,
-   "resolvedAt": null,
-   "clockApart": true
-  },
-  {
-   "at": 1794205097413,
-   "lastAt": 1794205097413,
-   "lane": "hourly",
-   "source": "dohmh",
-   "status": 503,
-   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 1,
-   "resolvedAt": null,
-   "clockApart": true
-  },
-  {
-   "at": 1794187320588,
-   "lastAt": 1794201560054,
-   "lane": "hourly",
-   "source": "acris",
-   "status": 503,
-   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 3,
-   "resolvedAt": null,
+   "resolvedAt": 1794220615864,
    "clockApart": true
   },
   {
@@ -2868,6 +3083,28 @@
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
    "count": 1,
    "resolvedAt": 1794208536646,
+   "clockApart": true
+  },
+  {
+   "at": 1794206545949,
+   "lastAt": 1794206545949,
+   "lane": "hourly",
+   "source": "mandates",
+   "status": 500,
+   "error": "500: {\"message\":\"Internal error: please include code 255327af-e2b4-440a-a782-206f133deb29 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"255327af-e2b4-440a-a782-206f133deb29\"}}",
+   "count": 1,
+   "resolvedAt": 1794219232915,
+   "clockApart": true
+  },
+  {
+   "at": 1794205097413,
+   "lastAt": 1794205097413,
+   "lane": "hourly",
+   "source": "dohmh",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 1,
+   "resolvedAt": 1794218654314,
    "clockApart": true
   },
   {
