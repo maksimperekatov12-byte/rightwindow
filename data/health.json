@@ -1,12 +1,12 @@
 {
- "updatedAt": 1794226732976,
+ "updatedAt": 1794229421552,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794224331568,
-  "finishedAt": 1794226732976,
-  "ms": 2401408,
+  "startedAt": 1794227857697,
+  "finishedAt": 1794229421552,
+  "ms": 1563855,
   "outcome": "upstream",
-  "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+  "error": "2 enrichment stages degraded (ecb, acris) — refusing to publish a hollow feed",
   "counts": null,
   "feedAt": "2026-11-09T08:51:23.321Z",
   "sources": {
@@ -16,75 +16,58 @@
     "retries": 0,
     "failures": 0,
     "rows": 34044,
-    "ms": 20830,
-    "lastOkAt": 1794224352400
+    "ms": 19771,
+    "lastOkAt": 1794227877470
    },
    "hpd": {
     "ok": true,
     "calls": 44,
-    "retries": 9,
+    "retries": 17,
     "failures": 0,
     "rows": 1723,
-    "ms": 303786,
-    "lastOkAt": 1794224656290
+    "ms": 303468,
+    "lastOkAt": 1794228181015
    },
    "hpdContacts": {
     "ok": true,
     "calls": 35,
-    "retries": 7,
+    "retries": 28,
     "failures": 0,
     "rows": 4995,
-    "ms": 333504,
-    "lastOkAt": 1794224989804
+    "ms": 354729,
+    "lastOkAt": 1794228535754
    },
    "ecb": {
-    "ok": true,
+    "ok": false,
     "calls": 44,
-    "retries": 40,
-    "failures": 0,
-    "rows": 6238,
-    "ms": 862421,
-    "lastOkAt": 1794225852259
+    "retries": 27,
+    "failures": 1,
+    "rows": 6136,
+    "ms": 622686,
+    "lastOkAt": 1794229070597,
+    "status": 503,
+    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+    "failedAt": 1794229158464
    },
    "acris": {
     "ok": false,
     "calls": 2,
-    "retries": 7,
+    "retries": 10,
     "failures": 1,
     "rows": 23698,
-    "ms": 285225,
-    "lastOkAt": 1794225869713,
+    "ms": 263052,
+    "lastOkAt": 1794229194759,
     "status": null,
     "error": "The operation was aborted due to timeout",
-    "failedAt": 1794226137493
-   },
-   "elevators": {
-    "ok": true,
-    "calls": 44,
-    "retries": 25,
-    "failures": 0,
-    "rows": 5985,
-    "ms": 505702,
-    "lastOkAt": 1794226643216
-   },
-   "permits": {
-    "ok": false,
-    "calls": 1,
-    "retries": 6,
-    "failures": 1,
-    "rows": 0,
-    "ms": 89722,
-    "status": 503,
-    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794226732939
+    "failedAt": 1794229421526
    },
    "contacts": {
     "ok": true,
     "calls": 1,
     "retries": 0,
     "failures": 0,
-    "rows": 469,
-    "ms": 38471,
+    "rows": 0,
+    "ms": 2,
     "detail": {
      "contacts": 475,
      "confirmed": 387,
@@ -96,44 +79,15 @@
      "unchecked": 6,
      "withdrawn": 22,
      "due": 0,
-     "checked": 469,
+     "checked": 0,
      "fullPassAt": 1794226773828,
      "summary": "387 confirmed · 0 changed · 22 withdrawn · 32 unreachable · 44 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794226773843
+    "lastOkAt": 1794229423223
    }
   }
  },
  "runs": [
-  {
-   "at": 1793860121549,
-   "ms": 1164655,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T06:28:41.549Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 102,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793863435723,
    "ms": 1129080,
@@ -2794,9 +2748,32 @@
    "feedAt": "2026-11-09T08:51:23.321Z",
    "counts": null,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}"
+  },
+  {
+   "at": 1794227857697,
+   "ms": 1563855,
+   "outcome": "upstream",
+   "failed": [
+    "ecb",
+    "acris"
+   ],
+   "feedAt": "2026-11-09T08:51:23.321Z",
+   "counts": null,
+   "error": "2 enrichment stages degraded (ecb, acris) — refusing to publish a hollow feed"
   }
  ],
  "incidents": [
+  {
+   "at": 1794229158464,
+   "lastAt": 1794229158464,
+   "lane": "hourly",
+   "source": "ecb",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
   {
    "at": 1794226732939,
    "lastAt": 1794226732939,
@@ -2810,12 +2787,12 @@
   },
   {
    "at": 1794187320588,
-   "lastAt": 1794226137493,
+   "lastAt": 1794229421526,
    "lane": "hourly",
    "source": "acris",
    "status": 503,
    "error": "The operation was aborted due to timeout",
-   "count": 6,
+   "count": 7,
    "resolvedAt": null,
    "clockApart": true
   },
