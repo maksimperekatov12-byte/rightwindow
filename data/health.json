@@ -1,44 +1,35 @@
 {
- "updatedAt": 1794208935164,
+ "updatedAt": 1794211119167,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794207794924,
-  "finishedAt": 1794208935164,
-  "ms": 1140240,
+  "startedAt": 1794210737219,
+  "finishedAt": 1794211119167,
+  "ms": 381948,
   "outcome": "upstream",
-  "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+  "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}",
   "counts": null,
   "feedAt": "2026-11-09T04:50:31.577Z",
   "sources": {
    "facades": {
     "ok": true,
     "calls": 1,
-    "retries": 2,
+    "retries": 3,
     "failures": 0,
     "rows": 34044,
-    "ms": 40754,
-    "lastOkAt": 1794207835679
+    "ms": 34762,
+    "lastOkAt": 1794210771982
    },
    "hpd": {
-    "ok": true,
-    "calls": 44,
-    "retries": 43,
-    "failures": 0,
-    "rows": 1723,
-    "ms": 700882,
-    "lastOkAt": 1794208536646
-   },
-   "hpdContacts": {
     "ok": false,
-    "calls": 8,
-    "retries": 25,
+    "calls": 21,
+    "retries": 20,
     "failures": 1,
-    "rows": 1030,
-    "ms": 398490,
-    "lastOkAt": 1794208836574,
-    "status": 503,
-    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794208935138
+    "rows": 810,
+    "ms": 347081,
+    "lastOkAt": 1794211007529,
+    "status": 500,
+    "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}",
+    "failedAt": 1794211119141
    },
    "contacts": {
     "ok": true,
@@ -62,40 +53,11 @@
      "fullPassAt": 1794153593495,
      "summary": "413 confirmed · 0 changed · 22 withdrawn · 31 unreachable · 19 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794208937154
+    "lastOkAt": 1794211120753
    }
   }
  },
  "runs": [
-  {
-   "at": 1793846236982,
-   "ms": 786861,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T02:37:16.982Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 102,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793849717959,
    "ms": 1092186,
@@ -2807,9 +2769,31 @@
    "feedAt": "2026-11-09T04:50:31.577Z",
    "counts": null,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}"
+  },
+  {
+   "at": 1794210737219,
+   "ms": 381948,
+   "outcome": "upstream",
+   "failed": [
+    "hpd"
+   ],
+   "feedAt": "2026-11-09T04:50:31.577Z",
+   "counts": null,
+   "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}"
   }
  ],
  "incidents": [
+  {
+   "at": 1794211119141,
+   "lastAt": 1794211119141,
+   "lane": "hourly",
+   "source": "hpd",
+   "status": 500,
+   "error": "500: {\"message\":\"Internal error: please include code 6bb6d5cf-7f82-413d-a2f6-18128ed21408 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"6bb6d5cf-7f82-413d-a2f6-18128ed21408\"}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
   {
    "at": 1794208935164,
    "lastAt": 1794208935164,
