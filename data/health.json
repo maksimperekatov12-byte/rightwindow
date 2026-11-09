@@ -1,10 +1,10 @@
 {
- "updatedAt": 1794237090654,
+ "updatedAt": 1794240236459,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794234919875,
-  "finishedAt": 1794237090654,
-  "ms": 2170779,
+  "startedAt": 1794238477225,
+  "finishedAt": 1794240236459,
+  "ms": 1759234,
   "outcome": "failed",
   "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed",
   "counts": null,
@@ -16,17 +16,17 @@
     "retries": 0,
     "failures": 0,
     "rows": 34044,
-    "ms": 13888,
-    "lastOkAt": 1794234933764
+    "ms": 8930,
+    "lastOkAt": 1794238486156
    },
    "hpd": {
     "ok": true,
     "calls": 44,
-    "retries": 34,
+    "retries": 23,
     "failures": 0,
     "rows": 1723,
-    "ms": 605662,
-    "lastOkAt": 1794235539526
+    "ms": 448255,
+    "lastOkAt": 1794238934494
    },
    "hpdContacts": {
     "ok": true,
@@ -34,41 +34,41 @@
     "retries": 15,
     "failures": 0,
     "rows": 4995,
-    "ms": 370564,
-    "lastOkAt": 1794235910104
+    "ms": 301634,
+    "lastOkAt": 1794239236138
    },
    "ecb": {
     "ok": true,
     "calls": 44,
-    "retries": 29,
+    "retries": 25,
     "failures": 0,
     "rows": 6238,
-    "ms": 621026,
-    "lastOkAt": 1794236531156
+    "ms": 564470,
+    "lastOkAt": 1794239800632
    },
    "acris": {
     "ok": false,
-    "calls": 2,
-    "retries": 6,
+    "calls": 5,
+    "retries": 9,
     "failures": 1,
-    "rows": 23698,
-    "ms": 190061,
-    "lastOkAt": 1794236543712,
+    "rows": 173698,
+    "ms": 263590,
+    "lastOkAt": 1794239967160,
     "status": 503,
     "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794236721226
+    "failedAt": 1794240064240
    },
    "elevators": {
     "ok": false,
-    "calls": 20,
-    "retries": 17,
+    "calls": 6,
+    "retries": 8,
     "failures": 1,
-    "rows": 2575,
-    "ms": 369396,
-    "lastOkAt": 1794236992235,
+    "rows": 655,
+    "ms": 172194,
+    "lastOkAt": 1794240128386,
     "status": 503,
     "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794237090629
+    "failedAt": 1794240236437
    },
    "contacts": {
     "ok": true,
@@ -76,7 +76,7 @@
     "retries": 0,
     "failures": 0,
     "rows": 0,
-    "ms": 1,
+    "ms": 2,
     "detail": {
      "contacts": 475,
      "confirmed": 387,
@@ -92,40 +92,11 @@
      "fullPassAt": 1794226773828,
      "summary": "387 confirmed · 0 changed · 22 withdrawn · 32 unreachable · 44 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794237092643
+    "lastOkAt": 1794240237916
    }
   }
  },
  "runs": [
-  {
-   "at": 1793870391494,
-   "ms": 1704965,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T09:19:51.494Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 102,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793873865846,
    "ms": 4317648,
@@ -2735,27 +2706,39 @@
    "feedAt": "2026-11-09T08:51:23.321Z",
    "counts": null,
    "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed"
+  },
+  {
+   "at": 1794238477225,
+   "ms": 1759234,
+   "outcome": "failed",
+   "failed": [
+    "acris",
+    "elevators"
+   ],
+   "feedAt": "2026-11-09T08:51:23.321Z",
+   "counts": null,
+   "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed"
   }
  ],
  "incidents": [
   {
    "at": 1794237090654,
-   "lastAt": 1794237090654,
+   "lastAt": 1794240236459,
    "lane": "hourly",
    "source": "run",
    "status": null,
    "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed",
-   "count": 1,
+   "count": 2,
    "resolvedAt": null
   },
   {
    "at": 1794237090629,
-   "lastAt": 1794237090629,
+   "lastAt": 1794240236437,
    "lane": "hourly",
    "source": "elevators",
    "status": 503,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 1,
+   "count": 2,
    "resolvedAt": null,
    "clockApart": true
   },
@@ -2772,12 +2755,12 @@
   },
   {
    "at": 1794187320588,
-   "lastAt": 1794236721226,
+   "lastAt": 1794240064240,
    "lane": "hourly",
    "source": "acris",
    "status": 503,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 9,
+   "count": 10,
    "resolvedAt": null,
    "clockApart": true
   },
