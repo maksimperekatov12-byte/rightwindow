@@ -1,10 +1,10 @@
 {
- "updatedAt": 1794242289792,
+ "updatedAt": 1794246013760,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794242052741,
-  "finishedAt": 1794242289792,
-  "ms": 237051,
+  "startedAt": 1794245606073,
+  "finishedAt": 1794246013760,
+  "ms": 407687,
   "outcome": "failed",
   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
   "counts": null,
@@ -13,23 +13,23 @@
    "facades": {
     "ok": true,
     "calls": 1,
-    "retries": 1,
+    "retries": 4,
     "failures": 0,
     "rows": 34044,
-    "ms": 29894,
-    "lastOkAt": 1794242082635
+    "ms": 35458,
+    "lastOkAt": 1794245641532
    },
    "hpd": {
     "ok": false,
-    "calls": 13,
-    "retries": 11,
+    "calls": 24,
+    "retries": 24,
     "failures": 1,
-    "rows": 520,
-    "ms": 207037,
-    "lastOkAt": 1794242181378,
+    "rows": 918,
+    "ms": 372123,
+    "lastOkAt": 1794245916235,
     "status": 503,
     "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794242289761
+    "failedAt": 1794246013736
    },
    "contacts": {
     "ok": true,
@@ -53,40 +53,11 @@
      "fullPassAt": 1794226773828,
      "summary": "387 confirmed · 0 changed · 22 withdrawn · 32 unreachable · 44 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794242291426
+    "lastOkAt": 1794246015651
    }
   }
  },
  "runs": [
-  {
-   "at": 1793878221161,
-   "ms": 2366535,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T11:30:21.161Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 102,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793881691446,
    "ms": 2695942,
@@ -2661,28 +2632,39 @@
    "feedAt": "2026-11-09T08:51:23.321Z",
    "counts": null,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}"
+  },
+  {
+   "at": 1794245606073,
+   "ms": 407687,
+   "outcome": "failed",
+   "failed": [
+    "hpd"
+   ],
+   "feedAt": "2026-11-09T08:51:23.321Z",
+   "counts": null,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}"
   }
  ],
  "incidents": [
   {
    "at": 1794242289761,
-   "lastAt": 1794242289761,
+   "lastAt": 1794246013736,
    "lane": "hourly",
    "source": "hpd",
    "status": 503,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 1,
+   "count": 2,
    "resolvedAt": null,
    "clockApart": true
   },
   {
    "at": 1794237090654,
-   "lastAt": 1794242289792,
+   "lastAt": 1794246013760,
    "lane": "hourly",
    "source": "run",
    "status": null,
    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-   "count": 3,
+   "count": 4,
    "resolvedAt": null
   },
   {
