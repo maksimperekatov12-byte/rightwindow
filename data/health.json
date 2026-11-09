@@ -1,74 +1,35 @@
 {
- "updatedAt": 1794240236459,
+ "updatedAt": 1794242289792,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794238477225,
-  "finishedAt": 1794240236459,
-  "ms": 1759234,
+  "startedAt": 1794242052741,
+  "finishedAt": 1794242289792,
+  "ms": 237051,
   "outcome": "failed",
-  "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed",
+  "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
   "counts": null,
   "feedAt": "2026-11-09T08:51:23.321Z",
   "sources": {
    "facades": {
     "ok": true,
     "calls": 1,
-    "retries": 0,
+    "retries": 1,
     "failures": 0,
     "rows": 34044,
-    "ms": 8930,
-    "lastOkAt": 1794238486156
+    "ms": 29894,
+    "lastOkAt": 1794242082635
    },
    "hpd": {
-    "ok": true,
-    "calls": 44,
-    "retries": 23,
-    "failures": 0,
-    "rows": 1723,
-    "ms": 448255,
-    "lastOkAt": 1794238934494
-   },
-   "hpdContacts": {
-    "ok": true,
-    "calls": 35,
-    "retries": 15,
-    "failures": 0,
-    "rows": 4995,
-    "ms": 301634,
-    "lastOkAt": 1794239236138
-   },
-   "ecb": {
-    "ok": true,
-    "calls": 44,
-    "retries": 25,
-    "failures": 0,
-    "rows": 6238,
-    "ms": 564470,
-    "lastOkAt": 1794239800632
-   },
-   "acris": {
     "ok": false,
-    "calls": 5,
-    "retries": 9,
+    "calls": 13,
+    "retries": 11,
     "failures": 1,
-    "rows": 173698,
-    "ms": 263590,
-    "lastOkAt": 1794239967160,
+    "rows": 520,
+    "ms": 207037,
+    "lastOkAt": 1794242181378,
     "status": 503,
     "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794240064240
-   },
-   "elevators": {
-    "ok": false,
-    "calls": 6,
-    "retries": 8,
-    "failures": 1,
-    "rows": 655,
-    "ms": 172194,
-    "lastOkAt": 1794240128386,
-    "status": 503,
-    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
-    "failedAt": 1794240236437
+    "failedAt": 1794242289761
    },
    "contacts": {
     "ok": true,
@@ -92,40 +53,11 @@
      "fullPassAt": 1794226773828,
      "summary": "387 confirmed · 0 changed · 22 withdrawn · 32 unreachable · 44 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794240237916
+    "lastOkAt": 1794242291426
    }
   }
  },
  "runs": [
-  {
-   "at": 1793873865846,
-   "ms": 4317648,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T10:17:45.846Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 102,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793878221161,
    "ms": 2366535,
@@ -2718,17 +2650,39 @@
    "feedAt": "2026-11-09T08:51:23.321Z",
    "counts": null,
    "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed"
+  },
+  {
+   "at": 1794242052741,
+   "ms": 237051,
+   "outcome": "failed",
+   "failed": [
+    "hpd"
+   ],
+   "feedAt": "2026-11-09T08:51:23.321Z",
+   "counts": null,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}"
   }
  ],
  "incidents": [
   {
+   "at": 1794242289761,
+   "lastAt": 1794242289761,
+   "lane": "hourly",
+   "source": "hpd",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
+  {
    "at": 1794237090654,
-   "lastAt": 1794240236459,
+   "lastAt": 1794242289792,
    "lane": "hourly",
    "source": "run",
    "status": null,
-   "error": "2 enrichment stages degraded (acris, elevators) — refusing to publish a hollow feed",
-   "count": 2,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 3,
    "resolvedAt": null
   },
   {
