@@ -1,10 +1,10 @@
 {
- "updatedAt": 1794199800966,
+ "updatedAt": 1794207765998,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794191217682,
-  "finishedAt": 1794199800966,
-  "ms": 8583284,
+  "startedAt": 1794199831577,
+  "finishedAt": 1794207765998,
+  "ms": 7934421,
   "outcome": "degraded",
   "error": "carried by the previous hour: acris",
   "counts": {
@@ -26,7 +26,7 @@
     "elevators": 0
    }
   },
-  "feedAt": "2026-11-09T02:26:57.682Z",
+  "feedAt": "2026-11-09T04:50:31.577Z",
   "sources": {
    "facades": {
     "ok": true,
@@ -34,121 +34,124 @@
     "retries": 0,
     "failures": 0,
     "rows": 34044,
-    "ms": 20291,
-    "lastOkAt": 1794191237975,
+    "ms": 24436,
+    "lastOkAt": 1794199856014,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 135,
-     "at": 1794199408337,
-     "lastOkAt": 1794199408337
+     "ms": 347,
+     "at": 1794207099191,
+     "lastOkAt": 1794207099191
     }
    },
    "hpd": {
-    "ok": true,
-    "calls": 174,
-    "retries": 108,
-    "failures": 0,
-    "rows": 4814,
-    "ms": 1903289,
-    "lastOkAt": 1794199150882,
+    "ok": false,
+    "calls": 59,
+    "retries": 39,
+    "failures": 2,
+    "rows": 2112,
+    "ms": 859981,
+    "lastOkAt": 1794206999860,
+    "status": 503,
+    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+    "failedAt": 1794207098717,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 86,
-     "at": 1794199408944,
-     "lastOkAt": 1794199408944
+     "ms": 134,
+     "at": 1794207100166,
+     "lastOkAt": 1794207100166
     }
    },
    "hpdContacts": {
     "ok": true,
-    "calls": 96,
-    "retries": 58,
+    "calls": 35,
+    "retries": 11,
     "failures": 0,
-    "rows": 12730,
-    "ms": 1215159,
-    "lastOkAt": 1794199408094
+    "rows": 4995,
+    "ms": 349222,
+    "lastOkAt": 1794200690658
    },
    "ecb": {
     "ok": true,
     "calls": 44,
-    "retries": 8,
+    "retries": 14,
     "failures": 0,
     "rows": 6238,
-    "ms": 482219,
-    "lastOkAt": 1794192360318,
+    "ms": 525068,
+    "lastOkAt": 1794201215754,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 81,
-     "at": 1794199408858,
-     "lastOkAt": 1794199408858
+     "ms": 181,
+     "at": 1794207100032,
+     "lastOkAt": 1794207100032
     }
    },
    "acris": {
     "ok": false,
-    "calls": 16,
-    "retries": 14,
+    "calls": 5,
+    "retries": 10,
     "failures": 1,
-    "rows": 671786,
-    "ms": 886990,
-    "lastOkAt": 1794192880763,
-    "status": null,
-    "error": "The operation was aborted due to timeout",
-    "failedAt": 1794193247430
+    "rows": 173698,
+    "ms": 344279,
+    "lastOkAt": 1794201336615,
+    "status": 503,
+    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+    "failedAt": 1794201560054
    },
    "elevators": {
     "ok": true,
     "calls": 45,
-    "retries": 14,
+    "retries": 16,
     "failures": 0,
     "rows": 11811,
-    "ms": 590134,
-    "lastOkAt": 1794198685678,
+    "ms": 653834,
+    "lastOkAt": 1794206856410,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 106,
-     "at": 1794199408706,
-     "lastOkAt": 1794199408706
+     "ms": 148,
+     "at": 1794207099727,
+     "lastOkAt": 1794207099727
     }
    },
    "permits": {
     "ok": true,
     "calls": 110,
-    "retries": 29,
+    "retries": 56,
     "failures": 0,
     "rows": 7783,
-    "ms": 1048489,
-    "lastOkAt": 1794195337347,
+    "ms": 1264734,
+    "lastOkAt": 1794204031382,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 149,
-     "at": 1794199408486,
-     "lastOkAt": 1794199408486
+     "ms": 173,
+     "at": 1794207099364,
+     "lastOkAt": 1794207099364
     }
    },
    "jobs": {
     "ok": true,
     "calls": 55,
-    "retries": 12,
+    "retries": 29,
     "failures": 0,
     "rows": 25898,
-    "ms": 546799,
-    "lastOkAt": 1794194925761,
+    "ms": 689644,
+    "lastOkAt": 1794203238862,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 114,
-     "at": 1794199408600,
-     "lastOkAt": 1794199408600
+     "ms": 215,
+     "at": 1794207099579,
+     "lastOkAt": 1794207099579
     }
    },
    "store": {
@@ -158,23 +161,23 @@
     "failures": 0,
     "rows": 0,
     "ms": 0,
-    "lastOkAt": 1794195337935
+    "lastOkAt": 1794204031796
    },
    "awards": {
     "ok": true,
     "calls": 3,
-    "retries": 0,
+    "retries": 7,
     "failures": 0,
     "rows": 269,
-    "ms": 28695,
-    "lastOkAt": 1794195356875,
+    "ms": 127219,
+    "lastOkAt": 1794204147312,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 101,
-     "at": 1794199409045,
-     "lastOkAt": 1794199409045
+     "ms": 196,
+     "at": 1794207100362,
+     "lastOkAt": 1794207100362
     }
    },
    "sla": {
@@ -183,58 +186,64 @@
     "retries": 0,
     "failures": 0,
     "rows": 60,
-    "ms": 814,
-    "lastOkAt": 1794195357690,
+    "ms": 666,
+    "lastOkAt": 1794204147991,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 396,
-     "at": 1794199409546,
-     "lastOkAt": 1794199409546
+     "ms": 601,
+     "at": 1794207101170,
+     "lastOkAt": 1794207101170
     }
    },
    "dohmh": {
-    "ok": true,
-    "calls": 127,
-    "retries": 31,
-    "failures": 0,
-    "rows": 4144,
-    "ms": 1348393,
-    "lastOkAt": 1794196725999,
+    "ok": false,
+    "calls": 114,
+    "retries": 146,
+    "failures": 2,
+    "rows": 3852,
+    "ms": 2222252,
+    "lastOkAt": 1794206402430,
+    "status": 503,
+    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+    "failedAt": 1794205097413,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 105,
-     "at": 1794199409150,
-     "lastOkAt": 1794199409150
+     "ms": 207,
+     "at": 1794207100569,
+     "lastOkAt": 1794207100569
     }
    },
    "dcwp": {
     "ok": true,
     "calls": 2,
-    "retries": 0,
+    "retries": 5,
     "failures": 0,
     "rows": 56775,
-    "ms": 19782,
-    "lastOkAt": 1794195385794
+    "ms": 32046,
+    "lastOkAt": 1794204192847
    },
    "mandates": {
-    "ok": true,
+    "ok": false,
     "calls": 3,
-    "retries": 3,
-    "failures": 0,
-    "rows": 66067,
-    "ms": 67595,
-    "lastOkAt": 1794197624708,
+    "retries": 8,
+    "failures": 1,
+    "rows": 8329,
+    "ms": 163752,
+    "status": 500,
+    "error": "500: {\"message\":\"Internal error: please include code 255327af-e2b4-440a-a782-206f133deb29 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"255327af-e2b4-440a-a782-206f133deb29\"}}",
+    "failedAt": 1794206545949,
+    "lastOkAt": 1794206566211,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 71,
-     "at": 1794199408777,
-     "lastOkAt": 1794199408777
+     "ms": 124,
+     "at": 1794207099851,
+     "lastOkAt": 1794207099851
     }
    },
    "energy": {
@@ -243,26 +252,29 @@
     "retries": 0,
     "failures": 0,
     "rows": 39090,
-    "ms": 40098,
-    "lastOkAt": 1794197664821
+    "ms": 20705,
+    "lastOkAt": 1794206586931
    },
    "pluto": {
-    "ok": true,
+    "ok": false,
     "calls": 20,
-    "retries": 15,
-    "failures": 0,
-    "rows": 756,
-    "ms": 315506,
-    "lastOkAt": 1794199725068
+    "retries": 36,
+    "failures": 1,
+    "rows": 713,
+    "ms": 526388,
+    "lastOkAt": 1794207627573,
+    "status": 503,
+    "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+    "failedAt": 1794207352639
    },
    "laa": {
     "ok": true,
     "calls": 9,
-    "retries": 7,
+    "retries": 10,
     "failures": 0,
     "rows": 207,
-    "ms": 75692,
-    "lastOkAt": 1794199800761
+    "ms": 138205,
+    "lastOkAt": 1794207765779
    },
    "contacts": {
     "ok": true,
@@ -286,40 +298,11 @@
      "fullPassAt": 1794153593495,
      "summary": "413 confirmed · 0 changed · 22 withdrawn · 31 unreachable · 19 unconfirmed · 6 held off the cards · 6 not yet checked"
     },
-    "lastOkAt": 1794199802834
+    "lastOkAt": 1794207767856
    }
   }
  },
  "runs": [
-  {
-   "at": 1793839314367,
-   "ms": 1234234,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-05T00:41:54.366Z",
-   "counts": {
-    "facades": 800,
-    "gas": 429,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 157,
-    "openings": 400,
-    "permits": 73,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 33,
-     "contracts": 20,
-     "openings": 97,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1793842763666,
    "ms": 1247335,
@@ -3045,17 +3028,94 @@
     }
    },
    "error": "carried by the previous hour: acris"
+  },
+  {
+   "at": 1794199831577,
+   "ms": 7934421,
+   "outcome": "degraded",
+   "failed": [
+    "hpd",
+    "acris",
+    "dohmh",
+    "mandates",
+    "pluto"
+   ],
+   "feedAt": "2026-11-09T04:50:31.577Z",
+   "counts": {
+    "facades": 800,
+    "gas": 432,
+    "carbon": 800,
+    "elevators": 543,
+    "contracts": 150,
+    "openings": 400,
+    "permits": 75,
+    "new": {
+     "windowHours": 168,
+     "buildings": 0,
+     "signals": 34,
+     "contracts": 35,
+     "openings": 108,
+     "gas": 0,
+     "carbon": 3,
+     "elevators": 0
+    }
+   },
+   "error": "carried by the previous hour: acris"
   }
  ],
  "incidents": [
   {
+   "at": 1794207352639,
+   "lastAt": 1794207352639,
+   "lane": "hourly",
+   "source": "pluto",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
+  {
+   "at": 1794207098717,
+   "lastAt": 1794207098717,
+   "lane": "hourly",
+   "source": "hpd",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
+  {
+   "at": 1794206545949,
+   "lastAt": 1794206545949,
+   "lane": "hourly",
+   "source": "mandates",
+   "status": 500,
+   "error": "500: {\"message\":\"Internal error: please include code 255327af-e2b4-440a-a782-206f133deb29 if you report the error\",\"errorCode\":\"internal-error\",\"data\":{\"tag\":\"255327af-e2b4-440a-a782-206f133deb29\"}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
+  {
+   "at": 1794205097413,
+   "lastAt": 1794205097413,
+   "lane": "hourly",
+   "source": "dohmh",
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 1,
+   "resolvedAt": null,
+   "clockApart": true
+  },
+  {
    "at": 1794187320588,
-   "lastAt": 1794193247430,
+   "lastAt": 1794201560054,
    "lane": "hourly",
    "source": "acris",
-   "status": null,
-   "error": "The operation was aborted due to timeout",
-   "count": 2,
+   "status": 503,
+   "error": "503: {\"message\":\"Service unavailable\",\"errorCode\":\"service-unavailable\",\"data\":{}}",
+   "count": 3,
    "resolvedAt": null,
    "clockApart": true
   },
