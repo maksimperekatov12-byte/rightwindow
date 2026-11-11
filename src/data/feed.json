@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-10T22:52:38.290Z",
+ "generatedAt": "2026-11-10T23:49:19.717Z",
  "sources": {
   "facades": "2026-11-10",
   "permits": "2026-11-10",
@@ -9,7 +9,7 @@
   "ecb": "2026-11-10",
   "hpd": "2026-11-04",
   "awards": "2026-11-10",
-  "dohmh": "2026-11-09",
+  "dohmh": "2026-11-10",
   "sla": "2026-11-10",
   "elevatorCompliance": "2026-11-10",
   "acrisThrough": "2026-10-30"
@@ -23,17 +23,17 @@
   "ecb": 1794334163000,
   "hpd": 1793812585000,
   "awards": 1794317717000,
-  "dohmh": 1794265558000,
+  "dohmh": 1794352461000,
   "sla": 1794274377000
  },
- "cityAt": 1794347545000,
- "cityBy": "jobs",
+ "cityAt": 1794352461000,
+ "cityBy": "dohmh",
  "whatsNew": {
   "windowHours": 168,
   "buildings": 0,
   "signals": 35,
   "contracts": 46,
-  "openings": 134,
+  "openings": 151,
   "gas": 0,
   "carbon": 3,
   "elevators": 0
@@ -8850,9 +8850,11 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "57 WEST 57TH STREET, 410, New York NY 10019",
+     "confidence": "verified",
+     "contactSource": "documents.dps.ny.gov",
      "lapsed": false,
      "portfolio": 2,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
@@ -39610,9 +39612,13 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "726 E 237TH ST, BRONX NY 10466",
+     "confidence": "affiliate",
+     "contactSource": "documents.dps.ny.gov",
+     "via": "RESERVOIR ASSOC, LLC",
+     "viaEvidence": "HPD names the same head officer for both",
      "lapsed": false,
      "portfolio": 1,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
@@ -45705,9 +45711,13 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "726 E 237TH STREET, Bronx NY 10466",
+     "confidence": "affiliate",
+     "contactSource": "documents.dps.ny.gov",
+     "via": "RESERVOIR ASSOC, LLC",
+     "viaEvidence": "HPD names the same head officer for both",
      "lapsed": false,
      "portfolio": 1,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "isNew": false,
@@ -60999,7 +61009,7 @@
    "county": "Manhattan",
    "zip": "10024",
    "received": "2026-11-06",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "entity",
@@ -61021,7 +61031,7 @@
    "county": "Queens",
    "zip": "11694",
    "received": "2026-11-06",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -61043,7 +61053,7 @@
    "county": "Queens",
    "zip": "11417",
    "received": "2026-11-06",
-   "daysAgo": 4,
+   "daysAgo": 5,
    "src": "sla",
    "evidence": [
     "suffix",
@@ -61609,12 +61619,418 @@
    ]
   },
   {
+   "id": "dohmh-50194715",
+   "src": "dohmh",
+   "name": "BIRRIALES",
+   "legal": "BIRRIALES",
+   "kind": "Food service",
+   "address": "20 UNION SQ W",
+   "county": "Manhattan",
+   "zip": "10003",
+   "bin": "1016108",
+   "camis": "50194715",
+   "ll": [
+    40.7366,
+    -73.9907
+   ],
+   "phone": "6464096766",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "single-word"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194713",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "222 VARICK ST",
+   "county": "Manhattan",
+   "zip": "10014",
+   "bin": "1080059",
+   "camis": "50194713",
+   "ll": [
+    40.729,
+    -74.0052
+   ],
+   "phone": "4107908987",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 222 VARICK ST",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194706",
+   "src": "dohmh",
+   "name": "RDNY 1183 LLC",
+   "legal": "RDNY 1183 LLC",
+   "kind": "Food service",
+   "address": "1183 2ND AVE",
+   "county": "Manhattan",
+   "zip": "10065",
+   "bin": "1090660",
+   "camis": "50194706",
+   "ll": [
+    40.7627,
+    -73.9628
+   ],
+   "phone": "3322974402",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194704",
+   "src": "dohmh",
+   "name": "SABA X LLC",
+   "legal": "SABA X LLC",
+   "kind": "Food service",
+   "address": "162 BEDFORD AVE",
+   "county": "Brooklyn",
+   "zip": "11249",
+   "bin": "3061793",
+   "camis": "50194704",
+   "ll": [
+    40.7185,
+    -73.9571
+   ],
+   "phone": "9293929442",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194702",
+   "src": "dohmh",
+   "name": "HOP'S KITCHEN",
+   "legal": "HOP'S KITCHEN",
+   "kind": "Food service",
+   "address": "109-69 FRANCIS LEWIS BLVD",
+   "county": "Queens",
+   "zip": "11429",
+   "bin": "4234383",
+   "camis": "50194702",
+   "ll": [
+    40.707,
+    -73.751
+   ],
+   "phone": "9179770071",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade",
+    "possessive"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194701",
+   "src": "dohmh",
+   "name": "AREA53NYC",
+   "legal": "AREA53NYC",
+   "kind": "Food service",
+   "address": "616 SCHOLES ST",
+   "county": "Brooklyn",
+   "zip": "11237",
+   "bin": "3070579",
+   "camis": "50194701",
+   "ll": [
+    40.7125,
+    -73.9234
+   ],
+   "phone": "7187104752",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194700",
+   "src": "dohmh",
+   "name": "HW & WANG INC.",
+   "legal": "HW & WANG INC.",
+   "kind": "Food service",
+   "address": "47 E KINGSBRIDGE RD",
+   "county": "Bronx",
+   "zip": "10468",
+   "bin": "2017473",
+   "camis": "50194700",
+   "ll": [
+    40.867,
+    -73.8962
+   ],
+   "phone": "7188134173",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194699",
+   "src": "dohmh",
+   "name": "LINGYUN INC",
+   "legal": "LINGYUN INC",
+   "kind": "Food service",
+   "address": "41-07 CRESCENT ST",
+   "county": "Queens",
+   "zip": "11101",
+   "bin": "4005008",
+   "camis": "50194699",
+   "ll": [
+    40.752,
+    -73.9393
+   ],
+   "phone": "2014235900",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194695",
+   "src": "dohmh",
+   "name": "YEMENAT BAY RIDGE INC",
+   "legal": "YEMENAT BAY RIDGE INC",
+   "kind": "Food service",
+   "address": "7721 5TH AVE",
+   "county": "Brooklyn",
+   "zip": "11209",
+   "bin": "3149880",
+   "camis": "50194695",
+   "ll": [
+    40.6277,
+    -74.0233
+   ],
+   "phone": "9292299666",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194693",
+   "src": "dohmh",
+   "name": "445 FELICE PASTA BAR, LLC",
+   "legal": "445 FELICE PASTA BAR, LLC",
+   "kind": "Food service",
+   "address": "445 ALBEE SQ",
+   "county": "Brooklyn",
+   "zip": "11201",
+   "bin": "3397861",
+   "camis": "50194693",
+   "ll": [
+    40.6908,
+    -73.9835
+   ],
+   "phone": "6462873352",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194685",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "536 MYRTLE AVE",
+   "county": "Brooklyn",
+   "zip": "11205",
+   "bin": "3259561",
+   "camis": "50194685",
+   "ll": [
+    40.6937,
+    -73.9633
+   ],
+   "phone": "7187089786",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 536 MYRTLE AVE",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194674",
+   "src": "dohmh",
+   "name": "101 CHICKEN BRONX",
+   "legal": "101 CHICKEN BRONX",
+   "kind": "Food service",
+   "address": "2368 HOFFMAN ST",
+   "county": "Bronx",
+   "zip": "10458",
+   "bin": "2011888",
+   "camis": "50194674",
+   "ll": [
+    40.8553,
+    -73.889
+   ],
+   "phone": "2014038071",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194673",
+   "src": "dohmh",
+   "name": "Le Cafe Coffee",
+   "legal": "Le Cafe Coffee",
+   "kind": "Food service",
+   "address": "1251 6TH AVE",
+   "county": "Manhattan",
+   "zip": "10020",
+   "bin": "1022706",
+   "camis": "50194673",
+   "ll": [
+    40.7596,
+    -73.9806
+   ],
+   "phone": "2123651060",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194665",
+   "src": "dohmh",
+   "name": "FIVE IRON GOLF",
+   "legal": "FIVE IRON GOLF",
+   "kind": "Food service",
+   "address": "25 KENT AVE",
+   "county": "Brooklyn",
+   "zip": "11249",
+   "bin": "3425961",
+   "camis": "50194665",
+   "ll": [
+    40.7234,
+    -73.9584
+   ],
+   "phone": "8005135153",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "phoneVia": "FIVE IRON GOLF",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194653",
+   "src": "dohmh",
+   "name": "MINI NAPOLI PIZZA",
+   "legal": "MINI NAPOLI PIZZA",
+   "kind": "Food service",
+   "address": "666 9TH AVE",
+   "county": "Manhattan",
+   "zip": "10036",
+   "bin": "1025040",
+   "camis": "50194653",
+   "ll": [
+    40.7612,
+    -73.9906
+   ],
+   "phone": "3474887945",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194652",
+   "src": "dohmh",
+   "kind": "Food service",
+   "address": "172 1/2 CANAL ST",
+   "county": "Manhattan",
+   "zip": "10013",
+   "bin": null,
+   "camis": "50194652",
+   "ll": null,
+   "phone": "6107629374",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [],
+   "nameShown": false,
+   "identity": "New food service at 172 1/2 CANAL ST",
+   "isNew": true
+  },
+  {
+   "id": "dohmh-50194642",
+   "src": "dohmh",
+   "name": "KOUUN RAMEN LIMITED",
+   "legal": "KOUUN RAMEN LIMITED",
+   "kind": "Food service",
+   "address": "102 E 7TH ST",
+   "county": "Manhattan",
+   "zip": "10009",
+   "bin": "1005781",
+   "camis": "50194642",
+   "ll": [
+    40.7266,
+    -73.9849
+   ],
+   "phone": "2129330978",
+   "received": null,
+   "daysAgo": null,
+   "evidence": [
+    "suffix",
+    "trade"
+   ],
+   "nameShown": true,
+   "isNew": true
+  },
+  {
    "id": "dohmh-50194640",
    "src": "dohmh",
    "name": "HHC BELLEVUE RETAIL",
    "legal": "HHC BELLEVUE RETAIL",
    "kind": "Food service",
-   "address": "462 1ST AVE",
+   "address": "462 1 AVENUE",
    "county": "Manhattan",
    "zip": "10016",
    "bin": "1086515",
@@ -61638,7 +62054,7 @@
    "name": "CAFE ADORA",
    "legal": "CAFE ADORA",
    "kind": "Food service",
-   "address": "1410 MADISON AVE",
+   "address": "1410 MADISON AVENUE",
    "county": "Manhattan",
    "zip": "10029",
    "bin": "1051476",
@@ -61662,7 +62078,7 @@
    "name": "BANTABA",
    "legal": "BANTABA",
    "kind": "Food service",
-   "address": "745 DEKALB AVE",
+   "address": "745 DEKALB AVENUE",
    "county": "Brooklyn",
    "zip": "11216",
    "bin": "3049506",
@@ -61684,7 +62100,7 @@
    "id": "dohmh-50194632",
    "src": "dohmh",
    "kind": "Food service",
-   "address": "214-18 41ST AVE",
+   "address": "214-18 41 AVENUE",
    "county": "Queens",
    "zip": "11361",
    "bin": "4138309",
@@ -61698,7 +62114,7 @@
    "daysAgo": null,
    "evidence": [],
    "nameShown": false,
-   "identity": "New food service at 214-18 41ST AVE",
+   "identity": "New food service at 214-18 41 AVENUE",
    "isNew": true
   },
   {
@@ -62370,7 +62786,7 @@
    "name": "FRESCONYC1 LLC",
    "legal": "FRESCONYC1 LLC",
    "kind": "Food service",
-   "address": "746 10 AVENUE",
+   "address": "746 10TH AVE",
    "county": "Manhattan",
    "zip": "10019",
    "bin": "1026705",
@@ -62702,10 +63118,10 @@
   {
    "id": "dohmh-50194534",
    "src": "dohmh",
-   "name": "HONGDAE INC",
-   "legal": "HONGDAE INC",
+   "name": "HONGDAE INC.",
+   "legal": "HONGDAE INC.",
    "kind": "Food service",
-   "address": "149-09 41 AVENUE",
+   "address": "149-09 41ST AVE",
    "county": "Queens",
    "zip": "11355",
    "bin": "4431711",
@@ -62730,7 +63146,7 @@
    "name": "TASHKENT PLOV CITY INC.",
    "legal": "TASHKENT PLOV CITY INC.",
    "kind": "Food service",
-   "address": "2678 CONEY ISLAND AVENUE",
+   "address": "2678 CONEY ISLAND AVE",
    "county": "Brooklyn",
    "zip": "11235",
    "bin": "3195539",
@@ -62755,7 +63171,7 @@
    "name": "AUNTEA JENNY OPERATION MANAGEMENT (NY) LLC",
    "legal": "AUNTEA JENNY OPERATION MANAGEMENT (NY) LLC",
    "kind": "Food service",
-   "address": "544 6 AVENUE",
+   "address": "544 6TH AVE",
    "county": "Manhattan",
    "zip": "10011",
    "bin": "1015304",
@@ -62805,7 +63221,7 @@
    "name": "FRESH POPS",
    "legal": "FRESH POPS",
    "kind": "Food service",
-   "address": "564 DEKALB AVENUE",
+   "address": "564 DEKALB AVE",
    "county": "Brooklyn",
    "zip": "11205",
    "bin": "3331336",
@@ -63015,7 +63431,7 @@
    "id": "dohmh-50194493",
    "src": "dohmh",
    "kind": "Food service",
-   "address": "20 UNION SQUARE WEST",
+   "address": "20 UNION SQ W",
    "county": "Manhattan",
    "zip": "10003",
    "bin": "1016108",
@@ -63029,7 +63445,7 @@
    "daysAgo": null,
    "evidence": [],
    "nameShown": false,
-   "identity": "New food service at 20 UNION SQUARE WEST",
+   "identity": "New food service at 20 UNION SQ W",
    "isNew": true
   },
   {
@@ -63088,7 +63504,7 @@
    "name": "THE MERRY MEEPLE",
    "legal": "THE MERRY MEEPLE",
    "kind": "Food service",
-   "address": "709 FULTON STREET",
+   "address": "709 FULTON ST",
    "county": "Brooklyn",
    "zip": "11217",
    "bin": "3058735",
@@ -65073,7 +65489,7 @@
    "name": "MICHELADAS RESTAURANT BAR INC.",
    "legal": "MICHELADAS RESTAURANT BAR INC.",
    "kind": "Food service",
-   "address": "500 WEST 146 STREET",
+   "address": "500 W 146TH ST",
    "county": "Manhattan",
    "zip": "10031",
    "bin": "1061946",
@@ -66223,37 +66639,12 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50194076",
-   "src": "dohmh",
-   "name": "ANCHO CHILLI MEXICAN GRILL 151 LLC",
-   "legal": "ANCHO CHILLI MEXICAN GRILL 151 LLC",
-   "kind": "Food service",
-   "address": "151 EAST 116 STREET",
-   "county": "Manhattan",
-   "zip": "10029",
-   "bin": "1052324",
-   "camis": "50194076",
-   "ll": [
-    40.7985,
-    -73.9412
-   ],
-   "phone": "9172441333",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50194075",
    "src": "dohmh",
    "name": "LATE NIGHT DINER INC.",
    "legal": "LATE NIGHT DINER INC.",
    "kind": "Food service",
-   "address": "1788 STILLWELL AVENUE",
+   "address": "1788 STILLWELL AVE",
    "county": "Brooklyn",
    "zip": "11223",
    "bin": "3184995",
@@ -66295,77 +66686,6 @@
     "trade"
    ],
    "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50194071",
-   "src": "dohmh",
-   "name": "P&D EATS LLC",
-   "legal": "P&D EATS LLC",
-   "kind": "Food service",
-   "address": "42 EAST 8 STREET",
-   "county": "Manhattan",
-   "zip": "10003",
-   "bin": "1008834",
-   "camis": "50194071",
-   "ll": [
-    40.7313,
-    -73.9942
-   ],
-   "phone": "7188862573",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50194068",
-   "src": "dohmh",
-   "name": "EARTHBAR LLC",
-   "legal": "EARTHBAR LLC",
-   "kind": "Food service",
-   "address": "261 11 AVENUE",
-   "county": "Manhattan",
-   "zip": "10001",
-   "bin": "1079184",
-   "camis": "50194068",
-   "ll": [
-    40.7515,
-    -74.0051
-   ],
-   "phone": "7144251559",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50194047",
-   "src": "dohmh",
-   "kind": "Food service",
-   "address": "750 8 AVENUE",
-   "county": "Manhattan",
-   "zip": "10036",
-   "bin": "1024736",
-   "camis": "50194047",
-   "ll": [
-    40.7599,
-    -73.9878
-   ],
-   "phone": "2158722576",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [],
-   "nameShown": false,
-   "identity": "New food service at 750 8 AVENUE",
    "isNew": false
   },
   {
@@ -66467,54 +66787,6 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50194036",
-   "src": "dohmh",
-   "name": "NOW CHEWING ALLOWED!",
-   "legal": "NOW CHEWING ALLOWED!",
-   "kind": "Food service",
-   "address": "40 WEST 40 STREET",
-   "county": "Manhattan",
-   "zip": "10018",
-   "bin": "1080745",
-   "camis": "50194036",
-   "ll": [
-    40.7531,
-    -73.9839
-   ],
-   "phone": "9177706455",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50194032",
-   "src": "dohmh",
-   "name": "KAYU NEW YORK",
-   "legal": "KAYU NEW YORK",
-   "kind": "Food service",
-   "address": "1444 3 AVENUE",
-   "county": "Manhattan",
-   "zip": "10028",
-   "bin": "1047572",
-   "camis": "50194032",
-   "ll": [
-    40.7761,
-    -73.956
-   ],
-   "phone": "6468528716",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50194024",
    "src": "dohmh",
    "name": "BOBO'S WING, SEAFOOD AND MARKET",
@@ -66535,31 +66807,6 @@
    "evidence": [
     "trade",
     "possessive"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50194023",
-   "src": "dohmh",
-   "name": "ORBITAL KITCHENS MANHATTANVILLE LLC",
-   "legal": "ORBITAL KITCHENS MANHATTANVILLE LLC",
-   "kind": "Food service",
-   "address": "712 WEST 125 STREET",
-   "county": "Manhattan",
-   "zip": "10027",
-   "bin": "1076686",
-   "camis": "50194023",
-   "ll": [
-    40.8184,
-    -73.9608
-   ],
-   "phone": "9178385038",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
    ],
    "nameShown": true,
    "isNew": false
@@ -67315,8 +67562,8 @@
   {
    "id": "dohmh-50193837",
    "src": "dohmh",
-   "name": "INGRAINED HOPSPOTAILITY LIC, LLC",
-   "legal": "INGRAINED HOPSPOTAILITY LIC, LLC",
+   "name": "PORTER NYC",
+   "legal": "PORTER NYC",
    "kind": "Food service",
    "address": "110-00 ROCKAWAY BOULEVARD",
    "county": "Queens",
@@ -67562,7 +67809,7 @@
    "name": "ANTOJITOS QUE CHILERO CORP",
    "legal": "ANTOJITOS QUE CHILERO CORP",
    "kind": "Food service",
-   "address": "1758 BATH AVENUE",
+   "address": "1758 BATH AVE",
    "county": "Brooklyn",
    "zip": "11214",
    "bin": "3168629",
@@ -67587,7 +67834,7 @@
    "name": "171 NORTHERN CHICKEN LLC",
    "legal": "171 NORTHERN CHICKEN LLC",
    "kind": "Food service",
-   "address": "171-50 NORTHERN BOULEVARD",
+   "address": "171-50 NORTHERN BLVD",
    "county": "Queens",
    "zip": "11358",
    "bin": "4124225",
@@ -67612,7 +67859,7 @@
    "name": "YI YANG LI INC.",
    "legal": "YI YANG LI INC.",
    "kind": "Food service",
-   "address": "32-67 FRANCIS LEWIS BOULEVARD",
+   "address": "32-67 FRANCIS LEWIS BLVD",
    "county": "Queens",
    "zip": "11358",
    "bin": "4314800",
@@ -67731,81 +67978,6 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193770",
-   "src": "dohmh",
-   "name": "MIR CAFE & GRILL INC.",
-   "legal": "MIR CAFE & GRILL INC.",
-   "kind": "Food service",
-   "address": "1077 BRIGHTON BEACH AVENUE",
-   "county": "Brooklyn",
-   "zip": "11235",
-   "bin": "3245595",
-   "camis": "50193770",
-   "ll": [
-    40.5782,
-    -73.9574
-   ],
-   "phone": "3473122885",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193767",
-   "src": "dohmh",
-   "name": "FRITURAS DOMINICANAS CORPORATION",
-   "legal": "FRITURAS DOMINICANAS CORPORATION",
-   "kind": "Food service",
-   "address": "3221A FULTON ST",
-   "county": "Brooklyn",
-   "zip": "11208",
-   "bin": null,
-   "camis": "50193767",
-   "ll": [
-    40.6825,
-    -73.8761
-   ],
-   "phone": "3477774033",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193763",
-   "src": "dohmh",
-   "name": "BURI PIROM INC",
-   "legal": "BURI PIROM INC",
-   "kind": "Food service",
-   "address": "1055 BEDFORD AVENUE",
-   "county": "Brooklyn",
-   "zip": "11216",
-   "bin": "3050324",
-   "camis": "50193763",
-   "ll": [
-    40.6877,
-    -73.9548
-   ],
-   "phone": "7573721287",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193758",
    "src": "dohmh",
    "name": "WINDIES",
@@ -67830,31 +68002,6 @@
    "isNew": false
   },
   {
-   "id": "dohmh-50193752",
-   "src": "dohmh",
-   "name": "KAPICUA 25 RESTAURANT INC",
-   "legal": "KAPICUA 25 RESTAURANT INC",
-   "kind": "Food service",
-   "address": "1563 FULTON STREET",
-   "county": "Brooklyn",
-   "zip": "11216",
-   "bin": "3053680",
-   "camis": "50193752",
-   "ll": [
-    40.6798,
-    -73.9389
-   ],
-   "phone": "7185419060",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
    "id": "dohmh-50193750",
    "src": "dohmh",
    "kind": "Food service",
@@ -67873,52 +68020,6 @@
    "evidence": [],
    "nameShown": false,
    "identity": "New food service at 29-20 HOYT AVENUE SOUTH",
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193733",
-   "src": "dohmh",
-   "kind": "Food service",
-   "address": "154 CARLTON AVENUE",
-   "county": "Brooklyn",
-   "zip": "11205",
-   "bin": "3058293",
-   "camis": "50193733",
-   "ll": [
-    40.6929,
-    -73.9728
-   ],
-   "phone": "6467532914",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [],
-   "nameShown": false,
-   "identity": "New food service at 154 CARLTON AVENUE",
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193730",
-   "src": "dohmh",
-   "name": "FULTON COFFEE & JUICE CORP",
-   "legal": "FULTON COFFEE & JUICE CORP",
-   "kind": "Food service",
-   "address": "725 FULTON STREET",
-   "county": "Brooklyn",
-   "zip": "11217",
-   "bin": "3058773",
-   "camis": "50193730",
-   "ll": [
-    40.687,
-    -73.9763
-   ],
-   "phone": "9296275863",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
    "isNew": false
   },
   {
@@ -68723,54 +68824,6 @@
    "daysAgo": null,
    "evidence": [
     "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193218",
-   "src": "dohmh",
-   "name": "WINGSTOP",
-   "legal": "WINGSTOP",
-   "kind": "Food service",
-   "address": "185-02 HORACE HARDING EXPRESSWAY",
-   "county": "Queens",
-   "zip": "11365",
-   "bin": "4152843",
-   "camis": "50193218",
-   "ll": [
-    40.7399,
-    -73.7891
-   ],
-   "phone": "2019866194",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "single-word"
-   ],
-   "nameShown": true,
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50193217",
-   "src": "dohmh",
-   "name": "OSTERIA BROOKLYN",
-   "legal": "OSTERIA BROOKLYN",
-   "kind": "Food service",
-   "address": "26-21 JACKSON AVENUE",
-   "county": "Queens",
-   "zip": "11101",
-   "bin": "4005141",
-   "camis": "50193217",
-   "ll": [
-    40.7474,
-    -73.9416
-   ],
-   "phone": "6467509156",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "trade"
    ],
    "nameShown": true,
    "isNew": false
@@ -70264,52 +70317,6 @@
    ],
    "nameShown": true,
    "isNew": false
-  },
-  {
-   "id": "dohmh-50188274",
-   "src": "dohmh",
-   "kind": "Food service",
-   "address": "1220 OGDEN AVENUE",
-   "county": "Bronx",
-   "zip": "10452",
-   "bin": "2003298",
-   "camis": "50188274",
-   "ll": [
-    40.8382,
-    -73.9263
-   ],
-   "phone": "3474311171",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [],
-   "nameShown": false,
-   "identity": "New food service at 1220 OGDEN AVENUE",
-   "isNew": false
-  },
-  {
-   "id": "dohmh-50188214",
-   "src": "dohmh",
-   "name": "ALOHENNY LLC",
-   "legal": "ALOHENNY LLC",
-   "kind": "Food service",
-   "address": "2801 CODDINGTON AVENUE",
-   "county": "Bronx",
-   "zip": "10461",
-   "bin": "2074104",
-   "camis": "50188214",
-   "ll": [
-    40.8382,
-    -73.8348
-   ],
-   "phone": "9146193828",
-   "received": null,
-   "daysAgo": null,
-   "evidence": [
-    "suffix",
-    "trade"
-   ],
-   "nameShown": true,
-   "isNew": false
   }
  ],
  "gas": {
@@ -70618,14 +70625,14 @@
     "isNew": false
    },
    {
-    "bin": "4065247",
-    "address": "86-15 60 ROAD",
+    "bin": "4451392",
+    "address": "144-47 77 ROAD",
     "borough": "Queens",
-    "zip": "11373",
-    "cd": 6,
+    "zip": "11367",
+    "cd": 8,
     "ll": [
-     40.7302,
-     -73.8728
+     40.721,
+     -73.8177
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -70638,13 +70645,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "SING WAH REALTY LLC",
+     "company": "ORSID REALTY CORP",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
-     "address": "60-20 60 PLACe, MASPETh NY 11378",
+     "address": "156 W 56TH ST, 6TH FL, NEW YORK NY 10019",
+     "confidence": "verified",
+     "contactSource": "orsidny.com",
      "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": false,
+     "portfolio": 4,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -70752,14 +70761,14 @@
     "isNew": false
    },
    {
-    "bin": "4451392",
-    "address": "144-47 77 ROAD",
+    "bin": "4065247",
+    "address": "86-15 60 ROAD",
     "borough": "Queens",
-    "zip": "11367",
-    "cd": 8,
+    "zip": "11373",
+    "cd": 6,
     "ll": [
-     40.721,
-     -73.8177
+     40.7302,
+     -73.8728
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -70772,15 +70781,13 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "ORSID REALTY CORP",
+     "company": "SING WAH REALTY LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
-     "address": "156 W 56TH ST, 6TH FL, NEW YORK NY 10019",
-     "confidence": "verified",
-     "contactSource": "orsidny.com",
+     "address": "60-20 60 PLACe, MASPETh NY 11378",
      "lapsed": false,
-     "portfolio": 4,
-     "contactKnown": true,
+     "portfolio": 1,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -70853,14 +70860,14 @@
     "isNew": false
    },
    {
-    "bin": "1062090",
-    "address": "523 WEST 149 STREET",
+    "bin": "1013657",
+    "address": "518 9 AVENUE",
     "borough": "Manhattan",
-    "zip": "10031",
-    "cd": 9,
+    "zip": "10018",
+    "cd": 4,
     "ll": [
-     40.8281,
-     -73.9466
+     40.7563,
+     -73.9941
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -70873,10 +70880,10 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "HH PROPERTY MANAGEMENT SERVICES",
+     "company": "518 NINTH AVENUE LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "575 5TH AVE, 14 WEW, New York NY 10017",
+     "regEnd": "2026-09-01",
+     "address": "224 West 35th, 907, New York NY 10001",
      "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
@@ -70985,14 +70992,14 @@
     "isNew": false
    },
    {
-    "bin": "1013657",
-    "address": "518 9 AVENUE",
+    "bin": "1062090",
+    "address": "523 WEST 149 STREET",
     "borough": "Manhattan",
-    "zip": "10018",
-    "cd": 4,
+    "zip": "10031",
+    "cd": 9,
     "ll": [
-     40.7563,
-     -73.9941
+     40.8281,
+     -73.9466
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -71005,10 +71012,10 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "518 NINTH AVENUE LLC",
+     "company": "HH PROPERTY MANAGEMENT SERVICES",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "224 West 35th, 907, New York NY 10001",
+     "regEnd": "2023-09-01",
+     "address": "575 5TH AVE, 14 WEW, New York NY 10017",
      "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
@@ -72041,14 +72048,14 @@
     "isNew": false
    },
    {
-    "bin": "2023923",
-    "address": "1114 WARD AVENUE",
+    "bin": "2012927",
+    "address": "2409 CROTONA AVENUE",
     "borough": "Bronx",
-    "zip": "10472",
-    "cd": 9,
+    "zip": "10458",
+    "cd": 6,
     "ll": [
-     40.8266,
-     -73.8768
+     40.8544,
+     -73.8834
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -72061,24 +72068,17 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "ALMA REALTY CORP.",
+     "company": "BLUE OWL MANAGEMENT LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "31-10 37TH AVE., 500, LIC NY 11101",
-     "confidence": "verified",
-     "contactSource": "almarealty.com/contact",
-     "lapsed": false,
-     "portfolio": 1,
-     "contactKnown": true,
+     "regEnd": "2026-09-01",
+     "address": "36-36 33rd Street, Suite, Astoria NY 11106",
+     "lapsed": true,
+     "portfolio": 3,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 15,
-    "isNew": false,
-    "laa": {
-     "filed": "2026-07-15",
-     "status": "Approved",
-     "signedOff": null
-    }
+    "isNew": false
    },
    {
     "bin": "1013653",
@@ -72187,14 +72187,14 @@
     "isNew": false
    },
    {
-    "bin": "2012927",
-    "address": "2409 CROTONA AVENUE",
+    "bin": "2023923",
+    "address": "1114 WARD AVENUE",
     "borough": "Bronx",
-    "zip": "10458",
-    "cd": 6,
+    "zip": "10472",
+    "cd": 9,
     "ll": [
-     40.8544,
-     -73.8834
+     40.8266,
+     -73.8768
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -72207,17 +72207,24 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "BLUE OWL MANAGEMENT LLC",
+     "company": "ALMA REALTY CORP.",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2026-09-01",
-     "address": "36-36 33rd Street, Suite, Astoria NY 11106",
-     "lapsed": true,
-     "portfolio": 3,
-     "contactKnown": false,
+     "regEnd": "2027-09-01",
+     "address": "31-10 37TH AVE., 500, LIC NY 11101",
+     "confidence": "verified",
+     "contactSource": "almarealty.com/contact",
+     "lapsed": false,
+     "portfolio": 1,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 15,
-    "isNew": false
+    "isNew": false,
+    "laa": {
+     "filed": "2026-07-15",
+     "status": "Approved",
+     "signedOff": null
+    }
    },
    {
     "bin": "1081539",
@@ -72400,9 +72407,11 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "57 WEST 57TH STREET, 410, New York NY 10019",
+     "confidence": "verified",
+     "contactSource": "documents.dps.ny.gov",
      "lapsed": false,
      "portfolio": 2,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -72475,14 +72484,14 @@
     "isNew": false
    },
    {
-    "bin": "2016005",
-    "address": "3852 BAILEY AVENUE",
+    "bin": "2027415",
+    "address": "1314 ELDER AVENUE",
     "borough": "Bronx",
-    "zip": "10463",
-    "cd": 8,
+    "zip": "10472",
+    "cd": 9,
     "ll": [
-     40.8852,
-     -73.896
+     40.8317,
+     -73.8799
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -72495,11 +72504,11 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "BAILEY AVENUE, LLC",
+     "company": "1314 ASSOCIATES LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2023-09-01",
-     "address": "3852 BAILEY AVENUE, Bronx NY 10463",
-     "lapsed": true,
+     "regEnd": "2027-09-01",
+     "address": "4318 MARTHA AVE, 2ND FL, BRONX NY 10470",
+     "lapsed": false,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -72607,14 +72616,14 @@
     "isNew": false
    },
    {
-    "bin": "2027415",
-    "address": "1314 ELDER AVENUE",
+    "bin": "2016005",
+    "address": "3852 BAILEY AVENUE",
     "borough": "Bronx",
-    "zip": "10472",
-    "cd": 9,
+    "zip": "10463",
+    "cd": 8,
     "ll": [
-     40.8317,
-     -73.8799
+     40.8852,
+     -73.896
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -72627,11 +72636,11 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "1314 ASSOCIATES LLC",
+     "company": "BAILEY AVENUE, LLC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "4318 MARTHA AVE, 2ND FL, BRONX NY 10470",
-     "lapsed": false,
+     "regEnd": "2023-09-01",
+     "address": "3852 BAILEY AVENUE, Bronx NY 10463",
+     "lapsed": true,
      "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
@@ -75026,14 +75035,14 @@
     "isNew": false
    },
    {
-    "bin": "3024519",
-    "address": "227 BERKELEY PLACE",
+    "bin": "3391471",
+    "address": "47 DE SALES PLACE",
     "borough": "Brooklyn",
-    "zip": "11217",
-    "cd": 6,
+    "zip": "11207",
+    "cd": 4,
     "ll": [
-     40.6745,
-     -73.9734
+     40.6817,
+     -73.9051
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -75046,12 +75055,12 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "US CONSTRUCTION INC.",
+     "company": "THE GREATER NEW YORK NETWORK INC",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2018-09-01",
-     "address": "70 HUDSON STREET, 5A, Hoboken NJ 7030",
-     "lapsed": true,
-     "portfolio": 1,
+     "regEnd": "2027-09-01",
+     "address": "240-19 JAMAICA AVE, Bellerose NY 11426",
+     "lapsed": false,
+     "portfolio": 2,
      "contactKnown": false,
      "namedContact": true
     },
@@ -75158,14 +75167,14 @@
     "isNew": false
    },
    {
-    "bin": "3391471",
-    "address": "47 DE SALES PLACE",
+    "bin": "3024519",
+    "address": "227 BERKELEY PLACE",
     "borough": "Brooklyn",
-    "zip": "11207",
-    "cd": 4,
+    "zip": "11217",
+    "cd": 6,
     "ll": [
-     40.6817,
-     -73.9051
+     40.6745,
+     -73.9734
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -75178,12 +75187,12 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "THE GREATER NEW YORK NETWORK INC",
+     "company": "US CONSTRUCTION INC.",
      "role": "Managing agent (HPD registration)",
-     "regEnd": "2027-09-01",
-     "address": "240-19 JAMAICA AVE, Bellerose NY 11426",
-     "lapsed": false,
-     "portfolio": 2,
+     "regEnd": "2018-09-01",
+     "address": "70 HUDSON STREET, 5A, Hoboken NJ 7030",
+     "lapsed": true,
+     "portfolio": 1,
      "contactKnown": false,
      "namedContact": true
     },
@@ -76040,14 +76049,14 @@
     "isNew": false
    },
    {
-    "bin": "1079491",
-    "address": "521 WEST  144 STREET",
+    "bin": "1040157",
+    "address": "954 1 AVENUE",
     "borough": "Manhattan",
-    "zip": "10031",
-    "cd": 9,
+    "zip": "10022",
+    "cd": 6,
     "ll": [
-     40.8249,
-     -73.9489
+     40.7554,
+     -73.965
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -76060,15 +76069,13 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "CONCORD MANAGEMENT OF NY LLC",
+     "company": "WILLIAM GOTTLIEB MANAGEMENT CO, LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
-     "address": "50 WEST 132 STREET, New York NY 10037",
-     "confidence": "verified",
-     "contactSource": "concordny.com",
+     "address": "353 WEST 12TH STREET, NEW YORK NY 10014",
      "lapsed": false,
-     "portfolio": 7,
-     "contactKnown": true,
+     "portfolio": 2,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -76174,14 +76181,14 @@
     "isNew": false
    },
    {
-    "bin": "1040157",
-    "address": "954 1 AVENUE",
+    "bin": "1079491",
+    "address": "521 WEST  144 STREET",
     "borough": "Manhattan",
-    "zip": "10022",
-    "cd": 6,
+    "zip": "10031",
+    "cd": 9,
     "ll": [
-     40.7554,
-     -73.965
+     40.8249,
+     -73.9489
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -76194,13 +76201,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "WILLIAM GOTTLIEB MANAGEMENT CO, LLC",
+     "company": "CONCORD MANAGEMENT OF NY LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
-     "address": "353 WEST 12TH STREET, NEW YORK NY 10014",
+     "address": "50 WEST 132 STREET, New York NY 10037",
+     "confidence": "verified",
+     "contactSource": "concordny.com",
      "lapsed": false,
-     "portfolio": 2,
-     "contactKnown": false,
+     "portfolio": 7,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -77947,14 +77956,14 @@
     "isNew": false
    },
    {
-    "bin": "1078725",
-    "address": "122 EAST   22 STREET",
+    "bin": "1050227",
+    "address": "316 EAST 92 STREET",
     "borough": "Manhattan",
-    "zip": "10010",
-    "cd": 6,
+    "zip": "10128",
+    "cd": 8,
     "ll": [
-     40.739,
-     -73.9857
+     40.7814,
+     -73.9483
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -77967,15 +77976,13 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "AKAM ASSOCIATES INC",
+     "company": "EBERHART BROTHERS LLC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2025-09-01",
-     "address": "99 PARK AVENUE, 14TH F, New York NY 10016",
-     "confidence": "verified",
-     "contactSource": "akam.com",
+     "address": "312 EAST 82 STREET, New York NY 10028",
      "lapsed": true,
-     "portfolio": 1,
-     "contactKnown": true,
+     "portfolio": 2,
+     "contactKnown": false,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -78055,14 +78062,14 @@
     }
    },
    {
-    "bin": "1050227",
-    "address": "316 EAST 92 STREET",
+    "bin": "1078725",
+    "address": "122 EAST   22 STREET",
     "borough": "Manhattan",
-    "zip": "10128",
-    "cd": 8,
+    "zip": "10010",
+    "cd": 6,
     "ll": [
-     40.7814,
-     -73.9483
+     40.739,
+     -73.9857
     ],
     "cycleEnd": null,
     "issued": "2025-10-31",
@@ -78075,13 +78082,15 @@
     "cycleYear": null,
     "multifamily": true,
     "agent": {
-     "company": "EBERHART BROTHERS LLC",
+     "company": "AKAM ASSOCIATES INC",
      "role": "Managing agent (HPD registration)",
      "regEnd": "2025-09-01",
-     "address": "312 EAST 82 STREET, New York NY 10028",
+     "address": "99 PARK AVENUE, 14TH F, New York NY 10016",
+     "confidence": "verified",
+     "contactSource": "akam.com",
      "lapsed": true,
-     "portfolio": 2,
-     "contactKnown": false,
+     "portfolio": 1,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 15,
@@ -104128,9 +104137,11 @@
      "role": "Managing agent (HPD registration)",
      "regEnd": "2027-09-01",
      "address": "57 WEST 57TH STREET, 410, New York NY 10019",
+     "confidence": "verified",
+     "contactSource": "documents.dps.ny.gov",
      "lapsed": false,
      "portfolio": 2,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 4,
@@ -112732,7 +112743,7 @@
      "address": "726 E 237TH STREET, Bronx NY 10466",
      "lapsed": false,
      "portfolio": 1,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 3,
@@ -112928,7 +112939,7 @@
      "address": "726 E 237TH ST, BRONX NY 10466",
      "lapsed": false,
      "portfolio": 1,
-     "contactKnown": false,
+     "contactKnown": true,
      "namedContact": true
     },
     "urgencyScore": 3,
