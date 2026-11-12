@@ -1,17 +1,17 @@
 {
- "updatedAt": 1794514428880,
+ "updatedAt": 1794520064154,
  "last": {
   "lane": "hourly",
-  "startedAt": 1794511800023,
-  "finishedAt": 1794514428880,
-  "ms": 2628857,
+  "startedAt": 1794515333635,
+  "finishedAt": 1794520064154,
+  "ms": 4730519,
   "outcome": "ok",
   "error": null,
   "counts": {
    "facades": 800,
    "gas": 432,
    "carbon": 800,
-   "elevators": 543,
+   "elevators": 542,
    "contracts": 148,
    "openings": 400,
    "permits": 75,
@@ -26,7 +26,7 @@
     "elevators": 0
    }
   },
-  "feedAt": "2026-11-12T19:30:00.023Z",
+  "feedAt": "2026-11-12T20:28:53.635Z",
   "sources": {
    "facades": {
     "ok": true,
@@ -34,118 +34,118 @@
     "retries": 0,
     "failures": 0,
     "rows": 34080,
-    "ms": 6805,
-    "lastOkAt": 1794511806829,
+    "ms": 10601,
+    "lastOkAt": 1794515344237,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 152,
-     "at": 1794514331801,
-     "lastOkAt": 1794514331801
+     "ms": 178,
+     "at": 1794519963990,
+     "lastOkAt": 1794519963990
     }
    },
    "hpd": {
     "ok": true,
     "calls": 174,
-    "retries": 16,
+    "retries": 15,
     "failures": 0,
-    "rows": 4817,
-    "ms": 549377,
-    "lastOkAt": 1794514279650,
+    "rows": 4815,
+    "ms": 548761,
+    "lastOkAt": 1794519884969,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 135,
-     "at": 1794514332981,
-     "lastOkAt": 1794514332981
+     "ms": 162,
+     "at": 1794519965097,
+     "lastOkAt": 1794519965097
     }
    },
    "hpdContacts": {
     "ok": true,
     "calls": 96,
-    "retries": 11,
+    "retries": 7,
     "failures": 0,
-    "rows": 12737,
-    "ms": 311604,
-    "lastOkAt": 1794514331587
+    "rows": 12731,
+    "ms": 230998,
+    "lastOkAt": 1794519963738
    },
    "ecb": {
     "ok": true,
     "calls": 44,
-    "retries": 4,
+    "retries": 18,
     "failures": 0,
     "rows": 6224,
-    "ms": 218172,
-    "lastOkAt": 1794512254415,
+    "ms": 367840,
+    "lastOkAt": 1794515897898,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 163,
-     "at": 1794514332846,
-     "lastOkAt": 1794514332846
+     "ms": 184,
+     "at": 1794519964935,
+     "lastOkAt": 1794519964935
     }
    },
    "acris": {
     "ok": true,
     "calls": 68,
-    "retries": 14,
+    "retries": 38,
     "failures": 0,
     "rows": 2772484,
-    "ms": 626020,
-    "lastOkAt": 1794512880833
+    "ms": 1789793,
+    "lastOkAt": 1794517688133
    },
    "elevators": {
     "ok": true,
     "calls": 45,
-    "retries": 1,
+    "retries": 6,
     "failures": 0,
-    "rows": 11803,
-    "ms": 65161,
-    "lastOkAt": 1794514126775,
+    "rows": 11801,
+    "ms": 216431,
+    "lastOkAt": 1794519730740,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 140,
-     "at": 1794514332575,
-     "lastOkAt": 1794514332575
+     "ms": 173,
+     "at": 1794519964580,
+     "lastOkAt": 1794519964580
     }
    },
    "permits": {
     "ok": true,
     "calls": 110,
-    "retries": 0,
+    "retries": 18,
     "failures": 0,
-    "rows": 7777,
-    "ms": 109656,
-    "lastOkAt": 1794513100231,
+    "rows": 7776,
+    "ms": 359104,
+    "lastOkAt": 1794518510861,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 298,
-     "at": 1794514332099,
-     "lastOkAt": 1794514332099
+     "ms": 182,
+     "at": 1794519964172,
+     "lastOkAt": 1794519964172
     }
    },
    "jobs": {
     "ok": true,
     "calls": 55,
-    "retries": 0,
+    "retries": 13,
     "failures": 0,
     "rows": 25895,
-    "ms": 49518,
-    "lastOkAt": 1794513056312,
+    "ms": 266445,
+    "lastOkAt": 1794518359387,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 336,
-     "at": 1794514332435,
-     "lastOkAt": 1794514332435
+     "ms": 234,
+     "at": 1794519964407,
+     "lastOkAt": 1794519964407
     }
    },
    "store": {
@@ -155,7 +155,7 @@
     "failures": 0,
     "rows": 0,
     "ms": 0,
-    "lastOkAt": 1794513100603
+    "lastOkAt": 1794518511229
    },
    "enrichment": {
     "ok": false,
@@ -166,7 +166,7 @@
     "ms": 0,
     "status": 429,
     "error": "serper: serpapi 429",
-    "failedAt": 1794513101158
+    "failedAt": 1794518511421
    },
    "awards": {
     "ok": true,
@@ -174,15 +174,15 @@
     "retries": 0,
     "failures": 0,
     "rows": 267,
-    "ms": 6058,
-    "lastOkAt": 1794513106419,
+    "ms": 20595,
+    "lastOkAt": 1794518531705,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 189,
-     "at": 1794514333170,
-     "lastOkAt": 1794514333170
+     "ms": 198,
+     "at": 1794519965295,
+     "lastOkAt": 1794519965295
     }
    },
    "sla": {
@@ -191,32 +191,32 @@
     "retries": 0,
     "failures": 0,
     "rows": 60,
-    "ms": 6170,
-    "lastOkAt": 1794513112589,
+    "ms": 1509,
+    "lastOkAt": 1794518533215,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 7106,
-     "at": 1794514340435,
-     "lastOkAt": 1794514340435
+     "ms": 562,
+     "at": 1794519966013,
+     "lastOkAt": 1794519966013
     }
    },
    "dohmh": {
     "ok": true,
     "calls": 137,
-    "retries": 2,
+    "retries": 13,
     "failures": 0,
     "rows": 4357,
-    "ms": 564730,
-    "lastOkAt": 1794513683697,
+    "ms": 746703,
+    "lastOkAt": 1794519289438,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 158,
-     "at": 1794514333328,
-     "lastOkAt": 1794514333328
+     "ms": 156,
+     "at": 1794519965451,
+     "lastOkAt": 1794519965451
     }
    },
    "dcwp": {
@@ -225,8 +225,8 @@
     "retries": 0,
     "failures": 0,
     "rows": 56775,
-    "ms": 6299,
-    "lastOkAt": 1794513122848
+    "ms": 9416,
+    "lastOkAt": 1794518544863
    },
    "mandates": {
     "ok": true,
@@ -234,15 +234,15 @@
     "retries": 0,
     "failures": 0,
     "rows": 66060,
-    "ms": 9379,
-    "lastOkAt": 1794513877029,
+    "ms": 49773,
+    "lastOkAt": 1794519524134,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 108,
-     "at": 1794514332683,
-     "lastOkAt": 1794514332683
+     "ms": 171,
+     "at": 1794519964751,
+     "lastOkAt": 1794519964751
     }
    },
    "energy": {
@@ -251,26 +251,26 @@
     "retries": 0,
     "failures": 0,
     "rows": 39090,
-    "ms": 1594,
-    "lastOkAt": 1794513878630
+    "ms": 10893,
+    "lastOkAt": 1794519535037
    },
    "pluto": {
     "ok": true,
     "calls": 20,
-    "retries": 1,
+    "retries": 0,
     "failures": 0,
     "rows": 756,
-    "ms": 70076,
-    "lastOkAt": 1794514410522
+    "ms": 54243,
+    "lastOkAt": 1794520020266
    },
    "laa": {
     "ok": true,
     "calls": 9,
-    "retries": 1,
+    "retries": 0,
     "failures": 0,
     "rows": 208,
-    "ms": 18140,
-    "lastOkAt": 1794514428664
+    "ms": 43610,
+    "lastOkAt": 1794520063878
    },
    "contacts": {
     "ok": true,
@@ -278,7 +278,7 @@
     "retries": 0,
     "failures": 0,
     "rows": 0,
-    "ms": 2,
+    "ms": 1,
     "detail": {
      "contacts": 490,
      "confirmed": 430,
@@ -294,38 +294,11 @@
      "fullPassAt": 1794481999945,
      "summary": "430 confirmed · 0 changed · 20 withdrawn · 35 unreachable · 19 unconfirmed · 6 held off the cards"
     },
-    "lastOkAt": 1794514430427
+    "lastOkAt": 1794520065776
    }
   }
  },
  "runs": [
-  {
-   "at": 1794167241735,
-   "ms": 2696892,
-   "outcome": "ok",
-   "failed": [],
-   "feedAt": "2026-11-08T19:47:21.735Z",
-   "counts": {
-    "facades": 800,
-    "gas": 432,
-    "carbon": 800,
-    "elevators": 544,
-    "contracts": 150,
-    "openings": 400,
-    "permits": 74,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 34,
-     "contracts": 42,
-     "openings": 108,
-     "gas": 0,
-     "carbon": 3,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1794170659857,
    "ms": 2711433,
@@ -2779,17 +2752,46 @@
     }
    },
    "error": null
+  },
+  {
+   "at": 1794515333635,
+   "ms": 4730519,
+   "outcome": "ok",
+   "failed": [
+    "enrichment"
+   ],
+   "feedAt": "2026-11-12T20:28:53.635Z",
+   "counts": {
+    "facades": 800,
+    "gas": 432,
+    "carbon": 800,
+    "elevators": 542,
+    "contracts": 148,
+    "openings": 400,
+    "permits": 75,
+    "new": {
+     "windowHours": 168,
+     "buildings": 0,
+     "signals": 8,
+     "contracts": 35,
+     "openings": 124,
+     "gas": 0,
+     "carbon": 1,
+     "elevators": 0
+    }
+   },
+   "error": null
   }
  ],
  "incidents": [
   {
    "at": 1794442108107,
-   "lastAt": 1794513101158,
+   "lastAt": 1794518511421,
    "lane": "hourly",
    "source": "enrichment",
    "status": 429,
    "error": "serper: serpapi 429",
-   "count": 21,
+   "count": 22,
    "resolvedAt": null,
    "clockApart": true
   },
