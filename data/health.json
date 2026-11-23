@@ -1,12 +1,12 @@
 {
- "updatedAt": 1795416590161,
+ "updatedAt": 1795420073419,
  "last": {
   "lane": "hourly",
-  "startedAt": 1795413186859,
-  "finishedAt": 1795416590161,
-  "ms": 3403302,
+  "startedAt": 1795416643305,
+  "finishedAt": 1795420073419,
+  "ms": 3430114,
   "outcome": "degraded",
-  "error": "carried by the previous hour: acris, jobs",
+  "error": "carried by the previous hour: jobs",
   "counts": {
    "facades": 800,
    "gas": 399,
@@ -26,112 +26,109 @@
     "elevators": 0
    }
   },
-  "feedAt": "2026-11-23T05:53:06.859Z",
+  "feedAt": "2026-11-23T06:50:43.305Z",
   "sources": {
    "facades": {
     "ok": true,
     "calls": 1,
-    "retries": 1,
+    "retries": 0,
     "failures": 0,
     "rows": 34172,
-    "ms": 17993,
-    "lastOkAt": 1795413204853,
+    "ms": 31110,
+    "lastOkAt": 1795416674417,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 154,
-     "at": 1795416507130,
-     "lastOkAt": 1795416507130
+     "ms": 112,
+     "at": 1795420004386,
+     "lastOkAt": 1795420004386
     }
    },
    "hpd": {
     "ok": true,
     "calls": 134,
-    "retries": 18,
+    "retries": 20,
     "failures": 0,
     "rows": 3944,
-    "ms": 373965,
-    "lastOkAt": 1795416506318,
+    "ms": 427283,
+    "lastOkAt": 1795420003765,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 178,
-     "at": 1795416508045,
-     "lastOkAt": 1795416508045
+     "ms": 99,
+     "at": 1795420005262,
+     "lastOkAt": 1795420005262
     }
    },
    "hpdContacts": {
     "ok": true,
     "calls": 81,
-    "retries": 8,
+    "retries": 15,
     "failures": 0,
     "rows": 10618,
-    "ms": 250826,
-    "lastOkAt": 1795416506882
+    "ms": 289251,
+    "lastOkAt": 1795420004197
    },
    "ecb": {
     "ok": true,
     "calls": 44,
-    "retries": 17,
+    "retries": 16,
     "failures": 0,
     "rows": 6258,
-    "ms": 425523,
-    "lastOkAt": 1795413873378,
+    "ms": 280651,
+    "lastOkAt": 1795417243237,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 142,
-     "at": 1795416507867,
-     "lastOkAt": 1795416507867
+     "ms": 165,
+     "at": 1795420005163,
+     "lastOkAt": 1795420005163
     }
    },
    "acris": {
-    "ok": false,
-    "calls": 25,
-    "retries": 21,
-    "failures": 1,
-    "rows": 1080931,
-    "ms": 1124879,
-    "lastOkAt": 1795414731504,
-    "status": null,
-    "error": "The operation was aborted due to timeout",
-    "failedAt": 1795414998482
+    "ok": true,
+    "calls": 70,
+    "retries": 27,
+    "failures": 0,
+    "rows": 2775528,
+    "ms": 1352056,
+    "lastOkAt": 1795418595846
    },
    "elevators": {
     "ok": true,
     "calls": 45,
-    "retries": 9,
+    "retries": 0,
     "failures": 0,
     "rows": 231,
-    "ms": 179641,
-    "lastOkAt": 1795416499439,
+    "ms": 155638,
+    "lastOkAt": 1795419984370,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 136,
-     "at": 1795416507570,
-     "lastOkAt": 1795416507570
+     "ms": 129,
+     "at": 1795420004833,
+     "lastOkAt": 1795420004833
     }
    },
    "permits": {
     "ok": true,
     "calls": 110,
-    "retries": 19,
+    "retries": 17,
     "failures": 0,
     "rows": 7743,
-    "ms": 412868,
-    "lastOkAt": 1795415753749,
+    "ms": 302008,
+    "lastOkAt": 1795419182312,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 128,
-     "at": 1795416507258,
-     "lastOkAt": 1795416507258
+     "ms": 161,
+     "at": 1795420004547,
+     "lastOkAt": 1795420004547
     }
    },
    "jobs": {
@@ -140,15 +137,15 @@
     "retries": 10,
     "failures": 0,
     "rows": 2647,
-    "ms": 173524,
-    "lastOkAt": 1795415477398,
+    "ms": 142286,
+    "lastOkAt": 1795419034330,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 175,
-     "at": 1795416507434,
-     "lastOkAt": 1795416507434
+     "ms": 156,
+     "at": 1795420004703,
+     "lastOkAt": 1795420004703
     }
    },
    "store": {
@@ -158,7 +155,7 @@
     "failures": 0,
     "rows": 0,
     "ms": 0,
-    "lastOkAt": 1795415754291
+    "lastOkAt": 1795419182692
    },
    "enrichment": {
     "ok": false,
@@ -169,23 +166,23 @@
     "ms": 0,
     "status": 429,
     "error": "serper: serpapi 429",
-    "failedAt": 1795415754423
+    "failedAt": 1795419182832
    },
    "awards": {
     "ok": true,
     "calls": 3,
-    "retries": 1,
+    "retries": 0,
     "failures": 0,
     "rows": 272,
-    "ms": 12402,
-    "lastOkAt": 1795415766256,
+    "ms": 18064,
+    "lastOkAt": 1795419200787,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 202,
-     "at": 1795416508247,
-     "lastOkAt": 1795416508247
+     "ms": 159,
+     "at": 1795420005421,
+     "lastOkAt": 1795420005421
     }
    },
    "sla": {
@@ -194,77 +191,77 @@
     "retries": 0,
     "failures": 0,
     "rows": 60,
-    "ms": 4590,
-    "lastOkAt": 1795415770847,
+    "ms": 6310,
+    "lastOkAt": 1795419207097,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 611,
-     "at": 1795416508982,
-     "lastOkAt": 1795416508982
+     "ms": 379,
+     "at": 1795420005923,
+     "lastOkAt": 1795420005923
     }
    },
    "dohmh": {
     "ok": true,
     "calls": 104,
-    "retries": 18,
+    "retries": 12,
     "failures": 0,
     "rows": 3728,
-    "ms": 314519,
-    "lastOkAt": 1795416088488,
+    "ms": 271090,
+    "lastOkAt": 1795419497515,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 124,
-     "at": 1795416508371,
-     "lastOkAt": 1795416508371
+     "ms": 123,
+     "at": 1795420005544,
+     "lastOkAt": 1795420005544
     }
    },
    "dcwp": {
     "ok": true,
     "calls": 2,
-    "retries": 0,
+    "retries": 1,
     "failures": 0,
     "rows": 57317,
-    "ms": 3022,
-    "lastOkAt": 1795415776926
+    "ms": 19204,
+    "lastOkAt": 1795419234376
    },
    "mandates": {
     "ok": true,
     "calls": 3,
-    "retries": 0,
+    "retries": 1,
     "failures": 0,
     "rows": 66035,
-    "ms": 17700,
-    "lastOkAt": 1795416286111,
+    "ms": 52204,
+    "lastOkAt": 1795419771532,
     "clock": {
      "ok": true,
      "calls": 1,
      "failures": 0,
-     "ms": 155,
-     "at": 1795416507725,
-     "lastOkAt": 1795416507725
+     "ms": 165,
+     "at": 1795420004998,
+     "lastOkAt": 1795420004998
     }
    },
    "energy": {
     "ok": true,
     "calls": 1,
-    "retries": 0,
+    "retries": 1,
     "failures": 0,
     "rows": 39090,
-    "ms": 7609,
-    "lastOkAt": 1795416293731
+    "ms": 12156,
+    "lastOkAt": 1795419783702
    },
    "pluto": {
     "ok": true,
     "calls": 20,
-    "retries": 0,
+    "retries": 4,
     "failures": 0,
-    "rows": 759,
-    "ms": 47494,
-    "lastOkAt": 1795416556491
+    "rows": 760,
+    "ms": 61578,
+    "lastOkAt": 1795420067514
    },
    "laa": {
     "ok": true,
@@ -272,8 +269,8 @@
     "retries": 0,
     "failures": 0,
     "rows": 280,
-    "ms": 33496,
-    "lastOkAt": 1795416589987
+    "ms": 5757,
+    "lastOkAt": 1795420073273
    },
    "contacts": {
     "ok": true,
@@ -297,40 +294,11 @@
      "fullPassAt": 1795386595462,
      "summary": "381 confirmed · 0 changed · 19 withdrawn · 31 unreachable · 32 unconfirmed · 4 held off the cards"
     },
-    "lastOkAt": 1795416591999
+    "lastOkAt": 1795420075118
    }
   }
  },
  "runs": [
-  {
-   "at": 1795087468020,
-   "ms": 1056649,
-   "outcome": "ok",
-   "failed": [
-    "enrichment"
-   ],
-   "feedAt": "2026-11-19T11:24:28.020Z",
-   "counts": {
-    "facades": 800,
-    "gas": 430,
-    "carbon": 800,
-    "elevators": 543,
-    "contracts": 153,
-    "openings": 400,
-    "permits": 69,
-    "new": {
-     "windowHours": 168,
-     "buildings": 0,
-     "signals": 2,
-     "contracts": 33,
-     "openings": 135,
-     "gas": 0,
-     "carbon": 0,
-     "elevators": 0
-    }
-   },
-   "error": null
-  },
   {
    "at": 1795090903620,
    "ms": 838330,
@@ -3072,9 +3040,49 @@
     }
    },
    "error": "carried by the previous hour: acris, jobs"
+  },
+  {
+   "at": 1795416643305,
+   "ms": 3430114,
+   "outcome": "degraded",
+   "failed": [
+    "enrichment"
+   ],
+   "feedAt": "2026-11-23T06:50:43.305Z",
+   "counts": {
+    "facades": 800,
+    "gas": 399,
+    "carbon": 800,
+    "elevators": 35,
+    "contracts": 153,
+    "openings": 400,
+    "permits": 49,
+    "new": {
+     "windowHours": 168,
+     "buildings": 0,
+     "signals": 1,
+     "contracts": 30,
+     "openings": 117,
+     "gas": 0,
+     "carbon": 0,
+     "elevators": 0
+    }
+   },
+   "error": "carried by the previous hour: jobs"
   }
  ],
  "incidents": [
+  {
+   "at": 1794442108107,
+   "lastAt": 1795419182832,
+   "lane": "hourly",
+   "source": "enrichment",
+   "status": 429,
+   "error": "serper: serpapi 429",
+   "count": 282,
+   "resolvedAt": null,
+   "clockApart": true
+  },
   {
    "at": 1795414998482,
    "lastAt": 1795414998482,
@@ -3083,18 +3091,7 @@
    "status": null,
    "error": "The operation was aborted due to timeout",
    "count": 1,
-   "resolvedAt": null,
-   "clockApart": true
-  },
-  {
-   "at": 1794442108107,
-   "lastAt": 1795415754423,
-   "lane": "hourly",
-   "source": "enrichment",
-   "status": 429,
-   "error": "serper: serpapi 429",
-   "count": 281,
-   "resolvedAt": null,
+   "resolvedAt": 1795418595846,
    "clockApart": true
   },
   {
